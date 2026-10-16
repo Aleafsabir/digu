@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS profiles (
         "thousandPointRuns": 0,
         "totalPointsScored": 0
     }'::jsonb,
+    friend_code VARCHAR(12) UNIQUE NOT NULL DEFAULT ('DIGU-' || upper(substr(md5(random()::text), 1, 4))),
+    presence_status VARCHAR(20) NOT NULL DEFAULT 'OFFLINE', -- 'IN_LOBBY', 'IN_MATCH', 'OFFLINE'
+    current_match_info JSONB DEFAULT NULL, -- {"roomCode": "THAAS-8842", "mode": "TEAM_4P"}
     last_daily_bonus_at TIMESTAMPTZ,
     last_active_at TIMESTAMPTZ DEFAULT now(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -107,14 +110,53 @@ CREATE TABLE IF NOT EXISTS match_records (
 );
 
 -- ============================================================================
+-- 6. Friendships & Social Connections
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS friendships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    friend_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- 'PENDING', 'ACCEPTED', 'DECLINED', 'BLOCKED'
+    sender_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT unique_friend_pair UNIQUE (user_id, friend_id),
+    CONSTRAINT no_self_friendship CHECK (user_id <> friend_id)
+);
+
+-- ============================================================================
+-- 7. Real-Time Match Invitations
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS match_invitations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id UUID REFERENCES game_rooms(id) ON DELETE CASCADE,
+    room_code VARCHAR(10) NOT NULL,
+    sender_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    sender_name VARCHAR(50) NOT NULL,
+    sender_avatar_id VARCHAR(50) NOT NULL DEFAULT 'sultan',
+    receiver_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    mode VARCHAR(20) NOT NULL, -- 'TEAM_4P' | 'SOLO_4P' | 'SOLO_2P'
+    stake_buy_in BIGINT NOT NULL DEFAULT 1000,
+    target_score INT NOT NULL DEFAULT 1000,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- 'PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED'
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '2 minutes')
+);
+
+-- ============================================================================
 -- Indexes for High Concurrency Performance
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_profiles_coins ON profiles(coins);
+CREATE INDEX IF NOT EXISTS idx_profiles_friend_code ON profiles(friend_code);
+CREATE INDEX IF NOT EXISTS idx_profiles_presence ON profiles(presence_status);
 CREATE INDEX IF NOT EXISTS idx_currency_tx_profile ON currency_transactions(profile_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_game_rooms_code ON game_rooms(room_code);
 CREATE INDEX IF NOT EXISTS idx_game_rooms_status ON game_rooms(status);
 CREATE INDEX IF NOT EXISTS idx_room_seats_profile ON room_seats(profile_id);
 CREATE INDEX IF NOT EXISTS idx_match_records_completed ON match_records(completed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id, status);
+CREATE INDEX IF NOT EXISTS idx_match_invites_receiver ON match_invitations(receiver_id, status, expires_at);
 
 -- ============================================================================
 -- Stored Procedures: ACID Currency Operations & Room Lifecycle

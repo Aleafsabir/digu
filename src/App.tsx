@@ -11,10 +11,14 @@ import { AuthModal } from './components/auth/AuthModal';
 import { ProfileEditModal } from './components/auth/ProfileEditModal';
 import { RulesModal } from './components/shared/RulesModal';
 import { SettingsModal } from './components/shared/SettingsModal';
+import { FriendsModal } from './components/social/FriendsModal';
+import { MatchInviteToast } from './components/social/MatchInviteToast';
 import { InactivityForfeitModal } from './components/shared/InactivityForfeitModal';
 import { AlertCircle, Clock } from 'lucide-react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useWakeLock } from './hooks/useWakeLock';
+import { useSocialStore } from './store/useSocialStore';
+import { useAuthStore } from './store/useAuthStore';
 
 export default function App() {
   // Mobile Screen Timeout Prevention (Screen Wake Lock API + iOS Safari Lifecycle)
@@ -41,6 +45,17 @@ export default function App() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
+
+  const profile = useAuthStore(state => state.profile);
+  const { isFriendsModalOpen, setFriendsModalOpen, initPresence } = useSocialStore();
+
+  // Connect to Real-Time Presence & Invitation WebSocket
+  useEffect(() => {
+    if (profile?.id && profile?.displayName) {
+      const cleanup = initPresence(profile.id, profile.displayName);
+      return cleanup;
+    }
+  }, [profile?.id, profile?.displayName, initPresence]);
 
   // Restore active match session seamlessly on app load / mobile reopen
   useEffect(() => {
@@ -149,6 +164,12 @@ export default function App() {
 
       {/* Settings Modal (Appearance, System & Account) */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
+      {/* Friends & Social Modal */}
+      <FriendsModal isOpen={isFriendsModalOpen} onClose={() => setFriendsModalOpen(false)} />
+
+      {/* Real-Time Match Invitation Floating Toast */}
+      <MatchInviteToast />
 
       {/* Rules Cheat Sheet Modal (Graphic Formulas, Zero Paragraphs) */}
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />

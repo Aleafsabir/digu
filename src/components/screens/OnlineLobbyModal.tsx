@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { TableRules } from '../../core/models/types';
-import { Globe, Copy, Check, ChevronLeft, Bot, Radio, Plus, KeyRound, Coins, Sparkles, AlertCircle, RotateCcw } from 'lucide-react';
+import { Globe, Copy, Check, ChevronLeft, Bot, Radio, Plus, KeyRound, Coins, Sparkles, AlertCircle, RotateCcw, Users, UserPlus, X } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useGameStore } from '../../store/useGameStore';
+import { useSocialStore } from '../../store/useSocialStore';
 import { DatabaseService } from '../../services/databaseService';
 import { RoomSeat, GameRoom } from '../../types/database';
 import { AVATAR_PRESETS } from '../../types/auth';
@@ -36,6 +37,12 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [dailyClaimMsg, setDailyClaimMsg] = useState<string | null>(null);
+
+  // Social & Private Waiting Room State
+  const { friends, sendMatchInvite } = useSocialStore();
+  const [invitedSeats, setInvitedSeats] = useState<Record<number, { friendName: string; avatarId: string }>>({});
+  const [botSeats, setBotSeats] = useState<Record<number, { botName: string; avatarId: string }>>({});
+  const [friendPickerSeatIndex, setFriendPickerSeatIndex] = useState<number | null>(null);
 
   // Matchmaking State
   const [isSearching, setIsSearching] = useState(false);
@@ -357,9 +364,9 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
         {/* TAB 2: HOST PRIVATE TABLE                                */}
         {/* ======================================================== */}
         {activeTab === 'CREATE_ROOM' && (
-          <div className="flex flex-col my-auto space-y-3">
+          <div className="flex flex-col my-auto space-y-2.5">
             {/* Room Code Showcase */}
-            <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-md">
+            <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-3 shadow-md">
               <div className="flex flex-col text-left">
                 <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider">
                   Private Room Code
@@ -387,9 +394,9 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             </div>
 
             {/* Stake & Target Configuration */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-2.5 flex flex-col justify-between shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 uppercase mb-1.5">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-2 flex flex-col justify-between shadow-sm text-left">
+                <span className="text-[9.5px] font-black text-slate-400 uppercase mb-1">
                   Table Buy-In
                 </span>
                 <div className="flex items-center gap-1">
@@ -409,8 +416,8 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                 </div>
               </div>
 
-              <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-2.5 flex flex-col justify-between shadow-sm">
-                <span className="text-[10px] font-black text-[#05D59A] uppercase mb-1.5">
+              <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-2 flex flex-col justify-between shadow-sm text-left">
+                <span className="text-[9.5px] font-black text-[#05D59A] uppercase mb-1">
                   Match Target
                 </span>
                 <div className="flex items-center gap-1">
@@ -431,13 +438,206 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               </div>
             </div>
 
+            {/* Interactive 4-Seat Waiting Pedestals */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {Array.from({ length: maxPlayers }).map((_, seatIdx) => {
+                const isHost = seatIdx === 0;
+                const invited = invitedSeats[seatIdx];
+                const bot = botSeats[seatIdx];
+                const teamLabel =
+                  pendingRules.mode === 'TEAM_4P'
+                    ? seatIdx % 2 === 0
+                      ? 'Team A'
+                      : 'Team B'
+                    : `Seat ${seatIdx + 1}`;
+
+                return (
+                  <div
+                    key={seatIdx}
+                    className={`rounded-2xl p-2 flex flex-col items-center text-center justify-between transition-all border min-h-[105px] ${
+                      isHost
+                        ? 'bg-[#031B11] border-emerald-700/80 text-slate-100 shadow'
+                        : invited || bot
+                        ? 'bg-[#02140D] border-slate-700 text-slate-200'
+                        : 'bg-[#010D08] border-slate-800/80 text-slate-400'
+                    }`}
+                  >
+                    <span className="text-[8.5px] font-mono font-bold text-slate-400">
+                      {isHost ? '👑 Host' : teamLabel}
+                    </span>
+
+                    {/* Seat Avatar / Icon */}
+                    <div className="relative my-1">
+                      <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-base shadow">
+                        {isHost ? (
+                          '👑'
+                        ) : invited ? (
+                          '📩'
+                        ) : bot ? (
+                          '🤖'
+                        ) : (
+                          <Plus className="w-4 h-4 text-slate-500" />
+                        )}
+                      </div>
+                      {isHost && (
+                        <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black" />
+                      )}
+                    </div>
+
+                    {/* Seat Name */}
+                    <span className="text-[11px] font-black truncate max-w-full text-slate-100 mb-1">
+                      {isHost
+                        ? profile.displayName
+                        : invited
+                        ? invited.friendName
+                        : bot
+                        ? bot.botName
+                        : 'Empty Seat'}
+                    </span>
+
+                    {/* Actions or Status */}
+                    {isHost ? (
+                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        Ready
+                      </span>
+                    ) : invited ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px] font-bold text-amber-300 animate-pulse">Invited...</span>
+                        <button
+                          onClick={() => {
+                            const next = { ...invitedSeats };
+                            delete next[seatIdx];
+                            setInvitedSeats(next);
+                          }}
+                          className="p-0.5 text-slate-400 hover:text-white"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : bot ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
+                          AI Bot
+                        </span>
+                        <button
+                          onClick={() => {
+                            const next = { ...botSeats };
+                            delete next[seatIdx];
+                            setBotSeats(next);
+                          }}
+                          className="p-0.5 text-slate-400 hover:text-white"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 w-full">
+                        <button
+                          onClick={() => setFriendPickerSeatIndex(seatIdx)}
+                          className="flex-1 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-300 text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
+                        >
+                          <UserPlus className="w-2.5 h-2.5" />
+                          <span>Invite</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const botNames = ['Hassan Bot', 'Aishath Bot', 'Ibrahim Bot'];
+                            setBotSeats(prev => ({
+                              ...prev,
+                              [seatIdx]: {
+                                botName: botNames[seatIdx - 1] || 'AI Bot',
+                                avatarId: 'dheveli',
+                              },
+                            }));
+                          }}
+                          className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-bold transition cursor-pointer"
+                          title="Fill with Bot"
+                        >
+                          <Bot className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Friend Picker Overlay (When inviting to a seat) */}
+            {friendPickerSeatIndex !== null && (
+              <div className="p-2.5 rounded-2xl bg-[#02140D] border border-emerald-500/60 space-y-2 shadow-lg animate-in zoom-in-95 text-left">
+                <div className="flex items-center justify-between border-b border-emerald-950 pb-1.5">
+                  <span className="text-xs font-black text-white flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Invite Friend to Seat {friendPickerSeatIndex + 1}</span>
+                  </span>
+                  <button
+                    onClick={() => setFriendPickerSeatIndex(null)}
+                    className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="max-h-28 overflow-y-auto space-y-1.5 pr-1">
+                  {friends.length === 0 ? (
+                    <div className="text-center py-2 text-[11px] text-slate-400">
+                      No friends online yet. You can share your Room Code <strong>#{privateRoomCode}</strong>!
+                    </div>
+                  ) : (
+                    friends.map(friend => {
+                      const isOnline = friend.presenceStatus === 'IN_LOBBY';
+                      return (
+                        <div
+                          key={friend.friendId}
+                          className="p-1.5 rounded-xl bg-[#010D08] border border-slate-800 flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`w-2 h-2 rounded-full ${
+                                isOnline ? 'bg-emerald-400' : 'bg-slate-600'
+                              }`}
+                            />
+                            <span className="font-bold text-white text-xs">{friend.displayName}</span>
+                            <span className="text-[9px] text-slate-400 font-mono">({friend.friendCode})</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              sendMatchInvite(
+                                friend.friendId,
+                                undefined,
+                                privateRoomCode,
+                                pendingRules.mode,
+                                selectedStake,
+                                selectedTarget
+                              );
+                              setInvitedSeats(prev => ({
+                                ...prev,
+                                [friendPickerSeatIndex!]: {
+                                  friendName: friend.displayName,
+                                  avatarId: friend.avatarId,
+                                },
+                              }));
+                              setFriendPickerSeatIndex(null);
+                            }}
+                            className="px-2.5 py-0.5 rounded-lg btn-3d-platinum text-slate-950 font-black text-[10px] cursor-pointer"
+                          >
+                            Send Invite
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Launch Room Button */}
             <JuicyButton
               variant="platinum"
               size="md"
               onClick={handleLaunchPrivateRoom}
               disabled={!hasEnoughCoins}
-              className="w-full mt-2"
+              className="w-full mt-1"
             >
               <Sparkles className="w-4 h-4 fill-slate-950" />
               <span>Launch Table & Fill Remaining with Bots</span>

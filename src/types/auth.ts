@@ -105,6 +105,8 @@ export interface UserProfile {
   xp: number;
   xpNextLevel: number;
   cloudSyncStatus: CloudSyncStatus;
+  friendCode: string;
+  presenceStatus?: 'IN_LOBBY' | 'IN_MATCH' | 'OFFLINE';
   lastSyncedAt: string | null;
   lastDailyBonusAt?: string | null;
   stats: PlayerStats;

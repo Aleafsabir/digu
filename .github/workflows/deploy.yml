@@ -1,0 +1,40 @@
+name: CI/CD Pipeline & Live Production Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    name: Test & Build (Frontend, Server & Mobile Shells)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Client Dependencies
+        run: npm ci
+
+      - name: Run Client Test Suite (Vitest)
+        run: npm run test
+
+      - name: Build Client Web Assets (Vite & TypeScript)
+        run: npm run build
+
+      - name: Install Server Dependencies
+        run: npm --prefix server ci
+
+      - name: Compile Backend Server (TypeScript)
+        run: npm --prefix server run build
+
+      - name: Verify Capacitor Mobile Sync
+        run: npx cap sync

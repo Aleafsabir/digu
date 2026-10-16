@@ -20,6 +20,8 @@ export const DEFAULT_GUEST_PROFILE: UserProfile = {
   xp: 0,
   xpNextLevel: 500,
   cloudSyncStatus: 'LOCAL_ONLY',
+  friendCode: 'DIGU-7482',
+  presenceStatus: 'IN_LOBBY',
   lastSyncedAt: null,
   stats: {
     gamesPlayed: 0,
@@ -43,9 +45,11 @@ export class CloudSyncService {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          const friendCode = parsed.friendCode || `DIGU-${Math.floor(1000 + Math.random() * 9000)}`;
           return {
             ...DEFAULT_GUEST_PROFILE,
             ...parsed,
+            friendCode,
             stats: {
               ...DEFAULT_GUEST_PROFILE.stats,
               ...(parsed.stats || {}),

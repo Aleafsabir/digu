@@ -12,7 +12,10 @@
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios",
-    "build:mobile": "npm run build && cap sync"
+    "build:mobile": "npm run build && cap sync",
+    "server:dev": "npm --prefix server run dev",
+    "server:build": "npm --prefix server run build",
+    "server:start": "npm --prefix server start"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.2",

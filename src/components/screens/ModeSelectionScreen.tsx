@@ -5,6 +5,7 @@ import { Shield, User, Users, HelpCircle, Settings, Award, Cloud, Sparkles, Info
 import { useAuthStore } from '../../store/useAuthStore';
 import { AVATAR_PRESETS } from '../../types/auth';
 import { useGameStore } from '../../store/useGameStore';
+import { useSocialStore } from '../../store/useSocialStore';
 
 interface ModeSelectionScreenProps {
   onSelectMode: (mode: TableRules['mode']) => void;
@@ -21,6 +22,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 }) => {
   const { profile, setProfileModalOpen, setAuthModalOpen } = useAuthStore();
   const { activeGame, setActiveGame } = useGameStore();
+  const { friends, pendingRequests, setFriendsModalOpen } = useSocialStore();
+  const hasOnlineFriends = friends.some(f => f.presenceStatus !== 'OFFLINE');
   const [showDhihaehInfo, setShowDhihaehInfo] = useState(false);
   const [selectedModeInfo, setSelectedModeInfo] = useState<{
     title: string;
@@ -179,6 +182,23 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
             title="Rules Handbook"
           >
             <HelpCircle className="w-4 h-4" />
+          </button>
+
+          {/* Friends & Social (Pure Icon with Online Indicator & Badge) */}
+          <button
+            onClick={() => setFriendsModalOpen(true)}
+            className="p-1.5 rounded-xl bg-[#02140D]/90 hover:bg-slate-800 text-slate-300 transition shadow active:scale-95 cursor-pointer border border-slate-700 relative"
+            title="Friends & Social"
+          >
+            <Users className="w-4 h-4 text-slate-300" />
+            {hasOnlineFriends && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#02140D]" />
+            )}
+            {pendingRequests.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center">
+                {pendingRequests.length}
+              </span>
+            )}
           </button>
 
           {/* Settings (Pure Icon) */}
