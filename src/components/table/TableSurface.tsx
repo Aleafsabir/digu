@@ -655,145 +655,161 @@ export const TableSurface: React.FC = () => {
 
       {/* 5. In-Game Match Pause Menu */}
       {showInGameMenu && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 select-none">
-          <div className="bg-[#02140D] border-2 border-slate-700 rounded-3xl p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs w-full animate-in zoom-in-95 text-center font-sans-clean">
-            <div className="flex justify-between items-center border-b border-emerald-950 pb-2 mb-4">
-              <span className="font-black text-xs text-white uppercase tracking-wider">
-                Match Menu
+        <div
+          onClick={() => setShowInGameMenu(false)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 select-none overflow-y-auto font-sans-clean"
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-lg sm:max-w-xl w-full my-auto max-h-[92dvh] flex flex-col animate-in zoom-in-95 text-center"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-emerald-950 pb-2 mb-2.5 shrink-0">
+              <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Menu className="w-4 h-4 text-emerald-400" /> Match Menu
               </span>
               <button
                 onClick={() => setShowInGameMenu(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                aria-label="Close match menu"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Deck Artwork Selector */}
-            <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left mb-2 shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                <span className="flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-slate-300" /> Deck Artwork
-                </span>
-                <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
-                  {DECK_DESIGNS[activeDeck || 'burgundy_gold'].name}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 gap-1.5 pt-1">
-                {(['burgundy_gold', 'sapphire_lattice', 'maldivian_lacquer'] as const).map(dKey => {
-                  const dCfg = DECK_DESIGNS[dKey];
-                  const isSelected = (activeDeck || 'burgundy_gold') === dKey;
-                  return (
-                    <button
-                      key={dKey}
-                      onClick={() => setActiveDeck(dKey)}
-                      className={`p-2 rounded-xl text-left transition-all cursor-pointer border flex items-center justify-between ${
-                        isSelected
-                          ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
-                          : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
-                      }`}
-                    >
-                      <div>
-                        <div className="text-[11px] font-black leading-tight">
-                          {dCfg.name}
-                        </div>
-                        <div className="text-[9px] opacity-75">{dCfg.description}</div>
-                      </div>
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 font-bold ml-2 shrink-0">
-                        {dCfg.badge}
-                      </span>
-                    </button>
-                  );
-                })}
+            {/* Scrollable Customization Content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain space-y-2.5 pr-0.5 sm:pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-2.5">
+                {/* Deck Artwork Selector */}
+                <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left shadow-md flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-slate-300" /> Deck Artwork
+                    </span>
+                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
+                      {DECK_DESIGNS[activeDeck || 'burgundy_gold'].name}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1.5 pt-1">
+                    {(['burgundy_gold', 'sapphire_lattice', 'maldivian_lacquer'] as const).map(dKey => {
+                      const dCfg = DECK_DESIGNS[dKey];
+                      const isSelected = (activeDeck || 'burgundy_gold') === dKey;
+                      return (
+                        <button
+                          key={dKey}
+                          onClick={() => setActiveDeck(dKey)}
+                          className={`p-2 rounded-xl text-left transition-all cursor-pointer border flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
+                              : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
+                          }`}
+                        >
+                          <div className="min-w-0 pr-1">
+                            <div className="text-[11px] font-black leading-tight truncate">
+                              {dCfg.name}
+                            </div>
+                            <div className="text-[9px] opacity-75 truncate">{dCfg.description}</div>
+                          </div>
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 font-bold ml-1.5 shrink-0">
+                            {dCfg.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Theme / Visual Style Selector */}
+                <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left shadow-md flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5 text-slate-300" /> Visual Style
+                    </span>
+                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
+                      {currentTheme.name}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
+                    {(['tournoi', 'sultan', 'holhuashi', 'risograph', 'nocturne', 'swiss'] as const).map(tKey => {
+                      const t = THEME_CONFIGS[tKey];
+                      const isSelected = (visualTheme || 'tournoi') === tKey;
+                      return (
+                        <button
+                          key={tKey}
+                          onClick={() => setVisualTheme(tKey)}
+                          className={`p-1.5 sm:p-2 rounded-xl text-left transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
+                              : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
+                          }`}
+                        >
+                          <div className="text-[10px] sm:text-[11px] font-black leading-tight flex items-center justify-between">
+                            <span className="truncate">{t.name}</span>
+                            <span className="text-[8px] opacity-75 shrink-0 ml-1">{t.badge}</span>
+                          </div>
+                          <div className="text-[8.5px] sm:text-[9px] opacity-75 truncate mt-0.5">{t.subtitle}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Theme / Visual Style Selector */}
-            <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left mb-3 shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                <span className="flex items-center gap-1.5">
-                  <Palette className="w-3.5 h-3.5 text-slate-300" /> Visual Style
-                </span>
-                <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
-                  {currentTheme.name}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5 pt-1">
-                {(['tournoi', 'sultan', 'holhuashi', 'risograph', 'nocturne', 'swiss'] as const).map(tKey => {
-                  const t = THEME_CONFIGS[tKey];
-                  const isSelected = (visualTheme || 'tournoi') === tKey;
-                  return (
-                    <button
-                      key={tKey}
-                      onClick={() => setVisualTheme(tKey)}
-                      className={`p-2 rounded-xl text-left transition-all cursor-pointer border ${
-                        isSelected
-                          ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
-                          : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
-                      }`}
-                    >
-                      <div className="text-[11px] font-black leading-tight flex items-center justify-between">
-                        <span>{t.name}</span>
-                        <span className="text-[8px] opacity-75">{t.badge}</span>
-                      </div>
-                      <div className="text-[9px] opacity-75 truncate mt-0.5">{t.subtitle}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs">
+            {/* Sticky Actions Footer */}
+            <div className="shrink-0 border-t border-emerald-950/60 pt-2.5 mt-2 space-y-2">
               <button
                 onClick={() => setShowInGameMenu(false)}
-                className="btn-3d-platinum w-full py-2.5 rounded-xl uppercase tracking-wider text-xs cursor-pointer"
+                className="btn-3d-platinum w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md"
               >
                 Resume
               </button>
-              <button
-                onClick={() => {
-                  setShowInGameMenu(false);
-                  setShowRules(true);
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <HelpCircle className="w-4 h-4 text-slate-300" />
-                <span>Rules</span>
-              </button>
-              <button
-                onClick={() => {
-                  setShowInGameMenu(false);
-                  setShowScoreHistory(true);
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <Target className="w-4 h-4 text-slate-300" />
-                <span>Scorecard</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm('Restart this match from the beginning?')) {
-                    resetMatch();
+              <div className="grid grid-cols-2 sm:grid-cols-4 landscape:grid-cols-4 gap-1.5 text-xs">
+                <button
+                  onClick={() => {
                     setShowInGameMenu(false);
-                  }
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4 text-slate-300" />
-                <span>Restart</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm('Exit match and return to the main lobby?')) {
-                    exitToLobby();
+                    setShowRules(true);
+                  }}
+                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <span>Rules</span>
+                </button>
+                <button
+                  onClick={() => {
                     setShowInGameMenu(false);
-                  }
-                }}
-                className="w-full py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 text-rose-200 border border-rose-800/60 font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <LogOut className="w-4 h-4 text-rose-400" />
-                <span>Exit</span>
-              </button>
+                    setShowScoreHistory(true);
+                  }}
+                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
+                >
+                  <Target className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <span>Scorecard</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Restart this match from the beginning?')) {
+                      resetMatch();
+                      setShowInGameMenu(false);
+                    }
+                  }}
+                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <span>Restart</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Exit match and return to the main lobby?')) {
+                      exitToLobby();
+                      setShowInGameMenu(false);
+                    }
+                  }}
+                  className="py-2 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 text-rose-200 border border-rose-800/60 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span>Exit</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
