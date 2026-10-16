@@ -4,18 +4,18 @@ import { Card } from '../../src/core/models/types';
 
 describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
   beforeEach(() => {
-    useGameStore.getState().initGame({ mode: 'SOLO_2P', dealOption: 'DEAL_11_CARDS' });
+    useGameStore.getState().initGame({ mode: 'SOLO_2P' });
     // Seat 1 dealer designates Seat 0 (human) as the first lead player
     useGameStore.setState(prev => ({
-      gameState: { ...prev.gameState, dealerIndex: 1 },
+      gameState: { ...prev.gameState, dealerIndex: 1, activePlayerIndex: 0 },
     }));
   });
 
-  it('initializes with Thaasbai branding and Digu game mode in SCATTER_CUT phase', () => {
+  it('initializes with Thaasbai branding and Digu game mode in AWAIT_DRAW phase', () => {
     const state = useGameStore.getState();
     expect(state.appName).toBe('Thaasbai');
     expect(state.activeGame).toBe('DIGU');
-    expect(state.gameState.phase).toBe('SCATTER_CUT');
+    expect(state.gameState.phase).toBe('AWAIT_DRAW');
     expect(state.gameState.players.length).toBe(2);
   });
 
@@ -29,27 +29,32 @@ describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
     expect(state.gameState.players[1].scatterCard).not.toBeNull();
   });
 
-  it('deals round with NO unassigned cards: all 11 cards are directly in active player hand', () => {
+  it('deals round with NO unassigned cards: all 10 cards are directly in active player hand', () => {
     const { dealRound } = useGameStore.getState();
     dealRound();
 
     const state = useGameStore.getState();
-    expect(state.gameState.phase).toBe('AWAIT_ACTION');
+    expect(state.gameState.phase).toBe('AWAIT_DRAW');
 
-    // Lead player has 11 cards right in handCards
-    expect(state.handCards.length).toBe(11);
-    expect(state.gameState.players[state.gameState.activePlayerIndex].hand.length).toBe(11);
+    // Lead player has 10 cards right in handCards
+    expect(state.handCards.length).toBe(10);
+    expect(state.gameState.players[state.gameState.activePlayerIndex].hand.length).toBe(10);
+    expect(state.gameState.discardPile.length).toBe(0);
   });
 
   it('handles discard action: reduces hand to 10 resting cards, updates discard pile, advances turn', () => {
-    const { dealRound } = useGameStore.getState();
+    const { dealRound, drawFromStock, discardCard } = useGameStore.getState();
     dealRound();
+
+    // Human draws 11th card from stock
+    drawFromStock();
+    expect(useGameStore.getState().handCards.length).toBe(11);
 
     const initialState = useGameStore.getState();
     const activePlayerIndex = initialState.gameState.activePlayerIndex;
     const cardToDiscard = initialState.handCards[0].id;
 
-    useGameStore.getState().discardCard(cardToDiscard);
+    discardCard(cardToDiscard);
 
     const afterState = useGameStore.getState();
     // Hand size must now be exactly 10 (Resting Hand Invariant)
@@ -212,6 +217,8 @@ describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
   it('executes autonomous bot turns: bot draws, evaluates, discards, and advances turn', () => {
     // Human is Seat 0, Bot is Seat 1
     useGameStore.getState().dealRound();
+    // Human draws 11th card from stock
+    useGameStore.getState().drawFromStock();
     // Human discards card to end Seat 0 turn
     const humanCard = useGameStore.getState().handCards[0].id;
     useGameStore.getState().discardCard(humanCard);

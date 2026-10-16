@@ -15,6 +15,9 @@ import { DECK_DESIGNS } from '../../config/deckConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
 import { RulesModal } from '../shared/RulesModal';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
+import { playCardFlickSound } from '../../utils/audioEffects';
+import { Card } from '../../core/models/types';
 
 export const TableSurface: React.FC = () => {
   // Mount autonomous AI turn engine
@@ -39,8 +42,6 @@ export const TableSurface: React.FC = () => {
     setActiveDeck,
     triggerReaction,
     playerReactions,
-    startScatterCut,
-    dealRound,
     drawFromStock,
     drawFromDiscard,
     selectCard,
@@ -53,6 +54,8 @@ export const TableSurface: React.FC = () => {
     nextRound,
     resetMatch,
     exitToLobby,
+    isDealingOpeningAnimation,
+    setIsDealingOpeningAnimation,
   } = useGameStore();
 
   const currentTheme = THEME_CONFIGS[visualTheme || 'sultan'] || THEME_CONFIGS.sultan;
@@ -120,6 +123,79 @@ export const TableSurface: React.FC = () => {
     } catch (err) {
       console.warn('Fullscreen request failed:', err);
     }
+  };
+
+  // Opening Deal & 3D Shuffle Animation State
+  const [openingPhase, setOpeningPhase] = useState<'shuffle' | 'dealing' | 'idle'>('idle');
+  const [dealtHumanCardsCount, setDealtHumanCardsCount] = useState<number>(10);
+
+  useEffect(() => {
+    if (isDealingOpeningAnimation) {
+      setOpeningPhase('shuffle');
+      setDealtHumanCardsCount(0);
+    } else {
+      setOpeningPhase('idle');
+      setDealtHumanCardsCount(handCards.length);
+    }
+  }, [isDealingOpeningAnimation, handCards.length]);
+
+  const handleShuffleComplete = () => {
+    setOpeningPhase('dealing');
+    runClockwiseDealAnimation();
+  };
+
+  const runClockwiseDealAnimation = async () => {
+    const numPlayers = gameState.players.length;
+    const leadIndex = (gameState.dealerIndex - 1 + numPlayers) % numPlayers;
+
+    const dealSequence: number[] = [];
+    for (let pass = 0; pass < 10; pass++) {
+      for (let i = 0; i < numPlayers; i++) {
+        dealSequence.push((leadIndex + i) % numPlayers);
+      }
+    }
+
+    let humanCardsReceived = 0;
+
+    for (let i = 0; i < dealSequence.length; i++) {
+      const seat = dealSequence[i];
+      const isHumanSeat = seat === 0;
+
+      playCardFlickSound();
+      try {
+        Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+      } catch {}
+
+      const toAnchor = `anchor-seat-${seat}`;
+      const flightCard: Card = isHumanSeat && handCards[humanCardsReceived]
+        ? handCards[humanCardsReceived]
+        : { id: `deal-flight-${i}`, suit: 'SPADES', rank: 1, isFaceDown: true };
+
+      startFlight({
+        card: flightCard,
+        fromAnchor: 'anchor-stock-pile',
+        toAnchor,
+        isFaceDown: true,
+        flipToFaceUp: isHumanSeat,
+        durationMs: 240,
+        onComplete: () => {
+          if (isHumanSeat) {
+            setDealtHumanCardsCount(prev => Math.min(10, prev + 1));
+          }
+        },
+      });
+
+      if (isHumanSeat) {
+        humanCardsReceived++;
+      }
+
+      await new Promise(res => setTimeout(res, 65));
+    }
+
+    await new Promise(res => setTimeout(res, 350));
+    setDealtHumanCardsCount(10);
+    setOpeningPhase('idle');
+    setIsDealingOpeningAnimation(false);
   };
 
   const humanReaction = playerReactions[0];
@@ -456,18 +532,22 @@ export const TableSurface: React.FC = () => {
 
             {/* Center Felt Play Arena (Clean, Focused, Zero Text Clutter) */}
             <div className="flex items-center justify-center my-auto z-10 px-2 shrink-0">
-              <StockDiscardArea
-                stockPile={gameState.stockPile}
-                discardPile={gameState.discardPile}
-                phase={gameState.phase}
-                isHumanTurn={isHumanTurn}
-                onDrawStock={handleHumanDrawStock}
-                onDrawDiscard={handleHumanDrawDiscard}
-                onDiscardSelected={handleDiscardSelected}
-                onSlamFinish={handleSlamFinish}
-                onDragDrawHover={handleDragDrawHover}
-                onInitiateReshuffle={handleInitiateReshuffle}
-              />
+              {openingPhase === 'shuffle' ? (
+                <ShuffleDeckAnimation onComplete={handleShuffleComplete} />
+              ) : (
+                <StockDiscardArea
+                  stockPile={gameState.stockPile}
+                  discardPile={gameState.discardPile}
+                  phase={gameState.phase}
+                  isHumanTurn={isHumanTurn}
+                  onDrawStock={handleHumanDrawStock}
+                  onDrawDiscard={handleHumanDrawDiscard}
+                  onDiscardSelected={handleDiscardSelected}
+                  onSlamFinish={handleSlamFinish}
+                  onDragDrawHover={handleDragDrawHover}
+                  onInitiateReshuffle={handleInitiateReshuffle}
+                />
+              )}
             </div>
 
             {/* Bottom Felt: Active Player Hand (Gin Rummy Plus Fanned Hand + Bottom Carved Console) */}
@@ -475,7 +555,11 @@ export const TableSurface: React.FC = () => {
               <div className="w-full shrink-0 z-20 mt-auto pb-[max(14px,calc(env(safe-area-inset-bottom)+8px))]">
                 <GinRummyHand
                   player={humanPlayer}
-                  handCards={handCards}
+                  handCards={
+                    isDealingOpeningAnimation
+                      ? handCards.slice(0, dealtHumanCardsCount)
+                      : handCards
+                  }
                   selectedCardId={selectedCardId}
                   sortMode={sortMode}
                   handAnalysis={handAnalysis}
@@ -547,45 +631,6 @@ export const TableSurface: React.FC = () => {
                 <Smile className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </button>
             </div>
-
-            {/* Pre-Game High-Card Scatter Cut Banner */}
-            {gameState.phase === 'SCATTER_CUT' && (
-              <div className="absolute inset-0 z-30 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3">
-                <div className="bg-[#02140D] border-2 border-slate-700 rounded-3xl p-5 text-center shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs w-full animate-in zoom-in-95 font-sans-clean">
-                  <div className="text-3xl mb-1">✂️</div>
-                  <h4 className="font-black text-sm text-white mb-3 uppercase tracking-wider">
-                    High-Card Cut for Dealer
-                  </h4>
-                  <button
-                    onClick={startScatterCut}
-                    className="btn-3d-platinum w-full py-2.5 px-6 rounded-2xl text-xs uppercase tracking-wider cursor-pointer"
-                  >
-                    Cut Cards
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Deal Round Hands Banner */}
-            {gameState.phase === 'ROUND_DEALING' && (
-              <div className="absolute inset-0 z-30 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3">
-                <div className="bg-[#02140D] border-2 border-slate-700 rounded-3xl p-5 text-center shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs w-full animate-in zoom-in-95 font-sans-clean">
-                  <div className="text-3xl mb-1">🎴</div>
-                  <h4 className="font-black text-sm text-[#05D59A] mb-1">
-                    Seat {gameState.dealerIndex} Deals
-                  </h4>
-                  <div className="text-[11px] text-slate-300 mb-3">
-                    Lead: <strong className="text-[#F1F5F9]">Seat {(gameState.dealerIndex - 1 + gameState.players.length) % gameState.players.length}</strong>
-                  </div>
-                  <button
-                    onClick={dealRound}
-                    className="btn-3d-platinum w-full py-2.5 px-6 rounded-2xl text-xs uppercase tracking-wider cursor-pointer"
-                  >
-                    Deal Round
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

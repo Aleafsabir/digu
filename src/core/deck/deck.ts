@@ -92,7 +92,7 @@ export class DeckService {
   static dealRound(
     players: PlayerState[],
     dealerIndex: number,
-    rules: TableRules,
+    _rules?: TableRules,
     shuffledDeck?: Card[]
   ): {
     updatedPlayers: PlayerState[];
@@ -107,61 +107,29 @@ export class DeckService {
     // Initialize clean hands
     const hands: Card[][] = players.map(() => []);
 
-    if (rules.dealOption === 'DEAL_11_CARDS') {
-      // Lead player receives 11 cards, others receive 10 cards.
-      // Discard pile starts empty.
-      for (let c = 0; c < 10; c++) {
-        for (let p = 0; p < numPlayers; p++) {
-          const card = deck.pop();
-          if (!card) throw new Error('Not enough cards in deck during deal');
-          hands[p].push({ ...card, isFaceDown: false });
-        }
+    // Deal 10 cards to each player
+    for (let c = 0; c < 10; c++) {
+      for (let p = 0; p < numPlayers; p++) {
+        const card = deck.pop();
+        if (!card) throw new Error('Not enough cards in deck during deal');
+        hands[p].push({ ...card, isFaceDown: false });
       }
-      // 11th card for lead
-      const eleventhCard = deck.pop();
-      if (!eleventhCard) throw new Error('Not enough cards for lead 11th card');
-      hands[leadIndex].push({ ...eleventhCard, isFaceDown: false });
-
-      const updatedPlayers = players.map((p, idx) => ({
-        ...p,
-        hand: hands[idx],
-        handCount: hands[idx].length,
-      }));
-
-      return {
-        updatedPlayers,
-        stockPile: deck,
-        discardPile: [],
-        activePlayerIndex: leadIndex,
-      };
-    } else {
-      // DRAW_FIRST_CARD:
-      // All players receive 10 cards. Top card of stock flips face-up into discard pile.
-      for (let c = 0; c < 10; c++) {
-        for (let p = 0; p < numPlayers; p++) {
-          const card = deck.pop();
-          if (!card) throw new Error('Not enough cards in deck during deal');
-          hands[p].push({ ...card, isFaceDown: false });
-        }
-      }
-
-      // Flip top card of stock into discard pile
-      const flipped = deck.pop();
-      if (!flipped) throw new Error('Deck empty when flipping first discard card');
-
-      const updatedPlayers = players.map((p, idx) => ({
-        ...p,
-        hand: hands[idx],
-        handCount: hands[idx].length,
-      }));
-
-      return {
-        updatedPlayers,
-        stockPile: deck,
-        discardPile: [{ ...flipped, isFaceDown: false }],
-        activePlayerIndex: leadIndex,
-      };
     }
+
+    // Default Digu / Thaasbai deal: All players receive 10 cards, discard pile starts empty,
+    // and lead player draws their 11th card from the stock pile.
+    const updatedPlayers = players.map((p, idx) => ({
+      ...p,
+      hand: hands[idx],
+      handCount: hands[idx].length,
+    }));
+
+    return {
+      updatedPlayers,
+      stockPile: deck,
+      discardPile: [],
+      activePlayerIndex: leadIndex,
+    };
   }
 
   /**

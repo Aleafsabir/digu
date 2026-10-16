@@ -3,7 +3,6 @@ import {
   Card,
   TableRules,
   GameState,
-  GamePhase,
   RoundResolution,
   DeckService,
   RummyValidator,
@@ -52,6 +51,8 @@ export interface GameStoreState {
   roundResolution: RoundResolution | null;
   roundHistory: RoundResolution[];
   isSlammingFinish: boolean;
+  isDealingOpeningAnimation: boolean;
+  setIsDealingOpeningAnimation: (isDealing: boolean) => void;
   actionError: string | null;
 
   // Live AI Feedback
@@ -119,7 +120,7 @@ export interface GameStoreState {
 
 const DEFAULT_RULES: TableRules = {
   mode: 'TEAM_4P',
-  dealOption: 'DEAL_11_CARDS',
+  dealOption: 'DRAW_FIRST_CARD',
   targetScore: 1000,
   turnTimeoutSeconds: 30,
   playType: 'VS_AI',
@@ -276,6 +277,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     roundResolution: null,
     roundHistory: [],
     isSlammingFinish: false,
+    isDealingOpeningAnimation: false,
+    setIsDealingOpeningAnimation: (isDealing: boolean) => set({ isDealingOpeningAnimation: isDealing }),
     actionError: null,
     aiThoughtMessage: null,
 
@@ -414,38 +417,39 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         rules.playType || 'VS_AI'
       );
 
+      // Random starting dealer
+      const initialDealerIndex = Math.floor(Math.random() * players.length);
+      const deal = DeckService.dealRound(players, initialDealerIndex, rules);
+
       const gameState: GameState = {
         roomId: `thaasbai-${Date.now()}`,
         rules,
-        phase: 'SCATTER_CUT',
-        players,
-        dealerIndex: 0,
-        activePlayerIndex: 0,
-        stockPile: [],
-        discardPile: [],
+        phase: 'AWAIT_DRAW',
+        players: deal.updatedPlayers,
+        dealerIndex: initialDealerIndex,
+        activePlayerIndex: deal.activePlayerIndex,
+        stockPile: deal.stockPile,
+        discardPile: deal.discardPile,
         finishSlotCard: null,
         lastRoundWinnerId: null,
       };
 
+      const humanHand = [...deal.updatedPlayers[0].hand];
+
       set({
         gameState,
-        handCards: [],
+        handCards: humanHand,
         selectedCardId: null,
         sortMode: 'CUSTOM',
-        handAnalysis: {
-          melds: [],
-          deadwood: [],
-          deadwoodPoints: 0,
-          isGinReady: false,
-          isThousandRunReady: false,
-        },
+        handAnalysis: analyzeHand(humanHand),
         roundResolution: null,
         roundHistory: [],
         isSlammingFinish: false,
+        isDealingOpeningAnimation: true,
         actionError: null,
         aiThoughtMessage: null,
         consecutiveMissedTurns: 0,
-        turnStartedAt: null,
+        turnStartedAt: deal.activePlayerIndex === 0 ? Date.now() : null,
         awayToastMessage: null,
         isForfeitedDueToInactivity: false,
       });
@@ -487,12 +491,9 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         gameState.rules
       );
 
-      const startingPhase: GamePhase =
-        gameState.rules.dealOption === 'DEAL_11_CARDS' ? 'AWAIT_ACTION' : 'AWAIT_DRAW';
-
       const updatedGameState: GameState = {
         ...gameState,
-        phase: startingPhase,
+        phase: 'AWAIT_DRAW',
         players: deal.updatedPlayers,
         activePlayerIndex: deal.activePlayerIndex,
         stockPile: deal.stockPile,
@@ -511,6 +512,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handAnalysis: analyzeHand(humanHand),
         roundResolution: null,
         isSlammingFinish: false,
+        isDealingOpeningAnimation: false,
         actionError: null,
         aiThoughtMessage: null,
         turnStartedAt: deal.activePlayerIndex === 0 ? Date.now() : null,
@@ -1089,12 +1091,9 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         gameState.rules
       );
 
-      const startingPhase: GamePhase =
-        gameState.rules.dealOption === 'DEAL_11_CARDS' ? 'AWAIT_ACTION' : 'AWAIT_DRAW';
-
       const updatedGameState: GameState = {
         ...gameState,
-        phase: startingPhase,
+        phase: 'AWAIT_DRAW',
         players: deal.updatedPlayers,
         dealerIndex: nextDealerIndex,
         activePlayerIndex: deal.activePlayerIndex,
@@ -1113,6 +1112,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handAnalysis: analyzeHand(humanHand),
         roundResolution: null,
         isSlammingFinish: false,
+        isDealingOpeningAnimation: false,
         actionError: null,
         aiThoughtMessage: null,
         turnStartedAt: deal.activePlayerIndex === 0 ? Date.now() : null,

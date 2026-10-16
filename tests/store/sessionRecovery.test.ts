@@ -20,7 +20,7 @@ globalThis.localStorage = localStorageMock as any;
 describe('Mobile Session Recovery, Wake Lock & Away-Turn Forfeit System', () => {
   beforeEach(() => {
     storageMap.clear();
-    useGameStore.getState().initGame({ mode: 'SOLO_2P', dealOption: 'DEAL_11_CARDS' });
+    useGameStore.getState().initGame({ mode: 'SOLO_2P' });
     useGameStore.setState(prev => ({
       currentScreen: 'TABLE',
       gameState: { ...prev.gameState, dealerIndex: 1, activePlayerIndex: 0 },
@@ -81,6 +81,7 @@ describe('Mobile Session Recovery, Wake Lock & Away-Turn Forfeit System', () => 
 
   it('auto-plays away turn 1: draws and discards highest deadwood card, sets toast (1/2), advances turn', () => {
     useGameStore.getState().dealRound();
+    useGameStore.getState().drawFromStock();
     // Human is Seat 0 with 11 cards in AWAIT_ACTION
     expect(useGameStore.getState().gameState.activePlayerIndex).toBe(0);
     expect(useGameStore.getState().gameState.phase).toBe('AWAIT_ACTION');
@@ -103,6 +104,7 @@ describe('Mobile Session Recovery, Wake Lock & Away-Turn Forfeit System', () => 
 
   it('auto-plays away turn 2: sets warning toast (2/2), advances turn', () => {
     useGameStore.getState().dealRound();
+    useGameStore.getState().drawFromStock();
 
     // Turn 1 missed
     useGameStore.getState().autoPlayAwayTurn();

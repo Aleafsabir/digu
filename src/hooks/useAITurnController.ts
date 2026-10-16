@@ -41,6 +41,7 @@ export function useAITurnController() {
   const isAI = useGameStore(
     state => state.gameState.players[state.gameState.activePlayerIndex]?.isAI ?? false
   );
+  const isDealingOpeningAnimation = useGameStore(state => state.isDealingOpeningAnimation);
   const executeBotDraw = useGameStore(state => state.executeBotDraw);
   const executeBotAction = useGameStore(state => state.executeBotAction);
   const initiateReshuffleFromDiscards = useGameStore(state => state.initiateReshuffleFromDiscards);
@@ -52,7 +53,7 @@ export function useAITurnController() {
 
   useEffect(() => {
     // Only autonomous AI bots execute here; Seat 0 is the human player (isAI: false)
-    if (!isAI) {
+    if (!isAI || isDealingOpeningAnimation) {
       return;
     }
 

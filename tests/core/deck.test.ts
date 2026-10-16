@@ -48,10 +48,10 @@ describe('DeckService', () => {
     expect(DeckService.getLeadPlayerIndex(1, 2)).toBe(0);
   });
 
-  it('deals round in DEAL_11_CARDS mode: lead receives 11 cards, others 10, discard empty', () => {
+  it('deals round universally: all receive 10 cards, discard empty, stock 12 cards', () => {
     const rules: TableRules = {
       mode: 'SOLO_4P',
-      dealOption: 'DEAL_11_CARDS',
+      dealOption: 'DRAW_FIRST_CARD',
       targetScore: 500,
       turnTimeoutSeconds: 30,
     };
@@ -61,20 +61,19 @@ describe('DeckService', () => {
     const result = DeckService.dealRound(players, dealerIndex, rules);
 
     expect(result.activePlayerIndex).toBe(0);
-    // Lead player has 11 cards
-    expect(result.updatedPlayers[0].hand.length).toBe(11);
-    // Other players have 10 cards
+    // All players have 10 cards
+    expect(result.updatedPlayers[0].hand.length).toBe(10);
     expect(result.updatedPlayers[1].hand.length).toBe(10);
     expect(result.updatedPlayers[2].hand.length).toBe(10);
     expect(result.updatedPlayers[3].hand.length).toBe(10);
 
     // Discard pile starts empty
     expect(result.discardPile.length).toBe(0);
-    // Stock pile: 52 - 11 - 30 = 11 cards
-    expect(result.stockPile.length).toBe(11);
+    // Stock pile: 52 - 40 = 12 cards
+    expect(result.stockPile.length).toBe(12);
   });
 
-  it('deals round in DRAW_FIRST_CARD mode: all receive 10 cards, top card flipped to discard', () => {
+  it('deals round in DRAW_FIRST_CARD mode: all receive 10 cards, discard starts empty', () => {
     const rules: TableRules = {
       mode: 'SOLO_4P',
       dealOption: 'DRAW_FIRST_CARD',
@@ -92,11 +91,10 @@ describe('DeckService', () => {
       expect(p.hand.length).toBe(10);
     });
 
-    // Discard pile has 1 card
-    expect(result.discardPile.length).toBe(1);
-    expect(result.discardPile[0].isFaceDown).toBe(false);
-    // Stock pile: 52 - 40 - 1 = 11 cards
-    expect(result.stockPile.length).toBe(11);
+    // Discard pile starts empty
+    expect(result.discardPile.length).toBe(0);
+    // Stock pile: 52 - 40 = 12 cards
+    expect(result.stockPile.length).toBe(12);
   });
 
   it('creates team players with correct Team A / Team B assignment in 4P Team mode', () => {

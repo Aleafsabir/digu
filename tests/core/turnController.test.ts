@@ -3,7 +3,7 @@ import { useGameStore } from '../../src/store/useGameStore';
 
 describe('AI Turn Automation and Seat 0 Human Lock', () => {
   beforeEach(() => {
-    useGameStore.getState().initGame({ mode: 'TEAM_4P', dealOption: 'DEAL_11_CARDS', playType: 'VS_AI' });
+    useGameStore.getState().initGame({ mode: 'TEAM_4P', dealOption: 'DRAW_FIRST_CARD', playType: 'VS_AI' });
   });
 
   it('correctly configures Seat 0 as human and all other seats as AI bots in 4P mode', () => {
@@ -23,8 +23,14 @@ describe('AI Turn Automation and Seat 0 Human Lock', () => {
 
     useGameStore.getState().dealRound();
 
-    // Human (Seat 0) starts with 11 cards
+    // Human (Seat 0) starts with 10 cards in AWAIT_DRAW
     expect(useGameStore.getState().gameState.activePlayerIndex).toBe(0);
+    expect(useGameStore.getState().gameState.phase).toBe('AWAIT_DRAW');
+    expect(useGameStore.getState().handCards.length).toBe(10);
+
+    // Human draws 11th card from stock to enter AWAIT_ACTION
+    useGameStore.getState().drawFromStock();
+    expect(useGameStore.getState().gameState.phase).toBe('AWAIT_ACTION');
     expect(useGameStore.getState().handCards.length).toBe(11);
 
     const humanDiscardId = useGameStore.getState().handCards[0].id;
@@ -58,6 +64,9 @@ describe('AI Turn Automation and Seat 0 Human Lock', () => {
 
     // Turn is now on Seat 3 (Bot Ahmed)
     expect(useGameStore.getState().gameState.activePlayerIndex).toBe(3);
+    expect(useGameStore.getState().gameState.players[3].isAI).toBe(true);
+
+    // Bot 3 draws & discards
     useGameStore.getState().executeBotDraw(3);
     useGameStore.getState().executeBotAction(3);
 
@@ -94,8 +103,9 @@ describe('AI Turn Automation and Seat 0 Human Lock', () => {
     }));
     useGameStore.getState().dealRound();
 
-    // Bot 3 is in AWAIT_ACTION with 11 cards
+    // Bot 3 is in AWAIT_DRAW, draws 11th card then discards
     expect(useGameStore.getState().gameState.activePlayerIndex).toBe(3);
+    useGameStore.getState().executeBotDraw(3);
     useGameStore.getState().executeBotAction(3);
 
     // Discard message recorded
