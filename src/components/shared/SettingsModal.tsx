@@ -18,7 +18,17 @@ import {
   Edit2,
   Layers,
   Check,
+  Server,
+  RotateCcw,
+  Wifi,
 } from 'lucide-react';
+import {
+  getBackendBaseUrl,
+  setBackendBaseUrl,
+  resetBackendBaseUrl,
+  isNativeMobile,
+} from '../../config/networkConfig';
+import { SocialService } from '../../services/socialService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -52,6 +62,67 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setProfileModalOpen,
     setAuthModalOpen,
   } = useAuthStore();
+
+  const [serverUrlInput, setServerUrlInput] = useState<string>(() => getBackendBaseUrl());
+  const [pingStatus, setPingStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle');
+  const [pingLatency, setPingLatency] = useState<number | null>(null);
+  const [serverSavedMsg, setServerSavedMsg] = useState<string | null>(null);
+
+  const handleTestConnection = async (targetUrl?: string) => {
+    const url = (targetUrl ?? serverUrlInput).trim().replace(/\/+$/, '');
+    setPingStatus('testing');
+    setPingLatency(null);
+    const start = performance.now();
+    try {
+      const res = await fetch(`${url}/api/health`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      const end = performance.now();
+      if (res.ok) {
+        setPingStatus('online');
+        setPingLatency(Math.round(end - start));
+      } else {
+        setPingStatus('offline');
+      }
+    } catch {
+      setPingStatus('offline');
+    }
+  };
+
+  const handleSaveServer = () => {
+    const clean = serverUrlInput.trim().replace(/\/+$/, '');
+    setBackendBaseUrl(clean);
+    setServerSavedMsg('Saved & Connected');
+    setTimeout(() => setServerSavedMsg(null), 3000);
+    if (profile?.id) {
+      SocialService.connectWebSocket(
+        profile.id,
+        profile.displayName,
+        profile.avatarId,
+        profile.friendCode,
+        profile.level
+      );
+    }
+    handleTestConnection(clean);
+  };
+
+  const handleResetServer = () => {
+    resetBackendBaseUrl();
+    const defaultUrl = getBackendBaseUrl();
+    setServerUrlInput(defaultUrl);
+    setServerSavedMsg('Reset to Default');
+    setTimeout(() => setServerSavedMsg(null), 3000);
+    if (profile?.id) {
+      SocialService.connectWebSocket(
+        profile.id,
+        profile.displayName,
+        profile.avatarId,
+        profile.friendCode,
+        profile.level
+      );
+    }
+    handleTestConnection(defaultUrl);
+  };
 
   if (!isOpen) return null;
 
@@ -258,6 +329,81 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }`}
                     />
                   </button>
+                </div>
+
+                {/* Server & Cloud Multiplayer Connection */}
+                <div className="p-3 rounded-2xl bg-[#02140D] border border-slate-800 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#010D08] border border-slate-800 flex items-center justify-center text-emerald-400">
+                        <Server className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-100 flex items-center gap-1.5">
+                          <span>Server & Multiplayer Endpoint</span>
+                          {pingStatus === 'online' && (
+                            <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-700 text-emerald-300 font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              {pingLatency ? `${pingLatency}ms` : 'Online'}
+                            </span>
+                          )}
+                          {pingStatus === 'offline' && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 border border-rose-800 text-rose-300 font-mono">
+                              Offline
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {isNativeMobile() ? 'Native Android Shell' : 'Web Browser Client'} • Real-Time Sync
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTestConnection()}
+                      disabled={pingStatus === 'testing'}
+                      className="px-2.5 py-1 rounded-xl bg-[#010D08] hover:bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition disabled:opacity-50"
+                    >
+                      <Wifi className={`w-3 h-3 ${pingStatus === 'testing' ? 'animate-pulse text-amber-400' : 'text-emerald-400'}`} />
+                      <span>{pingStatus === 'testing' ? 'Pinging...' : 'Test Ping'}</span>
+                    </button>
+                  </div>
+
+                  {/* URL Input and Action Row */}
+                  <div className="space-y-1.5">
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={serverUrlInput}
+                        onChange={e => setServerUrlInput(e.target.value)}
+                        placeholder="https://your-server.com or http://192.168.1.x:8080"
+                        className="flex-1 bg-[#010D08] border border-slate-800 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-slate-200 outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveServer}
+                        className="btn-3d-platinum px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-950 cursor-pointer shadow hover:brightness-105 active:scale-95 transition"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResetServer}
+                        title="Reset to default server"
+                        className="p-1.5 rounded-xl bg-[#010D08] hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white cursor-pointer transition"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {serverSavedMsg && (
+                      <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        <span>{serverSavedMsg}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* App & Device Info Card */}
