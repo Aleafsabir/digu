@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digu - 70% Tucked Hand Design Shotgun</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Card 3D Lift Transitions */
+    .playing-card {
+      transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.18s ease, border-color 0.15s ease;
+      will-change: transform;
+    }
+    .card-lifted {
+      transform: translateY(-32px) scale(1.06) !important;
+      box-shadow: 0 24px 35px -5px rgba(0, 0, 0, 0.75), 0 0 0 2px #05D59A !important;
+      z-index: 50 !important;
+    }
+
+    /* Tactile 3D Buttons */
+    .btn-3d-vermilion {
+      background: linear-gradient(180deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%);
+      border-bottom: 3px solid #7F1D1D;
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    }
+    .btn-3d-platinum {
+      background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 50%, #CBD5E1 100%);
+      border-bottom: 3px solid #94A3B8;
+      box-shadow: 0 4px 12px rgba(148, 163, 184, 0.35);
+      color: #0F172A;
+    }
+
+    /* Subtle Felt Texture */
+    .table-felt {
+      background: radial-gradient(circle at 50% 45%, #0B3D28 0%, #062316 65%, #02120B 100%);
+    }
+  </style>
+</head>
+<body class="bg-[#020A06] text-white p-3 sm:p-6 antialiased select-none min-h-screen flex flex-col items-center justify-center">
+
+  <!-- Header & Concept Controls -->
+  <div class="max-w-4xl w-full mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#051C12]/90 border border-emerald-500/30 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-[#05D59A] animate-pulse"></span>
+        <h1 class="text-base sm:text-lg font-black tracking-tight text-[#F1F5F9]">
+          Design Shotgun: 70% Tucked Playing Hand (Option A)
+        </h1>
+      </div>
+      <p class="text-xs text-emerald-300/80 mt-0.5">
+        Cards are 35% larger, spread wider horizontally, and bottom 30% tucks seamlessly off-screen.
+      </p>
+    </div>
+
+    <!-- Live Depth & Style Selector Tabs -->
+    <div class="flex items-center bg-[#020D08] p-1 rounded-xl border border-emerald-900/60 text-xs font-bold">
+      <button id="btn-tab-wide" onclick="setPreset('wide')" class="px-3 py-1.5 rounded-lg bg-emerald-500 text-stone-950 font-black transition cursor-pointer">
+        70% Tucked (Wide)
+      </button>
+      <button id="btn-tab-jumbo" onclick="setPreset('jumbo')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition cursor-pointer">
+        65% Deep (Jumbo)
+      </button>
+      <button id="btn-tab-compare" onclick="setPreset('compare')" class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition cursor-pointer">
+        Legacy Comparison
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Simulator Frame (Simulates Smartphone Landscape 16:9 Viewport) -->
+  <div class="relative w-full max-w-4xl h-[410px] sm:h-[430px] rounded-3xl border-4 border-slate-800 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col justify-between table-felt">
+    
+    <!-- Top Table Rim: Opponent Avatar & Placard -->
+    <div class="flex items-center justify-between px-6 pt-3 z-10">
+      <div class="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full border border-slate-700/60 text-xs font-mono">
+        <span class="text-emerald-400 font-bold">THAASBAI DIGU</span>
+        <span class="text-slate-500">•</span>
+        <span class="text-slate-300">4P TEAM (2v2)</span>
+      </div>
+
+      <!-- Center Opponents Avatars -->
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full border border-slate-700">
+          <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-black">W</div>
+          <span class="text-xs text-slate-200 font-bold">Bot Ali</span>
+          <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded-full border border-emerald-700">🎴 10</span>
+        </div>
+        <div class="flex items-center gap-2 bg-black/70 px-3 py-1 rounded-full border border-slate-700">
+          <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-black">N</div>
+          <span class="text-xs text-slate-200 font-bold">Partner</span>
+          <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded-full border border-emerald-700">🎴 10</span>
+        </div>
+      </div>
+
+      <div class="bg-black/60 px-3 py-1 rounded-full border border-slate-700/60 text-xs font-mono font-bold text-amber-300">
+        POT: 4,000p
+      </div>
+    </div>
+
+    <!-- Center Felt Table Arena: Discard Pile & Stock Deck -->
+    <div class="flex items-center justify-center gap-6 my-auto z-10">
+      <!-- Discard Pile -->
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-22 rounded-xl bg-white text-stone-900 border border-stone-300 shadow-xl flex flex-col justify-between p-1.5 rotate-1">
+          <div class="flex justify-between items-center leading-none">
+            <span class="font-black text-sm text-[#DC2626]">7</span>
+            <span class="text-xs text-[#DC2626]">♥</span>
+          </div>
+          <div class="text-center text-lg text-[#DC2626]">♥</div>
+          <div class="flex justify-between items-center leading-none rotate-180">
+            <span class="font-black text-sm text-[#DC2626]">7</span>
+            <span class="text-xs text-[#DC2626]">♥</span>
+          </div>
+        </div>
+        <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 font-mono">DISCARD</span>
+      </div>
+
+      <!-- Stock Deck -->
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-22 rounded-xl bg-gradient-to-br from-amber-900 to-amber-950 border-2 border-amber-600/80 shadow-2xl flex flex-col items-center justify-center relative">
+          <div class="w-8 h-12 border border-amber-500/40 rounded flex items-center justify-center">
+            <span class="text-amber-400 text-xs">◆</span>
+          </div>
+          <div class="absolute bottom-1 bg-black/80 text-[#05D59A] font-mono text-[9px] font-bold px-2 py-0.2 rounded-full">
+            18
+          </div>
+        </div>
+        <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 font-mono">STOCK</span>
+      </div>
+
+      <!-- Center Table Finish Slot Hint -->
+      <div class="flex flex-col items-center opacity-60">
+        <div class="w-16 h-22 rounded-xl border-2 border-dashed border-red-500/40 bg-red-950/10 flex flex-col items-center justify-center p-2 text-center">
+          <span class="text-xs">⚡</span>
+          <span class="text-[8px] font-black text-red-400 mt-0.5">FINISH</span>
+        </div>
+        <span class="text-[9px] uppercase font-bold text-slate-500 mt-1 font-mono">SLOT</span>
+      </div>
+    </div>
+
+    <!-- BOTTOM SECTION: Overhand Floating HUD + 70% Tucked Hand -->
+    <div class="w-full flex flex-col items-center relative z-20">
+      
+      <!-- 1. Floating Overhand HUD (Positioned comfortably right above cards) -->
+      <div class="flex items-center justify-center gap-2.5 mb-1 z-30">
+        
+        <!-- Sort by Runs -->
+        <button class="bg-[#031B11]/90 hover:bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer transition active:scale-95">
+          <span>Sort Runs</span>
+        </button>
+
+        <!-- Deadwood Badge -->
+        <div class="bg-[#02140D]/95 border border-emerald-500/60 shadow-[0_0_14px_rgba(5,213,154,0.35)] px-3.5 py-0.5 rounded-full flex items-center gap-1.5">
+          <span class="text-[9px] font-black uppercase text-slate-400 font-mono">DEADWOOD:</span>
+          <span class="text-xs sm:text-sm font-black font-mono text-[#05D59A]">0</span>
+          <span class="text-xs text-[#05D59A]">✓</span>
+        </div>
+
+        <!-- 30-Second Turn Ring -->
+        <div class="bg-[#02140D]/95 border border-slate-700 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-md">
+          <div class="w-3.5 h-3.5 rounded-full border-2 border-[#05D59A] flex items-center justify-center text-[8px] font-mono font-bold text-emerald-400">
+            24
+          </div>
+          <span class="text-[9px] font-bold text-slate-300 uppercase font-mono">TURN</span>
+        </div>
+
+        <!-- Sort by Sets -->
+        <button class="bg-[#031B11]/90 hover:bg-slate-800 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shadow-md cursor-pointer transition active:scale-95">
+          <span>Sort Sets</span>
+        </button>
+
+        <!-- Discard Trigger (Active when card lifted) -->
+        <button id="hud-discard-btn" onclick="discardSelected()" class="hidden btn-3d-vermilion text-white font-black text-xs px-4 py-1 rounded-full uppercase shadow-lg active:scale-95 cursor-pointer animate-bounce">
+          DISCARD SELECTED
+        </button>
+      </div>
+
+      <!-- 2. The 70% Tucked Playing Hand (Bottom 30% Bleeds Naturally Below Screen Fold) -->
+      <div id="hand-container" class="relative w-full flex items-end justify-center px-4 overflow-visible -mb-8 sm:-mb-9 transition-all duration-300">
+        <!-- Cards rendered via JavaScript below for instant interactivity -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Controls & Explanation Panel -->
+  <div class="max-w-4xl w-full mt-4 bg-[#051C12]/80 border border-emerald-900/60 rounded-2xl p-4 shadow-xl text-xs space-y-3">
+    <div class="flex items-center justify-between border-b border-emerald-900/40 pb-2">
+      <h3 class="font-bold text-sm text-[#F1F5F9] flex items-center gap-2">
+        <span>🎮 Interactive Sandbox Controls</span>
+        <span class="text-[10px] font-normal text-emerald-300">(Try tapping cards above!)</span>
+      </h3>
+      <div class="flex items-center gap-3 font-mono text-slate-400">
+        <span>Tuck Depth: <b id="lbl-tuck" class="text-white">30% Tucked (70% Visible)</b></span>
+      </div>
+    </div>
+
+    <!-- Sliders and Toggles -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <!-- Card Size Toggle -->
+      <div class="bg-[#020F08] p-2.5 rounded-xl border border-emerald-950 flex flex-col justify-between">
+        <span class="font-bold text-slate-300 mb-1">Card Dimensions</span>
+        <div class="flex gap-2">
+          <button onclick="setCardSize('normal')" id="btn-size-norm" class="flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer">
+            Large (76×114)
+          </button>
+          <button onclick="setCardSize('jumbo')" id="btn-size-jumbo" class="flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer">
+            Jumbo (84×126)
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Spread Toggle -->
+      <div class="bg-[#020F08] p-2.5 rounded-xl border border-emerald-950 flex flex-col justify-between">
+        <span class="font-bold text-slate-300 mb-1">Horizontal Side Spread</span>
+        <div class="flex gap-2">
+          <button onclick="setSpread('wide')" id="btn-spread-wide" class="flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer">
+            Wide Fan (88%)
+          </button>
+          <button onclick="setSpread('tight')" id="btn-spread-tight" class="flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer">
+            Tight Cluster
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Lift Height -->
+      <div class="bg-[#020F08] p-2.5 rounded-xl border border-emerald-950 flex flex-col justify-between">
+        <span class="font-bold text-slate-300 mb-1">Lift Elevation on Tap</span>
+        <div class="flex items-center justify-between font-mono text-[11px] text-emerald-400">
+          <span>Elevation: <b>-32px</b> (Reveals 100%)</span>
+          <button onclick="elevateFirstCard()" class="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+            Demo Lift
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Design Rationale Bullet Points -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[11px] text-slate-400">
+      <div class="flex items-start gap-1.5">
+        <span class="text-emerald-400 font-bold">1.</span>
+        <span><b>Huge Index Legibility</b>: Numbers (A, 2..K) and suits are 40% larger, instant read without squinting.</span>
+      </div>
+      <div class="flex items-start gap-1.5">
+        <span class="text-emerald-400 font-bold">2.</span>
+        <span><b>Vertical Table Savings</b>: Saves ~35px of table height, giving center discard & stock piles room to breathe.</span>
+      </div>
+      <div class="flex items-start gap-1.5">
+        <span class="text-emerald-400 font-bold">3.</span>
+        <span><b>Satisfying Tactile Lift</b>: Tapping elevates the card proudly out of the bottom fold for discard or reorder.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample 11-Card Winning Hand (4+3+3 melds + 11th finish card)
+    const CARDS = [
+      { id: 'c1', rank: '7', suit: '♠', color: 'text-stone-900', meldColor: '#818CF8', meldLabel: 'Set' },
+      { id: 'c2', rank: '7', suit: '♥', color: 'text-[#DC2626]', meldColor: '#818CF8', meldLabel: 'Set' },
+      { id: 'c3', rank: '7', suit: '♦', color: 'text-[#DC2626]', meldColor: '#818CF8', meldLabel: 'Set' },
+      { id: 'c4', rank: '7', suit: '♣', color: 'text-stone-900', meldColor: '#818CF8', meldLabel: 'Set' },
+      
+      { id: 'c5', rank: '8', suit: '♥', color: 'text-[#DC2626]', meldColor: '#05D59A', meldLabel: 'Run' },
+      { id: 'c6', rank: '9', suit: '♥', color: 'text-[#DC2626]', meldColor: '#05D59A', meldLabel: 'Run' },
+      { id: 'c7', rank: '10', suit: '♥', color: 'text-[#DC2626]', meldColor: '#05D59A', meldLabel: 'Run' },
+      
+      { id: 'c8', rank: '4', suit: '♠', color: 'text-stone-900', meldColor: '#F59E0B', meldLabel: 'Run' },
+      { id: 'c9', rank: '5', suit: '♠', color: 'text-stone-900', meldColor: '#F59E0B', meldLabel: 'Run' },
+      { id: 'c10', rank: '6', suit: '♠', color: 'text-stone-900', meldColor: '#F59E0B', meldLabel: 'Run' },
+      
+      { id: 'c11', rank: '2', suit: '♣', color: 'text-stone-900', is11th: true, meldColor: null, meldLabel: null },
+    ];
+
+    let selectedCardId = null;
+    let cardSize = 'normal'; // 'normal' | 'jumbo' | 'legacy'
+    let spreadMode = 'wide'; // 'wide' | 'tight'
+
+    function renderHand() {
+      const container = document.getElementById('hand-container');
+      container.innerHTML = '';
+
+      const isLegacy = cardSize === 'legacy';
+      const isJumbo = cardSize === 'jumbo';
+
+      // Dimensions
+      const widthClass = isLegacy ? 'w-[54px] sm:w-[60px]' : isJumbo ? 'w-[78px] sm:w-[84px]' : 'w-[70px] sm:w-[76px]';
+      const heightClass = isLegacy ? 'h-[82px] sm:h-[90px]' : isJumbo ? 'h-[118px] sm:h-[126px]' : 'h-[106px] sm:h-[114px]';
+      const overlapClass = isLegacy 
+        ? '-space-x-5 sm:-space-x-7' 
+        : spreadMode === 'wide' 
+        ? '-space-x-4 sm:-space-x-5' 
+        : '-space-x-6 sm:-space-x-7';
+
+      // Wrapper fan
+      const fanWrapper = document.createElement('div');
+      fanWrapper.className = `flex items-end ${overlapClass} transition-all duration-300`;
+
+      CARDS.forEach((card, idx) => {
+        const isSelected = selectedCardId === card.id;
+        const is11th = card.is11th;
+
+        // Radial fan rotation
+        const mid = (CARDS.length - 1) / 2;
+        const angle = is11th ? 4 : isSelected ? 0 : (idx - mid) * 1.4;
+
+        const cardEl = document.createElement('div');
+        cardEl.id = `card-${card.id}`;
+        cardEl.onclick = () => toggleSelectCard(card.id);
+
+        cardEl.className = `playing-card relative ${widthClass} ${heightClass} rounded-2xl bg-[#FAF7F2] border-2 border-stone-300/90 shadow-2xl flex flex-col justify-between p-1.5 cursor-pointer select-none ${
+          is11th ? 'ml-4 sm:ml-6 border-amber-400/90 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : ''
+        } ${isSelected ? 'card-lifted' : ''}`;
+
+        cardEl.style.transform = isSelected ? `translateY(-32px) scale(1.06)` : `rotate(${angle}deg)`;
+        cardEl.style.zIndex = isSelected ? 50 : idx;
+
+        // Inner Card Artwork
+        cardEl.innerHTML = `
+          <!-- Top Left Index -->
+          <div class="flex flex-col items-center leading-none ${card.color}">
+            <span class="font-black text-xs sm:text-sm tracking-tighter">${card.rank}</span>
+            <span class="text-[10px] sm:text-xs leading-none">${card.suit}</span>
+          </div>
+
+          <!-- Center Pip / Court Illustration -->
+          <div class="text-center text-lg sm:text-2xl leading-none ${card.color} my-auto opacity-90">
+            ${card.suit}
+          </div>
+
+          <!-- Meld Ring Indicator on Bottom Index -->
+          <div class="flex justify-between items-end leading-none">
+            ${card.meldColor ? `
+              <div class="w-2.5 h-2.5 rounded-full border border-white shadow-sm" style="background-color: ${card.meldColor}" title="${card.meldLabel}"></div>
+            ` : `<div></div>`}
+            
+            <div class="flex flex-col items-center leading-none ${card.color} rotate-180">
+              <span class="font-black text-[10px] sm:text-xs tracking-tighter">${card.rank}</span>
+              <span class="text-[9px] sm:text-[10px] leading-none">${card.suit}</span>
+            </div>
+          </div>
+
+          <!-- 11th Drawn Card Floating Tag -->
+          ${is11th ? `
+            <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-500 text-stone-950 text-[8px] font-black px-2 py-0.2 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-40 border border-white">
+              11TH
+            </div>
+          ` : ''}
+        `;
+
+        fanWrapper.appendChild(cardEl);
+      });
+
+      container.appendChild(fanWrapper);
+
+      // Update HUD discard button visibility
+      const discardBtn = document.getElementById('hud-discard-btn');
+      if (selectedCardId) {
+        discardBtn.classList.remove('hidden');
+      } else {
+        discardBtn.classList.add('hidden');
+      }
+    }
+
+    function toggleSelectCard(id) {
+      if (selectedCardId === id) {
+        selectedCardId = null;
+      } else {
+        selectedCardId = id;
+      }
+      renderHand();
+    }
+
+    function discardSelected() {
+      if (!selectedCardId) return;
+      alert(`Card ${selectedCardId} discarded to table!`);
+      selectedCardId = null;
+      renderHand();
+    }
+
+    function elevateFirstCard() {
+      selectedCardId = 'c6'; // 9 of Hearts
+      renderHand();
+    }
+
+    function setPreset(preset) {
+      // Button highlights
+      ['wide', 'jumbo', 'compare'].forEach(p => {
+        const btn = document.getElementById(`btn-tab-${p}`);
+        if (p === preset) {
+          btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-500 text-stone-950 font-black transition cursor-pointer';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition cursor-pointer';
+        }
+      });
+
+      const container = document.getElementById('hand-container');
+      const lblTuck = document.getElementById('lbl-tuck');
+
+      if (preset === 'wide') {
+        cardSize = 'normal';
+        spreadMode = 'wide';
+        container.className = 'relative w-full flex items-end justify-center px-4 overflow-visible -mb-8 sm:-mb-9 transition-all duration-300';
+        lblTuck.innerText = '30% Tucked (70% Visible) - 76×114px';
+      } else if (preset === 'jumbo') {
+        cardSize = 'jumbo';
+        spreadMode = 'wide';
+        container.className = 'relative w-full flex items-end justify-center px-4 overflow-visible -mb-11 sm:-mb-12 transition-all duration-300';
+        lblTuck.innerText = '35% Tucked (65% Visible) - 84×126px Jumbo';
+      } else if (preset === 'compare') {
+        cardSize = 'legacy';
+        spreadMode = 'tight';
+        container.className = 'relative w-full flex items-end justify-center px-4 overflow-visible mb-2 transition-all duration-300';
+        lblTuck.innerText = '0% Tucked (Legacy 100% Shrunk) - 58×88px';
+      }
+
+      renderHand();
+    }
+
+    function setCardSize(size) {
+      cardSize = size;
+      document.getElementById('btn-size-norm').className = size === 'normal' 
+        ? 'flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer' 
+        : 'flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer';
+      document.getElementById('btn-size-jumbo').className = size === 'jumbo' 
+        ? 'flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer' 
+        : 'flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer';
+      renderHand();
+    }
+
+    function setSpread(mode) {
+      spreadMode = mode;
+      document.getElementById('btn-spread-wide').className = mode === 'wide' 
+        ? 'flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer' 
+        : 'flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer';
+      document.getElementById('btn-spread-tight').className = mode === 'tight' 
+        ? 'flex-1 py-1 rounded-lg bg-emerald-500 text-stone-950 font-black text-[11px] cursor-pointer' 
+        : 'flex-1 py-1 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] cursor-pointer';
+      renderHand();
+    }
+
+    // Initial render
+    renderHand();
+  </script>
+</body>
+</html>

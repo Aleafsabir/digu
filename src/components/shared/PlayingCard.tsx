@@ -18,7 +18,7 @@ interface PlayingCardProps {
   isFaceDown?: boolean;
   isInteractive?: boolean;
   isAceStranded?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'hand';
   meldHighlight?: MeldHighlight;
   onClick?: () => void;
   className?: string;
@@ -51,6 +51,7 @@ const SIZE_CLASSES = {
   sm: 'w-10 h-14 text-[9px] rounded-md p-1',
   md: 'w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2',
   lg: 'w-16 sm:w-19 md:w-21 h-23 sm:h-27 md:h-30 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 sm:p-2.5',
+  hand: 'w-[68px] sm:w-[76px] md:w-[80px] h-[104px] sm:h-[114px] md:h-[120px] text-xs sm:text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5',
 };
 
 import { DeckDesignId } from '../../config/deckConfig';
@@ -161,19 +162,19 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 
   return (
     <motion.div
-      whileHover={isInteractive && !isSelected ? { y: -8, scale: 1.02 } : undefined}
+      whileHover={isInteractive && !isSelected ? { y: size === 'hand' ? -10 : -8, scale: 1.02 } : undefined}
       animate={
         isSelected
-          ? { y: -20, scale: 1.05 }
+          ? { y: size === 'hand' ? -32 : -20, scale: size === 'hand' ? 1.06 : 1.05 }
           : meldHighlight
-          ? { y: -10, scale: 1.02 }
+          ? { y: size === 'hand' ? -10 : -10, scale: 1.02 }
           : { y: 0, scale: 1 }
       }
       transition={{ type: 'spring', stiffness: 480, damping: 28 }}
       onClick={onClick}
       className={`${SIZE_CLASSES[size]} flex flex-col justify-between select-none relative transition-all ${
         isSelected
-          ? `${theme.cardFaceClass} ${theme.selectedCardRing}`
+          ? `${theme.cardFaceClass} ${theme.selectedCardRing} ring-2 ring-[#05D59A] shadow-[0_24px_35px_-5px_rgba(0,0,0,0.85)] z-40`
           : highlightMeta
           ? highlightMeta.containerClass
           : `${theme.cardFaceClass} hover:shadow-lg`
@@ -189,16 +190,16 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       {/* Top Left Rank and Pip */}
       <div className="flex justify-between items-start leading-none">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black text-xs sm:text-base ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`text-[10px] sm:text-sm ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' ? 'text-xs sm:text-sm md:text-base' : 'text-[10px] sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
           {/* Always-visible Glowing Meld Pip (visible even when cards overlap!) */}
           {highlightMeta && (
             <span
-              className={`mt-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${highlightMeta.pipClass}`}
+              className={`mt-1 ${size === 'hand' ? 'w-2 h-2 sm:w-2.5 sm:h-2.5' : 'w-1.5 h-1.5 sm:w-2 sm:h-2'} rounded-full shrink-0 ${highlightMeta.pipClass}`}
               title={meldHighlight?.type || 'Meld'}
             />
           )}
@@ -213,17 +214,17 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       </div>
 
       {/* Center Pip */}
-      <div className={`self-center text-xl sm:text-3xl leading-none select-none ${suitColorClass}`}>
+      <div className={`self-center ${size === 'hand' ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-3xl'} leading-none select-none ${suitColorClass}`}>
         {suitMeta.symbol}
       </div>
 
       {/* Bottom Right Inverted Rank and Pip */}
       <div className="flex justify-end items-end leading-none rotate-180">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black text-xs sm:text-base ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`text-xs sm:text-sm ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' ? 'text-xs sm:text-sm md:text-base' : 'text-xs sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
         </div>

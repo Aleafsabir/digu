@@ -599,9 +599,9 @@ export const TableSurface: React.FC = () => {
               )}
             </div>
 
-            {/* Bottom Felt: Active Player Hand (Gin Rummy Plus Fanned Hand + Bottom Carved Console) */}
+            {/* Bottom Felt: Active Player Hand (70% Tucked Seamless Edge Bleed) */}
             {humanPlayer && (
-              <div className="w-full shrink-0 z-20 mt-auto pb-[max(14px,calc(env(safe-area-inset-bottom)+8px))]">
+              <div className="w-full shrink-0 z-20 mt-auto pb-0 overflow-visible">
                 <GinRummyHand
                   player={humanPlayer}
                   handCards={

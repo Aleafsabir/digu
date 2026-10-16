@@ -272,10 +272,16 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
         )}
       </div>
 
-      {/* Main Fanned Hand with Overlapping Cards & Circular Meld Rings */}
-      <div id="anchor-seat-0" className="relative w-full overflow-visible py-1 px-2 flex items-end justify-center min-h-[82px] sm:min-h-[96px] touch-none">
+      {/* Main Fanned Hand with Overlapping Cards & Circular Meld Rings - 70% Tucked into Bottom Fold */}
+      <div
+        id="anchor-seat-0"
+        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[76px] sm:min-h-[86px] md:min-h-[92px] touch-none -mb-7 sm:-mb-8 md:-mb-9 transition-all duration-300"
+      >
         {/* Dedicated landing anchor for the 11th drawn card slot on the far right */}
-        <div id="anchor-seat-0-draw-slot" className="absolute right-4 sm:right-10 bottom-2 w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 pointer-events-none" />
+        <div
+          id="anchor-seat-0-draw-slot"
+          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[68px] sm:w-[76px] md:w-[80px] h-[104px] sm:h-[114px] md:h-[120px] pointer-events-none"
+        />
 
         {/* Release to Discard Floating Indicator */}
         {isDraggingUp && isActionPhase && (
@@ -289,7 +295,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           axis="x"
           values={handCards}
           onReorder={onReorderHand}
-          className="flex items-end -space-x-5 sm:-space-x-7 md:-space-x-8 px-4 pb-0.5"
+          className="flex items-end -space-x-4.5 sm:-space-x-6 md:-space-x-7 px-3 sm:px-6 pb-0"
         >
           {handCards.map((card, index) => {
             const isSelected = selectedCardId === card.id;
@@ -360,7 +366,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                       }
                 }
                 className={`relative cursor-grab active:cursor-grabbing touch-none select-none ${
-                  isDrawn11th ? 'ml-5 sm:ml-8' : ''
+                  isDrawn11th ? 'ml-4 sm:ml-7' : ''
                 } ${isHidden ? 'opacity-0 pointer-events-none invisible' : ''}`}
                 style={{ zIndex: isSelected ? 40 : index }}
               >
@@ -391,7 +397,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                 >
                   <PlayingCard
                     card={card}
-                    size="md"
+                    size="hand"
                     isSelected={isSelected}
                     isAceStranded={isAceStranded}
                     meldHighlight={meldHighlight}
