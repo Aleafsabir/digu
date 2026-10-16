@@ -28,6 +28,8 @@ function getAnchorCenter(anchorId: string): AnchorCoords {
       return { x: vw * 0.58, y: vh * 0.45 };
     case 'anchor-discard-pile':
       return { x: vw * 0.42, y: vh * 0.45 };
+    case 'anchor-finish-slot':
+      return { x: vw * 0.5, y: vh * 0.45 };
     case 'anchor-seat-0-draw-slot':
       return { x: vw * 0.72, y: vh * 0.86 };
     case 'anchor-seat-0':
@@ -64,14 +66,21 @@ export const CardFlightOverlay: React.FC = () => {
           const endX = toCenter.x - cardHalfW;
           const endY = toCenter.y - cardHalfH;
 
-          // Calculate parabolic arc mid-air apex (higher, more pronounced arc)
+          // Parabolic arc mid-air apex (high dramatic leap for Gin Slam)
           const midX = (startX + endX) / 2;
-          const midY = Math.min(startY, endY) - 55;
+          const arcHeight = flight.isGinSlam ? 110 : 55;
+          const midY = Math.min(startY, endY) - arcHeight;
 
           const landingRotate =
-            flight.rotation !== undefined ? flight.rotation : Math.random() * 6 - 3;
+            flight.rotation !== undefined
+              ? flight.rotation
+              : flight.isGinSlam
+              ? -12
+              : Math.random() * 6 - 3;
 
-          const isFlipping = Boolean(flight.flipToFaceUp);
+          const isFlippingToFaceUp = Boolean(flight.flipToFaceUp);
+          const isFlippingToFaceDown = Boolean(flight.flipToFaceDown);
+          const has3DFlip = isFlippingToFaceUp || isFlippingToFaceDown;
 
           return (
             <motion.div
@@ -86,32 +95,44 @@ export const CardFlightOverlay: React.FC = () => {
               animate={{
                 x: [startX, midX, endX],
                 y: [startY, midY, endY],
-                scale: [0.94, 1.15, 1.0],
-                rotate: [flight.isFaceDown ? 3 : -2, (landingRotate / 2), landingRotate],
+                scale: flight.isGinSlam ? [1.0, 1.45, 1.05] : [0.94, 1.15, 1.0],
+                rotate: [
+                  flight.isFaceDown ? 3 : -2,
+                  landingRotate / 2,
+                  landingRotate,
+                ],
                 opacity: [0.95, 1, 1],
               }}
               exit={{ opacity: 0 }}
               transition={{
                 duration: (flight.durationMs || 480) / 1000,
-                ease: [0.22, 1, 0.36, 1], // natural physical cubic bezier glide with soft cushion
+                ease: flight.isGinSlam
+                  ? [0.18, 0.9, 0.25, 1] // powerful dramatic slam deceleration
+                  : [0.22, 1, 0.36, 1], // natural physical cubic bezier glide
                 times: [0, 0.52, 1],
               }}
               onAnimationComplete={() => {
                 try {
-                  Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+                  Haptics.impact({
+                    style: flight.isGinSlam ? ImpactStyle.Heavy : ImpactStyle.Light,
+                  }).catch(() => {});
                 } catch {
                   // Ignore on web
                 }
                 flight.onComplete?.();
               }}
-              className="absolute left-0 top-0 pointer-events-none z-50 drop-shadow-[0_22px_35px_rgba(0,0,0,0.85)]"
+              className={`absolute left-0 top-0 pointer-events-none z-50 ${
+                flight.isGinSlam
+                  ? 'drop-shadow-[0_30px_45px_rgba(220,38,38,0.9)]'
+                  : 'drop-shadow-[0_22px_35px_rgba(0,0,0,0.85)]'
+              }`}
             >
-              {isFlipping ? (
+              {has3DFlip ? (
                 /* Hardware-accelerated 3D Mid-Air Card Flip */
                 <motion.div
                   className="relative w-full h-full [transform-style:preserve-3d]"
-                  initial={{ rotateY: 180 }}
-                  animate={{ rotateY: 0 }}
+                  initial={{ rotateY: isFlippingToFaceDown ? 0 : 180 }}
+                  animate={{ rotateY: isFlippingToFaceDown ? 180 : 0 }}
                   transition={{
                     duration: (flight.durationMs || 320) / 1000,
                     ease: [0.2, 0.8, 0.3, 1],

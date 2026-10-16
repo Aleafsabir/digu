@@ -936,7 +936,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
         setTimeout(() => {
           set({ isSlammingFinish: false });
-        }, 750);
+        }, 1200);
 
         return true;
       } catch (err: any) {
@@ -1083,7 +1083,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
           setTimeout(() => {
             set({ isSlammingFinish: false });
-          }, 750);
+          }, 1200);
         } catch (err: any) {
           console.error('Bot Gin resolution error:', err);
         }

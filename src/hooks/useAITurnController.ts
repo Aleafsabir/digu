@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { useAnimationStore } from '../store/useAnimationStore';
 import { DiguAI, Card } from '@game/core';
+import { playGinSlamImpactSound } from '../utils/audioEffects';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 const RANK_LABELS: Record<number, string> = {
   1: 'A',
@@ -211,10 +213,20 @@ export function useAITurnController() {
             await startFlight({
               card: discardCard,
               fromAnchor: `anchor-seat-${activePlayerIndex}`,
-              toAnchor: 'anchor-discard-pile',
+              toAnchor: 'anchor-finish-slot',
               isFaceDown: false,
-              durationMs: 540,
+              flipToFaceDown: true,
+              isGinSlam: true,
+              durationMs: 580,
             });
+
+            playGinSlamImpactSound();
+            try {
+              Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+            } catch {}
+
+            useGameStore.setState({ isSlammingFinish: true });
+            await sleep(1200);
           } else {
             setAiThoughtMessage({
               seatIndex: activePlayerIndex,

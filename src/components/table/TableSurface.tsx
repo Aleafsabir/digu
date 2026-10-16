@@ -16,7 +16,7 @@ import { RulesModal } from '../shared/RulesModal';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
-import { playCardFlickSound } from '../../utils/audioEffects';
+import { playCardFlickSound, playGinSlamImpactSound } from '../../utils/audioEffects';
 import { Card } from '../../core/models/types';
 
 export const TableSurface: React.FC = () => {
@@ -356,25 +356,36 @@ export const TableSurface: React.FC = () => {
       return;
     }
 
+    const cardToSlam = handCards.find(c => c.id === cardIdToSlam);
+    if (cardToSlam) {
+      setPendingDiscardCardId(cardIdToSlam);
+      // High arc flight, scaling up, flipping 180° in 3D to slam FACE DOWN into finish slot!
+      await startFlight({
+        card: cardToSlam,
+        fromAnchor: `card-anchor-${cardIdToSlam}`,
+        toAnchor: 'anchor-finish-slot',
+        isFaceDown: false,
+        flipToFaceDown: true,
+        isGinSlam: true,
+        durationMs: 580,
+      });
+      setPendingDiscardCardId(null);
+    }
+
+    // Thunderous table slam impact audio & heavy physical haptics
+    playGinSlamImpactSound();
     try {
       await Haptics.impact({ style: ImpactStyle.Heavy });
     } catch {
       // Browser fallback
     }
 
-    const cardToSlam = handCards.find(c => c.id === cardIdToSlam);
-    if (cardToSlam) {
-      setPendingDiscardCardId(cardIdToSlam);
-      await startFlight({
-        card: cardToSlam,
-        fromAnchor: `card-anchor-${cardIdToSlam}`,
-        toAnchor: 'anchor-discard-pile',
-        isFaceDown: false,
-        flipToFaceUp: false,
-        durationMs: 520,
-      });
-      setPendingDiscardCardId(null);
-    }
+    // Trigger dramatic shockwave & screen shake
+    useGameStore.setState({ isSlammingFinish: true });
+
+    // Theatrical pause: let player witness their face-down slammed card, shockwave & GIN SLAM banner before score sheet
+    await new Promise(res => setTimeout(res, 1200));
+
     declareGinWithSlam(cardIdToSlam);
   };
 
@@ -405,7 +416,7 @@ export const TableSurface: React.FC = () => {
       {/* 1. Main 3D Perspective Stadium Card Table (Full Bleed Edge-to-Edge) */}
       <div
         className={`relative w-full h-full flex-1 rounded-none sm:rounded-[28px] p-0.5 sm:p-2 flex flex-col justify-between transition-all duration-300 overflow-hidden min-h-0 ${currentTheme.tableWrapperClass} ${
-          isSlammingFinish ? 'anim-shake scale-[1.01] shadow-[0_0_50px_rgba(220,38,38,0.7)]' : ''
+          isSlammingFinish ? 'anim-slam-shake scale-[1.01] shadow-[0_0_60px_rgba(220,38,38,0.85)]' : ''
         }`}
       >
         {/* Inner Beveled Rim */}
@@ -421,21 +432,47 @@ export const TableSurface: React.FC = () => {
               </span>
             </div>
 
-            {/* Gin Slam Table Felt Shockwave Ripple Animation */}
+            {/* Gin Slam Table Felt Shockwave Ripple Animation & Cinematic Splash */}
             {isSlammingFinish && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30 overflow-hidden">
+                {/* Expanding Fire / Gold Shockwaves */}
                 <motion.div
-                  initial={{ scale: 0.3, opacity: 1 }}
-                  animate={{ scale: [0.3, 2.5], opacity: [1, 0] }}
-                  transition={{ duration: 0.65, ease: 'easeOut' }}
-                  className="w-44 h-44 rounded-full border-4 border-red-500 shadow-[0_0_60px_rgba(220,38,38,0.95)]"
+                  initial={{ scale: 0.2, opacity: 1 }}
+                  animate={{ scale: [0.2, 3.2], opacity: [1, 0] }}
+                  transition={{ duration: 0.85, ease: 'easeOut' }}
+                  className="w-52 h-52 rounded-full border-4 border-red-500 shadow-[0_0_80px_rgba(239,68,68,1)]"
                 />
                 <motion.div
-                  initial={{ scale: 0.2, opacity: 0.9 }}
-                  animate={{ scale: [0.2, 1.9], opacity: [0.9, 0] }}
-                  transition={{ duration: 0.55, delay: 0.08, ease: 'easeOut' }}
-                  className="w-44 h-44 rounded-full border-2 border-red-400"
+                  initial={{ scale: 0.15, opacity: 0.95 }}
+                  animate={{ scale: [0.15, 2.5], opacity: [0.95, 0] }}
+                  transition={{ duration: 0.75, delay: 0.08, ease: 'easeOut' }}
+                  className="w-48 h-48 rounded-full border-3 border-amber-400 shadow-[0_0_60px_rgba(251,191,36,0.9)]"
                 />
+                <motion.div
+                  initial={{ scale: 0.1, opacity: 0.9 }}
+                  animate={{ scale: [0.1, 1.8], opacity: [0.9, 0] }}
+                  transition={{ duration: 0.65, delay: 0.16, ease: 'easeOut' }}
+                  className="w-40 h-40 rounded-full border-2 border-white"
+                />
+
+                {/* Cinematic Center Splash Banner */}
+                <motion.div
+                  initial={{ scale: 0.2, opacity: 0, y: 30 }}
+                  animate={{ scale: [0.2, 1.25, 1], opacity: [0, 1, 1], y: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  className="flex flex-col items-center select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)]"
+                >
+                  <div className="bg-gradient-to-r from-red-600 via-amber-500 to-red-600 px-6 sm:px-8 py-2 sm:py-2.5 rounded-2xl border-2 border-yellow-300 shadow-[0_0_60px_rgba(239,68,68,0.9)] flex items-center gap-2">
+                    <span className="text-2xl sm:text-3xl animate-bounce">⚡</span>
+                    <span className="text-xl sm:text-3xl font-black text-white tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] font-sans-clean whitespace-nowrap">
+                      GIN SLAM!
+                    </span>
+                    <span className="text-2xl sm:text-3xl animate-bounce">⚡</span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-black uppercase text-amber-200 tracking-widest mt-1 bg-black/90 px-3.5 py-0.5 rounded-full border border-amber-400/70 font-mono shadow-md">
+                    ★ FACE-DOWN FINISH ★
+                  </span>
+                </motion.div>
               </div>
             )}
 
@@ -549,6 +586,7 @@ export const TableSurface: React.FC = () => {
                 <StockDiscardArea
                   stockPile={gameState.stockPile}
                   discardPile={gameState.discardPile}
+                  finishSlotCard={gameState.finishSlotCard}
                   phase={gameState.phase}
                   isHumanTurn={isHumanTurn}
                   onDrawStock={handleHumanDrawStock}

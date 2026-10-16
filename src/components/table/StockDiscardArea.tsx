@@ -8,6 +8,7 @@ import { useGameStore } from '../../store/useGameStore';
 interface StockDiscardAreaProps {
   stockPile: Card[];
   discardPile: Card[];
+  finishSlotCard?: Card | null;
   phase: GamePhase;
   isHumanTurn?: boolean;
   onDrawStock: (dropPoint?: { x: number; y: number }) => void;
@@ -21,6 +22,7 @@ interface StockDiscardAreaProps {
 export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
   stockPile,
   discardPile,
+  finishSlotCard,
   phase,
   isHumanTurn = true,
   onDrawStock,
@@ -209,33 +211,47 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
         </div>
       </div>
 
-      {/* 3. Center Table Slam Gin Trigger: Appears in this exact tabletop slot ONLY when ready for Gin */}
-      {canGin && isActionPhase && onSlamFinish && (
-        <motion.div
-          id="center-slam-slot"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 450, damping: 25 }}
-          className="flex flex-col items-center justify-center z-30 ml-2 sm:ml-4"
-        >
-          <div className="relative flex flex-col items-center">
-            <div className="absolute inset-0 bg-red-600/40 rounded-2xl blur-lg animate-pulse pointer-events-none" />
-            <button
-              onClick={onSlamFinish}
-              className="btn-3d-vermilion relative w-20 sm:w-24 h-21 sm:h-24 rounded-2xl font-sans-clean font-black text-xs sm:text-sm tracking-wider uppercase flex flex-col items-center justify-center gap-1 cursor-pointer shadow-2xl hover:scale-105 active:scale-95 transition-transform p-2 text-center"
-            >
-              <span className="text-xl sm:text-2xl animate-bounce">⚡</span>
-              <span className="leading-tight font-black">
-                SLAM<br />GIN!
+      {/* 3. Dedicated Table Finish Slot: Hosts SLAM GIN trigger during action phase, or Face-Down Slammed Card upon Gin */}
+      <div id="anchor-finish-slot" className="relative flex flex-col items-center justify-center z-20 ml-2 sm:ml-4">
+        {finishSlotCard ? (
+          <motion.div
+            initial={{ scale: 0.5, rotate: -25, opacity: 0 }}
+            animate={{ scale: 1, rotate: -12, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            className="relative w-13.5 sm:w-16 md:w-17 h-19.5 sm:h-22 md:h-24 rounded-2xl shadow-[0_0_40px_rgba(220,38,38,0.95)] border-2 border-red-500/90 flex items-center justify-center"
+          >
+            <PlayingCard card={finishSlotCard} isFaceDown={true} size="md" isInteractive={false} />
+            <div className="absolute -top-3.5 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white font-black text-[7px] sm:text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg border border-yellow-300 font-sans-clean whitespace-nowrap animate-pulse">
+              ⚡ GIN FINISH ⚡
+            </div>
+          </motion.div>
+        ) : canGin && isActionPhase && onSlamFinish ? (
+          <motion.div
+            id="center-slam-slot"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+            className="flex flex-col items-center justify-center"
+          >
+            <div className="relative flex flex-col items-center">
+              <div className="absolute inset-0 bg-red-600/40 rounded-2xl blur-lg animate-pulse pointer-events-none" />
+              <button
+                onClick={onSlamFinish}
+                className="btn-3d-vermilion relative w-20 sm:w-24 h-21 sm:h-24 rounded-2xl font-sans-clean font-black text-xs sm:text-sm tracking-wider uppercase flex flex-col items-center justify-center gap-1 cursor-pointer shadow-2xl hover:scale-105 active:scale-95 transition-transform p-2 text-center"
+              >
+                <span className="text-xl sm:text-2xl animate-bounce">⚡</span>
+                <span className="leading-tight font-black">
+                  SLAM<br />GIN!
+                </span>
+              </button>
+              <span className="text-[8px] font-bold uppercase text-slate-200 mt-1 bg-black/80 px-2 py-0.5 rounded-full border border-slate-600 font-sans-clean text-center whitespace-nowrap">
+                0 Deadwood
               </span>
-            </button>
-            <span className="text-[8px] font-bold uppercase text-slate-200 mt-1 bg-black/80 px-2 py-0.5 rounded-full border border-slate-600 font-sans-clean text-center whitespace-nowrap">
-              0 Deadwood
-            </span>
-          </div>
-        </motion.div>
-      )}
+            </div>
+          </motion.div>
+        ) : null}
+      </div>
     </div>
   );
 };

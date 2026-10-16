@@ -105,3 +105,49 @@ export function playRiffleShuffleSound(): void {
     // Graceful silence
   }
 }
+
+/**
+ * Synthesizes a deep, thunderous table thud / slam impact sound with punchy sub-bass transient.
+ */
+export function playGinSlamImpactSound(): void {
+  try {
+    if (!useGameStore.getState().soundEnabled) return;
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // 1. Deep low-end bass sub thud (110Hz diving down to 26Hz)
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(115, now);
+    subOsc.frequency.exponentialRampToValueAtTime(26, now + 0.38);
+
+    subGain.gain.setValueAtTime(0.4, now);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+    subOsc.connect(subGain);
+    subGain.connect(ctx.destination);
+    subOsc.start(now);
+    subOsc.stop(now + 0.5);
+
+    // 2. High snap transient / hard card slap on the felt
+    const snapOsc = ctx.createOscillator();
+    const snapGain = ctx.createGain();
+    snapOsc.type = 'triangle';
+    snapOsc.frequency.setValueAtTime(500, now);
+    snapOsc.frequency.exponentialRampToValueAtTime(55, now + 0.08);
+
+    snapGain.gain.setValueAtTime(0.28, now);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+    snapOsc.connect(snapGain);
+    snapGain.connect(ctx.destination);
+    snapOsc.start(now);
+    snapOsc.stop(now + 0.1);
+  } catch {
+    // Graceful silence
+  }
+}
+

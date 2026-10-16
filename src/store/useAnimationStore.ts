@@ -11,6 +11,8 @@ export interface CardFlightRequest {
   toPoint?: { x: number; y: number };
   isFaceDown?: boolean;
   flipToFaceUp?: boolean;
+  flipToFaceDown?: boolean;
+  isGinSlam?: boolean;
   durationMs?: number;
   rotation?: number;
   onComplete?: () => void;
