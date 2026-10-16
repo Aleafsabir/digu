@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/useGameStore';
 import { useAITurnController } from '../../hooks/useAITurnController';
@@ -13,6 +13,7 @@ import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, MessageSquare, 
 import { THEME_CONFIGS } from '../../theme/themeConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
 import { RulesModal } from '../shared/RulesModal';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
 import { playCardFlickSound } from '../../utils/audioEffects';
@@ -135,8 +136,11 @@ export const TableSurface: React.FC = () => {
     }
   }, [isDealingOpeningAnimation, handCards.length]);
 
+  const skipDealRef = useRef(false);
+
   const handleShuffleComplete = () => {
     setOpeningPhase('dealing');
+    skipDealRef.current = false;
     runClockwiseDealAnimation();
   };
 
@@ -154,6 +158,8 @@ export const TableSurface: React.FC = () => {
     let humanCardsReceived = 0;
 
     for (let i = 0; i < dealSequence.length; i++) {
+      if (skipDealRef.current) break;
+
       const seat = dealSequence[i];
       const isHumanSeat = seat === 0;
 
@@ -173,7 +179,7 @@ export const TableSurface: React.FC = () => {
         toAnchor,
         isFaceDown: true,
         flipToFaceUp: isHumanSeat,
-        durationMs: 240,
+        durationMs: 360,
         onComplete: () => {
           if (isHumanSeat) {
             setDealtHumanCardsCount(prev => Math.min(10, prev + 1));
@@ -185,10 +191,10 @@ export const TableSurface: React.FC = () => {
         humanCardsReceived++;
       }
 
-      await new Promise(res => setTimeout(res, 65));
+      await new Promise(res => setTimeout(res, 190));
     }
 
-    await new Promise(res => setTimeout(res, 350));
+    await new Promise(res => setTimeout(res, 450));
     setDealtHumanCardsCount(10);
     setOpeningPhase('idle');
     setIsDealingOpeningAnimation(false);
@@ -527,7 +533,16 @@ export const TableSurface: React.FC = () => {
             </div>
 
             {/* Center Felt Play Arena (Clean, Focused, Zero Text Clutter) */}
-            <div className="flex items-center justify-center my-auto z-10 px-2 shrink-0">
+            <div className="flex items-center justify-center my-auto z-10 px-2 shrink-0 relative">
+              {openingPhase === 'dealing' && (
+                <button
+                  onClick={() => { skipDealRef.current = true; }}
+                  className="absolute -top-7 z-40 bg-black/85 hover:bg-black text-slate-300 hover:text-white border border-slate-700/80 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer font-sans-clean animate-in fade-in duration-300"
+                >
+                  <span>Dealing...</span>
+                  <span className="text-[#05D59A]">Skip ⏩</span>
+                </button>
+              )}
               {openingPhase === 'shuffle' ? (
                 <ShuffleDeckAnimation onComplete={handleShuffleComplete} />
               ) : (
@@ -633,11 +648,13 @@ export const TableSurface: React.FC = () => {
 
       {/* 3. Round End Score Sheet Modal */}
       {roundResolution && (
-        <RoundScoreModal
-          resolution={roundResolution}
-          onNextRound={nextRound}
-          onResetMatch={resetMatch}
-        />
+        <ErrorBoundary>
+          <RoundScoreModal
+            resolution={roundResolution}
+            onNextRound={nextRound}
+            onResetMatch={resetMatch}
+          />
+        </ErrorBoundary>
       )}
 
       {/* 4. Match Scorecard & Round History Modal (Triggered by clicking Scorecard Placard) */}

@@ -934,6 +934,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           aiThoughtMessage: { seatIndex: 0, message: '⚡ GIN SLAM!' },
         }));
 
+        setTimeout(() => {
+          set({ isSlammingFinish: false });
+        }, 750);
+
         return true;
       } catch (err: any) {
         set({ actionError: `Error resolving round: ${err.message}` });
@@ -1076,6 +1080,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
             isSlammingFinish: true,
             aiThoughtMessage: { seatIndex: botIndex, message: '⚡ GIN SLAM!' },
           }));
+
+          setTimeout(() => {
+            set({ isSlammingFinish: false });
+          }, 750);
         } catch (err: any) {
           console.error('Bot Gin resolution error:', err);
         }
