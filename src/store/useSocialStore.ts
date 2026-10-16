@@ -26,7 +26,13 @@ interface SocialStoreState {
   setIncomingInvitation: (invite: MatchInvitation | null) => void;
   acceptInvitation: () => MatchInvitation | null;
   declineInvitation: () => void;
-  initPresence: (profileId: string, displayName: string) => () => void;
+  initPresence: (
+    profileId: string,
+    displayName: string,
+    avatarId?: string,
+    friendCode?: string,
+    level?: number
+  ) => () => void;
 }
 
 export const useSocialStore = create<SocialStoreState>((set, get) => ({
@@ -105,8 +111,14 @@ export const useSocialStore = create<SocialStoreState>((set, get) => ({
     }
   },
 
-  initPresence: (profileId: string, displayName: string) => {
-    SocialService.connectWebSocket(profileId, displayName);
+  initPresence: (
+    profileId: string,
+    displayName: string,
+    avatarId?: string,
+    friendCode?: string,
+    level?: number
+  ) => {
+    SocialService.connectWebSocket(profileId, displayName, avatarId, friendCode, level);
 
     const unsubscribe = SocialService.addMessageListener(msg => {
       switch (msg.type) {

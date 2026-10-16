@@ -53,10 +53,16 @@ export default function App() {
   // Connect to Real-Time Presence & Invitation WebSocket
   useEffect(() => {
     if (profile?.id && profile?.displayName) {
-      const cleanup = initPresence(profile.id, profile.displayName);
+      const cleanup = initPresence(
+        profile.id,
+        profile.displayName,
+        profile.avatarId,
+        profile.friendCode,
+        profile.level
+      );
       return cleanup;
     }
-  }, [profile?.id, profile?.displayName, initPresence]);
+  }, [profile?.id, profile?.displayName, profile?.avatarId, profile?.friendCode, profile?.level, initPresence]);
 
   // Restore active match session seamlessly on app load / mobile reopen
   useEffect(() => {

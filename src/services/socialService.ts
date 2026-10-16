@@ -6,13 +6,17 @@
 
 import { Friend, FriendRequest } from '../types/social';
 
+const isBrowser = typeof window !== 'undefined';
+const isHttps = isBrowser && window.location.protocol === 'https:';
+const host = isBrowser ? window.location.host : 'localhost:8080';
+
 const API_BASE_URL =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  'http://localhost:8080';
+  (isBrowser ? `${isHttps ? 'https:' : 'http:'}//${host}` : 'http://localhost:8080');
 
 const WS_BASE_URL =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_WS_URL) ||
-  'ws://localhost:8080';
+  (isBrowser ? `${isHttps ? 'wss:' : 'ws:'}//${host}/ws` : 'ws://localhost:8080');
 
 const LOCAL_FRIENDS_KEY = 'thaasbai_local_friends_v1';
 const LOCAL_REQUESTS_KEY = 'thaasbai_local_friend_requests_v1';
@@ -29,7 +33,13 @@ export class SocialService {
   /**
    * Connect to Real-Time Presence & Invitation WebSocket
    */
-  static connectWebSocket(profileId: string, displayName: string): void {
+  static connectWebSocket(
+    profileId: string,
+    displayName: string,
+    avatarId?: string,
+    friendCode?: string,
+    level?: number
+  ): void {
     if (typeof window === 'undefined') return;
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return;
@@ -39,7 +49,7 @@ export class SocialService {
       this.ws = new WebSocket(WS_BASE_URL);
 
       this.ws.onopen = () => {
-        this.send('AUTH_INIT', { profileId, displayName });
+        this.send('AUTH_INIT', { profileId, displayName, avatarId, friendCode, level });
       };
 
       this.ws.onmessage = event => {
@@ -53,7 +63,7 @@ export class SocialService {
         // Auto-reconnect after 5 seconds if disconnected
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(() => {
-          this.connectWebSocket(profileId, displayName);
+          this.connectWebSocket(profileId, displayName, avatarId, friendCode, level);
         }, 5000);
       };
 

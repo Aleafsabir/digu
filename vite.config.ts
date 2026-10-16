@@ -9,6 +9,16 @@ export default defineConfig({
     host: true,
     port: 5173,
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+      },
+    },
   },
   plugins: [
     react(),

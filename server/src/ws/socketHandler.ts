@@ -7,6 +7,30 @@ interface AuthenticatedSocket extends WebSocket {
   isAlive?: boolean;
 }
 
+export interface MemoryProfile {
+  id: string;
+  display_name: string;
+  avatar_id: string;
+  friend_code: string;
+  level: number;
+  presence_status: 'IN_LOBBY' | 'IN_MATCH' | 'OFFLINE';
+  last_active_at: string;
+  current_match_info?: any;
+}
+
+export interface MemoryFriendship {
+  id: string;
+  user_id: string;
+  friend_id: string;
+  sender_id: string;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  created_at: string;
+}
+
+// In-Memory Fallbacks for Local / Tunnel Testing
+export const inMemoryProfiles = new Map<string, MemoryProfile>();
+export const inMemoryFriendships: MemoryFriendship[] = [];
+
 // Active connected clients: profileId -> AuthenticatedSocket
 export const activeClients = new Map<string, AuthenticatedSocket>();
 
@@ -64,12 +88,23 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
 
   switch (type) {
     case 'AUTH_INIT': {
-      const { profileId, displayName } = payload;
+      const { profileId, displayName, avatarId, friendCode, level } = payload;
       if (!profileId) return;
 
       socket.profileId = profileId;
       socket.displayName = displayName;
       activeClients.set(profileId, socket);
+
+      const existing = inMemoryProfiles.get(profileId);
+      inMemoryProfiles.set(profileId, {
+        id: profileId,
+        display_name: displayName || existing?.display_name || 'Player',
+        avatar_id: avatarId || existing?.avatar_id || 'boduthakurufaanu',
+        friend_code: friendCode || existing?.friend_code || `DIGU-${profileId.substring(0, 4).toUpperCase()}`,
+        level: level || existing?.level || 1,
+        presence_status: 'IN_LOBBY',
+        last_active_at: new Date().toISOString(),
+      });
 
       // Update presence in database
       try {
