@@ -45,6 +45,7 @@ export default function App() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [lobbyInitialTab, setLobbyInitialTab] = useState<'CREATE_ROOM' | 'JOIN_ROOM' | 'QUICK_MATCH'>('CREATE_ROOM');
 
   const profile = useAuthStore(state => state.profile);
   const { isFriendsModalOpen, setFriendsModalOpen, initPresence } = useSocialStore();
@@ -105,6 +106,7 @@ export default function App() {
           onOpenSettings={() => setShowSettings(true)}
           onOpenPrivateTable={() => {
             updatePendingRules({ playType: 'ONLINE', mode: 'TEAM_4P' });
+            setLobbyInitialTab('CREATE_ROOM');
             setScreen('ONLINE_LOBBY');
           }}
         />
@@ -120,7 +122,12 @@ export default function App() {
           />
           <PlayTypeModal
             mode={pendingRules.mode}
-            onSelectPlayType={selectPlayType}
+            onSelectPlayType={type => {
+              if (type === 'ONLINE') {
+                setLobbyInitialTab('QUICK_MATCH');
+              }
+              selectPlayType(type);
+            }}
             onBack={() => setScreen('MODE_SELECT')}
           />
         </>
@@ -136,8 +143,9 @@ export default function App() {
           />
           <OnlineLobbyModal
             pendingRules={pendingRules}
+            initialTab={lobbyInitialTab}
             onPlayVSAI={() => selectPlayType('VS_AI')}
-            onBack={() => setScreen('PLAY_TYPE_SELECT')}
+            onBack={() => setScreen(lobbyInitialTab === 'CREATE_ROOM' ? 'MODE_SELECT' : 'PLAY_TYPE_SELECT')}
           />
         </>
       )}

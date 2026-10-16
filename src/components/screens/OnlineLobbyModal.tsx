@@ -14,20 +14,29 @@ interface OnlineLobbyModalProps {
   pendingRules: TableRules;
   onPlayVSAI: () => void;
   onBack: () => void;
+  initialTab?: LobbyTab;
 }
 
-type LobbyTab = 'QUICK_MATCH' | 'CREATE_ROOM' | 'JOIN_ROOM';
+type LobbyTab = 'CREATE_ROOM' | 'JOIN_ROOM' | 'QUICK_MATCH';
 
 export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
   pendingRules,
   onPlayVSAI,
   onBack,
+  initialTab = 'CREATE_ROOM',
 }) => {
   const profile = useAuthStore(state => state.profile);
   const claimDailyBonus = useAuthStore(state => state.claimDailyBonus);
   const { confirmAndStartMatch, updatePendingRules } = useGameStore();
 
-  const [activeTab, setActiveTab] = useState<LobbyTab>('QUICK_MATCH');
+  const [activeTab, setActiveTab] = useState<LobbyTab>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [selectedStake, setSelectedStake] = useState<number>(pendingRules.buyIn ?? 1000);
   const [selectedTarget, setSelectedTarget] = useState<number>(pendingRules.targetScore ?? 1000);
   
@@ -38,10 +47,10 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [dailyClaimMsg, setDailyClaimMsg] = useState<string | null>(null);
 
-  // Social & Private Waiting Room State
+  // Social & Private Waiting Room State (Real Players Only)
   const { friends, sendMatchInvite } = useSocialStore();
   const [invitedSeats, setInvitedSeats] = useState<Record<number, { friendName: string; avatarId: string }>>({});
-  const [botSeats, setBotSeats] = useState<Record<number, { botName: string; avatarId: string }>>({});
+  const [joinedSeats, setJoinedSeats] = useState<Record<number, { playerName: string; avatarId: string }>>({});
   const [friendPickerSeatIndex, setFriendPickerSeatIndex] = useState<number | null>(null);
 
   // Matchmaking State
@@ -114,6 +123,38 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
     return () => clearTimeout(timer);
   }, [matchCountdown]);
 
+  // Synchronize private room with DatabaseService so other players joining via room code or invites appear in real-time
+  useEffect(() => {
+    if (activeTab !== 'CREATE_ROOM') return;
+
+    // Register this room in database
+    DatabaseService.createRoom(
+      profile,
+      pendingRules.mode,
+      selectedStake,
+      selectedTarget,
+      true
+    );
+
+    const pollInterval = setInterval(() => {
+      const room = DatabaseService.getRoomByCode(privateRoomCode);
+      if (room) {
+        const nextJoined: Record<number, { playerName: string; avatarId: string }> = {};
+        room.seats.forEach(s => {
+          if (s.seatIndex !== 0 && s.isConnected && !s.isBot) {
+            nextJoined[s.seatIndex] = {
+              playerName: s.playerName,
+              avatarId: s.avatarId,
+            };
+          }
+        });
+        setJoinedSeats(nextJoined);
+      }
+    }, 1500);
+
+    return () => clearInterval(pollInterval);
+  }, [activeTab, privateRoomCode, profile, pendingRules.mode, selectedStake, selectedTarget]);
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(privateRoomCode);
     setCopied(true);
@@ -128,6 +169,9 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
 
   const handleLaunchPrivateRoom = () => {
     if (!hasEnoughCoins) return;
+    const joinedCount = 1 + Object.keys(joinedSeats).length;
+    if (joinedCount < maxPlayers) return;
+
     updatePendingRules({
       buyIn: selectedStake,
       targetScore: selectedTarget,
@@ -151,11 +195,19 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
       return;
     }
 
+    const joinResult = DatabaseService.joinRoom(formattedCode, profile);
+    if (!joinResult.success) {
+      setJoinError(joinResult.error || 'Could not find or join room');
+      return;
+    }
+
     // Connect to room or start synchronized table
+    const targetRoom = joinResult.room!;
     updatePendingRules({
-      buyIn: selectedStake,
-      targetScore: selectedTarget,
-      roomCode: formattedCode,
+      buyIn: targetRoom.stakeBuyIn,
+      targetScore: targetRoom.targetScore,
+      roomCode: targetRoom.roomCode,
+      mode: targetRoom.mode,
       playType: 'ONLINE',
     });
     confirmAndStartMatch();
@@ -198,18 +250,6 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
         {/* Tab Navigation (Segmented Control) */}
         <div className="grid grid-cols-3 gap-1 bg-[#02140D] border border-slate-800 p-1 rounded-2xl mb-3 shrink-0">
           <button
-            onClick={() => setActiveTab('QUICK_MATCH')}
-            className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
-              activeTab === 'QUICK_MATCH'
-                ? 'bg-slate-200 text-stone-950 border-white shadow-md'
-                : 'text-slate-400 border-transparent hover:text-white'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5" />
-            <span>Matchmaking</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('CREATE_ROOM')}
             className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
               activeTab === 'CREATE_ROOM'
@@ -218,7 +258,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Host Room</span>
+            <span>Host Table</span>
           </button>
 
           <button
@@ -231,6 +271,18 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
           >
             <KeyRound className="w-3.5 h-3.5" />
             <span>Join Code</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('QUICK_MATCH')}
+            className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
+              activeTab === 'QUICK_MATCH'
+                ? 'bg-slate-200 text-stone-950 border-white shadow-md'
+                : 'text-slate-400 border-transparent hover:text-white'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span>Matchmaking</span>
           </button>
         </div>
 
@@ -438,12 +490,12 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               </div>
             </div>
 
-            {/* Interactive 4-Seat Waiting Pedestals */}
+            {/* Interactive 4-Seat Waiting Pedestals (Zero Bots, Real Players Only) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {Array.from({ length: maxPlayers }).map((_, seatIdx) => {
                 const isHost = seatIdx === 0;
                 const invited = invitedSeats[seatIdx];
-                const bot = botSeats[seatIdx];
+                const joined = joinedSeats[seatIdx];
                 const teamLabel =
                   pendingRules.mode === 'TEAM_4P'
                     ? seatIdx % 2 === 0
@@ -455,9 +507,9 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                   <div
                     key={seatIdx}
                     className={`rounded-2xl p-2 flex flex-col items-center text-center justify-between transition-all border min-h-[105px] ${
-                      isHost
+                      isHost || joined
                         ? 'bg-[#031B11] border-emerald-700/80 text-slate-100 shadow'
-                        : invited || bot
+                        : invited
                         ? 'bg-[#02140D] border-slate-700 text-slate-200'
                         : 'bg-[#010D08] border-slate-800/80 text-slate-400'
                     }`}
@@ -471,15 +523,15 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                       <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-base shadow">
                         {isHost ? (
                           '👑'
+                        ) : joined ? (
+                          '👤'
                         ) : invited ? (
                           '📩'
-                        ) : bot ? (
-                          '🤖'
                         ) : (
                           <Plus className="w-4 h-4 text-slate-500" />
                         )}
                       </div>
-                      {isHost && (
+                      {(isHost || joined) && (
                         <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black" />
                       )}
                     </div>
@@ -488,15 +540,19 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                     <span className="text-[11px] font-black truncate max-w-full text-slate-100 mb-1">
                       {isHost
                         ? profile.displayName
+                        : joined
+                        ? joined.playerName
                         : invited
                         ? invited.friendName
-                        : bot
-                        ? bot.botName
                         : 'Empty Seat'}
                     </span>
 
                     {/* Actions or Status */}
                     {isHost ? (
+                      <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        Ready
+                      </span>
+                    ) : joined ? (
                       <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
                         Ready
                       </span>
@@ -509,53 +565,19 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                             delete next[seatIdx];
                             setInvitedSeats(next);
                           }}
-                          className="p-0.5 text-slate-400 hover:text-white"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : bot ? (
-                      <div className="flex items-center gap-1">
-                        <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
-                          AI Bot
-                        </span>
-                        <button
-                          onClick={() => {
-                            const next = { ...botSeats };
-                            delete next[seatIdx];
-                            setBotSeats(next);
-                          }}
-                          className="p-0.5 text-slate-400 hover:text-white"
+                          className="p-0.5 text-slate-400 hover:text-white cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 w-full">
-                        <button
-                          onClick={() => setFriendPickerSeatIndex(seatIdx)}
-                          className="flex-1 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-300 text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
-                        >
-                          <UserPlus className="w-2.5 h-2.5" />
-                          <span>Invite</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            const botNames = ['Hassan Bot', 'Aishath Bot', 'Ibrahim Bot'];
-                            setBotSeats(prev => ({
-                              ...prev,
-                              [seatIdx]: {
-                                botName: botNames[seatIdx - 1] || 'AI Bot',
-                                avatarId: 'dheveli',
-                              },
-                            }));
-                          }}
-                          className="py-1 px-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-bold transition cursor-pointer"
-                          title="Fill with Bot"
-                        >
-                          <Bot className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setFriendPickerSeatIndex(seatIdx)}
+                        className="w-full py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-300 text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
+                      >
+                        <UserPlus className="w-2.5 h-2.5" />
+                        <span>Invite</span>
+                      </button>
                     )}
                   </div>
                 );
@@ -631,17 +653,41 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               </div>
             )}
 
-            {/* Launch Room Button */}
-            <JuicyButton
-              variant="platinum"
-              size="md"
-              onClick={handleLaunchPrivateRoom}
-              disabled={!hasEnoughCoins}
-              className="w-full mt-1"
-            >
-              <Sparkles className="w-4 h-4 fill-slate-950" />
-              <span>Launch Table & Fill Remaining with Bots</span>
-            </JuicyButton>
+            {/* Launch Room Button (Waiting for Real Players) */}
+            {(() => {
+              const joinedCount = 1 + Object.keys(joinedSeats).length;
+              const isFull = joinedCount >= maxPlayers;
+
+              return (
+                <div className="space-y-1.5 mt-1">
+                  <JuicyButton
+                    variant="platinum"
+                    size="md"
+                    onClick={handleLaunchPrivateRoom}
+                    disabled={!isFull || !hasEnoughCoins}
+                    className="w-full"
+                  >
+                    {isFull ? (
+                      <>
+                        <Sparkles className="w-4 h-4 fill-slate-950" />
+                        <span>Start Match</span>
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-4 h-4 text-slate-400" />
+                        <span>Waiting for Players ({joinedCount}/{maxPlayers})</span>
+                      </>
+                    )}
+                  </JuicyButton>
+
+                  {!isFull && (
+                    <p className="text-[10px] text-slate-400 text-center font-medium">
+                      Share room code <span className="font-mono font-bold text-amber-300">#{privateRoomCode}</span> or tap <span className="text-emerald-400 font-bold">Invite</span> to fill the table with friends.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 

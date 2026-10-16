@@ -17,44 +17,6 @@ const WS_BASE_URL =
 const LOCAL_FRIENDS_KEY = 'thaasbai_local_friends_v1';
 const LOCAL_REQUESTS_KEY = 'thaasbai_local_friend_requests_v1';
 
-// Seed demo friends if none exist yet locally
-const INITIAL_DEMO_FRIENDS: Friend[] = [
-  {
-    friendshipId: 'demo-f-1',
-    friendId: 'demo-user-1',
-    displayName: 'Ahmed Moosa',
-    avatarId: 'boduthakurufaanu',
-    level: 14,
-    friendCode: 'DIGU-1104',
-    presenceStatus: 'IN_LOBBY',
-    friendsSince: new Date(Date.now() - 86400000 * 5).toISOString(),
-    lastActiveAt: new Date().toISOString(),
-  },
-  {
-    friendshipId: 'demo-f-2',
-    friendId: 'demo-user-2',
-    displayName: 'Mariyam Didi',
-    avatarId: 'queen',
-    level: 22,
-    friendCode: 'DIGU-8821',
-    presenceStatus: 'IN_MATCH',
-    currentMatchInfo: { roomCode: 'THAAS-4412', mode: 'TEAM_4P' },
-    friendsSince: new Date(Date.now() - 86400000 * 12).toISOString(),
-    lastActiveAt: new Date(Date.now() - 60000 * 5).toISOString(),
-  },
-  {
-    friendshipId: 'demo-f-3',
-    friendId: 'demo-user-3',
-    displayName: 'Ali Rasheed',
-    avatarId: 'fisher',
-    level: 8,
-    friendCode: 'DIGU-3392',
-    presenceStatus: 'OFFLINE',
-    friendsSince: new Date(Date.now() - 86400000 * 20).toISOString(),
-    lastActiveAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-  },
-];
-
 export class SocialService {
   private static ws: WebSocket | null = null;
   private static messageListeners: ((msg: any) => void)[] = [];
@@ -235,11 +197,20 @@ export class SocialService {
     try {
       if (typeof localStorage !== 'undefined') {
         const raw = localStorage.getItem(LOCAL_FRIENDS_KEY);
-        if (raw) return JSON.parse(raw);
-        localStorage.setItem(LOCAL_FRIENDS_KEY, JSON.stringify(INITIAL_DEMO_FRIENDS));
+        if (raw) {
+          const list: Friend[] = JSON.parse(raw);
+          // Purge any legacy demo friends from previous versions
+          const cleaned = list.filter(
+            f => !f.friendshipId?.startsWith('demo-') && !f.friendId?.startsWith('demo-')
+          );
+          if (cleaned.length !== list.length) {
+            localStorage.setItem(LOCAL_FRIENDS_KEY, JSON.stringify(cleaned));
+          }
+          return cleaned;
+        }
       }
     } catch {}
-    return INITIAL_DEMO_FRIENDS;
+    return [];
   }
 
   static saveLocalFriends(friends: Friend[]): void {
