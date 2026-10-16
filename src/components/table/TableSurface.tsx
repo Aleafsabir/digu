@@ -9,9 +9,8 @@ import { RoundScoreModal } from '../shared/RoundScoreModal';
 import { MatchScoreHistoryModal } from '../shared/MatchScoreHistoryModal';
 import { CardFlightOverlay } from '../shared/CardFlightOverlay';
 import { useAnimationStore } from '../../store/useAnimationStore';
-import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, Palette, MessageSquare, Smile, Layers, Maximize2, Minimize2 } from 'lucide-react';
+import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, MessageSquare, Smile, Maximize2, Minimize2 } from 'lucide-react';
 import { THEME_CONFIGS } from '../../theme/themeConfig';
-import { DECK_DESIGNS } from '../../config/deckConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
 import { RulesModal } from '../shared/RulesModal';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -37,9 +36,6 @@ export const TableSurface: React.FC = () => {
     isSlammingFinish,
     aiThoughtMessage,
     visualTheme,
-    setVisualTheme,
-    activeDeck,
-    setActiveDeck,
     triggerReaction,
     playerReactions,
     drawFromStock,
@@ -657,14 +653,14 @@ export const TableSurface: React.FC = () => {
       {showInGameMenu && (
         <div
           onClick={() => setShowInGameMenu(false)}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 select-none overflow-y-auto font-sans-clean"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-none overflow-y-auto font-sans-clean"
         >
           <div
             onClick={e => e.stopPropagation()}
-            className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-lg sm:max-w-xl w-full my-auto max-h-[92dvh] flex flex-col animate-in zoom-in-95 text-center"
+            className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs sm:max-w-sm w-full my-auto animate-in zoom-in-95 text-center"
           >
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-emerald-950 pb-2 mb-2.5 shrink-0">
+            <div className="flex justify-between items-center border-b border-emerald-950 pb-2.5 mb-3.5">
               <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider flex items-center gap-1.5">
                 <Menu className="w-4 h-4 text-emerald-400" /> Match Menu
               </span>
@@ -677,139 +673,60 @@ export const TableSurface: React.FC = () => {
               </button>
             </div>
 
-            {/* Scrollable Customization Content */}
-            <div className="flex-1 overflow-y-auto overscroll-contain space-y-2.5 pr-0.5 sm:pr-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-2.5">
-                {/* Deck Artwork Selector */}
-                <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left shadow-md flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-slate-300" /> Deck Artwork
-                    </span>
-                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
-                      {DECK_DESIGNS[activeDeck || 'burgundy_gold'].name}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-1.5 pt-1">
-                    {(['burgundy_gold', 'sapphire_lattice', 'maldivian_lacquer'] as const).map(dKey => {
-                      const dCfg = DECK_DESIGNS[dKey];
-                      const isSelected = (activeDeck || 'burgundy_gold') === dKey;
-                      return (
-                        <button
-                          key={dKey}
-                          onClick={() => setActiveDeck(dKey)}
-                          className={`p-2 rounded-xl text-left transition-all cursor-pointer border flex items-center justify-between ${
-                            isSelected
-                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
-                              : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
-                          }`}
-                        >
-                          <div className="min-w-0 pr-1">
-                            <div className="text-[11px] font-black leading-tight truncate">
-                              {dCfg.name}
-                            </div>
-                            <div className="text-[9px] opacity-75 truncate">{dCfg.description}</div>
-                          </div>
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 font-bold ml-1.5 shrink-0">
-                            {dCfg.badge}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+            {/* Primary Action */}
+            <button
+              onClick={() => setShowInGameMenu(false)}
+              className="btn-3d-platinum w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md mb-2.5"
+            >
+              Resume
+            </button>
 
-                {/* Theme / Visual Style Selector */}
-                <div className="p-2.5 rounded-2xl bg-[#031B11] border border-slate-800 space-y-1.5 text-left shadow-md flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <Palette className="w-3.5 h-3.5 text-slate-300" /> Visual Style
-                    </span>
-                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">
-                      {currentTheme.name}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5 pt-1">
-                    {(['tournoi', 'sultan', 'holhuashi', 'risograph', 'nocturne', 'swiss'] as const).map(tKey => {
-                      const t = THEME_CONFIGS[tKey];
-                      const isSelected = (visualTheme || 'tournoi') === tKey;
-                      return (
-                        <button
-                          key={tKey}
-                          onClick={() => setVisualTheme(tKey)}
-                          className={`p-1.5 sm:p-2 rounded-xl text-left transition-all cursor-pointer border ${
-                            isSelected
-                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
-                              : 'bg-[#02140D] hover:bg-slate-800 text-slate-300 border-slate-800'
-                          }`}
-                        >
-                          <div className="text-[10px] sm:text-[11px] font-black leading-tight flex items-center justify-between">
-                            <span className="truncate">{t.name}</span>
-                            <span className="text-[8px] opacity-75 shrink-0 ml-1">{t.badge}</span>
-                          </div>
-                          <div className="text-[8.5px] sm:text-[9px] opacity-75 truncate mt-0.5">{t.subtitle}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sticky Actions Footer */}
-            <div className="shrink-0 border-t border-emerald-950/60 pt-2.5 mt-2 space-y-2">
+            {/* 4-Action Secondary Grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
               <button
-                onClick={() => setShowInGameMenu(false)}
-                className="btn-3d-platinum w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md"
+                onClick={() => {
+                  setShowInGameMenu(false);
+                  setShowRules(true);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
               >
-                Resume
+                <HelpCircle className="w-4 h-4 text-slate-300 shrink-0" />
+                <span>Rules</span>
               </button>
-              <div className="grid grid-cols-2 sm:grid-cols-4 landscape:grid-cols-4 gap-1.5 text-xs">
-                <button
-                  onClick={() => {
+              <button
+                onClick={() => {
+                  setShowInGameMenu(false);
+                  setShowScoreHistory(true);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
+              >
+                <Target className="w-4 h-4 text-slate-300 shrink-0" />
+                <span>Scorecard</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Restart this match from the beginning?')) {
+                    resetMatch();
                     setShowInGameMenu(false);
-                    setShowRules(true);
-                  }}
-                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-                  <span>Rules</span>
-                </button>
-                <button
-                  onClick={() => {
+                  }
+                }}
+                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-300 shrink-0" />
+                <span>Restart</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Exit match and return to the main lobby?')) {
+                    exitToLobby();
                     setShowInGameMenu(false);
-                    setShowScoreHistory(true);
-                  }}
-                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
-                >
-                  <Target className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-                  <span>Scorecard</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm('Restart this match from the beginning?')) {
-                      resetMatch();
-                      setShowInGameMenu(false);
-                    }
-                  }}
-                  className="py-2 px-2 rounded-xl bg-[#031B11] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-                  <span>Restart</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm('Exit match and return to the main lobby?')) {
-                      exitToLobby();
-                      setShowInGameMenu(false);
-                    }
-                  }}
-                  className="py-2 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 text-rose-200 border border-rose-800/60 font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-[11px]"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                  <span>Exit</span>
-                </button>
-              </div>
+                  }
+                }}
+                className="py-2.5 px-3 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 text-rose-200 border border-rose-800/60 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
+              >
+                <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Exit</span>
+              </button>
             </div>
           </div>
         </div>

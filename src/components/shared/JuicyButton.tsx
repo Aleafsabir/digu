@@ -1,6 +1,8 @@
 import React from 'react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
+import { useGameStore } from '../../store/useGameStore';
+
 export interface JuicyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'platinum' | 'vermilion' | 'dark';
   size?: 'sm' | 'md' | 'lg' | 'fab';
@@ -33,7 +35,9 @@ export const JuicyButton: React.FC<JuicyButtonProps> = ({
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled) return;
     try {
-      await Haptics.impact({ style: hapticStyle });
+      if (useGameStore.getState().hapticsEnabled) {
+        await Haptics.impact({ style: hapticStyle });
+      }
     } catch {
       // Browser fallback (silent)
     }

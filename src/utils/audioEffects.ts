@@ -3,6 +3,8 @@
  * Zero external audio files required, runs 100% locally and offline.
  */
 
+import { useGameStore } from '../store/useGameStore';
+
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext | null {
@@ -24,6 +26,7 @@ function getAudioContext(): AudioContext | null {
  */
 export function playCardFlickSound(): void {
   try {
+    if (!useGameStore.getState().soundEnabled) return;
     const ctx = getAudioContext();
     if (!ctx) return;
 
@@ -60,6 +63,7 @@ export function playCardFlickSound(): void {
  */
 export function playRiffleShuffleSound(): void {
   try {
+    if (!useGameStore.getState().soundEnabled) return;
     const ctx = getAudioContext();
     if (!ctx) return;
 

@@ -76,6 +76,12 @@ export interface GameStoreState {
   activeDeck: DeckDesignId;
   setActiveDeck: (deck: DeckDesignId) => void;
 
+  // System Audio & Haptic Preferences
+  soundEnabled: boolean;
+  setSoundEnabled: (enabled: boolean) => void;
+  hapticsEnabled: boolean;
+  setHapticsEnabled: (enabled: boolean) => void;
+
   // Player Chat & Emoji Reactions
   playerReactions: Record<number, { text?: string; emoji?: string; id: number }>;
   triggerReaction: (playerIndex: number, text?: string, emoji?: string) => void;
@@ -315,6 +321,30 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         localStorage.setItem('thaasbai_active_deck', deck);
       }
       set({ activeDeck: deck });
+    },
+
+    soundEnabled:
+      typeof localStorage !== 'undefined'
+        ? localStorage.getItem('thaasbai_sound_enabled') !== 'false'
+        : true,
+
+    setSoundEnabled: (enabled: boolean) => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('thaasbai_sound_enabled', String(enabled));
+      }
+      set({ soundEnabled: enabled });
+    },
+
+    hapticsEnabled:
+      typeof localStorage !== 'undefined'
+        ? localStorage.getItem('thaasbai_haptics_enabled') !== 'false'
+        : true,
+
+    setHapticsEnabled: (enabled: boolean) => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('thaasbai_haptics_enabled', String(enabled));
+      }
+      set({ hapticsEnabled: enabled });
     },
 
     playerReactions: {},

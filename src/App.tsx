@@ -10,8 +10,9 @@ import { RulesConfirmationModal } from './components/screens/RulesConfirmationMo
 import { AuthModal } from './components/auth/AuthModal';
 import { ProfileEditModal } from './components/auth/ProfileEditModal';
 import { RulesModal } from './components/shared/RulesModal';
+import { SettingsModal } from './components/shared/SettingsModal';
 import { InactivityForfeitModal } from './components/shared/InactivityForfeitModal';
-import { Settings, X, AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock } from 'lucide-react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useWakeLock } from './hooks/useWakeLock';
 
@@ -146,40 +147,8 @@ export default function App() {
       {/* Screen 4: Active Gameplay (Headerless Stadium Table) */}
       {currentScreen === 'TABLE' && <TableSurface />}
 
-      {/* Settings Modal (Lobby level) */}
-      {showSettings && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#12161a] border-0 rounded-3xl p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-sm w-full animate-in zoom-in-95 text-center">
-            <div className="flex justify-between items-center border-b border-white/[0.05] pb-2 mb-4">
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-amber-400" />
-                <h3 className="font-black text-sm text-[#FAF7F2] uppercase tracking-wider">
-                  Settings
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-2 text-xs text-left">
-              <div className="bg-[#171c22] px-3.5 py-2.5 rounded-2xl border-0 flex items-center justify-between">
-                <span className="text-neutral-400 font-bold">Platform</span>
-                <span className="text-amber-300 font-mono font-bold">Thaasbai v0.1.0</span>
-              </div>
-              <div className="bg-[#171c22] px-3.5 py-2.5 rounded-2xl border-0 flex items-center justify-between">
-                <span className="text-neutral-400 font-bold">Orientation</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  📱 Landscape Lock
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Settings Modal (Appearance, System & Account) */}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
       {/* Rules Cheat Sheet Modal (Graphic Formulas, Zero Paragraphs) */}
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
