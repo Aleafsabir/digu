@@ -10,24 +10,49 @@ import { RulesConfirmationModal } from './components/screens/RulesConfirmationMo
 import { AuthModal } from './components/auth/AuthModal';
 import { ProfileEditModal } from './components/auth/ProfileEditModal';
 import { RulesModal } from './components/shared/RulesModal';
-import { Settings, X, AlertCircle } from 'lucide-react';
+import { InactivityForfeitModal } from './components/shared/InactivityForfeitModal';
+import { Settings, X, AlertCircle, Clock } from 'lucide-react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
+import { useWakeLock } from './hooks/useWakeLock';
 
 export default function App() {
+  // Mobile Screen Timeout Prevention (Screen Wake Lock API + iOS Safari Lifecycle)
+  useWakeLock();
+
   const {
     currentScreen,
     pendingRules,
     actionError,
+    awayToastMessage,
+    isForfeitedDueToInactivity,
+    tablePot,
+    tableBuyIn,
     setScreen,
     selectModeAndReview,
     selectPlayType,
     updatePendingRules,
     confirmAndStartMatch,
     clearError,
+    clearAwayToast,
+    exitToLobby,
+    restoreActiveMatchSession,
   } = useGameStore();
 
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
+
+  // Restore active match session seamlessly on app load / mobile reopen
+  useEffect(() => {
+    restoreActiveMatchSession();
+  }, [restoreActiveMatchSession]);
+
+  // Auto-clear away turn toast notification after 4.5 seconds
+  useEffect(() => {
+    if (awayToastMessage) {
+      const timer = setTimeout(() => clearAwayToast(), 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [awayToastMessage, clearAwayToast]);
 
   // Auto-clear action error after 4 seconds
   useEffect(() => {
@@ -162,6 +187,23 @@ export default function App() {
       {/* Authentication & Profile Modals */}
       <AuthModal />
       <ProfileEditModal />
+
+      {/* Away Turn Toast Notification */}
+      {awayToastMessage && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#0E1B17]/95 border border-amber-500/60 text-amber-200 text-xs px-4 py-2 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.8)] animate-in slide-in-from-top duration-300">
+          <Clock className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+          <span>{awayToastMessage}</span>
+        </div>
+      )}
+
+      {/* Inactivity Forfeit Modal */}
+      {isForfeitedDueToInactivity && (
+        <InactivityForfeitModal
+          onReturnToLobby={exitToLobby}
+          tablePot={tablePot}
+          tableBuyIn={tableBuyIn}
+        />
+      )}
     </div>
   </ErrorBoundary>
   );

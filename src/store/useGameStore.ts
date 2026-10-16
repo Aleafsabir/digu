@@ -57,6 +57,12 @@ export interface GameStoreState {
   // Live AI Feedback
   aiThoughtMessage: { seatIndex: number; message: string } | null;
 
+  // Inactivity & Turn Clock State
+  consecutiveMissedTurns: number;
+  turnStartedAt: number | null;
+  awayToastMessage: string | null;
+  isForfeitedDueToInactivity: boolean;
+
   // App Lifecycle & Navigation Screens
   currentScreen: AppScreen;
   pendingRules: TableRules;
@@ -96,6 +102,14 @@ export interface GameStoreState {
   nextRound: () => void;
   resetMatch: () => void;
   clearError: () => void;
+
+  // Inactivity & Session Recovery Actions
+  autoPlayAwayTurn: () => void;
+  resetAwayTurnCounter: () => void;
+  forfeitMatchDueToInactivity: () => void;
+  clearAwayToast: () => void;
+  restoreActiveMatchSession: () => boolean;
+  clearActiveMatchSession: () => void;
 
   // Bot Turn Automation Actions
   executeBotDraw: (botIndex: number) => void;
@@ -180,6 +194,54 @@ const SUIT_ORDER: Record<Suit, number> = {
   DIAMONDS: 1,
 };
 
+export const ACTIVE_MATCH_STORAGE_KEY = 'thaasbai_active_match';
+
+export interface SavedMatchSession {
+  gameState: GameState;
+  handCards: Card[];
+  pendingRules: TableRules;
+  roundHistory: RoundResolution[];
+  tablePot: number;
+  tableBuyIn: number;
+  consecutiveMissedTurns: number;
+  turnStartedAt: number | null;
+  savedAt: number;
+}
+
+export function safeSaveSession(session: SavedMatchSession) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(ACTIVE_MATCH_STORAGE_KEY, JSON.stringify(session));
+    }
+  } catch (err) {
+    console.warn('Failed to save session to localStorage:', err);
+  }
+}
+
+export function safeLoadSession(): SavedMatchSession | null {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(ACTIVE_MATCH_STORAGE_KEY);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to load session from localStorage:', err);
+  }
+  return null;
+}
+
+export function safeClearSession() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(ACTIVE_MATCH_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore
+  }
+}
+
 export const useGameStore = create<GameStoreState>((set, get) => {
   const initialPlayers = DeckService.createInitialPlayers(DEFAULT_RULES.mode);
 
@@ -216,6 +278,12 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     isSlammingFinish: false,
     actionError: null,
     aiThoughtMessage: null,
+
+    // Inactivity & Turn Clock State
+    consecutiveMissedTurns: 0,
+    turnStartedAt: null,
+    awayToastMessage: null,
+    isForfeitedDueToInactivity: false,
 
     // App Lifecycle State
     currentScreen: 'LAUNCH',
@@ -326,7 +394,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     },
 
     exitToLobby: () => {
-      set({ currentScreen: 'MODE_SELECT' });
+      safeClearSession();
+      set({
+        currentScreen: 'MODE_SELECT',
+        isForfeitedDueToInactivity: false,
+        consecutiveMissedTurns: 0,
+        turnStartedAt: null,
+        awayToastMessage: null,
+      });
     },
 
     clearError: () => set({ actionError: null }),
@@ -369,6 +444,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         isSlammingFinish: false,
         actionError: null,
         aiThoughtMessage: null,
+        consecutiveMissedTurns: 0,
+        turnStartedAt: null,
+        awayToastMessage: null,
+        isForfeitedDueToInactivity: false,
       });
     },
 
@@ -434,6 +513,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         isSlammingFinish: false,
         actionError: null,
         aiThoughtMessage: null,
+        turnStartedAt: deal.activePlayerIndex === 0 ? Date.now() : null,
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -484,6 +565,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         selectedCardId: drawnCard.id, // Auto-select drawn card for easy play
         handAnalysis: analyzeHand(updatedHand),
         actionError: null,
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -532,6 +614,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         selectedCardId: drawnCard.id,
         handAnalysis: analyzeHand(updatedHand),
         actionError: null,
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -573,6 +656,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     selectCard: (cardId: string, forceSelect = false) => {
       set(prev => ({
         selectedCardId: forceSelect ? cardId : (prev.selectedCardId === cardId ? null : cardId),
+        consecutiveMissedTurns: 0,
       }));
     },
 
@@ -628,6 +712,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         sortMode: 'CUSTOM',
         handAnalysis: analyzeHand(remainingHand),
         actionError: null,
+        consecutiveMissedTurns: 0,
+        turnStartedAt: null,
       });
     },
 
@@ -661,6 +747,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handCards: sorted,
         sortMode: mode,
         handAnalysis: analyzeHand(sorted),
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -680,6 +767,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handCards: newCards,
         sortMode: 'CUSTOM',
         handAnalysis: analyzeHand(newCards),
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -713,6 +801,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handCards: updated,
         sortMode: 'CUSTOM',
         handAnalysis: analyzeHand(updated),
+        consecutiveMissedTurns: 0,
       });
     },
 
@@ -980,6 +1069,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           activePlayerIndex: nextPlayerIndex,
           discardPile: updatedDiscard,
         },
+        turnStartedAt: nextPlayerIndex === 0 ? Date.now() : null,
         aiThoughtMessage: {
           seatIndex: botIndex,
           message: `Discarded ${formatCard(discardCard)}`,
@@ -1025,12 +1115,214 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         isSlammingFinish: false,
         actionError: null,
         aiThoughtMessage: null,
+        turnStartedAt: deal.activePlayerIndex === 0 ? Date.now() : null,
+        consecutiveMissedTurns: 0,
       });
     },
 
     resetMatch: () => {
+      safeClearSession();
       const { gameState } = get();
       get().initGame(gameState.rules);
+      set({
+        isForfeitedDueToInactivity: false,
+        consecutiveMissedTurns: 0,
+        turnStartedAt: null,
+        awayToastMessage: null,
+      });
+    },
+
+    autoPlayAwayTurn: () => {
+      const { gameState, handCards, consecutiveMissedTurns } = get();
+
+      // Only applies when human player (Seat 0) is the active player
+      if (gameState.activePlayerIndex !== 0) {
+        return;
+      }
+
+      if (gameState.phase !== 'AWAIT_DRAW' && gameState.phase !== 'AWAIT_ACTION') {
+        return;
+      }
+
+      const nextMissed = (consecutiveMissedTurns || 0) + 1;
+
+      // If this was the 3rd missed turn (exceeding 2 allowed away turns), trigger forfeit!
+      if (nextMissed >= 3) {
+        get().forfeitMatchDueToInactivity();
+        return;
+      }
+
+      let currentHand = [...handCards];
+      let newStock = [...gameState.stockPile];
+      let newDiscard = [...gameState.discardPile];
+
+      // Auto-draw if in AWAIT_DRAW
+      if (gameState.phase === 'AWAIT_DRAW') {
+        if (newStock.length === 0 && newDiscard.length > 0) {
+          newStock = DeckService.shuffle(newDiscard.map(c => ({ ...c, isFaceDown: true })));
+          newDiscard = [];
+        }
+
+        let drawnCard: Card;
+        if (newStock.length > 0) {
+          drawnCard = { ...newStock.pop()!, isFaceDown: false };
+        } else if (newDiscard.length > 0) {
+          drawnCard = newDiscard.pop()!;
+        } else {
+          return;
+        }
+
+        currentHand.push(drawnCard);
+      }
+
+      // Auto-discard if hand has 11 cards
+      if (currentHand.length !== 11) {
+        return;
+      }
+
+      const discardDecision = DiguAI.chooseBestAction(currentHand);
+      const cardToDiscard = currentHand.find(c => c.id === discardDecision.cardId) || currentHand[0];
+      const remainingHand = currentHand.filter(c => c.id !== cardToDiscard.id);
+
+      const updatedPlayers = gameState.players.map((p, idx) =>
+        idx === 0 ? { ...p, hand: remainingHand, handCount: 10 } : p
+      );
+
+      const updatedDiscard = [...newDiscard, { ...cardToDiscard, isFaceDown: false }];
+      const nextPlayerIndex = (0 + 1) % gameState.players.length;
+
+      const toast =
+        nextMissed === 1
+          ? 'Auto-played away turn (1/2)'
+          : 'Auto-played away turn (2/2) — Next missed turn will forfeit match';
+
+      set({
+        gameState: {
+          ...gameState,
+          phase: 'AWAIT_DRAW',
+          activePlayerIndex: nextPlayerIndex,
+          players: updatedPlayers,
+          stockPile: newStock,
+          discardPile: updatedDiscard,
+        },
+        handCards: remainingHand,
+        selectedCardId: null,
+        handAnalysis: analyzeHand(remainingHand),
+        consecutiveMissedTurns: nextMissed,
+        turnStartedAt: null,
+        awayToastMessage: toast,
+        aiThoughtMessage: {
+          seatIndex: 0,
+          message: `Auto-discarded ${formatCard(cardToDiscard)} (Away)`,
+        },
+      });
+    },
+
+    resetAwayTurnCounter: () => set({ consecutiveMissedTurns: 0 }),
+    clearAwayToast: () => set({ awayToastMessage: null }),
+
+    forfeitMatchDueToInactivity: () => {
+      safeClearSession();
+      try {
+        Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+      } catch {}
+
+      set({
+        isForfeitedDueToInactivity: true,
+        consecutiveMissedTurns: 3,
+        turnStartedAt: null,
+        awayToastMessage: null,
+        actionError: null,
+      });
+    },
+
+    restoreActiveMatchSession: () => {
+      const session = safeLoadSession();
+      if (!session || !session.gameState || !session.handCards) {
+        return false;
+      }
+
+      const ageMs = Date.now() - session.savedAt;
+      if (ageMs > 24 * 60 * 60 * 1000 || session.gameState.phase === 'MATCH_OVER') {
+        safeClearSession();
+        return false;
+      }
+
+      let missedTurns = session.consecutiveMissedTurns || 0;
+      let isForfeited = false;
+      let newTurnStartedAt = session.turnStartedAt;
+
+      if (session.gameState.activePlayerIndex === 0 && session.turnStartedAt) {
+        const elapsedSec = (Date.now() - session.turnStartedAt) / 1000;
+        const awayTurnCount = Math.floor(elapsedSec / 30);
+        if (awayTurnCount >= 3 || (missedTurns + awayTurnCount) >= 3) {
+          isForfeited = true;
+          safeClearSession();
+        } else if (awayTurnCount > 0) {
+          missedTurns += awayTurnCount;
+          newTurnStartedAt = Date.now() - ((elapsedSec % 30) * 1000);
+        }
+      }
+
+      if (isForfeited) {
+        set({
+          gameState: session.gameState,
+          handCards: session.handCards,
+          currentScreen: 'TABLE',
+          isForfeitedDueToInactivity: true,
+          consecutiveMissedTurns: 3,
+          turnStartedAt: null,
+        });
+        return true;
+      }
+
+      set({
+        gameState: session.gameState,
+        handCards: session.handCards,
+        currentScreen: 'TABLE',
+        pendingRules: session.pendingRules || { ...DEFAULT_RULES },
+        roundHistory: session.roundHistory || [],
+        tablePot: session.tablePot || 4000,
+        tableBuyIn: session.tableBuyIn || 1000,
+        consecutiveMissedTurns: missedTurns,
+        turnStartedAt: session.gameState.activePlayerIndex === 0 ? (newTurnStartedAt || Date.now()) : null,
+        handAnalysis: analyzeHand(session.handCards),
+        isForfeitedDueToInactivity: false,
+        roundResolution: null,
+        isSlammingFinish: false,
+        actionError: null,
+      });
+
+      return true;
+    },
+
+    clearActiveMatchSession: () => {
+      safeClearSession();
     },
   };
 });
+
+// Auto-persist match state changes whenever on TABLE screen
+useGameStore.subscribe((state) => {
+  if (
+    state.currentScreen === 'TABLE' &&
+    state.gameState &&
+    state.gameState.phase !== 'MATCH_OVER' &&
+    !state.isForfeitedDueToInactivity
+  ) {
+    safeSaveSession({
+      gameState: state.gameState,
+      handCards: state.handCards,
+      pendingRules: state.pendingRules,
+      roundHistory: state.roundHistory,
+      tablePot: state.tablePot,
+      tableBuyIn: state.tableBuyIn,
+      consecutiveMissedTurns: state.consecutiveMissedTurns,
+      turnStartedAt: state.turnStartedAt,
+      savedAt: Date.now(),
+    });
+  } else if (state.currentScreen === 'MODE_SELECT' || state.isForfeitedDueToInactivity) {
+    safeClearSession();
+  }
+});
+

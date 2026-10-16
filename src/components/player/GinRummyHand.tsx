@@ -3,6 +3,7 @@ import { Reorder } from 'framer-motion';
 import { Card, PlayerState } from '../../core/models/types';
 import { HandAnalysis } from '../../store/useGameStore';
 import { PlayingCard, MeldColor, MeldHighlight } from '../shared/PlayingCard';
+import { useTurnTimer } from '../../hooks/useTurnTimer';
 import {
   ArrowDownToLine,
   CheckCircle2,
@@ -51,6 +52,13 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   const isDraggingRef = useRef(false);
   const [isDraggingUp, setIsDraggingUp] = useState(false);
   const lastClickTimeRef = useRef<{ id: string; time: number }>({ id: '', time: 0 });
+
+  const { remainingSeconds, isHumanTurn } = useTurnTimer();
+  const timerRadius = 9;
+  const timerCircumference = 2 * Math.PI * timerRadius;
+  const timerOffset = timerCircumference - (remainingSeconds / 30) * timerCircumference;
+  const timerColor =
+    remainingSeconds > 12 ? '#05D59A' : remainingSeconds > 6 ? '#F59E0B' : '#EF4444';
 
   const selectedIndex = selectedCardId ? handCards.findIndex(c => c.id === selectedCardId) : -1;
 
@@ -145,6 +153,53 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
             <CheckCircle2 className="w-3.5 h-3.5 text-[#05D59A] animate-spin" />
           )}
         </div>
+
+        {/* 30-Second Turn Countdown Ring */}
+        {isHumanTurn && (
+          <div
+            className={`px-2.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all border ${
+              remainingSeconds <= 6
+                ? 'bg-rose-950/80 border-rose-500/80 shadow-[0_0_12px_rgba(239,68,68,0.5)] animate-pulse'
+                : 'bg-[#02140D]/95 border-slate-700/80'
+            }`}
+            title={`Your Turn: ${remainingSeconds}s remaining`}
+          >
+            <div className="relative w-5 h-5 flex items-center justify-center">
+              <svg className="w-5 h-5 -rotate-90">
+                <circle
+                  cx="10"
+                  cy="10"
+                  r={timerRadius}
+                  className="stroke-slate-800"
+                  strokeWidth="2.5"
+                  fill="none"
+                />
+                <circle
+                  cx="10"
+                  cy="10"
+                  r={timerRadius}
+                  stroke={timerColor}
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeDasharray={timerCircumference}
+                  strokeDashoffset={timerOffset}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-linear"
+                />
+              </svg>
+              <span
+                className={`absolute font-mono text-[8px] font-black ${
+                  remainingSeconds <= 6 ? 'text-rose-400' : 'text-slate-200'
+                }`}
+              >
+                {remainingSeconds}
+              </span>
+            </div>
+            <span className="text-[9px] font-black uppercase text-slate-400 font-sans-clean hidden sm:inline">
+              TURN
+            </span>
+          </div>
+        )}
 
         {/* Sort by Sets Icon Button */}
         <button
