@@ -273,9 +273,9 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
       </div>
 
       {/* Main Fanned Hand with Overlapping Cards & Circular Meld Rings */}
-      <div id="anchor-seat-0" className="relative w-full overflow-visible py-1 px-2 flex items-end justify-center min-h-[96px] sm:min-h-[115px] touch-none">
+      <div id="anchor-seat-0" className="relative w-full overflow-visible py-1 px-2 flex items-end justify-center min-h-[82px] sm:min-h-[96px] touch-none">
         {/* Dedicated landing anchor for the 11th drawn card slot on the far right */}
-        <div id="anchor-seat-0-draw-slot" className="absolute right-4 sm:right-10 bottom-2 w-16 h-22 pointer-events-none" />
+        <div id="anchor-seat-0-draw-slot" className="absolute right-4 sm:right-10 bottom-2 w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 pointer-events-none" />
 
         {/* Release to Discard Floating Indicator */}
         {isDraggingUp && isActionPhase && (

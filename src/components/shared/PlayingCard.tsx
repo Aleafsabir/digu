@@ -49,8 +49,8 @@ const RANK_LABELS: Record<Rank, string> = {
 
 const SIZE_CLASSES = {
   sm: 'w-10 h-14 text-[9px] rounded-md p-1',
-  md: 'w-15 sm:w-18 h-22 sm:h-26 text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5',
-  lg: 'w-18 sm:w-21 h-26 sm:h-30 text-sm rounded-xl sm:rounded-2xl p-2 sm:p-2.5',
+  md: 'w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2',
+  lg: 'w-16 sm:w-19 md:w-21 h-23 sm:h-27 md:h-30 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 sm:p-2.5',
 };
 
 import { DeckDesignId } from '../../config/deckConfig';
@@ -189,16 +189,16 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       {/* Top Left Rank and Pip */}
       <div className="flex justify-between items-start leading-none">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black text-sm sm:text-base ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black text-xs sm:text-base ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`text-xs sm:text-sm ${suitColorClass} mt-0.5`}>
+          <span className={`text-[10px] sm:text-sm ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
           {/* Always-visible Glowing Meld Pip (visible even when cards overlap!) */}
           {highlightMeta && (
             <span
-              className={`mt-1 w-2 h-2 rounded-full shrink-0 ${highlightMeta.pipClass}`}
+              className={`mt-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0 ${highlightMeta.pipClass}`}
               title={meldHighlight?.type || 'Meld'}
             />
           )}
@@ -206,21 +206,21 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 
         {/* Meld Tag if present */}
         {highlightMeta && meldHighlight?.type && (
-          <span className={`text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded font-mono font-bold uppercase shadow-sm ${highlightMeta.badgeClass}`}>
+          <span className={`text-[6px] sm:text-[8px] px-1 sm:px-1.5 py-0.5 rounded font-mono font-bold uppercase shadow-sm ${highlightMeta.badgeClass}`}>
             {meldHighlight.type}
           </span>
         )}
       </div>
 
       {/* Center Pip */}
-      <div className={`self-center text-2xl sm:text-4xl leading-none select-none ${suitColorClass}`}>
+      <div className={`self-center text-xl sm:text-3xl leading-none select-none ${suitColorClass}`}>
         {suitMeta.symbol}
       </div>
 
       {/* Bottom Right Inverted Rank and Pip */}
       <div className="flex justify-end items-end leading-none rotate-180">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black text-sm sm:text-base ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black text-xs sm:text-base ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
           <span className={`text-xs sm:text-sm ${suitColorClass} mt-0.5`}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/useGameStore';
 import { useAITurnController } from '../../hooks/useAITurnController';
@@ -9,7 +9,7 @@ import { RoundScoreModal } from '../shared/RoundScoreModal';
 import { MatchScoreHistoryModal } from '../shared/MatchScoreHistoryModal';
 import { CardFlightOverlay } from '../shared/CardFlightOverlay';
 import { useAnimationStore } from '../../store/useAnimationStore';
-import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, Palette, MessageSquare, Smile, Layers } from 'lucide-react';
+import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, Palette, MessageSquare, Smile, Layers, Maximize2, Minimize2 } from 'lucide-react';
 import { THEME_CONFIGS } from '../../theme/themeConfig';
 import { DECK_DESIGNS } from '../../config/deckConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
@@ -69,6 +69,59 @@ export const TableSurface: React.FC = () => {
   const [quickChatTab, setQuickChatTab] = useState<'chat' | 'emoji'>('chat');
   const [pendingDiscardCardId, setPendingDiscardCardId] = useState<string | null>(null);
   const [dragHoverPoint, setDragHoverPoint] = useState<{ x: number; y: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreenHint, setShowFullscreenHint] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    return isIOS && !isStandalone;
+  });
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = Boolean(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      setIsFullscreen(isFs);
+      if (isFs) setShowFullscreenHint(false);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    const timer = setTimeout(() => {
+      setShowFullscreenHint(false);
+    }, 6000);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      setShowFullscreenHint(false);
+      const doc = document as any;
+      const docEl = document.documentElement as any;
+
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        }
+      } else {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request failed:', err);
+    }
+  };
+
   const humanReaction = playerReactions[0];
 
   const calculateHandTargetIndex = (clientX: number): number => {
@@ -317,8 +370,8 @@ export const TableSurface: React.FC = () => {
                 paddingTop: 'max(4px, env(safe-area-inset-top))',
               }}
             >
-              {/* Top-Left: Menu/Pause Button (Pure Icon) */}
-              <div className="flex items-center gap-1.5 shrink-0">
+              {/* Top-Left: Menu/Pause Button (Pure Icon) + Fullscreen Toggle */}
+              <div className="flex items-center gap-1.5 shrink-0 relative">
                 <button
                   onClick={() => setShowInGameMenu(true)}
                   title="Match Menu"
@@ -326,6 +379,32 @@ export const TableSurface: React.FC = () => {
                 >
                   <Menu className="w-4 h-4" />
                 </button>
+
+                <button
+                  onClick={toggleFullscreen}
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                  className={`p-2 rounded-xl flex items-center justify-center transition shadow active:scale-95 cursor-pointer shrink-0 ${currentTheme.menuButtonClass}`}
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
+
+                {showFullscreenHint && (
+                  <div
+                    onClick={toggleFullscreen}
+                    className="absolute left-0 top-full mt-1.5 z-40 bg-[#02140D]/95 border border-[#05D59A]/60 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap cursor-pointer animate-bounce"
+                  >
+                    <span>Tap ⛶ for Fullscreen</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFullscreenHint(false);
+                      }}
+                      className="text-slate-400 hover:text-white ml-0.5"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Center: Opponent Avatar Chips */}
@@ -393,7 +472,7 @@ export const TableSurface: React.FC = () => {
 
             {/* Bottom Felt: Active Player Hand (Gin Rummy Plus Fanned Hand + Bottom Carved Console) */}
             {humanPlayer && (
-              <div className="w-full shrink-0 z-20 mt-auto">
+              <div className="w-full shrink-0 z-20 mt-auto pb-[max(14px,calc(env(safe-area-inset-bottom)+8px))]">
                 <GinRummyHand
                   player={humanPlayer}
                   handCards={handCards}
@@ -435,7 +514,7 @@ export const TableSurface: React.FC = () => {
               className="absolute z-30 pointer-events-auto"
               style={{
                 left: 'max(12px, env(safe-area-inset-left))',
-                bottom: 'max(12px, env(safe-area-inset-bottom))',
+                bottom: 'max(18px, calc(env(safe-area-inset-bottom) + 8px))',
               }}
             >
               <button
@@ -454,7 +533,7 @@ export const TableSurface: React.FC = () => {
               className="absolute z-30 pointer-events-auto"
               style={{
                 right: 'max(12px, env(safe-area-inset-right))',
-                bottom: 'max(12px, env(safe-area-inset-bottom))',
+                bottom: 'max(18px, calc(env(safe-area-inset-bottom) + 8px))',
               }}
             >
               <button

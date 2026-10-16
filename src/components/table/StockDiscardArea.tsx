@@ -39,7 +39,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
   const isActionPhase = phase === 'AWAIT_ACTION' && isHumanTurn;
 
   return (
-    <div className="relative flex justify-center items-center gap-4 sm:gap-8 my-1 select-none">
+    <div className="relative flex justify-center items-center gap-3 sm:gap-6 md:gap-8 my-0.5 sm:my-1 select-none">
       {/* Dynamic Turn Action Spotlight Ring when drawing is active */}
       {isDrawPhase && (
         <div className="absolute inset-x-2 -inset-y-2 bg-[#05D59A]/15 rounded-full blur-xl pointer-events-none animate-pulse" />
@@ -47,7 +47,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
 
       {/* 1. Discard Pile (Naturally angled) */}
       <div id="anchor-discard-pile" className="flex flex-col items-center z-10">
-        <div className="relative w-15 sm:w-17 h-21 sm:h-24">
+        <div className="relative w-13.5 sm:w-16 md:w-17 h-19.5 sm:h-22 md:h-24">
           {topDiscard ? (
             <>
               {/* Layered Underneath Cards in Discard Stack (Organic Realistic Tilt) */}
@@ -134,7 +134,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
 
       {/* 2. Stock Deck with 3D Stack Thickness & Active Deck Back */}
       <div id="anchor-stock-pile" className="flex flex-col items-center z-10">
-        <div className="relative w-15 sm:w-17 h-21 sm:h-24">
+        <div className="relative w-13.5 sm:w-16 md:w-17 h-19.5 sm:h-22 md:h-24">
           {/* 3D Deck thickness layered shadows */}
           <div className="absolute -top-1.5 -right-1.5 w-full h-full rounded-2xl bg-black/70 border-0 pointer-events-none" />
           <div className="absolute -top-0.5 -right-0.5 w-full h-full rounded-2xl bg-black/40 border-0 pointer-events-none" />
