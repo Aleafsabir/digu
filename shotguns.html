@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thaasbai Digu vs. Gin Rummy Plus — AAA Competitor Shotguns</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&family=Cinzel:wght@700;900&family=Space+Grotesk:wght@600;700;900&family=JetBrains+Mono:wght@700&display=swap');
+
+    .font-sans-bold { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    .font-space { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Fanned Card Transform Utilities */
+    .card-fan-1 { transform: rotate(-9deg) translateY(6px); }
+    .card-fan-2 { transform: rotate(-7deg) translateY(3px); }
+    .card-fan-3 { transform: rotate(-5deg) translateY(1px); }
+    .card-fan-4 { transform: rotate(-3deg) translateY(0px); }
+    .card-fan-5 { transform: rotate(-1deg) translateY(-2px); }
+    .card-fan-6 { transform: rotate(1deg) translateY(-2px); }
+    .card-fan-7 { transform: rotate(3deg) translateY(0px); }
+    .card-fan-8 { transform: rotate(5deg) translateY(1px); }
+    .card-fan-9 { transform: rotate(7deg) translateY(3px); }
+    .card-fan-10 { transform: rotate(9deg) translateY(6px); }
+    .card-drawn { transform: rotate(0deg) translateY(-14px); }
+
+    /* Radial Timer Conic Gradient */
+    .timer-ring {
+      background: conic-gradient(#10b981 0% 70%, #064e3b 70% 100%);
+    }
+
+    /* 3D Perspective Stadium Table */
+    .table-3d-stadium {
+      transform: perspective(1000px) rotateX(16deg);
+      transform-origin: center bottom;
+    }
+  </style>
+</head>
+<body class="bg-[#08090b] text-[#FAF7F2] font-sans-bold antialiased min-h-screen p-3 sm:p-6 select-none">
+
+  <!-- Header -->
+  <header class="max-w-6xl mx-auto mb-6 border-b border-neutral-800 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider bg-amber-500 text-stone-950">Market Benchmark</span>
+        <span class="text-neutral-400 text-xs">Direct Competitor: Zynga Gin Rummy Plus</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white">AAA Mobile Card Game Overhaul</h1>
+      <p class="text-neutral-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+        Why Gin Rummy Plus feels juicy, massive, and physical — and the 3 distinct visual & gameplay architectures to compete head-to-head on mobile.
+      </p>
+    </div>
+
+    <!-- Direction & State Selector -->
+    <div class="flex flex-wrap items-center gap-1.5 bg-neutral-900/90 p-1.5 rounded-2xl border border-neutral-800">
+      <button onclick="setShotgun('resort')" id="btn-resort" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-amber-400 text-stone-950 shadow-md">
+        1. Grand Resort
+      </button>
+      <button onclick="setShotgun('kinetic')" id="btn-kinetic" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all text-neutral-400 hover:text-white">
+        2. Neon Kinetic
+      </button>
+      <button onclick="setShotgun('sultan')" id="btn-sultan" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all text-neutral-400 hover:text-white">
+        3. Sultan's Velvet
+      </button>
+      <button onclick="toggleGinReady()" id="btn-toggle-gin" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 hover:bg-emerald-500/30 flex items-center gap-1.5 ml-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Table Gin: Ready (Visible)</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Diagnostic Gap Analysis (Why we currently lack vs Gin Rummy Plus) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-neutral-900/70 border border-neutral-800 rounded-2xl p-4">
+        <div class="text-amber-400 font-black text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <span>01. The Hero Hand (Radial Fan)</span>
+        </div>
+        <p class="text-xs text-neutral-300 leading-relaxed">
+          Gin Rummy Plus cards are <strong>huge</strong> and fan in a natural arc (-9° to +9°) with prominent circular meld rings (Cyan/Emerald/Amber). Our cards were flat, tiny vertical boxes crammed together.
+        </p>
+      </div>
+
+      <div class="bg-neutral-900/70 border border-neutral-800 rounded-2xl p-4">
+        <div class="text-amber-400 font-black text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <span>02. 3D Stadium & Spatial Depth</span>
+        </div>
+        <p class="text-xs text-neutral-300 leading-relaxed">
+          Top card games use a <strong>curved stadium poker table with leather bumper rail</strong> and background horizon. This creates real depth so opponents feel like they sit across from you.
+        </p>
+      </div>
+
+      <div class="bg-neutral-900/70 border border-neutral-800 rounded-2xl p-4">
+        <div class="text-amber-400 font-black text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <span>03. Juicy Turn Timer & Console</span>
+        </div>
+        <p class="text-xs text-neutral-300 leading-relaxed">
+          An animated <strong>radial progress disc</strong> sweeps beneath the stock deck, accompanied by chunky 3D Sort buttons and a prominent <strong>DEADWOOD: 21 / 10</strong> meter with instant Gin slam cues.
+        </p>
+      </div>
+    </div>
+
+    <!-- Direction Title & Rationale -->
+    <div id="shotgun-header" class="p-5 rounded-3xl border transition-all">
+      <!-- Dynamic header -->
+    </div>
+
+    <!-- LIVE INTERACTIVE TABLE STADIUM MOCKUP -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-xs font-black uppercase tracking-wider text-neutral-400">Interactive Stadium Viewport</span>
+        <span class="text-[11px] text-amber-300 font-bold">Landscape Mobile (Pixel 11 Pro / iPhone Pro Max)</span>
+      </div>
+
+      <!-- STADIUM ARENA -->
+      <div id="stadium-container" class="relative rounded-[32px] sm:rounded-[44px] p-2 sm:p-4 min-h-[580px] sm:min-h-[640px] flex flex-col justify-between overflow-hidden shadow-2xl transition-all">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Gameplay Mechanics & Juice Comparison Table -->
+    <div class="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-5">
+      <h3 class="text-xs font-black uppercase tracking-wider text-amber-400 mb-3">Feature-By-Feature Competitive Parity</h3>
+      <div class="overflow-x-auto text-xs">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-neutral-800 text-neutral-400">
+              <th class="py-2 px-3">System</th>
+              <th class="py-2 px-3 text-red-400">Our Previous Code</th>
+              <th class="py-2 px-3 text-amber-300">Gin Rummy Plus Benchmark</th>
+              <th class="py-2 px-3 text-emerald-400">New Thaasbai Digu Solution</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-800/60 text-neutral-300">
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Card Presentation</td>
+              <td class="py-2.5 px-3">Small uniform vertical stack, flat CSS rectangles</td>
+              <td class="py-2.5 px-3">Huge cards fanned radially with prominent circular ring badges</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">25% larger cards, natural -9° to +9° radial fan, bold meld ring rings</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Table Architecture</td>
+              <td class="py-2.5 px-3">Flat 2D rounded rectangle filling screen with brown gradient</td>
+              <td class="py-2.5 px-3">2.5D perspective stadium kidney table with thick leather bumper rail</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Padded stadium table with camera tilt and ambient depth</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Turn Indicator</td>
+              <td class="py-2.5 px-3">Text label "★ YOUR TURN"</td>
+              <td class="py-2.5 px-3">Animated green radial sweep disc under the center deck</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Conic animated radial countdown pie around the stock and discard hub</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Sort Controls</td>
+              <td class="py-2.5 px-3 text-red-400">Wordy text buttons: "SORT RUNS" / "SORT SETS"</td>
+              <td class="py-2.5 px-3 text-amber-300">Pure card fan icons [7-8-9] and [7-7-7] with ZERO text words</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Tactile mini-fanned card icons (Runs vs Sets), 0 text words, instant 1-tap sort</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Player Avatars</td>
+              <td class="py-2.5 px-3 text-red-400">Cluttered with "10 cards", "140p", and status text on the felt</td>
+              <td class="py-2.5 px-3 text-amber-300">Minimalist circular portraits; score in modal chip only</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Clean circular portrait chips with team badge; full scores tucked into top modal</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">Deadwood Meter</td>
+              <td class="py-2.5 px-3">Small text box "-64p" inside console</td>
+              <td class="py-2.5 px-3">Chunky gold-framed meter: "DEADWOOD 21 / 10" with progress bar</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Ornate center console meter: "DEADWOOD 0" with instant GIN! cue</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-bold text-white">2v2 Team Seating</td>
+              <td class="py-2.5 px-3">Three bot avatars clustered in top row</td>
+              <td class="py-2.5 px-3">1v1 single opponent at top</td>
+              <td class="py-2.5 px-3 text-emerald-300 font-semibold">Partner opposite at North; Opponents flanked West and East in 3D</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const SHOTGUNS = {
+      resort: {
+        id: 'resort',
+        name: 'The Grand Resort Stadium',
+        tagline: 'Direct AAA Rival to Zynga: Overwater Luxury & Casino Polish',
+        pitch: 'Takes the proven visual ergonomics of Gin Rummy Plus (huge fanned cards, circular meld rings, padded leather bumper, radial turn timer) and sets it in an ultra-luxurious Maldivian overwater private suite.',
+        containerBg: 'bg-gradient-to-b from-[#120a05] via-[#091f24] to-[#040e12]',
+        outerRail: 'bg-gradient-to-b from-[#3a2012] via-[#24130a] to-[#140a05] border-4 border-[#61361c] shadow-[0_25px_60px_rgba(0,0,0,0.95)]',
+        innerBevel: 'bg-gradient-to-b from-[#2b170c] to-[#150b06] border border-amber-500/50 shadow-inner',
+        felt: 'bg-gradient-to-b from-[#093236] via-[#062428] to-[#04171a]',
+        cardBg: 'bg-gradient-to-b from-white to-[#fbf9f4] border-2 border-slate-300 shadow-xl',
+        centerRing: 'timer-ring',
+        deadwoodBox: 'bg-gradient-to-b from-[#2e180d] to-[#150a05] border-2 border-amber-400 shadow-xl text-amber-200',
+        activeBtn: 'bg-gradient-to-b from-sky-400 to-blue-600 text-white shadow-lg border-t border-sky-200',
+        ginBtn: 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-stone-950 font-black shadow-xl ring-2 ring-emerald-300',
+        ringMeld1: 'border-cyan-400 ring-4 ring-cyan-400/40 text-cyan-900 bg-cyan-400/20',
+        ringMeld2: 'border-emerald-400 ring-4 ring-emerald-400/40 text-emerald-900 bg-emerald-400/20',
+      },
+
+      kinetic: {
+        id: 'kinetic',
+        name: 'Neon Horizon (Kinetic Pop)',
+        tagline: 'Balatro Meets Apex Mobile: Edge-to-Edge Floating Arena',
+        pitch: 'Hyper-crisp modern gaming aesthetic. Floating frameless table surface, perimeter glow that shifts with active player turn, holographic foil cards, and explosive slam juice.',
+        containerBg: 'bg-[#08090d]',
+        outerRail: 'bg-[#10121a] border-2 border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.15)]',
+        innerBevel: 'bg-[#0b0d14] border border-cyan-500/20',
+        felt: 'bg-gradient-to-b from-[#0c101d] via-[#080b14] to-[#05070d]',
+        cardBg: 'bg-[#0e121f] border-2 border-cyan-400/60 shadow-[0_8px_25px_rgba(6,182,212,0.25)] text-white',
+        centerRing: 'bg-conic-gradient from-cyan-400 via-purple-500 to-cyan-400',
+        deadwoodBox: 'bg-[#121624] border-2 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]',
+        activeBtn: 'bg-cyan-500 text-black font-black shadow-lg',
+        ginBtn: 'bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 text-black font-black shadow-[0_0_20px_rgba(251,146,60,0.5)]',
+        ringMeld1: 'border-purple-400 ring-4 ring-purple-400/40 text-purple-300 bg-purple-500/20',
+        ringMeld2: 'border-cyan-400 ring-4 ring-cyan-400/40 text-cyan-300 bg-cyan-500/20',
+      },
+
+      sultan: {
+        id: 'sultan',
+        name: "Sultan's Velvet (Casino Royale)",
+        tagline: 'Old-Money Luxury: Mahogany Rail, Tufted Armrests & Emerald Velvet',
+        pitch: 'Bespoke high-roller elegance. Heavy mahogany padded rail with brass studs, deep emerald velvet felt, Aristocrat gold-leaf indices, and rotary brass deadwood meter.',
+        containerBg: 'bg-[#090b09]',
+        outerRail: 'bg-gradient-to-b from-[#211309] to-[#0e0703] border-4 border-[#3d2311] shadow-[0_25px_60px_rgba(0,0,0,0.98)]',
+        innerBevel: 'bg-[#180e07] border border-amber-600/40 shadow-inner',
+        felt: 'bg-gradient-to-b from-[#062419] via-[#041710] to-[#020d09]',
+        cardBg: 'bg-[#F9F7EE] border-2 border-amber-600/60 shadow-2xl text-[#1a1815]',
+        centerRing: 'timer-ring',
+        deadwoodBox: 'bg-[#120a05] border-2 border-amber-500 text-amber-200 shadow-2xl',
+        activeBtn: 'bg-[#991b1b] text-amber-100 font-bold border border-amber-500/40 shadow',
+        ginBtn: 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 text-stone-950 font-black shadow-xl ring-2 ring-amber-300',
+        ringMeld1: 'border-amber-600 ring-4 ring-amber-500/40 text-amber-950 bg-amber-500/20',
+        ringMeld2: 'border-emerald-600 ring-4 ring-emerald-500/40 text-emerald-950 bg-emerald-500/20',
+      }
+    };
+
+    let activeShotgun = 'resort';
+
+    function setShotgun(key) {
+      activeShotgun = key;
+      const s = SHOTGUNS[key];
+
+      // Tab styles
+      document.querySelectorAll('header button').forEach(b => {
+        b.className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all text-neutral-400 hover:text-white';
+      });
+      document.getElementById(`btn-${key}`).className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-amber-400 text-stone-950 shadow-md';
+
+      // Header description
+      const hdr = document.getElementById('shotgun-header');
+      hdr.className = `p-5 rounded-3xl border transition-all ${s.containerBg} border-neutral-800`;
+      hdr.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-black uppercase tracking-wider text-amber-400">Direction 0${key === 'resort' ? '1' : key === 'kinetic' ? '2' : '3'}</span>
+            <h2 class="text-xl sm:text-2xl font-black text-white mt-0.5">${s.name}</h2>
+          </div>
+          <span class="text-xs font-bold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">${s.tagline}</span>
+        </div>
+        <p class="text-xs text-neutral-300 mt-2.5 max-w-3xl leading-relaxed">${s.pitch}</p>
+      `;
+
+      // Render Stadium
+      const stadium = document.getElementById('stadium-container');
+      stadium.className = `relative rounded-[32px] sm:rounded-[44px] p-2 sm:p-4 min-h-[580px] sm:min-h-[640px] flex flex-col justify-between overflow-hidden shadow-2xl transition-all ${s.outerRail}`;
+
+      stadium.innerHTML = `
+        <!-- Inner Padded Rim -->
+        <div class="w-full h-full rounded-[26px] sm:rounded-[36px] p-2 sm:p-3 flex flex-col justify-between relative overflow-hidden ${s.innerBevel}">
+          
+          <!-- Felt Surface -->
+          <div class="w-full h-full rounded-[20px] sm:rounded-[28px] p-3 sm:p-5 relative flex flex-col justify-between overflow-hidden ${s.felt}">
+
+            <!-- Ambient Spotlights -->
+            <div class="absolute top-1/4 left-1/3 w-80 h-80 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-1/4 right-1/3 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- 1. TOP SPATIAL SEATS: Minimalist Avatars (Zero Felt Clutter) -->
+            <div class="relative z-10 flex items-center justify-between px-2">
+              
+              <!-- West Opponent (Ali - Team B) -->
+              <div class="flex items-center gap-2 bg-black/50 backdrop-blur-md border border-amber-500/40 rounded-full pl-1.5 pr-3 py-1 shadow-md">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 border-2 border-amber-200 text-stone-950 font-black text-xs flex items-center justify-center shadow">
+                  AL
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-white tracking-wide">Ali</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">B</span>
+                </div>
+              </div>
+
+              <!-- North Partner (Partner - Team A) -->
+              <div class="flex items-center gap-2 bg-black/50 backdrop-blur-md border-2 border-emerald-400/70 rounded-full pl-1.5 pr-3 py-1 shadow-md ring-2 ring-emerald-500/20">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-700 border-2 border-white text-stone-950 font-black text-xs flex items-center justify-center shadow">
+                  PA
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-black text-white tracking-wide">Partner</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-sky-400/20 text-sky-300 border border-sky-400/40">A</span>
+                </div>
+              </div>
+
+              <!-- East Opponent (Ahmed - Team B) -->
+              <div class="flex items-center gap-2 bg-black/50 backdrop-blur-md border border-amber-500/40 rounded-full pl-3 pr-1.5 py-1 shadow-md">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.2 rounded-full text-[8px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/40">B</span>
+                  <span class="text-xs font-bold text-white tracking-wide">Ahmed</span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 border-2 border-amber-200 text-stone-950 font-black text-xs flex items-center justify-center shadow">
+                  AH
+                </div>
+              </div>
+
+              <!-- Top-Right: Tap-to-View Match Stakes & Standings Modal Chip -->
+              <button onclick="toggleScoreModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-amber-400/40 text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-lg" title="View Match Standings">
+                <span class="font-mono text-[11px] font-black text-white">
+                  <span class="text-sky-400">A: 185</span> <span class="text-neutral-500">·</span> <span class="text-amber-400">B: 140</span>
+                </span>
+                <span class="text-xs">📊</span>
+              </button>
+
+            </div>
+
+            <!-- 2. CENTER PLAY ARENA: Clean, Spacious, Zero Felt Clutter -->
+            <div class="relative z-10 flex items-center justify-center px-4 sm:px-12 my-auto">
+
+              <!-- Center Deck Hub with Radial Turn Timer -->
+              <div class="relative flex items-center justify-center gap-6 sm:gap-10">
+                <!-- Radial Conic Timer Disc surrounding the action hub -->
+                <div class="absolute w-36 h-36 rounded-full border-4 border-emerald-400/30 p-1 flex items-center justify-center pointer-events-none animate-pulse">
+                  <div class="w-full h-full rounded-full border border-emerald-400/60"></div>
+                </div>
+
+                <!-- Discard Pile (Angled with paper shadow) -->
+                <div class="flex flex-col items-center z-10">
+                  <div class="w-16 h-24 sm:w-20 sm:h-28 ${s.cardBg} rounded-2xl flex flex-col justify-between p-2 shadow-2xl -rotate-6 cursor-pointer hover:scale-105 transition-transform">
+                    <div class="font-black text-xs leading-none text-red-600">
+                      K<br><span class="text-[10px]">♥</span>
+                    </div>
+                    <div class="self-center text-2xl text-red-600">♥</div>
+                    <div class="text-right font-black text-xs leading-none rotate-180 text-red-600">
+                      K<br><span class="text-[10px]">♥</span>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-black text-amber-300 mt-1 uppercase">Discard</span>
+                </div>
+
+                <!-- Stock Deck with Remaining Count Badge -->
+                <div class="flex flex-col items-center z-10">
+                  <div class="relative w-16 h-24 sm:w-20 sm:h-28 rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-950 border-2 border-white/40 shadow-2xl flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                    <!-- 3D stack thickness layer -->
+                    <div class="absolute -top-1 -right-1 w-full h-full rounded-2xl bg-black/50 border border-white/20 pointer-events-none"></div>
+                    <span class="font-black text-sm text-white drop-shadow">STOCK</span>
+                    <span class="text-[9px] font-mono bg-blue-500/80 text-white px-2 py-0.5 rounded-full font-bold mt-1 shadow">
+                      11 cards
+                    </span>
+                  </div>
+                  <span class="text-[10px] font-black text-emerald-400 mt-1 uppercase">★ Your Turn</span>
+                </div>
+              </div>
+
+              <!-- Table GIN Button: Appears on the table felt ONLY when hand is ready for Gin (Gin Rummy Plus Benchmark) -->
+              ${isGinReady ? `
+                <div class="ml-6 sm:ml-12 flex flex-col items-center z-20 animate-bounce">
+                  <button class="py-3 px-7 sm:px-9 rounded-full ${s.ginBtn} text-sm sm:text-base font-black tracking-widest uppercase cursor-pointer shadow-[0_0_35px_rgba(52,211,153,0.7)] active:scale-95 transition-all flex items-center gap-2 border-2 border-white">
+                    <span class="text-amber-300 text-lg">★</span>
+                    <span>GIN!</span>
+                  </button>
+                  <span class="text-[9px] font-bold text-emerald-300 drop-shadow mt-1 tracking-wider uppercase">0 Deadwood • Slam Ready</span>
+                </div>
+              ` : ''}
+
+            </div>
+
+            <!-- 3. BOTTOM HERO HAND: Clean Radial Fan with Small Floating Over-Hand Controls -->
+            <div class="relative z-10 flex flex-col items-center mt-auto pb-1">
+              
+              <!-- Floating Over-Hand HUD: Small Icons & Deadwood Pill (Zero Bottom Dock) -->
+              <div class="flex items-center justify-center gap-2 sm:gap-3 mb-2.5 z-20">
+                <!-- Small Sort by Runs Icon Button -->
+                <button onclick="setSortMode('runs')" id="btn-sort-runs" class="p-1 sm:p-1.5 rounded-xl ${activeSortMode === 'runs' ? s.activeBtn : 'bg-black/60 hover:bg-black/80 text-neutral-300 border border-white/20'} backdrop-blur-md transition-all active:scale-90 cursor-pointer shadow-lg" title="Sort Runs">
+                  <div class="relative w-8 h-6 sm:w-9 sm:h-7 flex items-center justify-center pointer-events-none">
+                    <div class="absolute left-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm -rotate-12 flex flex-col justify-between p-0.5">
+                      <span class="text-[6px] font-black text-stone-900 leading-none">A</span>
+                      <span class="text-[5px] text-stone-900 leading-none self-end">♠</span>
+                    </div>
+                    <div class="absolute left-2 sm:left-2.5 bottom-0.5 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-0 flex flex-col justify-between p-0.5 z-10">
+                      <span class="text-[6px] font-black text-stone-900 leading-none">2</span>
+                      <span class="text-[5px] text-stone-900 leading-none self-end">♠</span>
+                    </div>
+                    <div class="absolute right-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-12 flex flex-col justify-between p-0.5 z-20">
+                      <span class="text-[6px] font-black text-stone-900 leading-none">3</span>
+                      <span class="text-[5px] text-stone-900 leading-none self-end">♠</span>
+                    </div>
+                  </div>
+                </button>
+
+                <!-- Compact Deadwood Badge (Over Hand) -->
+                <div class="px-3.5 py-1 rounded-full ${s.deadwoodBox} backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-amber-400/40">
+                  <span class="text-[8px] sm:text-[9px] uppercase font-black tracking-widest text-amber-300/80">DEADWOOD</span>
+                  <span class="text-xs sm:text-sm font-black text-emerald-400 font-mono leading-none">0</span>
+                </div>
+
+                <!-- Small Sort by Sets Icon Button -->
+                <button onclick="setSortMode('sets')" id="btn-sort-sets" class="p-1 sm:p-1.5 rounded-xl ${activeSortMode === 'sets' ? s.activeBtn : 'bg-black/60 hover:bg-black/80 text-neutral-300 border border-white/20'} backdrop-blur-md transition-all active:scale-90 cursor-pointer shadow-lg" title="Sort Sets">
+                  <div class="relative w-8 h-6 sm:w-9 sm:h-7 flex items-center justify-center pointer-events-none">
+                    <div class="absolute left-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm -rotate-12 flex flex-col justify-between p-0.5">
+                      <span class="text-[6px] font-black text-stone-900 leading-none">7</span>
+                      <span class="text-[5px] text-stone-900 leading-none self-end">♠</span>
+                    </div>
+                    <div class="absolute left-2 sm:left-2.5 bottom-0.5 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-0 flex flex-col justify-between p-0.5 z-10">
+                      <span class="text-[6px] font-black text-red-600 leading-none">7</span>
+                      <span class="text-[5px] text-red-600 leading-none self-end">♥</span>
+                    </div>
+                    <div class="absolute right-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-12 flex flex-col justify-between p-0.5 z-20">
+                      <span class="text-[6px] font-black text-red-600 leading-none">7</span>
+                      <span class="text-[5px] text-red-600 leading-none self-end">♦</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Cards Fanned Hand -->
+              <div class="flex items-end justify-center -space-x-4 sm:-space-x-6 pb-1 overflow-visible">
+                <!-- Meld 1: Queens Set (3 Cards with Cyan Rings) -->
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-1 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld1}">Q</div>
+                  <div class="self-center text-xl text-slate-950">♠</div>
+                  <div class="text-[8px] text-right font-mono text-cyan-600 font-bold">SET</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-2 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld1}">Q</div>
+                  <div class="self-center text-xl text-red-600">♥</div>
+                  <div class="text-[8px] text-right font-mono text-cyan-600 font-bold">SET</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-3 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld1}">Q</div>
+                  <div class="self-center text-xl text-red-600">♦</div>
+                  <div class="text-[8px] text-right font-mono text-cyan-600 font-bold">SET</div>
+                </div>
+
+                <!-- Meld 2: 7-8-9-10 Spades Run (4 Cards with Emerald Rings) -->
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-4 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">7</div>
+                  <div class="self-center text-xl text-slate-950">♠</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-5 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">8</div>
+                  <div class="self-center text-xl text-slate-950">♠</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-6 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">9</div>
+                  <div class="self-center text-xl text-slate-950">♠</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-7 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">10</div>
+                  <div class="self-center text-xl text-slate-950">♠</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+
+                <!-- Meld 3: 3-4-5 Hearts Run (3 Cards) -->
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-8 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">3</div>
+                  <div class="self-center text-xl text-red-600">♥</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-9 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">4</div>
+                  <div class="self-center text-xl text-red-600">♥</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+                <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-fan-10 cursor-pointer hover:-translate-y-4 transition-transform shadow-2xl">
+                  <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center font-black ${s.ringMeld2}">5</div>
+                  <div class="self-center text-xl text-red-600">♥</div>
+                  <div class="text-[8px] text-right font-mono text-emerald-600 font-bold">RUN</div>
+                </div>
+
+                <!-- 11th Drawn Finish Card (Elevated Offset) -->
+                <div class="ml-3 sm:ml-5">
+                  <div class="w-14 sm:w-18 h-22 sm:h-28 ${s.cardBg} rounded-xl sm:rounded-2xl p-1.5 flex flex-col justify-between card-drawn ring-4 ring-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.6)] cursor-pointer">
+                    <span class="font-black text-xs text-red-600">2♦</span>
+                    <span class="self-center text-[10px] font-black bg-emerald-500 text-stone-950 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">11th</span>
+                    <span class="text-right text-[8px] text-emerald-600 font-bold font-mono">DRAWN</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    let activeSortMode = 'runs';
+    let isGinReady = true;
+
+    function setSortMode(mode) {
+      activeSortMode = mode;
+      setShotgun(activeShotgun);
+    }
+
+    function toggleGinReady() {
+      isGinReady = !isGinReady;
+      const btn = document.getElementById('btn-toggle-gin');
+      if (btn) {
+        if (isGinReady) {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 hover:bg-emerald-500/30 flex items-center gap-1.5';
+          btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Table Gin: Ready (Visible)</span>';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-neutral-800 text-neutral-400 border border-neutral-700 hover:text-white flex items-center gap-1.5';
+          btn.innerHTML = '<span class="w-2 h-2 rounded-full bg-neutral-500"></span><span>Table Gin: In Play (Hidden)</span>';
+        }
+      }
+      setShotgun(activeShotgun);
+    }
+
+    function toggleScoreModal() {
+      const m = document.getElementById('score-modal');
+      m.classList.toggle('hidden');
+      m.classList.toggle('flex');
+    }
+
+    // Initialize
+    setShotgun('resort');
+  </script>
+
+  <!-- Tap-to-View Match Stakes & Score Modal -->
+  <div id="score-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-[#1c120a] to-[#0d0704] border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full shadow-2xl text-center space-y-4">
+      <div class="flex justify-between items-center border-b border-amber-500/20 pb-2">
+        <h3 class="text-sm font-black text-amber-300 uppercase tracking-wider">Match Stakes & Standings</h3>
+        <button onclick="toggleScoreModal()" class="w-6 h-6 rounded-full bg-white/10 text-white font-bold text-xs flex items-center justify-center cursor-pointer hover:bg-white/20">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-left">
+        <div class="bg-sky-950/50 border border-sky-500/40 p-3 rounded-2xl">
+          <div class="text-[10px] text-sky-400 font-bold uppercase">Team A (You + Partner)</div>
+          <div class="text-2xl font-black text-sky-200 mt-1">185 <span class="text-xs font-normal text-sky-400">pts</span></div>
+        </div>
+        <div class="bg-amber-950/50 border border-amber-500/40 p-3 rounded-2xl">
+          <div class="text-[10px] text-amber-400 font-bold uppercase">Team B (Ali + Ahmed)</div>
+          <div class="text-2xl font-black text-amber-200 mt-1">140 <span class="text-xs font-normal text-amber-400">pts</span></div>
+        </div>
+      </div>
+      <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-neutral-300 space-y-1">
+        <div class="flex justify-between"><span>Match Goal:</span><strong class="text-amber-300">1,000 pts</strong></div>
+        <div class="flex justify-between"><span>Game Mode:</span><strong class="text-white">Maldivian 2v2 Digu</strong></div>
+        <div class="flex justify-between"><span>Aces Rule:</span><strong class="text-red-400">Sets Only (-15p debt)</strong></div>
+      </div>
+      <button onclick="toggleScoreModal()" class="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-lg active:scale-95 transition-all">Close</button>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-teak-rim: #2C1B10;
+  --color-lagoon-mat: #0F3838;
+  --color-brass-gold: #D4AF37;
+  --color-card-bg: #FAF7F2;
+  --color-platinum-ice: #F1F5F9;
+  --color-titanium-slate: #94A3B8;
+  --color-tournoi-emerald: #042618;
+  --color-jeweled-jade: #05D59A;
+  --color-iris-set: #818CF8;
+  --color-aquamarine-run: #00A896;
+  --color-vermilion-slam: #DC2626;
+}
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+
+.font-craft {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-riso {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.font-swiss {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-sans-clean {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.font-thaana {
+  font-family: 'Faruma', 'MV Faseyha', 'MV Boli', 'Noto Sans Thaana', sans-serif;
+}
+
+/* Tactile Surface Textures */
+.texture-riso-dots {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.25) 18%, transparent 19%);
+  background-size: 7px 7px;
+}
+
+.texture-grid-swiss {
+  background-size: 20px 20px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+.texture-woven-mat {
+  background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.06) 0, rgba(0, 0, 0, 0.06) 2px, transparent 0, transparent 8px),
+                    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.06) 0, rgba(0, 0, 0, 0.06) 2px, transparent 0, transparent 8px);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: #042618;
+  color: #FAF7F2;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+
+/* Tactile 3D Button Utility Styles */
+.btn-3d-platinum {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 50%, #CBD5E1 100%);
+  border-bottom: 4px solid #94A3B8;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
+  color: #0F172A;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
+}
+.btn-3d-platinum:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.2);
+}
+
+.btn-3d-vermilion {
+  background: linear-gradient(180deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%);
+  border-bottom: 4px solid #7F1D1D;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.5);
+  color: #FFFFFF;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
+}
+.btn-3d-vermilion:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-3d-dark {
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  border-bottom: 4px solid #020617;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  color: #F1F5F9;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
+}
+.btn-3d-dark:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Screen Shake Animation on Slam */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(-6px, 3px) rotate(-1deg); }
+  30% { transform: translate(5px, -4px) rotate(1deg); }
+  45% { transform: translate(-4px, 2px) rotate(-0.5deg); }
+  60% { transform: translate(3px, -2px) rotate(0.5deg); }
+  75% { transform: translate(-1px, 1px) rotate(0deg); }
+}
+.anim-shake {
+  animation: screenShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Card Fan Transforms (-7deg to +8deg) */
+.fan-0 { transform: rotate(-7deg) translateY(4px); }
+.fan-1 { transform: rotate(-5.5deg) translateY(2px); }
+.fan-2 { transform: rotate(-4deg) translateY(1px); }
+.fan-3 { transform: rotate(-2.5deg) translateY(0px); }
+.fan-4 { transform: rotate(-1deg) translateY(-2px); }
+.fan-5 { transform: rotate(0.5deg) translateY(-2px); }
+.fan-6 { transform: rotate(2deg) translateY(-1px); }
+.fan-7 { transform: rotate(3.5deg) translateY(0px); }
+.fan-8 { transform: rotate(5deg) translateY(1px); }
+.fan-9 { transform: rotate(6.5deg) translateY(3px); }
+.fan-10 { transform: rotate(8deg) translateY(5px); }
+
+.card-lifted {
+  transform: translateY(-24px) scale(1.06) !important;
+  box-shadow: 0 20px 30px -5px rgba(255, 255, 255, 0.35) !important;
+  z-index: 50 !important;
+}

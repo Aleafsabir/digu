@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digu — Finalized UI Architecture (Platinum Ice, Titanium & Tournoi Emerald)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+
+    .font-sans-clean { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Tactile 3D Button Utility Styles */
+    .btn-3d-platinum {
+      background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 50%, #CBD5E1 100%);
+      border-bottom: 4px solid #94A3B8;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
+      color: #0F172A;
+    }
+    .btn-3d-platinum:active {
+      transform: translateY(3px);
+      border-bottom-width: 1px;
+      box-shadow: 0 2px 6px rgba(148, 163, 184, 0.2);
+    }
+
+    .btn-3d-vermilion {
+      background: linear-gradient(180deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%);
+      border-bottom: 4px solid #7F1D1D;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.5);
+      color: #FFFFFF;
+    }
+    .btn-3d-vermilion:active {
+      transform: translateY(3px);
+      border-bottom-width: 1px;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Screen Shake Animation on Slam */
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      15% { transform: translate(-6px, 3px) rotate(-1deg); }
+      30% { transform: translate(5px, -4px) rotate(1deg); }
+      45% { transform: translate(-4px, 2px) rotate(-0.5deg); }
+      60% { transform: translate(3px, -2px) rotate(0.5deg); }
+      75% { transform: translate(-1px, 1px) rotate(0deg); }
+    }
+    .anim-shake {
+      animation: screenShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Card Fan Transforms (-7deg to +8deg) */
+    .fan-0 { transform: rotate(-7deg) translateY(4px); }
+    .fan-1 { transform: rotate(-5.5deg) translateY(2px); }
+    .fan-2 { transform: rotate(-4deg) translateY(1px); }
+    .fan-3 { transform: rotate(-2.5deg) translateY(0px); }
+    .fan-4 { transform: rotate(-1deg) translateY(-2px); }
+    .fan-5 { transform: rotate(0.5deg) translateY(-2px); }
+    .fan-6 { transform: rotate(2deg) translateY(-1px); }
+    .fan-7 { transform: rotate(3.5deg) translateY(0px); }
+    .fan-8 { transform: rotate(5deg) translateY(1px); }
+    .fan-9 { transform: rotate(6.5deg) translateY(3px); }
+    .fan-10 { transform: rotate(8deg) translateY(5px); }
+
+    .card-lifted {
+      transform: translateY(-24px) scale(1.06) !important;
+      box-shadow: 0 20px 30px -5px rgba(255, 255, 255, 0.4) !important;
+      z-index: 50 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#030605] text-[#F8FAFC] font-sans-clean antialiased min-h-screen p-3 sm:p-6 select-none">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Header & Version Status -->
+    <header class="border-b border-slate-800 pb-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 text-stone-950 shadow-md">
+            FINALIZED UI ARCHITECTURE
+          </span>
+          <span class="text-xs text-slate-400 font-mono">Digu (Maldivian Rummy)</span>
+          <span class="text-xs text-[#05D59A] font-semibold">• Platinum Ice & Titanium System</span>
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-sans-clean font-black text-white tracking-tight flex items-center gap-2">
+          <span>Final Design System: Platinum Ice & Tournoi Emerald</span>
+          <span class="text-slate-300 text-xl sm:text-2xl">✨</span>
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl leading-relaxed">
+          100% de-AI'd design system. Amber replaced with <strong>Titanium Silver</strong> (<code class="text-slate-300 font-mono">#94A3B8</code>) and <strong>Platinum Ice White</strong> (<code class="text-white font-mono">#F1F5F9</code>), framed by deep <strong>Tournoi Emerald Green</strong> (<code class="text-emerald-400 font-mono">#042618</code>) and glowing <strong>Jeweled Jade</strong> (<code class="text-[#05D59A] font-mono">#05D59A</code>).
+        </p>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex flex-wrap items-center gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 shadow-xl">
+        <button onclick="switchScreen('table')" id="tab-table" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-slate-200 text-stone-950 shadow-md cursor-pointer">
+          1. Tabletop Stadium
+        </button>
+        <button onclick="switchScreen('lobby')" id="tab-lobby" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-400 hover:text-white cursor-pointer">
+          2. Mode Selection & Lobby
+        </button>
+        <button onclick="switchScreen('score')" id="tab-score" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-400 hover:text-white cursor-pointer">
+          3. 3-Beat Score Modal
+        </button>
+        <button onclick="switchScreen('tokens')" id="tab-tokens" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-400 hover:text-white cursor-pointer">
+          4. Color Tokens Spec
+        </button>
+      </div>
+    </header>
+
+    <!-- Interactive Simulator Toolbar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl px-4 py-2.5">
+      <div class="flex items-center gap-2 text-xs font-bold text-slate-300 font-sans-clean">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#05D59A] shadow-[0_0_8px_#05D59A] animate-pulse"></span>
+        <span id="simulator-status">Active Screen: 1. Tabletop Stadium (Landscape Locked)</span>
+      </div>
+
+      <!-- Quick Toggles -->
+      <div class="flex items-center gap-2 flex-wrap text-xs font-sans-clean">
+        <button onclick="toggleGinState()" id="btn-toggle-gin" class="px-3 py-1.5 rounded-xl font-black bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span>⚡ Table Gin:</span>
+          <span id="label-gin-state" class="text-[#05D59A] underline">0 Deadwood (SLAM READY)</span>
+        </button>
+
+        <button onclick="toggleAceHazard()" id="btn-toggle-ace" class="px-3 py-1.5 rounded-xl font-black bg-rose-500/20 text-rose-300 border border-rose-400/40 hover:bg-rose-500/30 transition flex items-center gap-1.5 cursor-pointer">
+          <span>⚠️ Ace Hazard:</span>
+          <span id="label-ace-state" class="underline">ON (-15 Debt)</span>
+        </button>
+
+        <button onclick="triggerScreenShake()" class="px-3 py-1.5 rounded-xl font-black bg-slate-800 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1 cursor-pointer">
+          <span>💥 Simulate Slam Vibration</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN 1: FINALIZED TABLETOP STADIUM (LANDSCAPE) -->
+    <!-- ========================================================================= -->
+    <section id="screen-table" class="space-y-4">
+
+      <!-- Viewport Header Info -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs px-1 text-slate-400">
+        <div>
+          <span>Table Surface: <strong>Tournoi Emerald Velvet (#042618)</strong></span>
+          <span class="text-slate-500 font-mono ml-2">• Hardware: Titanium & Platinum Ice</span>
+        </div>
+        <div class="flex items-center gap-3 font-mono text-[11px]">
+          <span class="text-slate-400">Pill Border: <span class="text-slate-300 font-bold">#94A3B8 (Titanium)</span></span>
+          <span class="text-slate-400">Subtitle: <span class="text-white font-bold">#F1F5F9 (Platinum Ice)</span></span>
+          <span class="text-slate-400">Status Dot: <span class="text-[#05D59A] font-bold">#05D59A (Jeweled Jade)</span></span>
+        </div>
+      </div>
+
+      <!-- THE LIVE STADIUM CONTAINER -->
+      <div id="stadium-viewport" class="relative rounded-[36px] p-3 sm:p-5 min-h-[640px] bg-gradient-to-b from-[#042618] via-[#021A10] to-[#010D08] border-4 border-[#0F3D26] shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col justify-between overflow-hidden transition-all duration-300">
+
+        <!-- Ambient Velvet Felt Glow -->
+        <div class="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-black/50 pointer-events-none"></div>
+
+        <!-- TOP BAR: In-Game Status & Opponent North (Partner) -->
+        <div class="relative z-20 flex items-center justify-between w-full">
+          
+          <!-- Left: Score Placard (Titanium Finish) -->
+          <div id="placard-box" class="flex items-center gap-2 bg-[#02140D]/90 border border-slate-700/80 rounded-2xl px-3 py-1.5 shadow-lg backdrop-blur-md">
+            <div class="flex flex-col font-sans-clean">
+              <span class="text-[9px] font-black uppercase text-slate-300 tracking-wider">TEAM A (YOU + N)</span>
+              <span class="text-sm font-mono font-black text-white">420 <span class="text-slate-400 text-xs">/ 1,000p</span></span>
+            </div>
+            <div class="w-px h-6 bg-slate-700 mx-1"></div>
+            <div class="flex flex-col font-sans-clean">
+              <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">TEAM B (W + E)</span>
+              <span class="text-sm font-mono font-black text-rose-300">280 <span class="text-slate-400 text-xs">/ 1,000p</span></span>
+            </div>
+          </div>
+
+          <!-- Center: North Partner Seat (EXACT PILL WITH PLATINUM ICE & TITANIUM) -->
+          <div class="flex flex-col items-center">
+            <div id="partner-pill" class="relative flex items-center gap-2.5 bg-[#02140D]/95 border border-slate-400/60 rounded-full px-3.5 py-1.5 shadow-xl transition-all duration-200">
+              <!-- Smoked Titanium Avatar with Platinum Shield -->
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-slate-400 via-slate-600 to-slate-800 flex items-center justify-center text-xs font-black text-white shadow border border-slate-300/40">
+                🛡️
+              </div>
+              <div class="flex flex-col leading-tight font-sans-clean">
+                <span class="text-xs font-bold text-white tracking-tight">Partner (North)</span>
+                <!-- Platinum Ice White Text -->
+                <span class="text-[9px] font-black text-[#F1F5F9] tracking-wider uppercase font-mono">TEAM A • 10 Cards</span>
+              </div>
+              <!-- Jeweled Jade Glow Dot -->
+              <span class="w-2.5 h-2.5 rounded-full bg-[#05D59A] shadow-[0_0_10px_#05D59A] ml-0.5"></span>
+            </div>
+          </div>
+
+          <!-- Right: Menu & Quick Chat -->
+          <div class="flex items-center gap-1.5">
+            <button class="w-9 h-9 rounded-2xl bg-[#02140D]/90 hover:bg-slate-800 border border-slate-700 text-sm flex items-center justify-center text-slate-300 shadow cursor-pointer">
+              💬
+            </button>
+            <button class="w-9 h-9 rounded-2xl bg-[#02140D]/90 hover:bg-slate-800 border border-slate-700 text-sm flex items-center justify-center text-slate-300 shadow cursor-pointer">
+              ⚙️
+            </button>
+          </div>
+        </div>
+
+        <!-- MID TABLE: Opponents Flank & Center Decks -->
+        <div class="relative z-10 flex items-center justify-between w-full my-auto px-1 sm:px-4">
+          
+          <!-- West Seat (Bot Team B) -->
+          <div class="flex flex-col items-center gap-1.5 w-24">
+            <div class="relative flex flex-col items-center p-2 rounded-2xl bg-[#02140D]/85 border border-slate-800 shadow-md">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-900 to-stone-900 border border-rose-700/50 flex items-center justify-center text-base shadow">
+                🤖
+              </div>
+              <span class="text-[11px] font-bold text-slate-200 mt-1 font-sans-clean">Bot West</span>
+              <span class="text-[9px] text-rose-300 font-bold">Team B • 10c</span>
+              <div class="flex -space-x-3 mt-1.5">
+                <div class="w-4 h-6 rounded bg-rose-950 border border-rose-600/40 -rotate-12"></div>
+                <div class="w-4 h-6 rounded bg-rose-950 border border-rose-600/40"></div>
+                <div class="w-4 h-6 rounded bg-rose-950 border border-rose-600/40 rotate-12"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CENTER PLAY HUB -->
+          <div class="relative flex items-center justify-center gap-6 sm:gap-10">
+
+            <!-- 1. Stock Pile (Titanium Trim) -->
+            <div class="relative flex flex-col items-center">
+              <div id="deck-stock" class="relative w-18 h-26 rounded-2xl bg-[#02140D] border-2 border-emerald-900 shadow-2xl cursor-pointer hover:scale-105 transition-all">
+                <div class="absolute -top-1 -right-1 w-full h-full rounded-2xl bg-black/60 border border-emerald-950 pointer-events-none"></div>
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#06291B] to-[#02140D] border border-[#05D59A]/30 flex flex-col items-center justify-center p-1.5">
+                  <span class="text-emerald-300 text-lg">🎴</span>
+                  <span class="text-[10px] font-bold text-slate-300 font-mono tracking-widest mt-0.5">DIGU</span>
+                  <span class="mt-1 px-2 py-0.5 rounded-full bg-black/80 text-[#05D59A] font-mono text-[9px] font-bold">29</span>
+                </div>
+                <!-- Draw Pill (Titanium Silver) -->
+                <div class="absolute -bottom-2 bg-gradient-to-r from-slate-200 to-slate-400 text-stone-950 font-black text-[9px] px-2 py-0.5 rounded-full shadow font-sans-clean">
+                  DRAW
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Discard Pile (With Titanium Take Badge) -->
+            <div class="relative flex flex-col items-center">
+              <div class="relative w-18 h-26 rounded-2xl bg-black/40 border-2 border-dashed border-emerald-900 flex items-center justify-center shadow-lg">
+                <div class="absolute inset-0 rounded-2xl bg-white/20 border border-white/30 rotate-6 translate-x-1 opacity-40 shadow"></div>
+                <!-- Top Discard Card -->
+                <div class="relative w-full h-full rounded-2xl bg-[#FCFCFA] border-2 border-slate-300 p-2 shadow-2xl flex flex-col justify-between text-[#1A1715] cursor-pointer hover:scale-105 transition duration-200">
+                  <div class="flex justify-between items-start leading-none">
+                    <span class="font-black text-sm text-[#DC2626] font-sans-clean">K</span>
+                    <span class="text-xs text-[#DC2626]">♥</span>
+                  </div>
+                  <div class="self-center text-2xl text-[#DC2626] leading-none">♥</div>
+                  <div class="flex justify-end items-end leading-none rotate-180">
+                    <span class="font-black text-sm text-[#DC2626] font-sans-clean">K</span>
+                  </div>
+                  <div class="absolute -bottom-2 right-1 bg-black text-[#F1F5F9] border border-slate-400/60 font-black text-[8px] px-2 py-0.2 rounded-full shadow font-sans-clean">
+                    TAKE
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Dynamic Center Table Slam Gin Trigger (Appears when Hand is Ready for Gin) -->
+            <div id="center-slam-slot" class="flex flex-col items-center justify-center transition-all duration-300">
+              <div class="relative flex flex-col items-center">
+                <div class="absolute inset-0 bg-red-600/40 rounded-2xl blur-lg animate-pulse pointer-events-none"></div>
+                <button onclick="executeGinSlam()" class="btn-3d-vermilion relative w-20 sm:w-24 h-26 rounded-2xl font-sans-clean font-black text-xs sm:text-sm tracking-wider uppercase flex flex-col items-center justify-center gap-1 cursor-pointer shadow-2xl hover:scale-105 transition-transform p-2 text-center">
+                  <span class="text-2xl">⚡</span>
+                  <span class="leading-tight font-black">SLAM<br/>GIN!</span>
+                </button>
+                <span class="text-[8px] font-bold uppercase text-slate-200 mt-1 bg-black/80 px-2 py-0.5 rounded-full border border-slate-600 font-sans-clean text-center whitespace-nowrap">
+                  0 Deadwood
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- East Seat (Bot Team B) -->
+          <div class="flex flex-col items-center gap-1.5 w-24">
+            <div class="relative flex flex-col items-center p-2 rounded-2xl bg-[#02140D]/85 border border-slate-800 shadow-md">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-900 to-stone-900 border border-sky-700/50 flex items-center justify-center text-base shadow">
+                🤖
+              </div>
+              <span class="text-[11px] font-bold text-slate-200 mt-1 font-sans-clean">Bot East</span>
+              <span class="text-[9px] text-sky-300 font-bold">Team B • 10c</span>
+              <div class="flex -space-x-3 mt-1.5">
+                <div class="w-4 h-6 rounded bg-sky-950 border border-sky-600/40 -rotate-12"></div>
+                <div class="w-4 h-6 rounded bg-sky-950 border border-sky-600/40"></div>
+                <div class="w-4 h-6 rounded bg-sky-950 border border-sky-600/40 rotate-12"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BOTTOM ZONE: Active Hero Player Hand (11 Cards) -->
+        <div class="relative z-30 flex flex-col items-center w-full">
+
+          <!-- Over-Hand HUD Controls -->
+          <div class="flex items-center justify-between w-full max-w-4xl px-4 mb-2">
+            <!-- Sort Icon Buttons (Titanium Active State) -->
+            <div class="flex items-center gap-1.5 bg-[#02140D]/90 border border-slate-800 p-1 rounded-2xl shadow-md">
+              <button class="px-2.5 py-1 rounded-xl text-xs font-black bg-slate-200 text-stone-950 shadow flex items-center gap-1 font-sans-clean">
+                <span>Runs</span>
+                <span class="text-[10px]">♠♦♥</span>
+              </button>
+              <button class="px-2.5 py-1 rounded-xl text-xs font-black text-slate-400 hover:text-white flex items-center gap-1 font-sans-clean">
+                <span>Sets</span>
+                <span class="text-[10px]">777</span>
+              </button>
+            </div>
+
+            <!-- Deadwood Status (Jeweled Jade Glow) -->
+            <div class="flex items-center gap-2 bg-[#02140D]/90 border border-emerald-850 rounded-full px-4 py-1 shadow-lg font-sans-clean">
+              <span class="text-xs font-bold text-white">DEADWOOD:</span>
+              <span id="meter-deadwood-text" class="font-mono text-sm font-black text-[#05D59A]">0 pts (GIN READY)</span>
+            </div>
+
+            <!-- Turn Banner -->
+            <div class="px-3 py-1 rounded-full bg-emerald-500/15 border border-[#05D59A]/40 text-[#05D59A] font-bold text-xs font-sans-clean">
+              ★ YOUR TURN: DISCARD OR SLAM
+            </div>
+          </div>
+
+          <!-- THE HERO HAND: Natural Fanned Arc (-7deg to +8deg) -->
+          <div id="hero-hand-container" class="relative w-full max-w-4xl flex items-end justify-center -space-x-3 sm:-space-x-4 pb-2 px-2 overflow-visible">
+
+            <!-- Meld 1: 3-Card Run (7♥, 8♥, 9♥) - Aquamarine Sea Glass (#00A896) -->
+            <div onclick="selectCard(this)" class="fan-0 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#DC2626] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">7</span>
+                <span class="text-xs">♥</span>
+              </div>
+              <div class="self-center text-xl leading-none">♥</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">7</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-1 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#DC2626] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">8</span>
+                <span class="text-xs">♥</span>
+              </div>
+              <div class="self-center text-xl leading-none">♥</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">8</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-2 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#DC2626] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">9</span>
+                <span class="text-xs">♥</span>
+              </div>
+              <div class="self-center text-xl leading-none">♥</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">9</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <!-- Meld 2: 4-Card Set (10♠, 10♦, 10♣, 10♥) - Crisp Iris Violet (#818CF8) -->
+            <div onclick="selectCard(this)" class="fan-3 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#818CF8] p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">10</span>
+                <span class="text-xs">♠</span>
+              </div>
+              <div class="self-center text-xl leading-none">♠</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">10</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#818CF8] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">SET</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-4 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#818CF8] p-2 shadow-xl flex flex-col justify-between text-[#DC2626] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">10</span>
+                <span class="text-xs">♦</span>
+              </div>
+              <div class="self-center text-xl leading-none">♦</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">10</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#818CF8] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">SET</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-5 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#818CF8] p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">10</span>
+                <span class="text-xs">♣</span>
+              </div>
+              <div class="self-center text-xl leading-none">♣</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">10</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#818CF8] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">SET</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-6 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#818CF8] p-2 shadow-xl flex flex-col justify-between text-[#DC2626] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">10</span>
+                <span class="text-xs">♥</span>
+              </div>
+              <div class="self-center text-xl leading-none">♥</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">10</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#818CF8] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">SET</span>
+            </div>
+
+            <!-- Meld 3: 3-Card Run (4♠, 5♠, 6♠) - Aquamarine Sea Glass (#00A896) -->
+            <div onclick="selectCard(this)" class="fan-7 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">4</span>
+                <span class="text-xs">♠</span>
+              </div>
+              <div class="self-center text-xl leading-none">♠</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">4</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-8 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">5</span>
+                <span class="text-xs">♠</span>
+              </div>
+              <div class="self-center text-xl leading-none">♠</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">5</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <div onclick="selectCard(this)" class="fan-9 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-[#00A896] p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">6</span>
+                <span class="text-xs">♠</span>
+              </div>
+              <div class="self-center text-xl leading-none">♠</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">6</span>
+              </div>
+              <span class="absolute -top-2 left-2 bg-[#00A896] text-white font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">RUN</span>
+            </div>
+
+            <!-- The 11th Drawn Card / Stranded Ace -->
+            <div id="card-11th" onclick="selectCard(this)" class="fan-10 relative w-16 sm:w-18 h-24 sm:h-27 rounded-2xl bg-[#FCFCFA] border-2 border-slate-300 p-2 shadow-xl flex flex-col justify-between text-[#1A1715] cursor-pointer transition-transform duration-200 card-hero">
+              <div id="badge-ace-hazard" class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#DC2626] text-white font-bold text-[8px] px-2 py-0.5 rounded-full shadow-lg border border-red-300 flex items-center gap-0.5 animate-bounce font-sans-clean">
+                <span>⚠️ -15 DEBT</span>
+              </div>
+              <div class="flex justify-between items-start leading-none">
+                <span class="font-black text-sm font-sans-clean">A</span>
+                <span class="text-xs">♠</span>
+              </div>
+              <div class="self-center text-xl leading-none">♠</div>
+              <div class="flex justify-end items-end leading-none rotate-180">
+                <span class="font-black text-sm font-sans-clean">A</span>
+              </div>
+              <span class="absolute -bottom-2 left-1 bg-slate-300 text-stone-950 font-mono text-[7px] font-black px-1.5 py-0.2 rounded shadow">11TH</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN 2: FINALIZED MODE SELECTION & LOBBY (TITANIUM & PLATINUM) -->
+    <!-- ========================================================================= -->
+    <section id="screen-lobby" class="space-y-4 hidden">
+      <div class="flex items-center justify-between text-xs px-1 text-slate-400">
+        <span>Surface: <strong>Mode Selection & Main Dashboard</strong></span>
+        <span>Theme: <strong>Titanium Silver & Tournoi Emerald</strong></span>
+      </div>
+
+      <!-- Lobby Canvas Frame -->
+      <div class="relative rounded-[36px] p-4 sm:p-6 min-h-[620px] bg-gradient-to-b from-[#042618] via-[#021A10] to-[#010D08] border-4 border-[#0F3D26] shadow-2xl flex flex-col justify-between">
+        
+        <!-- Top Lobby HUD -->
+        <div class="flex items-center justify-between w-full border-b border-emerald-900/60 pb-4">
+          <!-- User Profile Pill -->
+          <div class="flex items-center gap-3 bg-[#02140D]/90 border border-slate-700 rounded-2xl px-3 py-1.5 shadow-md">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-700 flex items-center justify-center text-lg shadow">
+              👑
+            </div>
+            <div class="flex flex-col font-sans-clean">
+              <span class="text-sm font-black text-white">Aleef (You)</span>
+              <span class="text-[10px] font-bold text-slate-300 font-mono">LVL 14 VIP • 72% WIN</span>
+            </div>
+          </div>
+
+          <!-- Brand Center -->
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🎴</span>
+            <span class="font-sans-clean font-black text-xl sm:text-2xl text-white tracking-tight">Thaasbai: <span class="text-slate-200">Digu</span></span>
+          </div>
+
+          <!-- Wallet Pills & Controls -->
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 bg-[#02140D]/90 border border-slate-700 rounded-2xl px-3 py-1.5 shadow">
+              <span>🪙</span>
+              <span class="font-mono text-xs font-black text-[#F1F5F9]">14,250</span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-[#02140D]/90 border border-slate-700 rounded-2xl px-3 py-1.5 shadow">
+              <span>💎</span>
+              <span class="font-mono text-xs font-black text-cyan-300">85</span>
+            </div>
+            <button class="w-9 h-9 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center text-sm shadow">
+              ⚙️
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Cards Grid (Landscape 4-Column Squircle Layout) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-auto py-4">
+
+          <!-- 1. FEATURED: 4-Player 2v2 Team Mode -->
+          <div class="relative rounded-3xl p-5 bg-[#031B11] border-2 border-slate-300 shadow-[0_15px_35px_rgba(255,255,255,0.15)] flex flex-col justify-between group hover:scale-[1.02] transition-all">
+            <div class="absolute -right-8 top-5 bg-slate-200 text-stone-950 font-black text-[9px] uppercase px-8 py-0.5 rotate-45 shadow">
+              POPULAR
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800 text-slate-200 border border-slate-600">
+                  2v2 PARTNERSHIP
+                </span>
+                <span class="text-xs font-mono font-black text-slate-200">1,000p</span>
+              </div>
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-600 flex items-center justify-center text-2xl shadow-inner text-slate-200">
+                  🛡️
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white font-sans-clean">4P Team Mode</h3>
+                  <p class="text-xs text-slate-400">20-Card Backtracking Merge</p>
+                </div>
+              </div>
+              <ul class="text-[11px] text-slate-300 space-y-1.5 mt-3 border-t border-emerald-950 pt-2 font-medium">
+                <li>• North/South vs East/West</li>
+                <li>• +100 Gin Declaration Bonus</li>
+                <li>• Backtracking Hand Optimizer</li>
+              </ul>
+            </div>
+            <div class="mt-4 pt-3">
+              <button onclick="switchScreen('table')" class="btn-3d-platinum w-full py-2.5 rounded-2xl font-black text-sm tracking-wider uppercase cursor-pointer">
+                PLAY TEAM
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. 4-Player Cutthroat (Solo) -->
+          <div class="relative rounded-3xl p-5 bg-[#031710] border-2 border-slate-800 shadow-xl flex flex-col justify-between group hover:scale-[1.02] transition-all">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-400/20 text-cyan-300 border border-cyan-400/40">
+                  FREE FOR ALL
+                </span>
+                <span class="text-xs font-mono font-black text-cyan-400">1,000p</span>
+              </div>
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center text-2xl shadow-inner">
+                  👥
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white font-sans-clean">4P Cutthroat</h3>
+                  <p class="text-xs text-slate-400">Solo Head-to-Head</p>
+                </div>
+              </div>
+              <ul class="text-[11px] text-slate-300 space-y-1.5 mt-3 border-t border-emerald-950 pt-2 font-medium">
+                <li>• 4-Seat Solo Survival</li>
+                <li>• -100 Zero Melds Penalty</li>
+                <li>• First to 4+3+3 Wins</li>
+              </ul>
+            </div>
+            <div class="mt-4 pt-3">
+              <button onclick="switchScreen('table')" class="btn-3d-platinum w-full py-2.5 rounded-2xl font-black text-sm tracking-wider uppercase cursor-pointer">
+                PLAY SOLO
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 2-Player Head-to-Head Duel -->
+          <div class="relative rounded-3xl p-5 bg-[#031710] border-2 border-slate-800 shadow-xl flex flex-col justify-between group hover:scale-[1.02] transition-all">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-400/20 text-[#05D59A] border border-emerald-400/40">
+                  1V1 DUEL
+                </span>
+                <span class="text-xs font-mono font-black text-[#05D59A]">500p</span>
+              </div>
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-2xl shadow-inner">
+                  ⚔️
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white font-sans-clean">2P Duel</h3>
+                  <p class="text-xs text-slate-400">High-Paced 1v1</p>
+                </div>
+              </div>
+              <ul class="text-[11px] text-slate-300 space-y-1.5 mt-3 border-t border-emerald-950 pt-2 font-medium">
+                <li>• Fast 10-Card Showdowns</li>
+                <li>• 500-Point Match Goal</li>
+                <li>• Pure Skill Discard Tracking</li>
+              </ul>
+            </div>
+            <div class="mt-4 pt-3">
+              <button onclick="switchScreen('table')" class="btn-3d-platinum w-full py-2.5 rounded-2xl font-black text-sm tracking-wider uppercase cursor-pointer">
+                PLAY 1V1
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Private Custom Table -->
+          <div class="relative rounded-3xl p-5 bg-[#02100A] border-2 border-slate-850 shadow-lg flex flex-col justify-between opacity-80">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                  PRIVATE ROOM
+                </span>
+                <span class="text-xs font-mono font-black text-slate-500">Custom</span>
+              </div>
+              <div class="flex items-center gap-3 my-2">
+                <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl shadow-inner">
+                  🔒
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white font-sans-clean">Private Table</h3>
+                  <p class="text-xs text-slate-500">Play with Friends</p>
+                </div>
+              </div>
+              <ul class="text-[11px] text-slate-400 space-y-1.5 mt-3 border-t border-emerald-950 pt-2 font-medium">
+                <li>• 6-Digit Room Code</li>
+                <li>• Custom Stakes & Target</li>
+                <li>• Direct Friend Invite Link</li>
+              </ul>
+            </div>
+            <div class="mt-4 pt-3">
+              <button class="w-full py-2.5 rounded-2xl font-black text-sm tracking-wider uppercase bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed">
+                HOST TABLE
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Game Selector Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-emerald-950 text-xs text-slate-400">
+          <span>Active Flagship Game: <strong class="text-white font-sans-clean">DIGU (ދިގު)</strong></span>
+          <span class="text-slate-500">Upcoming: Dhihaeh (ދިހައެއް) in v1.2</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN 3: FINALIZED 3-BEAT THEATRICAL SCORE MODAL -->
+    <!-- ========================================================================= -->
+    <section id="screen-score" class="space-y-4 hidden">
+      <div class="flex items-center justify-between text-xs px-1 text-slate-400">
+        <span>Surface: <strong>Round Resolution Modal</strong></span>
+        <span>Juice Pacing: <strong>Balatro-Inspired 3-Beat Pacing</strong></span>
+      </div>
+
+      <!-- Modal Stage Viewport -->
+      <div class="relative rounded-[36px] p-6 min-h-[620px] bg-slate-950/90 border-4 border-[#0F3D26] shadow-2xl flex items-center justify-center">
+        
+        <!-- Score Card Popup -->
+        <div class="w-full max-w-xl bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl text-white flex flex-col gap-6 relative overflow-hidden">
+          
+          <!-- Winner Crown Animation (Platinum & Emerald) -->
+          <div class="text-center font-sans-clean">
+            <div id="trophy-bounce" class="w-16 h-16 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-400 text-stone-950 flex items-center justify-center text-3xl shadow-[0_0_35px_rgba(255,255,255,0.4)] border border-white">
+              🏆
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">TEAM A WINS THE ROUND!</h2>
+            <p class="text-xs text-slate-300 font-bold mt-1">You (South) & Partner (North) achieved 0 Deadwood Gin</p>
+          </div>
+
+          <!-- 3-Beat Sequential Score Breakdown Container -->
+          <div class="bg-black/60 rounded-2xl p-5 border border-emerald-950 space-y-4 font-mono text-sm">
+            
+            <!-- Beat 1: Melds Formed Score -->
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#05D59A]"></span>
+                <span>Valid Melds Points:</span>
+              </span>
+              <span id="score-beat-1" class="text-[#05D59A] font-black text-lg transition-all duration-300">
+                +110 pts
+              </span>
+            </div>
+
+            <!-- Beat 2: Deadwood Debt Deduction -->
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                <span>Deadwood Debt:</span>
+              </span>
+              <span id="score-beat-2" class="text-slate-500 font-black text-lg transition-all duration-300">
+                0 pts (Clean)
+              </span>
+            </div>
+
+            <!-- Beat 3: +100 GIN BONUS EXPLOSION (Platinum & Gold Burst) -->
+            <div class="flex items-center justify-between bg-white/10 border border-slate-400 p-2.5 rounded-xl">
+              <span class="text-white font-black flex items-center gap-1.5 font-sans-clean">
+                <span>★</span>
+                <span>Gin Declaration Bonus:</span>
+              </span>
+              <span id="score-beat-3" class="text-white font-black text-xl">
+                +100 pts
+              </span>
+            </div>
+
+            <!-- Net Total Bar -->
+            <div class="pt-3 border-t border-emerald-950 flex items-center justify-between">
+              <span class="text-base font-bold text-white font-sans-clean">Net Round Score:</span>
+              <span id="score-beat-net" class="text-3xl font-black text-white font-mono">
+                +210 pts
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <button onclick="replayBeatTally()" class="px-5 py-2.5 rounded-2xl text-xs font-black uppercase bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5 cursor-pointer hover:bg-slate-700">
+              <span>🔄 Replay Tally</span>
+            </button>
+            <button onclick="switchScreen('table')" class="btn-3d-platinum px-8 py-3 rounded-2xl text-sm font-black uppercase flex items-center gap-1.5 cursor-pointer">
+              <span>Next Round ▶</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN 4: FINALIZED COLOR TOKENS ARCHITECTURE SPEC -->
+    <!-- ========================================================================= -->
+    <section id="screen-tokens" class="space-y-6 hidden">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+            <span>4. Finalized Color Tokens & Production Hex Palette</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-200 text-stone-950">Production Ready</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Use these exact tokens when implementing Tailwind CSS classes and themeConfig.ts:</p>
+        </div>
+
+        <!-- Token Table -->
+        <div class="overflow-x-auto text-xs">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-mono">
+                <th class="py-2.5 px-3">Role / Target</th>
+                <th class="py-2.5 px-3">Token Name</th>
+                <th class="py-2.5 px-3">Hex Value</th>
+                <th class="py-2.5 px-3">Swatch Preview</th>
+                <th class="py-2.5 px-3">Notes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300 font-mono">
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Pill & Modal Hardware</td>
+                <td class="py-2.5 px-3 text-slate-300">Titanium Silver</td>
+                <td class="py-2.5 px-3 font-bold text-white">#94A3B8</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-[#94A3B8] border border-slate-600"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Used at 60% opacity for pill border</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Team Labels & Subtitles</td>
+                <td class="py-2.5 px-3 text-slate-300">Platinum Ice White</td>
+                <td class="py-2.5 px-3 font-bold text-white">#F1F5F9</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-[#F1F5F9] border border-slate-600"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Crisp high-contrast text on dark felt</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Table Felt (Main)</td>
+                <td class="py-2.5 px-3 text-emerald-400">Tournoi Emerald</td>
+                <td class="py-2.5 px-3 font-bold text-white">#042618 → #010D08</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-gradient-to-r from-[#042618] to-[#010D08] border border-emerald-900"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Classic Monte Carlo luxury velvet felt</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Status Dot & Deadwood 0</td>
+                <td class="py-2.5 px-3 text-[#05D59A]">Jeweled Jade</td>
+                <td class="py-2.5 px-3 font-bold text-white">#05D59A</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-[#05D59A] shadow-[0_0_6px_#05D59A]"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Bioluminescent soft glow, zero AI neon</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Runs (Sequences) Meld</td>
+                <td class="py-2.5 px-3 text-[#00A896]">Aquamarine Sea-Glass</td>
+                <td class="py-2.5 px-3 font-bold text-white">#00A896</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-[#00A896]"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Clear distinctive run indicator</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">Sets (Books) Meld</td>
+                <td class="py-2.5 px-3 text-[#818CF8]">Crisp Iris Violet</td>
+                <td class="py-2.5 px-3 font-bold text-white">#818CF8</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-[#818CF8]"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">Replaced yellow-amber with crisp metallic iris</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 text-white font-bold">The "SLAM GIN!" Trigger</td>
+                <td class="py-2.5 px-3 text-[#DC2626]">Island Vermilion</td>
+                <td class="py-2.5 px-3 font-bold text-white">#DC2626 → #7F1D1D</td>
+                <td class="py-2.5 px-3"><div class="w-8 h-5 rounded bg-gradient-to-r from-[#DC2626] to-[#7F1D1D] border border-red-950"></div></td>
+                <td class="py-2.5 px-3 text-slate-400">3D tactile press-depth button</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Interactive JavaScript Controller -->
+  <script>
+    let isGinReady = true;
+    let isAceHazardVisible = true;
+
+    function switchScreen(screenKey) {
+      const screens = ['table', 'lobby', 'score', 'tokens'];
+      screens.forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        const tab = document.getElementById(`tab-${s}`);
+        if (s === screenKey) {
+          el.classList.remove('hidden');
+          tab.classList.add('bg-slate-200', 'text-stone-950', 'shadow-md');
+          tab.classList.remove('text-slate-400');
+        } else {
+          el.classList.add('hidden');
+          tab.classList.remove('bg-slate-200', 'text-stone-950', 'shadow-md');
+          tab.classList.add('text-slate-400');
+        }
+      });
+
+      const titles = {
+        table: '1. Tabletop Stadium (Landscape Locked)',
+        lobby: '2. Mode Selection & Main Lobby',
+        score: '3. Theatrical 3-Beat Score Modal',
+        tokens: '4. Finalized Color Tokens Architecture Spec'
+      };
+      document.getElementById('simulator-status').textContent = `Active Screen: ${titles[screenKey]}`;
+    }
+
+    function toggleGinState() {
+      isGinReady = !isGinReady;
+      const centerSlam = document.getElementById('center-slam-slot');
+      const label = document.getElementById('label-gin-state');
+      const meter = document.getElementById('meter-deadwood-text');
+
+      if (isGinReady) {
+        centerSlam.classList.remove('hidden');
+        label.textContent = '0 Deadwood (SLAM READY)';
+        meter.textContent = '0 pts (GIN READY)';
+        meter.className = 'font-mono text-sm font-black text-[#05D59A]';
+      } else {
+        centerSlam.classList.add('hidden');
+        label.textContent = '24 Deadwood (NOT READY)';
+        meter.textContent = '24 pts (UNMELTED)';
+        meter.className = 'font-mono text-sm font-black text-rose-400';
+      }
+    }
+
+    function toggleAceHazard() {
+      isAceHazardVisible = !isAceHazardVisible;
+      const badge = document.getElementById('badge-ace-hazard');
+      const label = document.getElementById('label-ace-state');
+      if (isAceHazardVisible) {
+        badge.classList.remove('hidden');
+        label.textContent = 'ON (-15 Debt)';
+      } else {
+        badge.classList.add('hidden');
+        label.textContent = 'OFF';
+      }
+    }
+
+    function selectCard(cardEl) {
+      const wasLifted = cardEl.classList.contains('card-lifted');
+      document.querySelectorAll('.card-hero').forEach(c => c.classList.remove('card-lifted'));
+      if (!wasLifted) {
+        cardEl.classList.add('card-lifted');
+      }
+    }
+
+    function triggerScreenShake() {
+      const viewport = document.getElementById('stadium-viewport');
+      viewport.classList.remove('anim-shake');
+      void viewport.offsetWidth;
+      viewport.classList.add('anim-shake');
+    }
+
+    function executeGinSlam() {
+      triggerScreenShake();
+      setTimeout(() => {
+        switchScreen('score');
+        replayBeatTally();
+      }, 350);
+    }
+
+    function replayBeatTally() {
+      const beat1 = document.getElementById('score-beat-1');
+      const beat2 = document.getElementById('score-beat-2');
+      const beat3 = document.getElementById('score-beat-3');
+      const net = document.getElementById('score-beat-net');
+      const trophy = document.getElementById('trophy-bounce');
+
+      beat1.textContent = '...';
+      beat2.textContent = '...';
+      beat3.textContent = '...';
+      net.textContent = '...';
+      trophy.classList.remove('animate-bounce');
+
+      setTimeout(() => {
+        beat1.textContent = '+110 pts';
+      }, 400);
+
+      setTimeout(() => {
+        beat2.textContent = '0 pts (Clean)';
+      }, 900);
+
+      setTimeout(() => {
+        beat3.textContent = '+100 pts';
+        net.textContent = '+210 pts';
+        trophy.classList.add('animate-bounce');
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
