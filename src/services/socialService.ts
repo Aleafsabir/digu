@@ -101,8 +101,20 @@ export class SocialService {
       if (res.ok) {
         const data = await res.json();
         if (data.friends) {
-          this.saveLocalFriends(data.friends);
-          return data.friends;
+          const normalized: Friend[] = data.friends.map((f: any) => ({
+            friendshipId: f.friendshipId || f.friendship_id || `f_${Date.now()}`,
+            friendsSince: f.friendsSince || f.friends_since || new Date().toISOString(),
+            friendId: f.friendId || f.friend_id,
+            displayName: f.displayName || f.display_name || 'Player',
+            avatarId: f.avatarId || f.avatar_id || 'sultan',
+            level: f.level || 1,
+            friendCode: f.friendCode || f.friend_code || '',
+            presenceStatus: f.presenceStatus || f.presence_status || 'OFFLINE',
+            currentMatchInfo: f.currentMatchInfo || f.current_match_info || null,
+            lastActiveAt: f.lastActiveAt || f.last_active_at || new Date().toISOString(),
+          }));
+          this.saveLocalFriends(normalized);
+          return normalized;
         }
       }
     } catch {
@@ -120,7 +132,26 @@ export class SocialService {
         headers: { 'Content-Type': 'application/json' },
       });
       if (res.ok) {
-        return await res.json();
+        const data = await res.json();
+        const incoming: FriendRequest[] = (data.incoming || []).map((r: any) => ({
+          requestId: r.requestId || r.request_id,
+          createdAt: r.createdAt || r.created_at || new Date().toISOString(),
+          senderId: r.senderId || r.sender_id,
+          displayName: r.displayName || r.display_name || 'Player',
+          avatarId: r.avatarId || r.avatar_id || 'sultan',
+          level: r.level || 1,
+          friendCode: r.friendCode || r.friend_code || '',
+        }));
+        const outgoing: FriendRequest[] = (data.outgoing || []).map((r: any) => ({
+          requestId: r.requestId || r.request_id,
+          createdAt: r.createdAt || r.created_at || new Date().toISOString(),
+          receiverId: r.receiverId || r.receiver_id,
+          displayName: r.displayName || r.display_name || 'Player',
+          avatarId: r.avatarId || r.avatar_id || 'sultan',
+          level: r.level || 1,
+          friendCode: r.friendCode || r.friend_code || '',
+        }));
+        return { incoming, outgoing };
       }
     } catch {}
     return { incoming: this.loadLocalRequests(), outgoing: [] };
@@ -179,11 +210,19 @@ export class SocialService {
       const res = await fetch(`${getApiBaseUrl()}/api/friends/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, accept, profileId }),
+        body: JSON.stringify({
+          requestId,
+          request_id: requestId,
+          accept,
+          profileId,
+          profile_id: profileId,
+        }),
       });
       return res.ok;
     } catch {
-      const requests = this.loadLocalRequests().filter(r => r.requestId !== requestId);
+      const requests = this.loadLocalRequests().filter(
+        r => r.requestId !== requestId && (r as any).request_id !== requestId
+      );
       this.saveLocalRequests(requests);
       return true;
     }

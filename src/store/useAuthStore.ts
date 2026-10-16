@@ -3,6 +3,7 @@ import { UserProfile } from '../types/auth';
 import { CloudSyncService } from '../services/cloudSyncService';
 import { CurrencyTransaction } from '../types/database';
 import { DatabaseService } from '../services/databaseService';
+import { SocialService } from '../services/socialService';
 
 interface AuthStoreState {
   profile: UserProfile;
@@ -84,6 +85,13 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         }
       );
       set({ profile: updated, isAuthModalOpen: false });
+      SocialService.send('AUTH_INIT', {
+        profileId: updated.id,
+        displayName: updated.displayName,
+        avatarId: updated.avatarId,
+        friendCode: updated.friendCode,
+        level: updated.level,
+      });
     } finally {
       set({ isSyncing: false });
     }

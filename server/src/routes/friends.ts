@@ -37,7 +37,20 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
     );
 
     if (result && result.rows && result.rows.length > 0) {
-      return res.json({ friends: result.rows });
+      const friends = result.rows.map(r => ({
+        ...r,
+        friendshipId: r.friendship_id,
+        friendsSince: r.friends_since,
+        friendId: r.friend_id,
+        displayName: r.display_name,
+        avatarId: r.avatar_id,
+        level: r.level,
+        friendCode: r.friend_code,
+        presenceStatus: activeClients.has(r.friend_id) ? 'IN_LOBBY' : r.presence_status,
+        currentMatchInfo: r.current_match_info,
+        lastActiveAt: r.last_active_at,
+      }));
+      return res.json({ friends });
     }
   } catch {}
 
@@ -58,15 +71,24 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
       last_active_at: new Date().toISOString(),
     };
     return {
+      friendshipId: f.id,
       friendship_id: f.id,
+      friendsSince: f.created_at,
       friends_since: f.created_at,
+      friendId: p.id,
       friend_id: p.id,
+      displayName: p.display_name,
       display_name: p.display_name,
+      avatarId: p.avatar_id,
       avatar_id: p.avatar_id,
       level: p.level,
+      friendCode: p.friend_code,
       friend_code: p.friend_code,
+      presenceStatus: activeClients.has(p.id) ? 'IN_LOBBY' : p.presence_status,
       presence_status: activeClients.has(p.id) ? 'IN_LOBBY' : p.presence_status,
+      currentMatchInfo: p.current_match_info,
       current_match_info: p.current_match_info,
+      lastActiveAt: p.last_active_at,
       last_active_at: p.last_active_at,
     };
   });
@@ -115,9 +137,21 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
     );
 
     if (incomingRes && outgoingRes) {
+      const mapReq = (r: any, isIncoming: boolean) => ({
+        ...r,
+        requestId: r.request_id,
+        createdAt: r.created_at,
+        senderId: isIncoming ? r.sender_id : undefined,
+        receiverId: !isIncoming ? r.receiver_id : undefined,
+        displayName: r.display_name,
+        avatarId: r.avatar_id,
+        level: r.level,
+        friendCode: r.friend_code,
+      });
+
       return res.json({
-        incoming: incomingRes.rows,
-        outgoing: outgoingRes.rows,
+        incoming: incomingRes.rows.map(r => mapReq(r, true)),
+        outgoing: outgoingRes.rows.map(r => mapReq(r, false)),
       });
     }
   } catch {}
@@ -128,12 +162,18 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
     .map(f => {
       const p = inMemoryProfiles.get(f.sender_id);
       return {
+        requestId: f.id,
         request_id: f.id,
+        createdAt: f.created_at,
         created_at: f.created_at,
+        senderId: f.sender_id,
         sender_id: f.sender_id,
+        displayName: p?.display_name || 'Player',
         display_name: p?.display_name || 'Player',
+        avatarId: p?.avatar_id || 'boduthakurufaanu',
         avatar_id: p?.avatar_id || 'boduthakurufaanu',
         level: p?.level || 1,
+        friendCode: p?.friend_code || '',
         friend_code: p?.friend_code || '',
       };
     });
@@ -143,12 +183,18 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
     .map(f => {
       const p = inMemoryProfiles.get(f.friend_id);
       return {
+        requestId: f.id,
         request_id: f.id,
+        createdAt: f.created_at,
         created_at: f.created_at,
+        receiverId: f.friend_id,
         receiver_id: f.friend_id,
+        displayName: p?.display_name || 'Player',
         display_name: p?.display_name || 'Player',
+        avatarId: p?.avatar_id || 'boduthakurufaanu',
         avatar_id: p?.avatar_id || 'boduthakurufaanu',
         level: p?.level || 1,
+        friendCode: p?.friend_code || '',
         friend_code: p?.friend_code || '',
       };
     });
@@ -253,7 +299,10 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
 
 // 4. Respond to Friend Request (Accept or Decline)
 friendsRouter.post('/respond', async (req: Request, res: Response) => {
-  const { requestId, accept, profileId } = req.body;
+  const requestId = req.body.requestId || req.body.request_id;
+  const accept = req.body.accept;
+  const profileId = req.body.profileId || req.body.profile_id;
+
   if (!requestId || accept === undefined) {
     return res.status(400).json({ error: 'requestId and accept are required' });
   }
@@ -297,7 +346,7 @@ friendsRouter.post('/respond', async (req: Request, res: Response) => {
 // 5. Remove Friend
 friendsRouter.delete('/:friendId', async (req: Request, res: Response) => {
   const { friendId } = req.params;
-  const { profileId } = req.body;
+  const profileId = req.body.profileId || req.body.profile_id;
 
   if (!profileId || !friendId) {
     return res.status(400).json({ error: 'profileId and friendId are required' });

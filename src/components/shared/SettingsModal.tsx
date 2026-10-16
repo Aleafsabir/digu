@@ -56,7 +56,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const {
     profile,
-    loginWithGoogle,
     syncWithCloud,
     isSyncing,
     setProfileModalOpen,
@@ -501,8 +500,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   {profile.loginProvider === 'GUEST' ? (
                     <button
-                      onClick={async () => {
-                        await loginWithGoogle();
+                      onClick={() => {
+                        onClose();
+                        setAuthModalOpen(true);
                       }}
                       className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-black flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
                     >

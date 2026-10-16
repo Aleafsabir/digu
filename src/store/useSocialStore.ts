@@ -68,11 +68,13 @@ export const useSocialStore = create<SocialStoreState>((set, get) => ({
   },
 
   respondToFriendRequest: async (requestId: string, accept: boolean, profileId: string) => {
-    await SocialService.respondToRequest(requestId, accept, profileId);
     set(state => ({
-      pendingRequests: state.pendingRequests.filter(r => r.requestId !== requestId),
+      pendingRequests: state.pendingRequests.filter(
+        r => r.requestId !== requestId && (r as any).request_id !== requestId
+      ),
     }));
-    get().fetchFriends(profileId);
+    await SocialService.respondToRequest(requestId, accept, profileId);
+    await get().fetchFriends(profileId);
   },
 
   sendMatchInvite: (friendId, roomId, roomCode, mode, stakeBuyIn, targetScore) => {
@@ -139,7 +141,8 @@ export const useSocialStore = create<SocialStoreState>((set, get) => ({
           break;
         }
 
-        case 'FRIEND_REQUEST_RECEIVED': {
+        case 'FRIEND_REQUEST_RECEIVED':
+        case 'FRIEND_REQUEST_RESOLVED': {
           get().fetchFriends(profileId);
           break;
         }

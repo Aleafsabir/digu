@@ -388,18 +388,24 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() =>
-                              profile?.id && respondToFriendRequest(req.requestId, true, profile.id)
-                            }
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition cursor-pointer shadow"
+                            onClick={() => {
+                              const reqId = req.requestId || (req as any).request_id;
+                              if (profile?.id && reqId) {
+                                respondToFriendRequest(reqId, true, profile.id);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition cursor-pointer shadow active:scale-95"
                           >
                             Accept
                           </button>
                           <button
-                            onClick={() =>
-                              profile?.id && respondToFriendRequest(req.requestId, false, profile.id)
-                            }
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer"
+                            onClick={() => {
+                              const reqId = req.requestId || (req as any).request_id;
+                              if (profile?.id && reqId) {
+                                respondToFriendRequest(reqId, false, profile.id);
+                              }
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer active:scale-95"
                           >
                             Decline
                           </button>
