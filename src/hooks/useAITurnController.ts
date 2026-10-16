@@ -220,13 +220,28 @@ export function useAITurnController() {
               durationMs: 580,
             });
 
+            // Immediately place face-down card into finish slot upon arrival
+            const slammedCard: Card = { ...discardCard, isFaceDown: true };
+            useGameStore.setState(state => ({
+              gameState: {
+                ...state.gameState,
+                finishSlotCard: slammedCard,
+              },
+              isSlammingFinish: true,
+            }));
+
             playGinSlamImpactSound();
             try {
               Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
             } catch {}
 
-            useGameStore.setState({ isSlammingFinish: true });
+            // Theatrical pause for table felt shockwaves and banner
             await sleep(1200);
+            if (isCancelled()) return;
+
+            // Commit bot action and resolve round
+            executeBotAction(activePlayerIndex);
+            return;
           } else {
             setAiThoughtMessage({
               seatIndex: activePlayerIndex,

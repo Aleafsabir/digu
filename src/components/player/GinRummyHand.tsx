@@ -43,7 +43,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   onMoveCard,
   onDiscardCard,
   onDiscardSelected,
-  onSlamFinish: _onSlamFinish,
+  onSlamFinish,
   hiddenCardId,
   draggedDrawIndex,
 }) => {
@@ -77,10 +77,14 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   const handleCardClick = (cardId: string) => {
     if (isDraggingRef.current) return;
     const now = Date.now();
-    // Double tap/click to instantly discard during action phase
+    // Double tap/click to instantly discard or Gin Slam during action phase
     if (isActionPhase && lastClickTimeRef.current.id === cardId && now - lastClickTimeRef.current.time < 380) {
       lastClickTimeRef.current = { id: '', time: 0 };
-      onDiscardCard(cardId);
+      if (canGin && onSlamFinish) {
+        onSlamFinish();
+      } else {
+        onDiscardCard(cardId);
+      }
       return;
     }
     lastClickTimeRef.current = { id: cardId, time: now };
@@ -260,14 +264,27 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           </div>
         )}
 
-        {/* Selected Card Discard Action Trigger */}
-        {isActionPhase && selectedCardId && (
+        {/* Action Phase Trigger: GIN SLAM! or DISCARD */}
+        {isActionPhase && (canGin || selectedCardId) && (
           <button
-            onClick={onDiscardSelected}
-            className="flex items-center gap-1 py-1 px-3.5 rounded-full btn-3d-vermilion text-white font-black text-[10px] uppercase shadow-lg active:scale-95 cursor-pointer"
+            onClick={canGin && onSlamFinish ? onSlamFinish : onDiscardSelected}
+            className={`flex items-center gap-1.5 py-1 px-4 rounded-full btn-3d-vermilion text-white font-black text-[10px] sm:text-xs uppercase shadow-lg active:scale-95 cursor-pointer ${
+              canGin
+                ? 'animate-bounce border-2 border-yellow-300 shadow-[0_0_20px_rgba(239,68,68,0.75)]'
+                : ''
+            }`}
           >
-            <ArrowDownToLine className="w-3 h-3" />
-            <span>DISCARD</span>
+            {canGin ? (
+              <>
+                <span className="text-xs">⚡</span>
+                <span>GIN SLAM!</span>
+              </>
+            ) : (
+              <>
+                <ArrowDownToLine className="w-3 h-3" />
+                <span>DISCARD</span>
+              </>
+            )}
           </button>
         )}
       </div>

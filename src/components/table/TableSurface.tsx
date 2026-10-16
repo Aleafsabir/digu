@@ -16,7 +16,7 @@ import { RulesModal } from '../shared/RulesModal';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
-import { playCardFlickSound, playGinSlamImpactSound } from '../../utils/audioEffects';
+import { playCardFlickSound, playGinSlamImpactSound, primeAudioContext } from '../../utils/audioEffects';
 import { Card } from '../../core/models/types';
 
 export const TableSurface: React.FC = () => {
@@ -346,33 +346,47 @@ export const TableSurface: React.FC = () => {
 
   const handleSlamFinish = async () => {
     if (!isHumanTurn) return;
+    // Prime audio context synchronously on the user gesture
+    primeAudioContext();
+
     // If no card is manually selected, automatically target the unmelded deadwood card, or the 11th card
     const deadwoodCard = handAnalysis.deadwood[0];
     const cardIdToSlam =
       selectedCardId || deadwoodCard?.id || (handCards.length === 11 ? handCards[handCards.length - 1].id : null);
 
     if (!cardIdToSlam) {
-      alert('Please tap your 11th card to slam face-down for Gin!');
+      useGameStore.setState({ actionError: 'Please tap your 11th card to slam face-down for Gin!' });
       return;
     }
 
     const cardToSlam = handCards.find(c => c.id === cardIdToSlam);
-    if (cardToSlam) {
-      setPendingDiscardCardId(cardIdToSlam);
-      // High arc flight, scaling up, flipping 180° in 3D to slam FACE DOWN into finish slot!
-      await startFlight({
-        card: cardToSlam,
-        fromAnchor: `card-anchor-${cardIdToSlam}`,
-        toAnchor: 'anchor-finish-slot',
-        isFaceDown: false,
-        flipToFaceDown: true,
-        isGinSlam: true,
-        durationMs: 580,
-      });
-      setPendingDiscardCardId(null);
-    }
+    if (!cardToSlam) return;
 
-    // Thunderous table slam impact audio & heavy physical haptics
+    // 1. Hide from hand during flight to avoid duplication
+    setPendingDiscardCardId(cardIdToSlam);
+
+    // 2. High arc flight, scaling up, flipping 180° in 3D to slam FACE DOWN into finish slot!
+    await startFlight({
+      card: cardToSlam,
+      fromAnchor: `card-anchor-${cardIdToSlam}`,
+      toAnchor: 'anchor-finish-slot',
+      isFaceDown: false,
+      flipToFaceDown: true,
+      isGinSlam: true,
+      durationMs: 580,
+    });
+
+    // 3. Immediately render the slammed card face-down in the tabletop finish slot upon arrival (NO SNAP-BACK)
+    const slammedCard: Card = { ...cardToSlam, isFaceDown: true };
+    useGameStore.setState(state => ({
+      gameState: {
+        ...state.gameState,
+        finishSlotCard: slammedCard,
+      },
+      isSlammingFinish: true,
+    }));
+
+    // 4. Thunderous table slam impact audio & heavy physical haptics
     playGinSlamImpactSound();
     try {
       await Haptics.impact({ style: ImpactStyle.Heavy });
@@ -380,13 +394,12 @@ export const TableSurface: React.FC = () => {
       // Browser fallback
     }
 
-    // Trigger dramatic shockwave & screen shake
-    useGameStore.setState({ isSlammingFinish: true });
-
-    // Theatrical pause: let player witness their face-down slammed card, shockwave & GIN SLAM banner before score sheet
+    // 5. Theatrical pause: let player witness their face-down slammed card, shockwaves & GIN SLAM banner before score sheet
     await new Promise(res => setTimeout(res, 1200));
 
+    // 6. Officially resolve the round and clear pending discard
     declareGinWithSlam(cardIdToSlam);
+    setPendingDiscardCardId(null);
   };
 
   // Team scores calculation if in team mode

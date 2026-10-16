@@ -321,8 +321,8 @@ export class RoundResolver {
         ginBonus: winGinBonus,
         zeroMeldPenalty: 0,
         netRoundScore: winNetScore,
-        previousCumulativeScore: winningTeamPlayers[0].cumulativeScore * 2,
-        newCumulativeScore: (winningTeamPlayers[0].cumulativeScore * 2) + winNetScore,
+        previousCumulativeScore: winningTeamPlayers.reduce((sum, p) => sum + p.cumulativeScore, 0),
+        newCumulativeScore: winningTeamPlayers.reduce((sum, p) => sum + p.cumulativeScore, 0) + winNetScore,
       },
       {
         teamId: losingTeamId,
@@ -338,8 +338,8 @@ export class RoundResolver {
         zeroMeldPenalty: loseZeroMeldPenalty,
         consecutiveGinPenalty: loseConsecutiveGinPenalty,
         netRoundScore: loseNetScore,
-        previousCumulativeScore: losingTeamPlayers[0].cumulativeScore * 2,
-        newCumulativeScore: (losingTeamPlayers[0].cumulativeScore * 2) + loseNetScore,
+        previousCumulativeScore: losingTeamPlayers.reduce((sum, p) => sum + p.cumulativeScore, 0),
+        newCumulativeScore: losingTeamPlayers.reduce((sum, p) => sum + p.cumulativeScore, 0) + loseNetScore,
       },
     ];
 

@@ -21,6 +21,15 @@ function getAudioContext(): AudioContext | null {
   return audioCtx;
 }
 
+export function primeAudioContext(): void {
+  try {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+  } catch {}
+}
+
 /**
  * Synthesizes a crisp, subtle card slide / flick click sound.
  */

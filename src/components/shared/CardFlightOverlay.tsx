@@ -143,7 +143,7 @@ export const CardFlightOverlay: React.FC = () => {
                     <PlayingCard
                       card={flight.card}
                       isFaceDown={false}
-                      size="md"
+                      size={flight.isGinSlam ? 'table' : 'md'}
                       isInteractive={false}
                     />
                   </div>
@@ -152,7 +152,7 @@ export const CardFlightOverlay: React.FC = () => {
                     <PlayingCard
                       card={flight.card}
                       isFaceDown={true}
-                      size="md"
+                      size={flight.isGinSlam ? 'table' : 'md'}
                       isInteractive={false}
                     />
                   </div>
@@ -161,7 +161,7 @@ export const CardFlightOverlay: React.FC = () => {
                 <PlayingCard
                   card={flight.card}
                   isFaceDown={flight.isFaceDown && !flight.flipToFaceUp}
-                  size="md"
+                  size={flight.isGinSlam ? 'table' : 'md'}
                   isInteractive={false}
                 />
               )}

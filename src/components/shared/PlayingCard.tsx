@@ -18,7 +18,7 @@ interface PlayingCardProps {
   isFaceDown?: boolean;
   isInteractive?: boolean;
   isAceStranded?: boolean;
-  size?: 'sm' | 'md' | 'lg' | 'hand';
+  size?: 'sm' | 'md' | 'lg' | 'hand' | 'table';
   meldHighlight?: MeldHighlight;
   onClick?: () => void;
   className?: string;
@@ -52,6 +52,7 @@ const SIZE_CLASSES = {
   md: 'w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2',
   lg: 'w-16 sm:w-19 md:w-21 h-23 sm:h-27 md:h-30 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 sm:p-2.5',
   hand: 'w-[68px] sm:w-[76px] md:w-[80px] h-[104px] sm:h-[114px] md:h-[120px] text-xs sm:text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5',
+  table: 'w-[62px] sm:w-[70px] md:w-[74px] h-[92px] sm:h-[104px] md:h-[110px] text-xs sm:text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2',
 };
 
 import { DeckDesignId } from '../../config/deckConfig';
@@ -190,16 +191,16 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       {/* Top Left Rank and Pip */}
       <div className="flex justify-between items-start leading-none">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black ${size === 'hand' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`${size === 'hand' ? 'text-xs sm:text-sm md:text-base' : 'text-[10px] sm:text-sm'} ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-sm md:text-base' : 'text-[10px] sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
           {/* Always-visible Glowing Meld Pip (visible even when cards overlap!) */}
           {highlightMeta && (
             <span
-              className={`mt-1 ${size === 'hand' ? 'w-2 h-2 sm:w-2.5 sm:h-2.5' : 'w-1.5 h-1.5 sm:w-2 sm:h-2'} rounded-full shrink-0 ${highlightMeta.pipClass}`}
+              className={`mt-1 ${size === 'hand' || size === 'table' ? 'w-2 h-2 sm:w-2.5 sm:h-2.5' : 'w-1.5 h-1.5 sm:w-2 sm:h-2'} rounded-full shrink-0 ${highlightMeta.pipClass}`}
               title={meldHighlight?.type || 'Meld'}
             />
           )}
@@ -214,17 +215,17 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       </div>
 
       {/* Center Pip */}
-      <div className={`self-center ${size === 'hand' ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-3xl'} leading-none select-none ${suitColorClass}`}>
+      <div className={`self-center ${size === 'hand' || size === 'table' ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-3xl'} leading-none select-none ${suitColorClass}`}>
         {suitMeta.symbol}
       </div>
 
       {/* Bottom Right Inverted Rank and Pip */}
       <div className="flex justify-end items-end leading-none rotate-180">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black ${size === 'hand' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`${size === 'hand' ? 'text-xs sm:text-sm md:text-base' : 'text-xs sm:text-sm'} ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-sm md:text-base' : 'text-xs sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
         </div>
