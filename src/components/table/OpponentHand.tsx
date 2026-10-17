@@ -131,13 +131,13 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
       </div>
 
       {/* Live AI Thought / Turn Action Bubble */}
-      {isActiveTurn && thoughtMessage && (
+      {isActiveTurn && (
         <motion.div
           initial={{ opacity: 0, y: -3, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="absolute -bottom-5 sm:-bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-full bg-emerald-950/95 border-0 text-[8px] sm:text-[9px] font-black text-emerald-200 shadow-xl z-30 pointer-events-none"
         >
-          {thoughtMessage}
+          {thoughtMessage || (player.isAI ? 'Thinking...' : 'Playing...')}
         </motion.div>
       )}
 

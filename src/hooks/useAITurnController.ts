@@ -284,17 +284,38 @@ export function useAITurnController() {
 
     runTurnStep();
 
+    // Watchdog safety timer: if an animation or async step hangs, recover automatically after 5s
+    const watchdogTimer = setTimeout(() => {
+      if (isCancelled()) return;
+      const fresh = useGameStore.getState().gameState;
+      if (
+        fresh.activePlayerIndex === activePlayerIndex &&
+        fresh.players[activePlayerIndex]?.isAI &&
+        !useGameStore.getState().isDealingOpeningAnimation
+      ) {
+        console.warn(`[AITurnController] Watchdog safety triggered for seat ${activePlayerIndex} in phase ${fresh.phase}`);
+        if (fresh.phase === 'AWAIT_DRAW') {
+          executeBotDraw(activePlayerIndex);
+        } else if (fresh.phase === 'AWAIT_ACTION') {
+          executeBotAction(activePlayerIndex);
+        }
+      }
+    }, 5000);
+
     return () => {
       turnIdRef.current++;
+      clearTimeout(watchdogTimer);
     };
   }, [
     phase,
     activePlayerIndex,
     isAI,
+    isDealingOpeningAnimation,
     executeBotDraw,
     executeBotAction,
     initiateReshuffleFromDiscards,
     setAiThoughtMessage,
+    triggerReaction,
     startFlight,
   ]);
 }

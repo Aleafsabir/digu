@@ -146,59 +146,64 @@ export const TableSurface: React.FC = () => {
   };
 
   const runClockwiseDealAnimation = async () => {
-    const numPlayers = gameState.players.length;
-    const leadIndex = (gameState.dealerIndex - 1 + numPlayers) % numPlayers;
+    try {
+      const numPlayers = gameState.players.length;
+      const leadIndex = (gameState.dealerIndex - 1 + numPlayers) % numPlayers;
 
-    const dealSequence: number[] = [];
-    for (let pass = 0; pass < 10; pass++) {
-      for (let i = 0; i < numPlayers; i++) {
-        dealSequence.push((leadIndex + i) % numPlayers);
-      }
-    }
-
-    let humanCardsReceived = 0;
-
-    for (let i = 0; i < dealSequence.length; i++) {
-      if (skipDealRef.current) break;
-
-      const seat = dealSequence[i];
-      const isHumanSeat = seat === 0;
-
-      playCardFlickSound();
-      try {
-        Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
-      } catch {}
-
-      const toAnchor = `anchor-seat-${seat}`;
-      const flightCard: Card = isHumanSeat && handCards[humanCardsReceived]
-        ? handCards[humanCardsReceived]
-        : { id: `deal-flight-${i}`, suit: 'SPADES', rank: 1, isFaceDown: true };
-
-      startFlight({
-        card: flightCard,
-        fromAnchor: 'anchor-stock-pile',
-        toAnchor,
-        isFaceDown: true,
-        flipToFaceUp: isHumanSeat,
-        durationMs: 360,
-        onComplete: () => {
-          if (isHumanSeat) {
-            setDealtHumanCardsCount(prev => Math.min(10, prev + 1));
-          }
-        },
-      });
-
-      if (isHumanSeat) {
-        humanCardsReceived++;
+      const dealSequence: number[] = [];
+      for (let pass = 0; pass < 10; pass++) {
+        for (let i = 0; i < numPlayers; i++) {
+          dealSequence.push((leadIndex + i) % numPlayers);
+        }
       }
 
-      await new Promise(res => setTimeout(res, 190));
-    }
+      let humanCardsReceived = 0;
 
-    await new Promise(res => setTimeout(res, 450));
-    setDealtHumanCardsCount(10);
-    setOpeningPhase('idle');
-    setIsDealingOpeningAnimation(false);
+      for (let i = 0; i < dealSequence.length; i++) {
+        if (skipDealRef.current) break;
+
+        const seat = dealSequence[i];
+        const isHumanSeat = seat === 0;
+
+        playCardFlickSound();
+        try {
+          Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
+        } catch {}
+
+        const toAnchor = `anchor-seat-${seat}`;
+        const flightCard: Card = isHumanSeat && handCards[humanCardsReceived]
+          ? handCards[humanCardsReceived]
+          : { id: `deal-flight-${i}`, suit: 'SPADES', rank: 1, isFaceDown: true };
+
+        startFlight({
+          card: flightCard,
+          fromAnchor: 'anchor-stock-pile',
+          toAnchor,
+          isFaceDown: true,
+          flipToFaceUp: isHumanSeat,
+          durationMs: 360,
+          onComplete: () => {
+            if (isHumanSeat) {
+              setDealtHumanCardsCount(prev => Math.min(10, prev + 1));
+            }
+          },
+        });
+
+        if (isHumanSeat) {
+          humanCardsReceived++;
+        }
+
+        await new Promise(res => setTimeout(res, 190));
+      }
+
+      await new Promise(res => setTimeout(res, 450));
+    } catch (err) {
+      console.warn('Clockwise deal animation error:', err);
+    } finally {
+      setDealtHumanCardsCount(10);
+      setOpeningPhase('idle');
+      setIsDealingOpeningAnimation(false);
+    }
   };
 
   const humanReaction = playerReactions[0];
@@ -229,7 +234,11 @@ export const TableSurface: React.FC = () => {
   const hoverInsertIndex = dragHoverPoint ? calculateHandTargetIndex(dragHoverPoint.x) : null;
 
   const handleHumanDrawStock = async (dropPoint?: { x: number; y: number }) => {
-    if (!isHumanTurn || gameState.phase !== 'AWAIT_DRAW' || gameState.stockPile.length === 0) return;
+    if (!isHumanTurn) {
+      useGameStore.setState({ actionError: "Please wait for your opponent's turn." });
+      return;
+    }
+    if (gameState.phase !== 'AWAIT_DRAW' || gameState.stockPile.length === 0) return;
     const topCard = gameState.stockPile[gameState.stockPile.length - 1];
 
     const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;
@@ -261,7 +270,11 @@ export const TableSurface: React.FC = () => {
   };
 
   const handleHumanDrawDiscard = async (dropPoint?: { x: number; y: number }) => {
-    if (!isHumanTurn || gameState.phase !== 'AWAIT_DRAW' || gameState.discardPile.length === 0) return;
+    if (!isHumanTurn) {
+      useGameStore.setState({ actionError: "Please wait for your opponent's turn." });
+      return;
+    }
+    if (gameState.phase !== 'AWAIT_DRAW' || gameState.discardPile.length === 0) return;
     const topCard = gameState.discardPile[gameState.discardPile.length - 1];
 
     const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;

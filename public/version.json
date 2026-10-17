@@ -1,13 +1,13 @@
 {
-  "versionName": "0.2.2",
-  "versionCode": 4,
+  "versionName": "0.2.3",
+  "versionCode": 5,
   "releaseDate": "2026-10-17",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "3D Emerald GIN Pad with instant auto-slam & drag target",
-    "Jumbo card sizing (+40%) filling vertical screen height",
-    "Zero persistent card selection & Deadwood 0/10 meter",
-    "Bulletproof finish card solver ensuring 100% meld integrity"
+    "Fixed game start freeze when Seat 0 deals and Bot leads",
+    "Added opening animation synchronization to AI turn controller",
+    "Added safety watchdog recovering autonomous bot turns within 5s",
+    "Dynamic pile subtitles displaying Opponent's Turn and Discard prompts"
   ]
 }

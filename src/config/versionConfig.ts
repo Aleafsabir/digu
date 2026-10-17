@@ -8,8 +8,8 @@ export interface AppUpdateInfo {
 }
 
 export const APP_VERSION_CONFIG = {
-  versionName: '0.2.2',
-  versionCode: 4,
+  versionName: '0.2.3',
+  versionCode: 5,
   appName: 'Holhuashi: Digu',
   githubRepo: 'Aleafsabir/digu',
   manifestUrl: 'https://raw.githubusercontent.com/Aleafsabir/digu/main/public/version.json',

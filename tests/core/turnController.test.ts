@@ -114,4 +114,38 @@ describe('AI Turn Automation and Seat 0 Human Lock', () => {
     expect(thought?.seatIndex).toBe(3);
     expect(thought?.message).toContain('Discarded');
   });
+
+  it('correctly handles 2P Solo game when Seat 0 (human) deals and Bot (Seat 1) leads', () => {
+    useGameStore.getState().initGame({ mode: 'SOLO_2P', playType: 'VS_AI' });
+    
+    // Force dealer to Seat 0 (human)
+    useGameStore.setState(prev => ({
+      gameState: { ...prev.gameState, dealerIndex: 0 },
+      isDealingOpeningAnimation: true,
+    }));
+    useGameStore.getState().dealRound();
+
+    const state = useGameStore.getState();
+    // In 2P, if dealer is 0, lead player is (0 - 1 + 2) % 2 = 1 (Bot)
+    expect(state.gameState.dealerIndex).toBe(0);
+    expect(state.gameState.activePlayerIndex).toBe(1);
+    expect(state.gameState.players[1].isAI).toBe(true);
+    expect(state.gameState.phase).toBe('AWAIT_DRAW');
+
+    // Simulate completion of opening animation
+    useGameStore.setState({ isDealingOpeningAnimation: false });
+    expect(useGameStore.getState().isDealingOpeningAnimation).toBe(false);
+
+    // Bot draws 11th card
+    useGameStore.getState().executeBotDraw(1);
+    expect(useGameStore.getState().gameState.phase).toBe('AWAIT_ACTION');
+    expect(useGameStore.getState().gameState.players[1].hand.length).toBe(11);
+
+    // Bot acts/discards
+    useGameStore.getState().executeBotAction(1);
+    expect(useGameStore.getState().gameState.phase).toBe('AWAIT_DRAW');
+    // Turn is now on Seat 0 (Human)
+    expect(useGameStore.getState().gameState.activePlayerIndex).toBe(0);
+    expect(useGameStore.getState().handCards.length).toBe(10);
+  });
 });

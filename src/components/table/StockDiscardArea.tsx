@@ -207,7 +207,9 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
               </div>
             )}
           </div>
-          <span className="text-[10px] text-slate-400 font-mono mt-1.5">Normal Turn</span>
+          <span className="text-[10px] text-slate-400 font-mono mt-1.5">
+            {isHumanTurn ? (isActionPhase ? 'Tap to Discard' : 'Normal Turn') : "Opponent's Turn"}
+          </span>
         </div>
 
         {/* Stock Draw Pile with 3D Stack Thickness */}
@@ -289,7 +291,9 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
               </motion.div>
             )}
           </div>
-          <span className="text-[10px] text-slate-400 font-mono mt-1.5">Tap to Draw</span>
+          <span className="text-[10px] text-slate-400 font-mono mt-1.5">
+            {isHumanTurn ? (isDrawPhase ? 'Tap to Draw' : 'Draw Pile') : "Opponent's Turn"}
+          </span>
         </div>
 
       </div>
