@@ -213,7 +213,7 @@ export function useAITurnController() {
             await startFlight({
               card: discardCard,
               fromAnchor: `anchor-seat-${activePlayerIndex}`,
-              toAnchor: 'anchor-finish-slot',
+              toAnchor: 'center-slam-slot',
               isFaceDown: false,
               flipToFaceDown: true,
               isGinSlam: true,

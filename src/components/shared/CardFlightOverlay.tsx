@@ -28,8 +28,9 @@ function getAnchorCenter(anchorId: string): AnchorCoords {
       return { x: vw * 0.58, y: vh * 0.45 };
     case 'anchor-discard-pile':
       return { x: vw * 0.42, y: vh * 0.45 };
+    case 'center-slam-slot':
     case 'anchor-finish-slot':
-      return { x: vw * 0.5, y: vh * 0.45 };
+      return { x: vw * 0.22, y: vh * 0.45 };
     case 'anchor-seat-0-draw-slot':
       return { x: vw * 0.72, y: vh * 0.86 };
     case 'anchor-seat-0':
@@ -57,9 +58,12 @@ export const CardFlightOverlay: React.FC = () => {
           const toCenter =
             flight.toPoint || getAnchorCenter(flight.toAnchor || 'anchor-seat-0-draw-slot');
 
-          // Card dimensions approximate offset to center the card on the coordinates
-          const cardHalfW = 32;
-          const cardHalfH = 44;
+          // Card dimensions approximate offset to center the card accurately
+          const isTableCard =
+            flight.isGinSlam ||
+            (flight.toAnchor && (flight.toAnchor.includes('pile') || flight.toAnchor.includes('slot')));
+          const cardHalfW = isTableCard ? 39 : 32;
+          const cardHalfH = isTableCard ? 57 : 44;
 
           const startX = fromCenter.x - cardHalfW;
           const startY = fromCenter.y - cardHalfH;

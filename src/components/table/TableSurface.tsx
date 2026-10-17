@@ -325,7 +325,7 @@ export const TableSurface: React.FC = () => {
     // Check if player dragged toward the GIN Pad (left of table) and this card completes Gin
     if (handAnalysis.isGinReady && handAnalysis.validGinFinishCardIds.includes(cardId)) {
       if (fromPoint && fromPoint.x < window.innerWidth * 0.45) {
-        handleSlamFinish(cardId);
+        handleSlamFinish(cardId, fromPoint);
         return;
       }
     }
@@ -353,7 +353,7 @@ export const TableSurface: React.FC = () => {
     }
   };
 
-  const handleSlamFinish = async (targetCardId?: string) => {
+  const handleSlamFinish = async (targetCardId?: string, fromPoint?: { x: number; y: number }) => {
     if (!isHumanTurn) return;
     // Prime audio context synchronously on the user gesture
     primeAudioContext();
@@ -377,14 +377,16 @@ export const TableSurface: React.FC = () => {
     setPendingDiscardCardId(cardIdToSlam);
 
     // 2. High arc flight, scaling up, flipping 180° in 3D to slam FACE DOWN into finish slot!
+    // Directly flights from drop point if dragged, or from hand tray if tapped
     await startFlight({
       card: cardToSlam,
-      fromAnchor: `card-anchor-${cardIdToSlam}`,
-      toAnchor: 'anchor-finish-slot',
+      fromPoint: fromPoint,
+      fromAnchor: fromPoint ? undefined : `card-anchor-${cardIdToSlam}`,
+      toAnchor: 'center-slam-slot',
       isFaceDown: false,
       flipToFaceDown: true,
       isGinSlam: true,
-      durationMs: 580,
+      durationMs: fromPoint ? 380 : 560,
     });
 
     // 3. Immediately render the slammed card face-down in the tabletop finish slot upon arrival (NO SNAP-BACK)

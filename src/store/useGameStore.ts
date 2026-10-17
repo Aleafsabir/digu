@@ -955,6 +955,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           lastRoundWinnerId: gameState.players[0].id,
         };
 
+        const wasAlreadySlamming = get().isSlammingFinish;
         set(state => ({
           gameState: updatedGameState,
           handCards: handWithoutFinish,
@@ -962,14 +963,16 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           handAnalysis: analyzeHand(handWithoutFinish),
           roundResolution: resolution,
           roundHistory: [...state.roundHistory, resolution],
-          isSlammingFinish: true,
+          isSlammingFinish: wasAlreadySlamming ? false : true,
           actionError: null,
           aiThoughtMessage: { seatIndex: 0, message: '⚡ GIN SLAM!' },
         }));
 
-        setTimeout(() => {
-          set({ isSlammingFinish: false });
-        }, 1200);
+        if (!wasAlreadySlamming) {
+          setTimeout(() => {
+            set({ isSlammingFinish: false });
+          }, 1200);
+        }
 
         return true;
       } catch (err: any) {
@@ -1106,17 +1109,20 @@ export const useGameStore = create<GameStoreState>((set, get) => {
             lastRoundWinnerId: botPlayer.id,
           };
 
+          const wasAlreadySlamming = get().isSlammingFinish;
           set(state => ({
             gameState: updatedGameState,
             roundResolution: resolution,
             roundHistory: [...state.roundHistory, resolution],
-            isSlammingFinish: true,
+            isSlammingFinish: wasAlreadySlamming ? false : true,
             aiThoughtMessage: { seatIndex: botIndex, message: '⚡ GIN SLAM!' },
           }));
 
-          setTimeout(() => {
-            set({ isSlammingFinish: false });
-          }, 1200);
+          if (!wasAlreadySlamming) {
+            setTimeout(() => {
+              set({ isSlammingFinish: false });
+            }, 1200);
+          }
         } catch (err: any) {
           console.error('Bot Gin resolution error:', err);
         }

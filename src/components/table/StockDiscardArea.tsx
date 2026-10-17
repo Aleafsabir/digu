@@ -51,11 +51,12 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
         </div>
 
         {finishSlotCard ? (
-          /* Slammed Face-Down Card State */
+          /* Slammed Face-Down Card State - Smooth seamless handoff from flight overlay */
           <motion.div
-            initial={{ scale: 0.5, rotate: -25, opacity: 0 }}
+            id="center-slam-slot"
+            initial={{ scale: 1, rotate: -12, opacity: 1 }}
             animate={{ scale: 1, rotate: -10, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            transition={{ duration: 0.15 }}
             className="relative w-28 h-28 sm:w-34 sm:h-34 md:w-38 md:h-38 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(239,68,68,0.95)] border-4 border-[#E5C378]"
           >
             <div className="w-20 h-28 sm:w-24 sm:h-34 rounded-2xl overflow-hidden shadow-2xl rotate-12">
@@ -91,6 +92,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
         ) : (
           /* Dormant Pad (Eligible only when deadwood is 0) */
           <div
+            id="center-slam-slot"
             className="btn-gin-pad-dormant w-28 h-28 sm:w-34 sm:h-34 md:w-38 md:h-38 rounded-full flex flex-col items-center justify-center pointer-events-none select-none relative"
             title="Forms melds with 0 deadwood to unlock Gin"
           >
