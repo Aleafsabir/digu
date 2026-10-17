@@ -49,9 +49,10 @@ export async function checkForAppUpdate(forceManualCheck = false): Promise<Check
             a.name.endsWith('.apk')
           );
 
+          const isReleaseNewer = compareSemver(tagName, APP_VERSION_CONFIG.versionName) > 0;
           manifest = {
             versionName: tagName || APP_VERSION_CONFIG.versionName,
-            versionCode: APP_VERSION_CONFIG.versionCode + 1, // Assume newer if a newer release tag exists
+            versionCode: isReleaseNewer ? APP_VERSION_CONFIG.versionCode + 1 : APP_VERSION_CONFIG.versionCode,
             releaseDate: ghData.published_at?.split('T')[0] || new Date().toISOString().split('T')[0],
             downloadUrl: apkAsset?.browser_download_url || APP_VERSION_CONFIG.directApkUrl,
             isMandatory: false,
