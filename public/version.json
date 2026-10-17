@@ -1,13 +1,13 @@
 {
-  "versionName": "0.2.3",
-  "versionCode": 5,
+  "versionName": "0.2.4",
+  "versionCode": 6,
   "releaseDate": "2026-10-17",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Fixed game start freeze when Seat 0 deals and Bot leads",
-    "Added opening animation synchronization to AI turn controller",
-    "Added safety watchdog recovering autonomous bot turns within 5s",
-    "Dynamic pile subtitles displaying Opponent's Turn and Discard prompts"
+    "Native Android Google Sign-In with Google Play Services",
+    "Frictionless Guest play with persistent local profile & 500 Ran Dhadhu",
+    "Seamless account upgrade from Guest to Google without losing coins",
+    "Integrated Google Cloud project holhuashi-digu configuration"
   ]
 }

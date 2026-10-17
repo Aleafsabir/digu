@@ -4,6 +4,7 @@ import { CloudSyncService } from '../services/cloudSyncService';
 import { CurrencyTransaction } from '../types/database';
 import { DatabaseService } from '../services/databaseService';
 import { SocialService } from '../services/socialService';
+import { Capacitor } from '@capacitor/core';
 
 interface AuthStoreState {
   profile: UserProfile;
@@ -76,12 +77,40 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   loginWithGoogle: async (email?: string, name?: string) => {
     set({ isSyncing: true });
     try {
+      let resolvedEmail = email;
+      let resolvedName = name;
+      let photoUrl: string | undefined;
+
+      // On native mobile (Android / iOS), invoke Google Play Services One-Tap sign-in
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+          const res = await FirebaseAuthentication.signInWithGoogle();
+          if (res?.user) {
+            resolvedEmail = res.user.email || resolvedEmail;
+            resolvedName = res.user.displayName || resolvedName;
+            photoUrl = res.user.photoUrl || undefined;
+          }
+        } catch (nativeErr: any) {
+          console.warn('[Auth] Native Google Sign-In error:', nativeErr);
+          // If user cancelled the picker dialog, do not proceed with fallback
+          if (
+            nativeErr?.message?.includes('cancel') ||
+            nativeErr?.code === 'SIGN_IN_CANCELLED' ||
+            nativeErr?.message?.includes('12501')
+          ) {
+            return;
+          }
+        }
+      }
+
       const updated = await CloudSyncService.linkCloudAccount(
         get().profile,
         'GOOGLE',
         {
-          email: email || 'player@gmail.com',
-          displayName: name || get().profile.displayName,
+          email: resolvedEmail || 'player@gmail.com',
+          displayName: resolvedName || get().profile.displayName,
+          avatarUrl: photoUrl,
         }
       );
       set({ profile: updated, isAuthModalOpen: false });

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/useAuthStore';
 import { X, ShieldCheck, Phone, ArrowRight, AlertCircle } from 'lucide-react';
 import { JuicyButton } from '../shared/JuicyButton';
+import { Capacitor } from '@capacitor/core';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -121,9 +122,17 @@ export const AuthModal: React.FC = () => {
             >
               {/* Google Sign In */}
               <button
-                onClick={() => {
+                onClick={async () => {
                   setErrorMsg('');
-                  setActiveTab('google');
+                  if (Capacitor.isNativePlatform()) {
+                    try {
+                      await loginWithGoogle();
+                    } catch (err: any) {
+                      setErrorMsg(err?.message || 'Google sign-in could not be completed.');
+                    }
+                  } else {
+                    setActiveTab('google');
+                  }
                 }}
                 disabled={isSyncing}
                 className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-stone-900 font-bold text-xs flex items-center justify-center gap-3 shadow transition-all active:scale-98 cursor-pointer disabled:opacity-50 border-0"

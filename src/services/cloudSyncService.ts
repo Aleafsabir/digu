@@ -103,7 +103,7 @@ export class CloudSyncService {
   static async linkCloudAccount(
     currentProfile: UserProfile,
     provider: 'GOOGLE' | 'APPLE' | 'PHONE',
-    credentials: { email?: string; phone?: string; displayName?: string }
+    credentials: { email?: string; phone?: string; displayName?: string; avatarUrl?: string }
   ): Promise<UserProfile> {
     await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -113,6 +113,7 @@ export class CloudSyncService {
       email: credentials.email || currentProfile.email,
       phone: credentials.phone || currentProfile.phone,
       displayName: credentials.displayName || currentProfile.displayName,
+      avatarUrl: credentials.avatarUrl || currentProfile.avatarUrl,
       cloudSyncStatus: 'SYNCED',
       lastSyncedAt: new Date().toISOString(),
     };

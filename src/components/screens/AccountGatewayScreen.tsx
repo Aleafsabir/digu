@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Cloud, Users, Trophy, AlertCircle } from 'lucide-react';
 import { JuicyButton } from '../shared/JuicyButton';
+import { Capacitor } from '@capacitor/core';
 
 interface AccountGatewayScreenProps {
   onContinue: () => void;
@@ -27,7 +28,17 @@ export const AccountGatewayScreen: React.FC<AccountGatewayScreenProps> = ({ onCo
   };
 
   const handleGoogleQuick = async () => {
-    setShowGoogleInput(true);
+    if (Capacitor.isNativePlatform()) {
+      try {
+        setErrorMsg('');
+        await loginWithGoogle();
+        onContinue();
+      } catch (err: any) {
+        setErrorMsg(err?.message || 'Google Sign-In was cancelled or failed.');
+      }
+    } else {
+      setShowGoogleInput(true);
+    }
   };
 
   const handleGoogleSubmit = async (e: React.FormEvent) => {

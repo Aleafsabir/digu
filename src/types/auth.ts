@@ -96,6 +96,7 @@ export interface UserProfile {
   id: string;
   displayName: string;
   avatarId: string;
+  avatarUrl?: string;
   loginProvider: LoginProvider;
   phone?: string;
   email?: string;

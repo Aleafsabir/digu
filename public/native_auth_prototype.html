@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Holhuashi: Digu - Native Google & Guest Sign-In Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), local('MV Faruma');
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: #010a06;
+      color: #FAF7F2;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-thaana { font-family: 'Faruma', system-ui, sans-serif; }
+    .gold-foil {
+      background: linear-gradient(135deg, #FFF0C8 0%, #E5C378 50%, #B48D36 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .emerald-glow {
+      box-shadow: 0 0 35px rgba(5, 213, 154, 0.45);
+    }
+    .gold-glow {
+      box-shadow: 0 0 30px rgba(229, 195, 120, 0.35);
+    }
+    /* Pixel Android Gesture Pill */
+    .android-home-pill {
+      width: 90px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.45);
+      border-radius: 999px;
+      margin: 8px auto 4px auto;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 md:p-8 bg-gradient-to-b from-[#02140D] via-[#010a06] to-[#010805]">
+
+  <!-- Top Navigation & Interactive Flow Controls -->
+  <header class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05D59A] to-[#047857] flex items-center justify-center font-thaana text-2xl text-black font-black shadow-lg">
+        ޑ
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+            <span>Holhuashi: Digu</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-[#05D59A]/20 text-[#05D59A] border border-[#05D59A]/40 font-mono">v0.2.4 SPEC</span>
+          </h1>
+        </div>
+        <p class="text-xs text-slate-400">Native Google Sign-In & Guest Architecture Simulation</p>
+      </div>
+    </div>
+
+    <!-- State Switcher -->
+    <div class="flex items-center gap-2 bg-stone-900/90 p-1 rounded-2xl border border-slate-700/80 text-xs">
+      <button id="btn-flow-gateway" onclick="switchView('gateway')" class="px-3 py-1.5 rounded-xl font-bold transition-all bg-[#05D59A] text-slate-950 shadow">
+        1. Launch Prompt
+      </button>
+      <button id="btn-flow-onetap" onclick="switchView('onetap')" class="px-3 py-1.5 rounded-xl font-bold transition-all text-slate-300 hover:text-white">
+        2. Google One Tap
+      </button>
+      <button id="btn-flow-lobby" onclick="switchView('lobby')" class="px-3 py-1.5 rounded-xl font-bold transition-all text-slate-300 hover:text-white">
+        3. Lobby & Upgrade
+      </button>
+    </div>
+  </header>
+
+  <!-- Phone Mockup Container (Landscape 16:9 Aspect Ratio) -->
+  <main class="w-full max-w-3xl relative">
+    <div class="w-full aspect-[16/9] bg-[#02140D] rounded-3xl border-4 border-slate-700/80 shadow-[0_30px_90px_rgba(0,0,0,0.95)] overflow-hidden relative flex flex-col justify-between">
+      
+      <!-- Top Android Status Bar Simulation -->
+      <div class="w-full px-5 py-1.5 flex items-center justify-between text-[11px] font-mono text-slate-400 z-30 select-none bg-black/40 backdrop-blur-sm">
+        <span id="pixel-clock">6:15 PM</span>
+        <div class="flex items-center gap-2">
+          <span>5G</span>
+          <span>88%</span>
+        </div>
+      </div>
+
+      <!-- VIEW 1: LAUNCH GATEWAY (Guest vs Google Sign In) -->
+      <div id="view-gateway" class="absolute inset-0 pt-7 px-8 pb-4 flex items-center justify-center bg-radial from-[#04281a] via-[#02140d] to-[#010805] z-10 transition-opacity duration-300">
+        <div class="w-full max-w-md bg-stone-950/85 backdrop-blur-md border border-slate-700/80 rounded-3xl p-6 text-center shadow-2xl relative">
+          <!-- Island Badge -->
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#05D59A]/15 border border-[#05D59A]/30 text-[10px] font-black text-[#05D59A] uppercase tracking-wider mb-2">
+            <span>🇲🇻</span>
+            <span>Maldivian Card Club</span>
+          </div>
+
+          <h2 class="text-xl sm:text-2xl font-black text-white flex items-center justify-center gap-2">
+            <span>Welcome to</span>
+            <span class="font-thaana text-2xl text-[#E5C378]">ހޮޅުއަށި</span>
+          </h2>
+          <p class="text-[11px] text-slate-300 mt-1 mb-5 leading-snug">
+            Play 10-card Digu with friends or bots. Sign in with Google to safeguard your chips across devices.
+          </p>
+
+          <!-- Primary Actions -->
+          <div class="space-y-2.5">
+            <!-- Google One Tap Trigger -->
+            <button onclick="triggerGoogleOneTap()" class="w-full py-2.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-xl transition-all active:scale-[0.98] cursor-pointer border-0">
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            <!-- Guest Play Option -->
+            <button onclick="loginAsGuest()" class="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-900/60 to-emerald-950/80 hover:from-emerald-800/80 hover:to-emerald-900 border border-[#05D59A]/40 text-[#05D59A] font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] cursor-pointer">
+              <span>⚡</span>
+              <span>Play as Guest (Instant 500 🪙)</span>
+            </button>
+          </div>
+
+          <div class="mt-3 text-[10px] text-slate-400 flex items-center justify-center gap-1">
+            <span>🔒</span>
+            <span>Guest profiles can be upgraded to Google at any time in Settings.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: GOOGLE ONE-TAP NATIVE BOTTOM SHEET (Pixel / Android UI) -->
+      <div id="view-onetap" class="hidden absolute inset-0 z-20 flex items-end justify-center bg-black/75 backdrop-blur-xs transition-all duration-300">
+        <div class="w-full max-w-sm bg-[#1E1F22] rounded-t-3xl border-t border-slate-700/80 p-5 shadow-2xl animate-in slide-in-from-bottom-6 duration-300">
+          
+          <!-- Google Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-700/50 mb-3">
+            <div class="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span class="text-xs font-semibold text-slate-300">Sign in to Holhuashi with Google</span>
+            </div>
+            <button onclick="closeGoogleOneTap()" class="text-slate-400 hover:text-white text-xs p-1">✕</button>
+          </div>
+
+          <!-- Account Option Card -->
+          <div onclick="confirmGoogleAuth('Aleef Sabir', 'aleef.sabir@gmail.com')" class="flex items-center gap-3 p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-white/5 active:scale-[0.98]">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 text-white font-bold flex items-center justify-center text-sm shadow">
+              AS
+            </div>
+            <div class="flex-1 text-left">
+              <div class="text-xs font-black text-white">Aleef Sabir</div>
+              <div class="text-[10px] text-slate-400">aleef.sabir@gmail.com</div>
+            </div>
+            <div class="text-xs text-[#05D59A] font-bold">Select ›</div>
+          </div>
+
+          <!-- Continue Button -->
+          <button onclick="confirmGoogleAuth('Aleef Sabir', 'aleef.sabir@gmail.com')" class="w-full mt-3 py-2.5 rounded-full bg-[#05D59A] hover:bg-[#00F5AE] text-slate-950 font-black text-xs shadow-lg transition active:scale-95 cursor-pointer">
+            Continue as Aleef
+          </button>
+
+          <div class="text-[9px] text-slate-400 text-center mt-2">
+            To sign in, Google will share your name, email address, and profile picture with Holhuashi.
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: LOBBY WITH PROFILE & UPGRADE PROMPT -->
+      <div id="view-lobby" class="hidden absolute inset-0 pt-7 px-6 pb-2 flex flex-col justify-between bg-[#02140D] z-10 transition-opacity duration-300">
+        
+        <!-- Header Bar -->
+        <div class="flex items-center justify-between">
+          <!-- Profile Badge -->
+          <div class="flex items-center gap-2 bg-black/60 p-1.5 pr-3 rounded-full border border-slate-700/80">
+            <div id="lobby-avatar" class="w-7 h-7 rounded-full bg-[#05D59A] text-slate-950 font-black flex items-center justify-center text-xs">
+              G
+            </div>
+            <div class="text-left">
+              <div id="lobby-name" class="text-xs font-black text-white leading-none">Guest #4812</div>
+              <div id="lobby-auth-pill" class="text-[9px] font-mono text-amber-400 uppercase">⚡ GUEST (LOCAL)</div>
+            </div>
+          </div>
+
+          <!-- Chip Meter -->
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-amber-500/40 text-xs font-bold text-[#E5C378]">
+              <span>🪙</span>
+              <span id="lobby-coins">500</span>
+            </div>
+            <!-- Settings Gear -->
+            <button onclick="switchView('gateway')" class="w-8 h-8 rounded-full bg-black/60 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white cursor-pointer text-xs">
+              ⚙️
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Guest Upgrade Banner (Only shows when in Guest mode) -->
+        <div id="upgrade-banner" class="w-full bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-amber-500/20 border border-amber-400/50 rounded-2xl p-2.5 flex items-center justify-between shadow-lg">
+          <div class="flex items-center gap-2">
+            <span class="text-base animate-bounce">⚡</span>
+            <div class="text-left">
+              <div class="text-xs font-black text-white flex items-center gap-1.5">
+                <span>Save Your Progress with Google</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-400 text-stone-950 font-black">+250 🪙 BONUS</span>
+              </div>
+              <div class="text-[10px] text-slate-300">Don't lose your chips if you uninstall or switch phones!</div>
+            </div>
+          </div>
+          <button onclick="triggerGoogleOneTap()" class="px-3 py-1.5 rounded-xl bg-white text-slate-950 font-extrabold text-[11px] shadow hover:bg-slate-100 transition active:scale-95 cursor-pointer whitespace-nowrap">
+            Link Google
+          </button>
+        </div>
+
+        <!-- Center Match Launch Arena -->
+        <div class="flex items-center justify-center gap-4 my-auto">
+          <div class="w-36 h-28 rounded-2xl bg-gradient-to-b from-[#033120] to-[#01140D] border-2 border-[#05D59A]/60 flex flex-col items-center justify-center p-3 shadow-xl hover:scale-105 transition cursor-pointer">
+            <span class="text-2xl mb-1">🃏</span>
+            <span class="text-xs font-black text-white">DIGU 1v1</span>
+            <span class="text-[9px] text-[#05D59A] font-mono mt-0.5">10-Card Solo</span>
+          </div>
+
+          <div class="w-36 h-28 rounded-2xl bg-gradient-to-b from-[#033120] to-[#01140D] border-2 border-[#E5C378]/60 flex flex-col items-center justify-center p-3 shadow-xl hover:scale-105 transition cursor-pointer">
+            <span class="text-2xl mb-1">👥</span>
+            <span class="text-xs font-black text-white">TEAM 2v2</span>
+            <span class="text-[9px] text-[#E5C378] font-mono mt-0.5">Partnership</span>
+          </div>
+        </div>
+
+        <!-- Android Navigation Gesture Bar -->
+        <div class="android-home-pill"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Interactive Explanation Cards -->
+  <section class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+    <div class="bg-stone-900/80 border border-slate-700/80 rounded-2xl p-4 shadow">
+      <div class="text-xs font-black text-[#05D59A] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <span>⚡</span> 1. Frictionless Guest Play
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Players can tap <em>"Play as Guest"</em> and jump straight onto the felt with 500 Ran Dhadhu in under 2 seconds. Zero registration required.
+      </p>
+    </div>
+
+    <div class="bg-stone-900/80 border border-slate-700/80 rounded-2xl p-4 shadow">
+      <div class="text-xs font-black text-[#E5C378] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <span>☁️</span> 2. Native One-Tap Sheet
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Tapping <em>"Continue with Google"</em> calls Android's native Credential Manager. It pops up your Pixel account without typing email/passwords.
+      </p>
+    </div>
+
+    <div class="bg-stone-900/80 border border-slate-700/80 rounded-2xl p-4 shadow">
+      <div class="text-xs font-black text-rose-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <span>🛡️</span> 3. Zero Loss Upgrade
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        When a Guest links Google later, their accumulated coins, level, and match records merge seamlessly into the cloud account.
+      </p>
+    </div>
+  </section>
+
+  <!-- JavaScript for Interactive Prototype -->
+  <script>
+    let currentUserState = {
+      isLoggedIn: false,
+      isGuest: true,
+      name: 'Guest #4812',
+      email: null,
+      coins: 500
+    };
+
+    function switchView(viewName) {
+      document.getElementById('view-gateway').classList.add('hidden');
+      document.getElementById('view-onetap').classList.add('hidden');
+      document.getElementById('view-lobby').classList.add('hidden');
+
+      // Update Header Buttons
+      document.getElementById('btn-flow-gateway').className = 'px-3 py-1.5 rounded-xl font-bold transition-all text-slate-300 hover:text-white';
+      document.getElementById('btn-flow-onetap').className = 'px-3 py-1.5 rounded-xl font-bold transition-all text-slate-300 hover:text-white';
+      document.getElementById('btn-flow-lobby').className = 'px-3 py-1.5 rounded-xl font-bold transition-all text-slate-300 hover:text-white';
+
+      if (viewName === 'gateway') {
+        document.getElementById('view-gateway').classList.remove('hidden');
+        document.getElementById('btn-flow-gateway').className = 'px-3 py-1.5 rounded-xl font-bold transition-all bg-[#05D59A] text-slate-950 shadow';
+      } else if (viewName === 'onetap') {
+        document.getElementById('view-gateway').classList.remove('hidden');
+        document.getElementById('view-onetap').classList.remove('hidden');
+        document.getElementById('btn-flow-onetap').className = 'px-3 py-1.5 rounded-xl font-bold transition-all bg-[#05D59A] text-slate-950 shadow';
+      } else if (viewName === 'lobby') {
+        document.getElementById('view-lobby').classList.remove('hidden');
+        document.getElementById('btn-flow-lobby').className = 'px-3 py-1.5 rounded-xl font-bold transition-all bg-[#05D59A] text-slate-950 shadow';
+        updateLobbyUI();
+      }
+    }
+
+    function triggerGoogleOneTap() {
+      document.getElementById('view-onetap').classList.remove('hidden');
+      document.getElementById('btn-flow-onetap').className = 'px-3 py-1.5 rounded-xl font-bold transition-all bg-[#05D59A] text-slate-950 shadow';
+    }
+
+    function closeGoogleOneTap() {
+      document.getElementById('view-onetap').classList.add('hidden');
+    }
+
+    function loginAsGuest() {
+      currentUserState = {
+        isLoggedIn: true,
+        isGuest: true,
+        name: 'Guest #4812',
+        email: null,
+        coins: 500
+      };
+      switchView('lobby');
+    }
+
+    function confirmGoogleAuth(name, email) {
+      currentUserState = {
+        isLoggedIn: true,
+        isGuest: false,
+        name: name,
+        email: email,
+        coins: currentUserState.coins + 250 // Claim bonus
+      };
+      closeGoogleOneTap();
+      switchView('lobby');
+    }
+
+    function updateLobbyUI() {
+      const avatarEl = document.getElementById('lobby-avatar');
+      const nameEl = document.getElementById('lobby-name');
+      const authPillEl = document.getElementById('lobby-auth-pill');
+      const coinsEl = document.getElementById('lobby-coins');
+      const upgradeBanner = document.getElementById('upgrade-banner');
+
+      coinsEl.innerText = currentUserState.coins;
+
+      if (currentUserState.isGuest) {
+        avatarEl.className = 'w-7 h-7 rounded-full bg-[#05D59A] text-slate-950 font-black flex items-center justify-center text-xs';
+        avatarEl.innerText = 'G';
+        nameEl.innerText = currentUserState.name;
+        authPillEl.className = 'text-[9px] font-mono text-amber-400 uppercase';
+        authPillEl.innerText = '⚡ GUEST (LOCAL)';
+        upgradeBanner.classList.remove('hidden');
+      } else {
+        avatarEl.className = 'w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 text-white font-bold flex items-center justify-center text-xs shadow';
+        avatarEl.innerText = 'AS';
+        nameEl.innerText = currentUserState.name;
+        authPillEl.className = 'text-[9px] font-mono text-[#05D59A] uppercase';
+        authPillEl.innerText = '☁️ GOOGLE SYNCED';
+        upgradeBanner.classList.add('hidden');
+      }
+    }
+
+    // Keep clock current
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('pixel-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>

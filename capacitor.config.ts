@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
   plugins: {
     Haptics: {},
     ScreenOrientation: {},
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com'],
+    },
   },
 };
 
