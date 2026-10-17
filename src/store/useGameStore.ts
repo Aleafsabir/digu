@@ -32,6 +32,7 @@ export interface HandAnalysis {
   deadwoodPoints: number;
   isGinReady: boolean; // Has exactly one 4-card meld and two 3-card melds
   isThousandRunReady: boolean; // Has 10-card suited sequence
+  validGinFinishCardIds: string[]; // IDs of cards that, if discarded, leave a 100% legal Gin
 }
 
 export interface GameStoreState {
@@ -169,8 +170,11 @@ function analyzeHand(cards: Card[]): HandAnalysis {
     };
   });
 
-  // Check Gin condition: exactly one 4-card meld and two 3-card melds among the melds
-  const isGinReady = RummyValidator.validateGin(optimization.melds);
+  // Find all cards in hand that, if discarded, yield a 100% legal Gin (0 deadwood)
+  const validGinFinishCardIds = TeamHandOptimizer.getValidGinFinishCardIds(cards);
+
+  // Check Gin condition: either 11-card hand has a valid finish card, or 10-card hand has 4+3+3 melds
+  const isGinReady = validGinFinishCardIds.length > 0 || (cards.length === 10 && RummyValidator.validateGin(optimization.melds));
 
   return {
     melds,
@@ -178,6 +182,7 @@ function analyzeHand(cards: Card[]): HandAnalysis {
     deadwoodPoints: optimization.debtScore,
     isGinReady,
     isThousandRunReady,
+    validGinFinishCardIds,
   };
 }
 
@@ -286,6 +291,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       deadwoodPoints: 0,
       isGinReady: false,
       isThousandRunReady: false,
+      validGinFinishCardIds: [],
     },
     roundResolution: null,
     roundHistory: [],
@@ -617,7 +623,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           players: updatedPlayers,
         },
         handCards: updatedHand,
-        selectedCardId: drawnCard.id, // Auto-select drawn card for easy play
+        selectedCardId: null, // Zero persistent selection: drawn card joins hand cleanly without being pre-selected
         handAnalysis: analyzeHand(updatedHand),
         actionError: null,
         consecutiveMissedTurns: 0,
@@ -666,7 +672,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
           players: updatedPlayers,
         },
         handCards: updatedHand,
-        selectedCardId: drawnCard.id,
+        selectedCardId: null, // Zero persistent selection
         handAnalysis: analyzeHand(updatedHand),
         actionError: null,
         consecutiveMissedTurns: 0,
@@ -873,13 +879,17 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         return false;
       }
 
-      const finishCard = handCards.find(c => c.id === finishCardId);
+      // Smart resolution: if finishCardId is provided and valid, use it; otherwise resolve the legal finish card
+      const resolvedFinishCardId =
+        TeamHandOptimizer.resolveGinFinishCardId(handCards, finishCardId) || finishCardId;
+
+      const finishCard = handCards.find(c => c.id === resolvedFinishCardId);
       if (!finishCard) {
         set({ actionError: `Finish card ${finishCardId} not found in hand.` });
         return false;
       }
 
-      const handWithoutFinish = handCards.filter(c => c.id !== finishCardId);
+      const handWithoutFinish = handCards.filter(c => c.id !== resolvedFinishCardId);
 
       // Check 1,000-point special run
       const isThousandPointRun =

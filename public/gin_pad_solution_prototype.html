@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Digu - Jumbo Cards & 3D Emerald GIN Pad Solution</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@700;800&family=Faruma&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .font-thaana {
+      font-family: 'Faruma', system-ui, sans-serif;
+    }
+
+    /* Stadium Felt Texture */
+    .table-felt {
+      background: radial-gradient(circle at 50% 40%, #073822 0%, #042114 65%, #010E08 100%);
+    }
+
+    /* 3D Big GIN Pad (Like Gin Rummy Plus) */
+    .btn-gin-pad {
+      background: radial-gradient(circle at 50% 35%, #00F5AE 0%, #05D59A 40%, #047857 85%, #024733 100%);
+      box-shadow: 
+        0 18px 36px rgba(0, 0, 0, 0.75),
+        0 0 55px rgba(5, 213, 154, 0.8),
+        inset 0 4px 8px rgba(255, 255, 255, 0.6),
+        inset 0 -8px 14px rgba(0, 0, 0, 0.45);
+      border: 5px solid #E5C378;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-gin-pad:active {
+      transform: scale(0.96) translateY(4px);
+      box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.85),
+        0 0 30px rgba(5, 213, 154, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.4),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.6);
+    }
+    .gin-pad-glow {
+      animation: ginPadPulse 1.8s infinite alternate ease-in-out;
+    }
+    @keyframes ginPadPulse {
+      0% {
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.7), 0 0 40px rgba(5, 213, 154, 0.6);
+        border-color: #E5C378;
+      }
+      100% {
+        box-shadow: 0 22px 45px rgba(0, 0, 0, 0.85), 0 0 80px rgba(5, 213, 154, 0.95), 0 0 40px rgba(229, 195, 120, 0.85);
+        border-color: #FFF2A3;
+      }
+    }
+
+    /* Shockwave Shake on Slam */
+    @keyframes slamShake {
+      0% { transform: scale(1) translate(0, 0); }
+      15% { transform: scale(1.04) translate(-6px, 6px); }
+      30% { transform: scale(0.97) translate(6px, -5px); }
+      45% { transform: scale(1.02) translate(-3px, -2px); }
+      60% { transform: scale(1) translate(2px, 1px); }
+      100% { transform: scale(1) translate(0, 0); }
+    }
+    .anim-slam {
+      animation: slamShake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Card Dragging */
+    .p-card {
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+      will-change: transform;
+    }
+    .card-dragging {
+      opacity: 0.96;
+      z-index: 9999 !important;
+      transform: scale(1.15) rotate(-3deg) !important;
+      box-shadow: 0 35px 65px rgba(0, 0, 0, 0.9), 0 0 30px rgba(5, 213, 154, 0.7) !important;
+      cursor: grabbing !important;
+    }
+
+    /* Melds Highlight Rings */
+    .meld-cyan {
+      box-shadow: 0 0 0 3px #06B6D4, 0 12px 24px rgba(6, 182, 212, 0.45);
+    }
+    .meld-emerald {
+      box-shadow: 0 0 0 3px #05D59A, 0 12px 24px rgba(5, 213, 154, 0.45);
+    }
+    .meld-gold {
+      box-shadow: 0 0 0 3px #E5C378, 0 12px 24px rgba(229, 195, 120, 0.45);
+    }
+
+    /* Finish Card Golden Crown Glow */
+    .gin-finish-card {
+      box-shadow: 0 0 0 3.5px #E5C378, 0 0 30px rgba(229, 195, 120, 0.85);
+      animation: ginFinishGlow 1.8s infinite alternate ease-in-out;
+    }
+    @keyframes ginFinishGlow {
+      0% { box-shadow: 0 0 0 2.5px #E5C378, 0 0 15px rgba(229, 195, 120, 0.6); }
+      100% { box-shadow: 0 0 0 4.5px #F59E0B, 0 0 40px rgba(245, 158, 11, 0.95); }
+    }
+  </style>
+</head>
+<body class="bg-[#010905] text-white min-h-screen h-[100dvh] flex flex-col justify-between overflow-hidden select-none">
+
+  <!-- Top Bar: Size Toggle & Scenario -->
+  <header class="w-full px-4 py-2 bg-[#02130C]/90 border-b border-emerald-500/20 flex flex-wrap items-center justify-between gap-2 shrink-0 z-20">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#063824] to-[#02140D] border border-[#E5C378] flex items-center justify-center font-thaana text-[#E5C378] font-black text-lg">
+        ޑ
+      </div>
+      <div>
+        <h1 class="text-xs sm:text-sm font-black text-white tracking-tight flex items-center gap-1.5">
+          <span>Holhuashi: Digu</span>
+          <span class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#E5C378]/20 border border-[#E5C378]/50 text-[#E5C378] font-bold">
+            Jumbo Hand & Table Proportions (+40%)
+          </span>
+        </h1>
+        <p class="text-[10px] text-slate-400">
+          No empty space: Cards fill ~45% of vertical screen height, matching Gin Rummy Plus!
+        </p>
+      </div>
+    </div>
+
+    <!-- Size & Scenario Switchers -->
+    <div class="flex items-center gap-2">
+      <!-- Card Size Switcher -->
+      <div class="flex items-center gap-1 bg-[#010D08] p-1 rounded-xl border border-slate-800">
+        <span class="text-[10px] text-slate-400 font-bold px-1.5">Card Scale:</span>
+        <button id="size-btn-jumbo" onclick="setSizeMode('jumbo')" class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow">
+          Jumbo (+40% Fill)
+        </button>
+        <button id="size-btn-standard" onclick="setSizeMode('standard')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition">
+          Old Standard
+        </button>
+      </div>
+
+      <!-- Scenarios -->
+      <div class="flex items-center gap-1 bg-[#010D08] p-1 rounded-xl border border-slate-800">
+        <button id="btn-scen-1" onclick="switchScenario(1)" class="px-2 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow">
+          4+3+3 & Deadwood
+        </button>
+        <button id="btn-scen-2" onclick="switchScenario(2)" class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition">
+          5-Run Hand
+        </button>
+        <button onclick="resetHand()" class="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white border border-slate-800">
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stadium Felt Tabletop: Perfectly Proportioned -->
+  <main id="table-felt" class="relative flex-1 table-felt flex items-center justify-between px-6 sm:px-12 md:px-20 min-h-0 overflow-hidden">
+    
+    <!-- Table Watermark Medallion -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
+      <div class="w-96 h-96 border-4 border-dashed border-[#E5C378] rounded-full flex items-center justify-center">
+        <span class="font-thaana text-9xl text-[#E5C378]">ޑިގު</span>
+      </div>
+    </div>
+
+    <!-- LEFT ZONE: The Big 3D Emerald & Gold GIN Pad (Enlarged & Chunky) -->
+    <div class="relative z-10 flex flex-col items-center">
+      <div class="text-[11px] font-mono text-[#E5C378] uppercase font-black tracking-wider mb-2 flex items-center gap-1">
+        <span>⚡</span>
+        <span>KNOCK & GIN</span>
+      </div>
+
+      <!-- The Big 3D Pad -->
+      <button
+        id="gin-pad-btn"
+        onclick="handlePadClick()"
+        class="btn-gin-pad gin-pad-glow w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full flex flex-col items-center justify-center cursor-pointer relative group"
+        title="Tap to Gin or Drag your finish card here!"
+      >
+        <!-- Subtle Specular Inner Arc -->
+        <div class="absolute top-2 w-3/4 h-7 rounded-full bg-white/35 blur-[2px] pointer-events-none"></div>
+
+        <span class="font-thaana text-base sm:text-lg text-emerald-950 font-black opacity-85 leading-none">
+          ޑިގު
+        </span>
+        <span class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-wider drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] leading-none my-1">
+          GIN
+        </span>
+        <span class="text-[9px] sm:text-[10px] font-mono text-emerald-950 font-extrabold uppercase bg-white/45 px-2.5 py-0.5 rounded-full mt-1 shadow">
+          Tap or Drop
+        </span>
+      </button>
+      <span class="text-[11px] text-emerald-300 font-bold mt-2 font-mono">0 DEADWOOD</span>
+    </div>
+
+    <!-- RIGHT ZONE: Discard Pile & Draw Pile (Enlarged) -->
+    <div class="relative z-10 flex items-center gap-6 sm:gap-10 md:gap-14">
+      
+      <!-- Discard Pile with Green Landing Spotlight -->
+      <div class="flex flex-col items-center">
+        <div class="text-[11px] font-mono text-emerald-400 uppercase font-bold tracking-wider mb-2">
+          DISCARD PILE
+        </div>
+
+        <div
+          id="discard-zone"
+          class="relative w-26 h-38 sm:w-30 sm:h-44 md:w-32 md:h-48 rounded-2xl bg-[#010D08]/90 border-2 border-dashed border-[#05D59A]/60 shadow-2xl flex flex-col items-center justify-center p-2 text-center transition-all duration-200"
+        >
+          <!-- Green Landing Spotlight (Like screenshot) -->
+          <div class="absolute -inset-3 bg-[#05D59A]/20 rounded-3xl blur-lg pointer-events-none"></div>
+
+          <!-- Resting Top Discard Card -->
+          <div id="resting-discard-card" class="relative z-10 w-full h-full rounded-xl bg-white text-slate-900 border border-slate-300 flex flex-col justify-between p-2 sm:p-2.5 shadow-lg">
+            <div class="text-xs sm:text-sm font-black leading-none text-red-600">8♥</div>
+            <div class="text-3xl sm:text-4xl text-center text-red-600 leading-none">♥</div>
+            <div class="text-xs sm:text-sm font-black leading-none text-right text-red-600">8♥</div>
+          </div>
+
+          <!-- Drag Hover Overlay -->
+          <div id="discard-hover-overlay" class="hidden absolute inset-0 rounded-2xl flex flex-col items-center justify-center p-2 text-center bg-[#062316]/95 border-2 border-[#05D59A] text-emerald-200 z-20">
+            <span class="text-3xl mb-1">📥</span>
+            <span class="text-xs font-black uppercase">DROP TO DISCARD</span>
+          </div>
+        </div>
+
+        <span class="text-[10px] text-slate-400 font-mono mt-2">Normal Turn</span>
+      </div>
+
+      <!-- Stock Draw Pile -->
+      <div class="flex flex-col items-center">
+        <div class="text-[11px] font-mono text-[#E5C378] uppercase font-bold tracking-wider mb-2">
+          DRAW PILE
+        </div>
+
+        <div class="w-26 h-38 sm:w-30 sm:h-44 md:w-32 md:h-48 rounded-2xl bg-gradient-to-br from-[#063824] via-[#02180F] to-[#010D08] border-2 border-[#E5C378]/60 shadow-2xl flex flex-col items-center justify-center relative">
+          <span class="font-thaana text-4xl text-[#E5C378]">ޑ</span>
+          <span class="text-[10px] font-mono text-[#E5C378] font-bold mt-1">STOCK</span>
+          <span class="absolute -bottom-2.5 px-3 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[9px] font-mono font-bold text-slate-300">
+            21 Cards
+          </span>
+        </div>
+
+        <span class="text-[10px] text-slate-400 font-mono mt-2">Tap to Draw</span>
+      </div>
+
+    </div>
+
+    <!-- Slam Result Overlay Animation -->
+    <div id="slam-banner" class="hidden absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-200">
+      <div class="w-28 h-40 rounded-2xl bg-gradient-to-br from-[#063824] to-[#010D08] border-2 border-[#E5C378] flex items-center justify-center font-thaana text-5xl text-[#E5C378] shadow-[0_0_80px_rgba(229,195,120,0.95)] rotate-12 mb-4">
+        ޑ
+      </div>
+      <div class="text-5xl sm:text-6xl font-black text-amber-300 tracking-tight flex items-center gap-2 drop-shadow-[0_5px_25px_rgba(0,0,0,0.95)]">
+        <span>⚡</span>
+        <span>GIN SLAM!</span>
+        <span>⚡</span>
+      </div>
+      <p id="slam-details" class="text-base sm:text-lg font-bold text-emerald-300 mt-2 font-mono">
+        Clean 10-Card Meld Resolved • 0 Deadwood!
+      </p>
+      <div class="text-xs text-slate-400 mt-1">
+        Slammed on the 3D GIN Pad • 0 Cards Pre-Selected!
+      </div>
+      <button onclick="dismissSlam()" class="mt-6 px-7 py-3 rounded-2xl bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 font-black text-xs uppercase tracking-wider shadow-2xl hover:brightness-110 active:scale-95 transition">
+        Reset & Play Again
+      </button>
+    </div>
+
+    <!-- Toast feedback -->
+    <div id="feedback-toast" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-rose-950/95 border border-rose-500 text-rose-200 text-xs px-4 py-2 rounded-2xl font-bold flex items-center gap-2 shadow-2xl animate-bounce">
+      <span id="toast-text">Cannot Gin with this card!</span>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM HAND TRAY: Jumbo Cards Taking ~45% Screen Height -->
+  <footer id="hand-footer" class="w-full bg-gradient-to-t from-[#010603] via-[#02130C]/95 to-transparent pt-2 pb-2 sm:pb-3 px-2 sm:px-4 md:px-8 flex flex-col items-center justify-end relative z-30 shrink-0">
+    
+    <!-- Deadwood Meter Bar (Identical to Gin Rummy Plus Screenshot) -->
+    <div class="flex items-center justify-between w-full max-w-5xl px-2 mb-1">
+      <div class="flex items-center gap-2">
+        <span class="text-white font-black text-xs">YOUR HAND</span>
+        <span class="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800 text-[#05D59A] font-mono text-[10px]">
+          11 Cards (Action Turn)
+        </span>
+      </div>
+
+      <!-- Center Deadwood Pill -->
+      <div class="flex items-center gap-2 bg-[#010D08]/95 border-2 border-emerald-500/50 px-4 py-1 rounded-full shadow-xl">
+        <span class="text-[9.5px] font-mono text-slate-300 uppercase font-black">DEADWOOD</span>
+        <span class="text-xs sm:text-sm font-black font-mono text-[#05D59A] px-2 py-0.2 rounded bg-emerald-950 border border-emerald-800">
+          0 / 10
+        </span>
+        <span class="text-[9.5px] font-black uppercase text-[#E5C378] ml-1">⚡ GIN ELIGIBLE</span>
+      </div>
+
+      <div class="text-[10px] font-mono text-slate-400 hidden sm:block">
+        Zero Persistent Selection • Pure Tactile Play
+      </div>
+    </div>
+
+    <!-- 11 Cards Hand Container: Spanned Wide & Chunky! -->
+    <div
+      id="cards-hand"
+      class="relative flex items-end justify-center py-1 px-2 max-w-6xl w-full transition-all"
+    >
+      <!-- Cards rendered via JS -->
+    </div>
+  </footer>
+
+  <script>
+    // Cards Data
+    const SCENARIO_1_CARDS = [
+      { id: 'c1', label: 'K♠', suit: '♠', color: 'black', meld: 'cyan', meldTag: 'K', canGinDiscard: false },
+      { id: 'c2', label: 'K♥', suit: '♥', color: 'red',   meld: 'cyan', meldTag: 'K', canGinDiscard: false },
+      { id: 'c3', label: 'K♦', suit: '♦', color: 'red',   meld: 'cyan', meldTag: 'K', canGinDiscard: false },
+      { id: 'c4', label: 'K♣', suit: '♣', color: 'black', meld: 'cyan', meldTag: 'K', canGinDiscard: false },
+      { id: 'c5', label: '7♠', suit: '♠', color: 'black', meld: 'emerald', meldTag: '7', canGinDiscard: false },
+      { id: 'c6', label: '8♠', suit: '♠', color: 'black', meld: 'emerald', meldTag: '8', canGinDiscard: false },
+      { id: 'c7', label: '9♠', suit: '♠', color: 'black', meld: 'emerald', meldTag: '9', canGinDiscard: false },
+      { id: 'c8', label: '10♥', suit: '♥', color: 'red', meld: 'gold', meldTag: '10', canGinDiscard: false },
+      { id: 'c9', label: '10♦', suit: '♦', color: 'red', meld: 'gold', meldTag: '10', canGinDiscard: false },
+      { id: 'c10', label: '10♣', suit: '♣', color: 'black', meld: 'gold', meldTag: '10', canGinDiscard: false },
+      { id: 'c11', label: '3♦', suit: '♦', color: 'red', meld: null, meldTag: null, canGinDiscard: true, isFinishCard: true },
+    ];
+
+    const SCENARIO_2_CARDS = [
+      { id: 's1', label: '4♥', suit: '♥', color: 'red', meld: 'emerald', meldTag: '4', canGinDiscard: true, isFinishCard: true },
+      { id: 's2', label: '5♥', suit: '♥', color: 'red', meld: 'emerald', meldTag: '5', canGinDiscard: false },
+      { id: 's3', label: '6♥', suit: '♥', color: 'red', meld: 'emerald', meldTag: '6', canGinDiscard: false },
+      { id: 's4', label: '7♥', suit: '♥', color: 'red', meld: 'emerald', meldTag: '7', canGinDiscard: false },
+      { id: 's5', label: '8♥', suit: '♥', color: 'red', meld: 'emerald', meldTag: '8', canGinDiscard: true, isFinishCard: true },
+      { id: 's6', label: 'Q♠', suit: '♠', color: 'black', meld: 'cyan', meldTag: 'Q', canGinDiscard: false },
+      { id: 's7', label: 'Q♥', suit: '♥', color: 'red',   meld: 'cyan', meldTag: 'Q', canGinDiscard: false },
+      { id: 's8', label: 'Q♦', suit: '♦', color: 'red',   meld: 'cyan', meldTag: 'Q', canGinDiscard: false },
+      { id: 's9', label: '2♠', suit: '♠', color: 'black', meld: 'gold', meldTag: '2', canGinDiscard: false },
+      { id: 's10', label: '2♦', suit: '♦', color: 'red',   meld: 'gold', meldTag: '2', canGinDiscard: false },
+      { id: 's11', label: '2♣', suit: '♣', color: 'black', meld: 'gold', meldTag: '2', canGinDiscard: false },
+    ];
+
+    let currentScenario = 1;
+    let handCards = JSON.parse(JSON.stringify(SCENARIO_1_CARDS));
+    let sizeMode = 'jumbo'; // 'jumbo' or 'standard'
+
+    const handContainer = document.getElementById('cards-hand');
+    const ginPadBtn = document.getElementById('gin-pad-btn');
+    const discardZone = document.getElementById('discard-zone');
+    const discardHoverOverlay = document.getElementById('discard-hover-overlay');
+    const feedbackToast = document.getElementById('feedback-toast');
+    const toastText = document.getElementById('toast-text');
+
+    function setSizeMode(mode) {
+      sizeMode = mode;
+      document.getElementById('size-btn-jumbo').className = mode === 'jumbo'
+        ? 'px-2.5 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow'
+        : 'px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition';
+      document.getElementById('size-btn-standard').className = mode === 'standard'
+        ? 'px-2.5 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow'
+        : 'px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition';
+      renderHand();
+    }
+
+    function renderHand() {
+      handContainer.innerHTML = '';
+      const total = handCards.length;
+      const mid = (total - 1) / 2;
+
+      // Adjust spacing based on mode
+      if (sizeMode === 'jumbo') {
+        handContainer.className = 'relative flex items-end justify-center -space-x-5 sm:-space-x-7 md:-space-x-9 py-1 px-2 max-w-6xl w-full transition-all';
+      } else {
+        handContainer.className = 'relative flex items-end justify-center -space-x-3 sm:-space-x-4 md:-space-x-5 py-1 px-2 max-w-5xl w-full transition-all';
+      }
+
+      handCards.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        const fanAngle = (index - mid) * 1.6;
+        
+        let meldClass = '';
+        let meldTagEl = '';
+        const tagSize = sizeMode === 'jumbo' ? 'w-5 h-5 text-[10px]' : 'w-4 h-4 text-[8px]';
+
+        if (card.meld === 'cyan') {
+          meldClass = 'meld-cyan';
+          meldTagEl = `<div class="absolute -top-2.5 left-1/2 -translate-x-1/2 ${tagSize} rounded-full bg-cyan-500 border-2 border-white font-black flex items-center justify-center text-black shadow-lg">${card.meldTag}</div>`;
+        } else if (card.meld === 'emerald') {
+          meldClass = 'meld-emerald';
+          meldTagEl = `<div class="absolute -top-2.5 left-1/2 -translate-x-1/2 ${tagSize} rounded-full bg-emerald-500 border-2 border-white font-black flex items-center justify-center text-black shadow-lg">${card.meldTag}</div>`;
+        } else if (card.meld === 'gold') {
+          meldClass = 'meld-gold';
+          meldTagEl = `<div class="absolute -top-2.5 left-1/2 -translate-x-1/2 ${tagSize} rounded-full bg-amber-400 border-2 border-white font-black flex items-center justify-center text-black shadow-lg">${card.meldTag}</div>`;
+        }
+
+        // Finish card golden crown glow & badge
+        if (card.isFinishCard) {
+          meldClass += ' gin-finish-card';
+          meldTagEl = '<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 text-slate-950 font-black text-[8.5px] uppercase shadow-xl border border-white flex items-center gap-0.5 whitespace-nowrap"><span>⚡</span><span>GIN</span></div>';
+        }
+
+        // Card dimensions based on sizeMode
+        const cardDimensions = sizeMode === 'jumbo'
+          ? 'w-20 h-32 sm:w-24 sm:h-38 md:w-28 md:h-44 rounded-2xl p-2 sm:p-2.5'
+          : 'w-16 h-24 sm:w-18 sm:h-28 md:w-20 md:h-30 rounded-xl p-1.5';
+        
+        const rankFontSize = sizeMode === 'jumbo'
+          ? 'text-xs sm:text-sm md:text-base font-black'
+          : 'text-[11px] sm:text-xs font-black';
+
+        const centerPipSize = sizeMode === 'jumbo'
+          ? 'text-3xl sm:text-4xl md:text-5xl'
+          : 'text-2xl sm:text-3xl';
+
+        cardEl.className = `p-card relative ${cardDimensions} bg-white text-slate-950 border border-slate-300 shadow-2xl flex flex-col justify-between cursor-grab shrink-0 select-none ${meldClass}`;
+        cardEl.style.transform = `rotate(${fanAngle}deg)`;
+        cardEl.style.zIndex = index + 10;
+        cardEl.setAttribute('data-id', card.id);
+
+        cardEl.innerHTML = `
+          ${meldTagEl}
+          <div class="${rankFontSize} leading-none ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'}">
+            ${card.label}
+          </div>
+          <div class="${centerPipSize} text-center leading-none ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'}">
+            ${card.suit}
+          </div>
+          <div class="${rankFontSize} leading-none text-right ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'}">
+            ${card.label}
+          </div>
+        `;
+
+        setupDraggable(cardEl, card);
+        handContainer.appendChild(cardEl);
+      });
+    }
+
+    function handlePadClick() {
+      const finishCard = handCards.find(c => c.canGinDiscard);
+      if (!finishCard) {
+        showToast('Your hand is not yet ready for Gin!', false);
+        return;
+      }
+      executeGinSlam(finishCard);
+    }
+
+    function setupDraggable(el, card) {
+      let startX = 0, startY = 0;
+      let isDragging = false;
+
+      const onPointerDown = (e) => {
+        isDragging = true;
+        startX = e.clientX || (e.touches && e.touches[0].clientX);
+        startY = e.clientY || (e.touches && e.touches[0].clientY);
+        el.classList.add('card-dragging');
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
+      };
+
+      const onPointerMove = (e) => {
+        if (!isDragging) return;
+        const x = e.clientX || (e.touches && e.touches[0].clientX);
+        const y = e.clientY || (e.touches && e.touches[0].clientY);
+        const deltaX = x - startX;
+        const deltaY = y - startY;
+
+        el.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.16) rotate(-3deg)`;
+
+        const ginRect = ginPadBtn.getBoundingClientRect();
+        const overGinPad = (
+          x >= ginRect.left - 20 && x <= ginRect.right + 20 &&
+          y >= ginRect.top - 20 && y <= ginRect.bottom + 20
+        );
+        ginPadBtn.style.transform = overGinPad ? 'scale(1.1)' : '';
+
+        const discardRect = discardZone.getBoundingClientRect();
+        const overDiscard = (
+          x >= discardRect.left - 20 && x <= discardRect.right + 20 &&
+          y >= discardRect.top - 20 && y <= discardRect.bottom + 20
+        );
+        discardHoverOverlay.classList.toggle('hidden', !overDiscard);
+
+        // Horizontal reordering in hand
+        if (deltaY > -50) {
+          const cards = Array.from(handContainer.children);
+          cards.forEach((otherCard, idx) => {
+            if (otherCard === el) return;
+            const rect = otherCard.getBoundingClientRect();
+            if (x >= rect.left && x <= rect.right) {
+              const curIdx = handCards.findIndex(c => c.id === card.id);
+              if (curIdx !== idx && idx >= 0 && idx < handCards.length) {
+                const [removed] = handCards.splice(curIdx, 1);
+                handCards.splice(idx, 0, removed);
+                renderHand();
+              }
+            }
+          });
+        }
+      };
+
+      const onPointerUp = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.classList.remove('card-dragging');
+        ginPadBtn.style.transform = '';
+        discardHoverOverlay.classList.add('hidden');
+
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+
+        const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+        const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+
+        const ginRect = ginPadBtn.getBoundingClientRect();
+        const droppedOnGinPad = (
+          x >= ginRect.left - 20 && x <= ginRect.right + 20 &&
+          y >= ginRect.top - 20 && y <= ginRect.bottom + 20
+        );
+
+        const discardRect = discardZone.getBoundingClientRect();
+        const droppedOnDiscard = (
+          x >= discardRect.left - 20 && x <= discardRect.right + 20 &&
+          y >= discardRect.top - 20 && y <= discardRect.bottom + 20
+        );
+
+        if (droppedOnGinPad) {
+          if (card.canGinDiscard) {
+            executeGinSlam(card);
+          } else {
+            showToast(`Cannot Gin with ${card.label}! Removing it breaks your melds. Use your extra card instead!`, false);
+            renderHand();
+          }
+          return;
+        }
+
+        if (droppedOnDiscard) {
+          executeNormalDiscard(card);
+          return;
+        }
+
+        renderHand();
+      };
+
+      el.addEventListener('pointerdown', onPointerDown);
+    }
+
+    function executeGinSlam(card) {
+      handCards = handCards.filter(c => c.id !== card.id);
+      renderHand();
+
+      const table = document.getElementById('table-felt');
+      table.classList.add('anim-slam');
+      setTimeout(() => table.classList.remove('anim-slam'), 600);
+
+      document.getElementById('slam-details').textContent = `Slammed ${card.label} on GIN Pad • 10 Melded Cards Locked!`;
+      document.getElementById('slam-banner').classList.remove('hidden');
+    }
+
+    function executeNormalDiscard(card) {
+      handCards = handCards.filter(c => c.id !== card.id);
+      document.getElementById('resting-discard-card').innerHTML = `
+        <div class="text-xs sm:text-sm font-black leading-none ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'}">${card.label}</div>
+        <div class="text-3xl sm:text-4xl text-center ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'} leading-none">${card.suit}</div>
+        <div class="text-xs sm:text-sm font-black leading-none text-right ${card.color === 'red' ? 'text-red-600' : 'text-slate-900'}">${card.label}</div>
+      `;
+      renderHand();
+    }
+
+    function showToast(msg, isSuccess = true) {
+      toastText.textContent = msg;
+      feedbackToast.className = `absolute top-4 left-1/2 -translate-x-1/2 z-40 ${isSuccess ? 'bg-emerald-950/95 border-emerald-500 text-emerald-200' : 'bg-rose-950/95 border-rose-500 text-rose-200'} border text-xs px-4 py-2 rounded-2xl font-bold flex items-center gap-2 shadow-2xl animate-bounce`;
+      feedbackToast.classList.remove('hidden');
+      setTimeout(() => {
+        feedbackToast.classList.add('hidden');
+      }, 3500);
+    }
+
+    function dismissSlam() {
+      document.getElementById('slam-banner').classList.add('hidden');
+      resetHand();
+    }
+
+    function resetHand() {
+      handCards = JSON.parse(JSON.stringify(currentScenario === 1 ? SCENARIO_1_CARDS : SCENARIO_2_CARDS));
+      document.getElementById('resting-discard-card').innerHTML = `
+        <div class="text-xs sm:text-sm font-black leading-none text-red-600">8♥</div>
+        <div class="text-3xl sm:text-4xl text-center text-red-600 leading-none">♥</div>
+        <div class="text-xs sm:text-sm font-black leading-none text-right text-red-600">8♥</div>
+      `;
+      renderHand();
+    }
+
+    function switchScenario(scen) {
+      currentScenario = scen;
+      document.getElementById('btn-scen-1').className = scen === 1 
+        ? 'px-2 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow'
+        : 'px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition';
+      document.getElementById('btn-scen-2').className = scen === 2 
+        ? 'px-2 py-1 rounded-lg text-[10px] font-black bg-[#05D59A] text-slate-950 shadow'
+        : 'px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 hover:text-white transition';
+      resetHand();
+    }
+
+    renderHand();
+  </script>
+</body>
+</html>

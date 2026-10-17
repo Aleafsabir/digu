@@ -31,7 +31,7 @@ const SUIT_SYMBOLS: Record<Suit, { symbol: string; isRed: boolean }> = {
   CLUBS: { symbol: '♣', isRed: false },
 };
 
-const RANK_LABELS: Record<Rank, string> = {
+export const RANK_LABELS: Record<Rank, string> = {
   1: 'A',
   2: '2',
   3: '3',
@@ -49,10 +49,10 @@ const RANK_LABELS: Record<Rank, string> = {
 
 const SIZE_CLASSES = {
   sm: 'w-10 h-14 text-[9px] rounded-md p-1',
-  md: 'w-13.5 sm:w-16 md:w-18 h-19.5 sm:h-22 md:h-26 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2',
-  lg: 'w-16 sm:w-19 md:w-21 h-23 sm:h-27 md:h-30 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1.5 sm:p-2.5',
-  hand: 'w-[68px] sm:w-[76px] md:w-[80px] h-[104px] sm:h-[114px] md:h-[120px] text-xs sm:text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5',
-  table: 'w-[62px] sm:w-[70px] md:w-[74px] h-[92px] sm:h-[104px] md:h-[110px] text-xs sm:text-sm rounded-xl sm:rounded-2xl p-1.5 sm:p-2',
+  md: 'w-14 sm:w-16 md:w-20 h-20 sm:h-24 md:h-28 text-xs sm:text-sm rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2',
+  lg: 'w-18 sm:w-22 md:w-26 h-26 sm:h-30 md:h-36 text-xs sm:text-base rounded-xl sm:rounded-2xl md:rounded-3xl p-1.5 sm:p-2.5',
+  hand: 'w-[84px] sm:w-[96px] md:w-[108px] h-[126px] sm:h-[144px] md:h-[162px] text-xs sm:text-base rounded-xl sm:rounded-2xl md:rounded-3xl p-2 sm:p-2.5',
+  table: 'w-[78px] sm:w-[90px] md:w-[100px] h-[114px] sm:h-[132px] md:h-[148px] text-xs sm:text-base rounded-xl sm:rounded-2xl md:rounded-3xl p-1.5 sm:p-2.5',
 };
 
 import { DeckDesignId } from '../../config/deckConfig';
@@ -222,10 +222,10 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       {/* Top Left Rank and Pip */}
       <div className="flex justify-between items-start leading-none">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-base sm:text-lg md:text-xl' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-sm md:text-base' : 'text-[10px] sm:text-sm'} ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-base' : 'text-[10px] sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
           {/* Always-visible Glowing Meld Pip (visible even when cards overlap!) */}
@@ -246,17 +246,17 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       </div>
 
       {/* Center Pip */}
-      <div className={`self-center ${size === 'hand' || size === 'table' ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-3xl'} leading-none select-none ${suitColorClass}`}>
+      <div className={`self-center ${size === 'hand' || size === 'table' ? 'text-3xl sm:text-4xl md:text-5xl' : 'text-xl sm:text-3xl'} leading-none select-none ${suitColorClass}`}>
         {suitMeta.symbol}
       </div>
 
       {/* Bottom Right Inverted Rank and Pip */}
       <div className="flex justify-end items-end leading-none rotate-180">
         <div className="flex flex-col items-center leading-none">
-          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
+          <span className={`font-black ${size === 'hand' || size === 'table' ? 'text-base sm:text-lg md:text-xl' : 'text-xs sm:text-base'} ${theme.fontCard} ${suitColorClass}`}>
             {rankLabel}
           </span>
-          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-sm md:text-base' : 'text-xs sm:text-sm'} ${suitColorClass} mt-0.5`}>
+          <span className={`${size === 'hand' || size === 'table' ? 'text-xs sm:text-base' : 'text-xs sm:text-sm'} ${suitColorClass} mt-0.5`}>
             {suitMeta.symbol}
           </span>
         </div>

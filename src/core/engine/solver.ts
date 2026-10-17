@@ -163,4 +163,38 @@ export class TeamHandOptimizer {
       netScore: meldScore - debtScore,
     };
   }
+
+  /**
+   * Find all cards in an 11-card hand that, if discarded, leave a 100% legal Gin (0 Deadwood).
+   */
+  static getValidGinFinishCardIds(cards: Card[]): string[] {
+    if (cards.length !== 11) return [];
+
+    const validIds: string[] = [];
+    for (let i = 0; i < cards.length; i++) {
+      const remaining10 = cards.filter((_, idx) => idx !== i);
+      if (RummyValidator.checkThousandPointRun(remaining10)) {
+        validIds.push(cards[i].id);
+        continue;
+      }
+      const opt = this.optimizeMergedHand(remaining10);
+      if (opt.debtScore === 0 && RummyValidator.validateGin(opt.melds)) {
+        validIds.push(cards[i].id);
+      }
+    }
+    return validIds;
+  }
+
+  /**
+   * Resolves the single finish card to discard for Gin.
+   * If preferredCardId is valid, honors it; otherwise auto-selects the first legal finish card.
+   */
+  static resolveGinFinishCardId(cards: Card[], preferredCardId?: string | null): string | null {
+    const validIds = this.getValidGinFinishCardIds(cards);
+    if (validIds.length === 0) return null;
+    if (preferredCardId && validIds.includes(preferredCardId)) {
+      return preferredCardId;
+    }
+    return validIds[0];
+  }
 }

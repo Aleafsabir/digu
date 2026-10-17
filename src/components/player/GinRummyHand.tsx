@@ -2,11 +2,10 @@ import React, { useRef, useState } from 'react';
 import { Reorder } from 'framer-motion';
 import { Card, PlayerState } from '../../core/models/types';
 import { HandAnalysis } from '../../store/useGameStore';
-import { PlayingCard, MeldColor, MeldHighlight } from '../shared/PlayingCard';
+import { PlayingCard, MeldColor, MeldHighlight, RANK_LABELS } from '../shared/PlayingCard';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
 import {
   ArrowDownToLine,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -134,27 +133,32 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           </div>
         </button>
 
-        {/* Compact Deadwood Poker-Chip Badge */}
+        {/* Deadwood Meter Pill (Gin Rummy Plus style: DEADWOOD 0 / 10 • ⚡ GIN READY) */}
         <div
-          className={`px-3.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all border ${
+          className={`px-3 sm:px-4 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
             handAnalysis.deadwoodPoints === 0
-              ? 'bg-[#02140D]/95 border-emerald-600/70 shadow-[0_0_12px_#05D59A]'
+              ? 'bg-[#010D08]/95 border-emerald-500/80 shadow-[0_0_15px_rgba(5,213,154,0.4)]'
               : 'bg-[#02140D]/95 border-slate-700/80'
           }`}
-          title={`Deadwood: ${handAnalysis.deadwoodPoints}`}
+          title={`Deadwood: ${handAnalysis.deadwoodPoints} points`}
         >
-          <span className="text-[9px] font-black uppercase text-slate-400 font-sans-clean">DEADWOOD:</span>
+          <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 font-mono tracking-wider">
+            DEADWOOD
+          </span>
           <span
-            className={`text-xs sm:text-sm font-black font-mono leading-none ${
+            className={`text-xs sm:text-sm font-black font-mono px-2 py-0.5 rounded leading-none ${
               handAnalysis.deadwoodPoints === 0
-                ? 'text-[#05D59A] drop-shadow-[0_0_8px_#05D59A]'
-                : 'text-slate-200'
+                ? 'bg-emerald-950 border border-emerald-700 text-[#05D59A] drop-shadow-[0_0_8px_#05D59A]'
+                : 'bg-slate-900 border border-slate-700 text-slate-200'
             }`}
           >
-            {handAnalysis.deadwoodPoints}
+            {handAnalysis.deadwoodPoints} / 10
           </span>
           {canGin && (
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#05D59A] animate-spin" />
+            <span className="text-[9px] font-black uppercase text-[#E5C378] tracking-wider animate-pulse flex items-center gap-0.5">
+              <span>⚡</span>
+              <span>GIN READY</span>
+            </span>
           )}
         </div>
 
@@ -264,40 +268,27 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           </div>
         )}
 
-        {/* Action Phase Trigger: GIN SLAM! or DISCARD */}
-        {isActionPhase && (canGin || selectedCardId) && (
+        {/* Discard Selected Button (Only shown when a card is explicitly selected during action phase and not Gin ready) */}
+        {isActionPhase && selectedCardId && !canGin && (
           <button
-            onClick={canGin && onSlamFinish ? onSlamFinish : onDiscardSelected}
-            className={`flex items-center gap-1.5 py-1 px-4 rounded-full btn-3d-vermilion text-white font-black text-[10px] sm:text-xs uppercase shadow-lg active:scale-95 cursor-pointer ${
-              canGin
-                ? 'animate-bounce border-2 border-yellow-300 shadow-[0_0_20px_rgba(239,68,68,0.75)]'
-                : ''
-            }`}
+            onClick={onDiscardSelected}
+            className="flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-black text-[10px] sm:text-xs uppercase shadow-md active:scale-95 cursor-pointer"
           >
-            {canGin ? (
-              <>
-                <span className="text-xs">⚡</span>
-                <span>GIN SLAM!</span>
-              </>
-            ) : (
-              <>
-                <ArrowDownToLine className="w-3 h-3" />
-                <span>DISCARD</span>
-              </>
-            )}
+            <ArrowDownToLine className="w-3 h-3 text-[#05D59A]" />
+            <span>DISCARD</span>
           </button>
         )}
       </div>
 
-      {/* Main Fanned Hand with Overlapping Cards & Circular Meld Rings - 70% Tucked into Bottom Fold */}
+      {/* Main Fanned Hand with Overlapping Jumbo Cards */}
       <div
         id="anchor-seat-0"
-        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[76px] sm:min-h-[86px] md:min-h-[92px] touch-none -mb-7 sm:-mb-8 md:-mb-9 transition-all duration-300"
+        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[110px] sm:min-h-[128px] md:min-h-[148px] touch-none -mb-3 sm:-mb-5 md:-mb-6 transition-all duration-300"
       >
         {/* Dedicated landing anchor for the 11th drawn card slot on the far right */}
         <div
           id="anchor-seat-0-draw-slot"
-          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[68px] sm:w-[76px] md:w-[80px] h-[104px] sm:h-[114px] md:h-[120px] pointer-events-none"
+          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[84px] sm:w-[96px] md:w-[108px] h-[126px] sm:h-[144px] md:h-[162px] pointer-events-none"
         />
 
         {/* Release to Discard Floating Indicator */}
@@ -312,7 +303,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           axis="x"
           values={handCards}
           onReorder={onReorderHand}
-          className="flex items-end -space-x-4.5 sm:-space-x-6 md:-space-x-7 px-3 sm:px-6 pb-0"
+          className="flex items-end -space-x-5.5 sm:-space-x-7 md:-space-x-9 px-3 sm:px-6 pb-0"
         >
           {handCards.map((card, index) => {
             const isSelected = selectedCardId === card.id;
@@ -320,6 +311,8 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
             const meldHighlight = meldMap.get(card.id);
             const isAceStranded = card.rank === 1 && !meldHighlight;
             const isHidden = card.id === hiddenCardId;
+            const isGinFinishCard =
+              isActionPhase && (handAnalysis.validGinFinishCardIds || []).includes(card.id);
 
             // Natural radial fan angle (-7deg to +8deg)
             const midIndex = (handCards.length - 1) / 2;
@@ -338,7 +331,6 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                 onDragStart={() => {
                   if (isHidden) return;
                   isDraggingRef.current = true;
-                  onCardClick(card.id, true);
                 }}
                 onDrag={(_, info) => {
                   if (isActionPhase && !isHidden) {
@@ -397,8 +389,33 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                   <div className="absolute -right-2 top-1 bottom-1 w-2 bg-[#05D59A] rounded-full shadow-[0_0_18px_#05D59A] z-50 border border-white/60 animate-pulse pointer-events-none" />
                 )}
 
-                {/* 11th Drawn Card Tag */}
-                {isDrawn11th && !isHidden && (
+                {/* Golden Gin Finish Card Badge */}
+                {isGinFinishCard && !isHidden && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-[8px] sm:text-[9px] uppercase shadow-[0_0_15px_rgba(245,158,11,0.7)] border border-white flex items-center gap-0.5 whitespace-nowrap z-50 animate-bounce pointer-events-none">
+                    <span>⚡</span>
+                    <span>GIN</span>
+                  </div>
+                )}
+
+                {/* Circular Meld Badge (Rank/Tag) matching screenshot */}
+                {meldHighlight && !isGinFinishCard && !isHidden && (
+                  <div
+                    className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-4.5 h-4.5 sm:w-5 sm:h-5 text-[9px] sm:text-[10px] rounded-full border-2 border-white font-black flex items-center justify-center text-black shadow-lg z-40 pointer-events-none ${
+                      meldHighlight.color === 'cyan'
+                        ? 'bg-cyan-400'
+                        : meldHighlight.color === 'emerald'
+                        ? 'bg-[#05D59A]'
+                        : meldHighlight.color === 'amber'
+                        ? 'bg-amber-400'
+                        : 'bg-purple-400'
+                    }`}
+                  >
+                    {RANK_LABELS[card.rank]}
+                  </div>
+                )}
+
+                {/* 11th Drawn Card Tag (if not already labeled as GIN finish card) */}
+                {isDrawn11th && !isGinFinishCard && !isHidden && (
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gradient-to-r from-slate-200 to-slate-400 text-stone-950 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-50 pointer-events-none border border-white/60">
                     11TH
                   </div>

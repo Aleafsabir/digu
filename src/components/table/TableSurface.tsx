@@ -18,6 +18,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
 import { playCardFlickSound, playGinSlamImpactSound, primeAudioContext } from '../../utils/audioEffects';
 import { Card } from '../../core/models/types';
+import { TeamHandOptimizer } from '../../core/engine/solver';
 
 export const TableSurface: React.FC = () => {
   // Mount autonomous AI turn engine
@@ -321,6 +322,14 @@ export const TableSurface: React.FC = () => {
     const cardToDiscard = handCards.find(c => c.id === cardId);
     if (!cardToDiscard) return;
 
+    // Check if player dragged toward the GIN Pad (left of table) and this card completes Gin
+    if (handAnalysis.isGinReady && handAnalysis.validGinFinishCardIds.includes(cardId)) {
+      if (fromPoint && fromPoint.x < window.innerWidth * 0.45) {
+        handleSlamFinish(cardId);
+        return;
+      }
+    }
+
     // Immediately hide the card from the player tray to prevent duplicate glitch or snap-back
     setPendingDiscardCardId(cardId);
 
@@ -344,18 +353,20 @@ export const TableSurface: React.FC = () => {
     }
   };
 
-  const handleSlamFinish = async () => {
+  const handleSlamFinish = async (targetCardId?: string) => {
     if (!isHumanTurn) return;
     // Prime audio context synchronously on the user gesture
     primeAudioContext();
 
-    // If no card is manually selected, automatically target the unmelded deadwood card, or the 11th card
-    const deadwoodCard = handAnalysis.deadwood[0];
+    // Bulletproof finish card resolution: guarantees meld integrity
+    const preferredId = targetCardId || selectedCardId;
     const cardIdToSlam =
-      selectedCardId || deadwoodCard?.id || (handCards.length === 11 ? handCards[handCards.length - 1].id : null);
+      TeamHandOptimizer.resolveGinFinishCardId(handCards, preferredId) ||
+      handAnalysis.deadwood[0]?.id ||
+      (handCards.length === 11 ? handCards[handCards.length - 1].id : null);
 
     if (!cardIdToSlam) {
-      useGameStore.setState({ actionError: 'Please tap your 11th card to slam face-down for Gin!' });
+      useGameStore.setState({ actionError: 'Cannot declare Gin: Hand does not form valid melds.' });
       return;
     }
 
