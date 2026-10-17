@@ -121,7 +121,7 @@ export const MatchInviteToast: React.FC = () => {
               </button>
               <button
                 onClick={handleAccept}
-                className="px-3 py-1 rounded-xl btn-3d-platinum text-slate-950 font-black text-xs flex items-center gap-1 transition cursor-pointer shadow"
+                className="px-3 py-1 rounded-xl btn-emerald-glow text-[#02140D] font-black text-xs flex items-center gap-1 transition cursor-pointer shadow"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Join</span>

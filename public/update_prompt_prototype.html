@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Holhuashi: Digu - Auto Update Prompt Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #010A06;
+      color: #FAF7F2;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .font-thaana {
+      font-family: 'Faruma', 'MV Faseyha', sans-serif;
+    }
+    .stadium-felt-surface {
+      background: radial-gradient(circle at 50% 40%, #064E3B 0%, #047857 32%, #034D35 60%, #021B11 85%, #010A06 100%);
+    }
+    .btn-emerald-glow {
+      background: linear-gradient(135deg, #05D59A 0%, #047857 100%);
+      color: #02140D;
+      box-shadow: 0 6px 20px rgba(5, 213, 154, 0.4);
+      transition: all 0.15s ease;
+    }
+    .btn-emerald-glow:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 8px 25px rgba(5, 213, 154, 0.6);
+    }
+    .btn-emerald-glow:active {
+      transform: translateY(2px);
+    }
+    .glass-panel-emerald-elevated {
+      background: rgba(3, 27, 17, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(5, 213, 154, 0.45);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(5, 213, 154, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+  <!-- Interactive Controls Bar -->
+  <div class="fixed top-4 z-40 bg-[#02140D]/90 border border-emerald-500/30 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-3 shadow-lg text-xs">
+    <span class="text-slate-400 font-bold">Simulator Controls:</span>
+    <button onclick="triggerUpdatePrompt(false)" class="px-3 py-1 rounded-xl bg-emerald-500/20 text-[#05D59A] border border-emerald-500/40 font-bold hover:bg-emerald-500/30 transition cursor-pointer">
+      Show Optional Update
+    </button>
+    <button onclick="triggerUpdatePrompt(true)" class="px-3 py-1 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold hover:bg-rose-500/30 transition cursor-pointer">
+      Show Mandatory Update
+    </button>
+    <button onclick="simulateCheckSettings()" class="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold hover:bg-amber-500/30 transition cursor-pointer">
+      Test Settings "Check Updates"
+    </button>
+  </div>
+
+  <!-- Background Mock Game Screen -->
+  <div class="w-full max-w-4xl h-[480px] rounded-3xl stadium-felt-surface border-4 border-[#05D59A]/30 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center select-none">
+    <div class="font-thaana text-[#05D59A]/15 text-9xl font-black drop-shadow-[0_0_25px_rgba(5,213,154,0.3)] absolute pointer-events-none">
+      ޑ
+    </div>
+    
+    <div class="z-10 text-center space-y-2">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#02140D]/80 border border-emerald-500/40 text-xs font-mono text-[#05D59A]">
+        <span>Installed App Version:</span>
+        <strong id="installed-version-label">v0.1.0 (Build 1)</strong>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+        Holhuashi: Digu Tabletop
+      </h1>
+      <p class="text-xs text-slate-300 max-w-sm mx-auto">
+        When a new APK is released on GitHub, this prompt automatically appears on app launch or inside Settings.
+      </p>
+
+      <!-- Simulated Settings Box -->
+      <div class="mt-4 p-4 rounded-2xl bg-[#02140D]/90 border border-slate-700/80 max-w-sm mx-auto text-left space-y-2 shadow-xl">
+        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex justify-between items-center">
+          <span>Settings & App Info</span>
+          <span class="text-[10px] text-amber-300 font-mono">APK Release Channel</span>
+        </div>
+        <div class="bg-[#010D08] p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+          <div>
+            <div class="font-bold text-slate-200">Installed Version</div>
+            <div class="text-[10px] text-slate-400 font-mono">Build 1 • Oct 2026</div>
+          </div>
+          <button id="btn-settings-check" onclick="simulateCheckSettings()" class="px-3 py-1.5 rounded-xl btn-emerald-glow text-xs font-black cursor-pointer shadow">
+            Check Updates
+          </button>
+        </div>
+        <div id="settings-status-msg" class="text-[11px] font-bold text-center hidden pt-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: NEW APK UPDATE PROMPT (ON-BRAND DIGU EMERALD)     -->
+  <!-- ======================================================== -->
+  <div id="update-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-200">
+    <div class="glass-panel-emerald-elevated rounded-3xl p-5 sm:p-6 max-w-sm w-full text-center relative shadow-2xl animate-in fade-in zoom-in-95 duration-200 border-2 border-[#05D59A]/50">
+      
+      <!-- Close Button (Hidden if mandatory) -->
+      <button id="btn-close-modal" onclick="dismissModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-white p-1 rounded-full cursor-pointer transition">
+        ✕
+      </button>
+
+      <!-- Centerpiece Icon -->
+      <div class="relative w-16 h-16 mx-auto mb-3">
+        <div class="absolute inset-0 rounded-2xl bg-[#05D59A]/20 blur-md animate-pulse"></div>
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378] flex items-center justify-center text-3xl font-black font-thaana text-[#E5C378] shadow-lg relative z-10">
+          ޑ
+        </div>
+        <span class="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-[#05D59A] text-[#02140D] font-mono text-[9px] font-black shadow-md z-20">
+          NEW
+        </span>
+      </div>
+
+      <!-- Title & Version Pills -->
+      <h2 class="text-lg font-black text-white tracking-tight mb-1">
+        New Update Available!
+      </h2>
+      <div class="flex items-center justify-center gap-2 mb-3 text-xs">
+        <span class="px-2 py-0.5 rounded-md bg-white/10 text-slate-300 font-mono text-[10px]">
+          v0.1.0
+        </span>
+        <span class="text-[#05D59A] font-bold">➔</span>
+        <span class="px-2 py-0.5 rounded-md bg-[#05D59A]/20 border border-[#05D59A]/50 text-[#05D59A] font-mono font-bold text-[10px]">
+          v0.2.0 (Build 2)
+        </span>
+      </div>
+
+      <!-- Mandatory Notice (Dynamic) -->
+      <div id="mandatory-banner" class="hidden mb-3 p-2 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-[10px] font-bold">
+        ⚠️ This is a required security & tournament solver update.
+      </div>
+
+      <!-- Release Notes Box -->
+      <div class="bg-[#010D08]/90 border border-slate-800 rounded-2xl p-3 text-left mb-4 space-y-1.5 text-xs">
+        <div class="text-[10px] uppercase font-black text-[#E5C378] tracking-wider mb-1 flex items-center justify-between">
+          <span>What's New in v0.2.0:</span>
+          <span class="text-slate-400 font-mono text-[9px]">~18.4 MB</span>
+        </div>
+        <ul class="space-y-1 text-slate-300 text-[11px] leading-relaxed">
+          <li class="flex items-start gap-1.5">
+            <span class="text-[#05D59A] font-bold">✓</span>
+            <span><strong>Holhuashi Rebrand:</strong> Authentic Maldivian lacquer & Island Gold theme.</span>
+          </li>
+          <li class="flex items-start gap-1.5">
+            <span class="text-[#05D59A] font-bold">✓</span>
+            <span><strong>Emerald Felt & Decks:</strong> Full mobile UI color unification across all tables.</span>
+          </li>
+          <li class="flex items-start gap-1.5">
+            <span class="text-[#05D59A] font-bold">✓</span>
+            <span><strong>10-Card Gin Solver:</strong> Smarter bot discard decisions & instant meld tracking.</span>
+          </li>
+          <li class="flex items-start gap-1.5">
+            <span class="text-[#05D59A] font-bold">✓</span>
+            <span><strong>Performance:</strong> Faster 60fps card drag animations & landscape lock.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2">
+        <button onclick="simulateDownload()" id="btn-download" class="w-full py-3 rounded-2xl btn-emerald-glow font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span>Download & Install APK</span>
+        </button>
+
+        <button id="btn-later" onclick="dismissModal()" class="w-full py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Remind Me Later
+        </button>
+      </div>
+
+      <div class="text-[9.5px] text-slate-500 font-mono mt-2">
+        Direct from GitHub Releases • Safe & Verified APK
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isMandatoryState = false;
+
+    function triggerUpdatePrompt(isMandatory) {
+      isMandatoryState = isMandatory;
+      const modal = document.getElementById('update-modal');
+      const closeBtn = document.getElementById('btn-close-modal');
+      const laterBtn = document.getElementById('btn-later');
+      const banner = document.getElementById('mandatory-banner');
+
+      modal.classList.remove('hidden');
+
+      if (isMandatory) {
+        closeBtn.classList.add('hidden');
+        laterBtn.classList.add('hidden');
+        banner.classList.remove('hidden');
+      } else {
+        closeBtn.classList.remove('hidden');
+        laterBtn.classList.remove('hidden');
+        banner.classList.add('hidden');
+      }
+    }
+
+    function dismissModal() {
+      if (!isMandatoryState) {
+        document.getElementById('update-modal').classList.add('hidden');
+      }
+    }
+
+    function simulateDownload() {
+      const btn = document.getElementById('btn-download');
+      btn.innerHTML = `
+        <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="3" stroke="currentColor" opacity="0.3"></circle>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke-width="3" stroke="currentColor"></path>
+        </svg>
+        <span>Opening APK Download...</span>
+      `;
+      setTimeout(() => {
+        alert("In the mobile app, this directly launches: \nhttps://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk\n\nAndroid will immediately prompt: 'Do you want to update this app?'");
+        btn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          <span>Download & Install APK</span>
+        `;
+        dismissModal();
+      }, 1000);
+    }
+
+    function simulateCheckSettings() {
+      const btn = document.getElementById('btn-settings-check');
+      const msg = document.getElementById('settings-status-msg');
+      btn.disabled = true;
+      btn.innerText = "Checking...";
+      msg.classList.add('hidden');
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerText = "Check Updates";
+        triggerUpdatePrompt(false);
+      }, 700);
+    }
+  </script>
+</body>
+</html>

@@ -49,15 +49,15 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 </span>
               </div>
               <div className="flex items-center justify-center gap-1.5 py-2">
-                <div className="px-2 py-1 rounded-lg btn-3d-platinum text-slate-950 font-black text-xs">
+                <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black text-xs shadow-sm">
                   4 Cards
                 </div>
                 <span className="text-slate-400 font-bold">+</span>
-                <div className="px-2 py-1 rounded-lg btn-3d-platinum text-slate-950 font-black text-xs">
+                <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black text-xs shadow-sm">
                   3 Cards
                 </div>
                 <span className="text-slate-400 font-bold">+</span>
-                <div className="px-2 py-1 rounded-lg btn-3d-platinum text-slate-950 font-black text-xs">
+                <div className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black text-xs shadow-sm">
                   3 Cards
                 </div>
               </div>
@@ -135,7 +135,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
 
           {/* Close button */}
           <JuicyButton
-            variant="platinum"
+            variant="emerald"
             size="md"
             onClick={onClose}
             className="w-full mt-3"

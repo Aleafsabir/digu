@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.thaasbai.digu',
-  appName: 'Thaasbai',
+  appName: 'Holhuashi',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

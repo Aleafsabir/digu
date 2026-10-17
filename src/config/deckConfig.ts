@@ -1,4 +1,4 @@
-export type DeckDesignId = 'burgundy_gold' | 'sapphire_lattice' | 'maldivian_lacquer';
+export type DeckDesignId = 'digu_emerald' | 'burgundy_gold' | 'sapphire_lattice' | 'maldivian_lacquer';
 
 export interface DeckDesignMeta {
   id: DeckDesignId;
@@ -14,11 +14,22 @@ export interface DeckDesignMeta {
 }
 
 export const DECK_DESIGNS: Record<DeckDesignId, DeckDesignMeta> = {
+  digu_emerald: {
+    id: 'digu_emerald',
+    name: 'Digu Emerald Lacquer',
+    tagline: 'Flagship Maldivian Felt',
+    badge: 'DEFAULT',
+    description: 'Deep stadium felt green framed with liquid gold filigree and an authentic ޑ Thaana crest.',
+    primaryColor: '#042618',
+    accentColor: '#05D59A',
+    previewBg: 'bg-gradient-to-br from-[#042618] via-[#02140D] to-[#010A06]',
+    unlocked: true,
+  },
   burgundy_gold: {
     id: 'burgundy_gold',
     name: 'Royal Burgundy & Gold',
-    tagline: 'Default Luxury Deck',
-    badge: 'DEFAULT',
+    tagline: 'Luxury Velvet Deck',
+    badge: 'PREMIUM',
     description: 'Deep wine-red velvet canvas framed with 24K gold arabesque filigree and a royal star crest.',
     primaryColor: '#58111A',
     accentColor: '#D4AF37',

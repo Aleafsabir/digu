@@ -12,6 +12,8 @@ export type PlayType = 'VS_AI' | 'ONLINE';
 
 export type AppScreen =
   | 'LAUNCH'
+  | 'ACCOUNT_GATEWAY'
+  | 'MAIN_LOBBY'
   | 'MODE_SELECT'
   | 'PLAY_TYPE_SELECT'
   | 'RULES_CONFIRM'

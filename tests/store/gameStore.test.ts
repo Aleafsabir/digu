@@ -11,9 +11,9 @@ describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
     }));
   });
 
-  it('initializes with Thaasbai branding and Digu game mode in AWAIT_DRAW phase', () => {
+  it('initializes with Holhuashi branding and Digu game mode in AWAIT_DRAW phase', () => {
     const state = useGameStore.getState();
-    expect(state.appName).toBe('Thaasbai');
+    expect(state.appName).toBe('Holhuashi (ހޮޅުއަށި)');
     expect(state.activeGame).toBe('DIGU');
     expect(state.gameState.phase).toBe('AWAIT_DRAW');
     expect(state.gameState.players.length).toBe(2);
@@ -211,6 +211,23 @@ describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
 
     // 5. Exit to lobby -> returns to MODE_SELECT
     useGameStore.getState().exitToLobby();
+    expect(useGameStore.getState().currentScreen).toBe('MODE_SELECT');
+  });
+
+  it('supports Holhuashi multi-game navigation: MAIN_LOBBY -> MODE_SELECT (Digu) and game switching', () => {
+    const { setScreen, setActiveGame } = useGameStore.getState();
+    setScreen('MAIN_LOBBY');
+    expect(useGameStore.getState().currentScreen).toBe('MAIN_LOBBY');
+
+    setActiveGame('DHIHAEH');
+    expect(useGameStore.getState().activeGame).toBe('DHIHAEH');
+
+    setActiveGame('BONDI');
+    expect(useGameStore.getState().activeGame).toBe('BONDI');
+
+    setActiveGame('DIGU');
+    setScreen('MODE_SELECT');
+    expect(useGameStore.getState().activeGame).toBe('DIGU');
     expect(useGameStore.getState().currentScreen).toBe('MODE_SELECT');
   });
 

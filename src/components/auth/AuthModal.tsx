@@ -79,7 +79,7 @@ export const AuthModal: React.FC = () => {
 
         {/* Header Crest */}
         <div className="text-center mb-5">
-          <div className="w-12 h-12 mx-auto rounded-2xl btn-3d-platinum text-slate-950 flex items-center justify-center shadow-lg mb-2">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] flex items-center justify-center shadow-lg mb-2">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h2 className="text-lg font-black text-[#F1F5F9] tracking-tight">
@@ -98,7 +98,7 @@ export const AuthModal: React.FC = () => {
               Current: <strong className="text-[#F1F5F9]">{profile.displayName}</strong>
             </span>
           </div>
-          <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md btn-3d-platinum text-slate-950">
+          <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-[#05D59A]/20 text-[#05D59A] border border-[#05D59A]/40">
             {profile.loginProvider}
           </span>
         </div>
@@ -220,7 +220,7 @@ export const AuthModal: React.FC = () => {
                       Back
                     </button>
                     <JuicyButton
-                      variant="platinum"
+                      variant="emerald"
                       size="sm"
                       type="submit"
                       className="flex-1"
@@ -252,7 +252,7 @@ export const AuthModal: React.FC = () => {
                       Change Number
                     </button>
                     <JuicyButton
-                      variant="platinum"
+                      variant="emerald"
                       size="sm"
                       type="submit"
                       disabled={isSyncing}

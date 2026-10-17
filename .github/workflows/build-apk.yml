@@ -9,6 +9,8 @@ jobs:
   build-apk:
     name: Build & Package Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -52,7 +54,33 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: thaasbai-debug-apk
+          name: holhuashi-digu-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Extract Version Info
+        id: version_info
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish Direct GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: ${{ steps.version_info.outputs.tag }}
+          name: "Holhuashi: Digu ${{ steps.version_info.outputs.tag }}"
+          body: |
+            ## Holhuashi: Digu ${{ steps.version_info.outputs.tag }} Release
+            - **Visual Identity**: Complete Holhuashi Digu Emerald (`#05D59A`), Island Gold (`#E5C378`), and authentic Faruma Thaana (`ޑިގު` / `ޑ`).
+            - **Card & Match Engine**: Full 10-Card Gin Rummy rules, meld grouping, scatter cut, and intelligent AI bot players.
+            - **Live Auto-Updater**: Built-in APK version checking and one-tap direct download from GitHub Releases.
+            - **Multiplayer & Social**: Cloud profile sync, private tables, match invites, and presence tracking.
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

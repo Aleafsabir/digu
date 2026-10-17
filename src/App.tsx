@@ -3,6 +3,8 @@ import { useGameStore } from './store/useGameStore';
 import { TableSurface } from './components/table/TableSurface';
 import { OrientationGuard } from './components/shared/OrientationGuard';
 import { LaunchSplashScreen } from './components/screens/LaunchSplashScreen';
+import { AccountGatewayScreen } from './components/screens/AccountGatewayScreen';
+import { MainLobbyScreen } from './components/screens/MainLobbyScreen';
 import { ModeSelectionScreen } from './components/screens/ModeSelectionScreen';
 import { PlayTypeModal } from './components/screens/PlayTypeModal';
 import { OnlineLobbyModal } from './components/screens/OnlineLobbyModal';
@@ -14,6 +16,8 @@ import { SettingsModal } from './components/shared/SettingsModal';
 import { FriendsModal } from './components/social/FriendsModal';
 import { MatchInviteToast } from './components/social/MatchInviteToast';
 import { InactivityForfeitModal } from './components/shared/InactivityForfeitModal';
+import { UpdatePromptModal } from './components/shared/UpdatePromptModal';
+import { checkForAppUpdate } from './services/updateService';
 import { AlertCircle, Clock } from 'lucide-react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useWakeLock } from './hooks/useWakeLock';
@@ -32,6 +36,10 @@ export default function App() {
     isForfeitedDueToInactivity,
     tablePot,
     tableBuyIn,
+    updateInfo,
+    showUpdateModal,
+    setUpdateInfo,
+    setShowUpdateModal,
     setScreen,
     selectModeAndReview,
     selectPlayType,
@@ -41,6 +49,7 @@ export default function App() {
     clearAwayToast,
     exitToLobby,
     restoreActiveMatchSession,
+    setActiveGame,
   } = useGameStore();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -85,6 +94,16 @@ export default function App() {
     }
   }, [actionError, clearError]);
 
+  // Check for app updates on launch (debounced / 4h cooldown managed)
+  useEffect(() => {
+    checkForAppUpdate().then(res => {
+      if (res.hasUpdate && res.updateInfo) {
+        setUpdateInfo(res.updateInfo);
+        setShowUpdateModal(true);
+      }
+    });
+  }, [setUpdateInfo, setShowUpdateModal]);
+
   return (
     <ErrorBoundary>
       <div className="w-screen h-screen h-[100dvh] max-h-screen bg-[#041710] text-[#FAF7F2] flex flex-col font-sans select-none overflow-hidden">
@@ -101,15 +120,47 @@ export default function App() {
 
       {/* Screen 1: Launch Splash Screen */}
       {currentScreen === 'LAUNCH' && (
-        <LaunchSplashScreen onFinish={() => setScreen('MODE_SELECT')} />
+        <LaunchSplashScreen
+          onFinish={() => {
+            const hasExistingProfile = profile?.id && profile?.displayName;
+            const hasOnboarded = localStorage.getItem('holhuashi_onboarded') === 'true';
+            if (!hasOnboarded && (!hasExistingProfile || profile.loginProvider === 'GUEST')) {
+              localStorage.setItem('holhuashi_onboarded', 'true');
+              setScreen('ACCOUNT_GATEWAY');
+            } else {
+              setScreen('MAIN_LOBBY');
+            }
+          }}
+        />
       )}
 
-      {/* Screen 2: Game Mode Selection (Lobby) */}
+      {/* Screen 2: Account Gateway Onboarding */}
+      {currentScreen === 'ACCOUNT_GATEWAY' && (
+        <AccountGatewayScreen onContinue={() => setScreen('MAIN_LOBBY')} />
+      )}
+
+      {/* Screen 3: Main Lobby (Game Selector Hub) */}
+      {currentScreen === 'MAIN_LOBBY' && (
+        <MainLobbyScreen
+          onSelectGame={(game) => {
+            setActiveGame(game);
+            if (game === 'DIGU') {
+              setScreen('MODE_SELECT');
+            }
+          }}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenRules={() => setShowRules(true)}
+          onSwitchAccount={() => setScreen('ACCOUNT_GATEWAY')}
+        />
+      )}
+
+      {/* Screen 4: Digu Sub-Lobby (Mode Selection) */}
       {currentScreen === 'MODE_SELECT' && (
         <ModeSelectionScreen
           onSelectMode={selectModeAndReview}
           onOpenRules={() => setShowRules(true)}
           onOpenSettings={() => setShowSettings(true)}
+          onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
           onOpenPrivateTable={() => {
             updatePendingRules({ playType: 'ONLINE', mode: 'TEAM_4P' });
             setLobbyInitialTab('CREATE_ROOM');
@@ -125,6 +176,7 @@ export default function App() {
             onSelectMode={selectModeAndReview}
             onOpenRules={() => setShowRules(true)}
             onOpenSettings={() => setShowSettings(true)}
+            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
           />
           <PlayTypeModal
             mode={pendingRules.mode}
@@ -146,6 +198,7 @@ export default function App() {
             onSelectMode={selectModeAndReview}
             onOpenRules={() => setShowRules(true)}
             onOpenSettings={() => setShowSettings(true)}
+            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
           />
           <OnlineLobbyModal
             pendingRules={pendingRules}
@@ -163,6 +216,7 @@ export default function App() {
             onSelectMode={selectModeAndReview}
             onOpenRules={() => setShowRules(true)}
             onOpenSettings={() => setShowSettings(true)}
+            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
           />
           <RulesConfirmationModal
             pendingRules={pendingRules}
@@ -206,6 +260,15 @@ export default function App() {
           onReturnToLobby={exitToLobby}
           tablePot={tablePot}
           tableBuyIn={tableBuyIn}
+        />
+      )}
+
+      {/* In-App APK Auto-Update Prompt Modal */}
+      {updateInfo && (
+        <UpdatePromptModal
+          isOpen={showUpdateModal}
+          updateInfo={updateInfo}
+          onClose={() => setShowUpdateModal(false)}
         />
       )}
     </div>

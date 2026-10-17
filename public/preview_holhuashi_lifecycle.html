@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Holhuashi (ހޮޅުއަށި) - Onboarding & Game Selector Lifecycle Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Faruma&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #02140D;
+      --bg-panel: #031B11;
+      --felt-green: #042618;
+      --accent-emerald: #05D59A;
+      --accent-emerald-glow: rgba(5, 213, 154, 0.4);
+      --gold-accent: #E5C378;
+      --gold-glow: rgba(229, 195, 120, 0.4);
+      --crimson-accent: #EF4444;
+      --sapphire-accent: #3B82F6;
+      --platinum-light: #F1F5F9;
+      --slate-border: #1E293B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 10%, #063824 0%, #02140D 70%, #010A06 100%);
+      color: #FAF7F2;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    .font-thaana {
+      font-family: 'Faruma', serif;
+      direction: rtl;
+    }
+
+    /* Top Control Bar for Prototyping */
+    .prototype-bar {
+      width: 100%;
+      max-width: 1060px;
+      background: rgba(3, 27, 17, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(5, 213, 154, 0.25);
+      border-radius: 16px;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    .stepper-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .step-btn {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      color: #94A3B8;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .step-btn.active {
+      background: var(--accent-emerald);
+      color: #02140D;
+      border-color: #05D59A;
+      box-shadow: 0 0 15px var(--accent-emerald-glow);
+    }
+
+    .step-btn:hover:not(.active) {
+      border-color: #64748B;
+      color: #F8FAFC;
+    }
+
+    .toggle-state-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: #CBD5E1;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 22px;
+      background: #1E293B;
+      border-radius: 9999px;
+      cursor: pointer;
+      border: 1px solid #475569;
+      transition: background 0.2s;
+    }
+
+    .toggle-switch.on {
+      background: var(--accent-emerald);
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle-switch.on .toggle-thumb {
+      transform: translateX(22px);
+    }
+
+    /* Device Canvas Frame */
+    .device-viewport {
+      width: 100%;
+      max-width: 1060px;
+      height: 620px;
+      background: #02140D;
+      border: 2px solid #334155;
+      border-radius: 32px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Screen Panels */
+    .screen-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .screen-panel.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* ========================================================
+       SCREEN 1: LOADING SCREEN
+       ======================================================== */
+    .screen-loading {
+      background: radial-gradient(circle at 50% 30%, #063824 0%, #02140D 75%, #010A06 100%);
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .screen-loading::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(5, 213, 154, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    .logo-crest-wrap {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .crest-medallion {
+      width: 104px;
+      height: 104px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+      border: 2px solid var(--gold-accent);
+      padding: 6px;
+      box-shadow: 0 0 30px var(--gold-glow), 0 20px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: floatPulse 4s ease-in-out infinite;
+    }
+
+    .crest-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      background: radial-gradient(circle at 50% 30%, #042618 0%, #02140D 100%);
+      border: 1px solid rgba(229, 195, 120, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crest-inner .thaana-letter {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--gold-accent);
+      text-shadow: 0 2px 10px rgba(229, 195, 120, 0.5);
+      line-height: 1;
+    }
+
+    .crest-spark {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 28px;
+      height: 28px;
+      background: var(--gold-accent);
+      color: #02140D;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 0 15px var(--gold-accent);
+    }
+
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.03); }
+    }
+
+    .loading-title {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .loading-title .thaana-brand {
+      font-size: 34px;
+      color: var(--gold-accent);
+    }
+
+    .loading-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .progress-container {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #0F172A;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #05D59A, #E5C378);
+      border-radius: 9999px;
+      box-shadow: 0 0 12px var(--accent-emerald-glow);
+      transition: width 0.1s linear;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+    }
+
+    .progress-status {
+      color: var(--accent-emerald);
+    }
+
+    .maldivian-tip-box {
+      margin-top: 28px;
+      background: rgba(3, 27, 17, 0.6);
+      border: 1px dashed rgba(229, 195, 120, 0.4);
+      padding: 8px 18px;
+      border-radius: 12px;
+      max-width: 440px;
+    }
+
+    .maldivian-tip-box p {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.4;
+    }
+
+    /* ========================================================
+       SCREEN 2: ACCOUNT GATEWAY
+       ======================================================== */
+    .screen-account {
+      background: radial-gradient(circle at 50% 20%, #052F1D 0%, #02140D 80%);
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .account-card {
+      background: linear-gradient(180deg, #031B11 0%, #02140D 100%);
+      border: 2px solid #334155;
+      border-radius: 28px;
+      padding: 32px 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+      text-align: center;
+      position: relative;
+    }
+
+    .account-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(5, 213, 154, 0.12);
+      border: 1px solid rgba(5, 213, 154, 0.3);
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-emerald);
+      margin-bottom: 12px;
+    }
+
+    .account-h2 {
+      font-size: 24px;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+    }
+
+    .account-p {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .auth-buttons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-auth {
+      width: 100%;
+      padding: 13px 18px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1.5px solid transparent;
+      outline: none;
+    }
+
+    .btn-auth-google {
+      background: #FFFFFF;
+      color: #1E293B;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .btn-auth-google:hover {
+      background: #F1F5F9;
+      transform: translateY(-2px);
+    }
+
+    .btn-auth-apple {
+      background: #0F172A;
+      color: #FFFFFF;
+      border-color: #334155;
+    }
+
+    .btn-auth-apple:hover {
+      background: #1E293B;
+      transform: translateY(-2px);
+    }
+
+    .btn-auth-guest {
+      background: rgba(5, 213, 154, 0.1);
+      border-color: rgba(5, 213, 154, 0.4);
+      color: var(--accent-emerald);
+    }
+
+    .btn-auth-guest:hover {
+      background: rgba(5, 213, 154, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .account-perks {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #1E293B;
+    }
+
+    .perk-item {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .perk-item span:first-child {
+      font-size: 16px;
+    }
+
+    /* ========================================================
+       SCREEN 3: MAIN LOBBY (GAME SELECTOR)
+       ======================================================== */
+    .screen-mainlobby {
+      background: radial-gradient(circle at 50% 0%, #063824 0%, #02140D 60%, #010A06 100%);
+      padding: 16px 20px;
+      justify-content: space-between;
+    }
+
+    /* Main Hub Header Bar */
+    .lobby-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .player-profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      padding: 4px 12px 4px 6px;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+
+    .profile-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #05D59A, #0284C7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      color: #02140D;
+      border: 2px solid #E2E8F0;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .profile-name {
+      font-size: 12px;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .profile-lvl {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--accent-emerald);
+      letter-spacing: 0.05em;
+    }
+
+    .currencies-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .currency-chip {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      padding: 5px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #E2E8F0;
+    }
+
+    .gold-text { color: var(--gold-accent); }
+    .gem-text { color: #38BDF8; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: #0F172A;
+      border: 1px solid #334155;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: #64748B;
+      color: #FFFFFF;
+    }
+
+    .icon-btn .badge-dot {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+    }
+
+    /* Carousel Arena */
+    .games-carousel-arena {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      position: relative;
+      padding: 10px 0;
+    }
+
+    .carousel-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #94A3B8;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .carousel-cards-track {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 980px;
+      perspective: 1000px;
+    }
+
+    /* Card Poster Item */
+    .game-poster-card {
+      width: 290px;
+      height: 380px;
+      border-radius: 24px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+      border: 2px solid transparent;
+      overflow: hidden;
+    }
+
+    .game-poster-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 80%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .game-poster-card * {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* DIGU CARD */
+    .card-digu {
+      background: linear-gradient(145deg, #063824 0%, #031B11 60%, #010D08 100%);
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 25px rgba(5, 213, 154, 0.25), 0 20px 45px rgba(0, 0, 0, 0.7);
+    }
+
+    .card-digu:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 0 35px rgba(5, 213, 154, 0.45), 0 25px 50px rgba(0, 0, 0, 0.85);
+    }
+
+    /* DHIHAEH CARD */
+    .card-dhihaeh {
+      background: linear-gradient(145deg, #3B0D16 0%, #1A070A 60%, #0D0305 100%);
+      border-color: #6B21A8;
+      opacity: 0.9;
+    }
+
+    .card-dhihaeh:hover {
+      transform: translateY(-4px);
+      opacity: 1;
+      border-color: #A855F7;
+    }
+
+    /* BONDI CARD */
+    .card-bondi {
+      background: linear-gradient(145deg, #0C2340 0%, #071526 60%, #030A12 100%);
+      border-color: #1E3A8A;
+      opacity: 0.9;
+    }
+
+    .card-bondi:hover {
+      transform: translateY(-4px);
+      opacity: 1;
+      border-color: #3B82F6;
+    }
+
+    .card-top-tags {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag-status-live {
+      background: rgba(5, 213, 154, 0.18);
+      border: 1px solid var(--accent-emerald);
+      color: var(--accent-emerald);
+      font-size: 10px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tag-status-soon {
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid #475569;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .game-lead-art {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .game-icon-circle {
+      width: 76px;
+      height: 76px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      margin-bottom: 10px;
+    }
+
+    .card-digu .game-icon-circle {
+      background: linear-gradient(135deg, #05D59A, #047857);
+      color: #02140D;
+      font-size: 38px;
+      font-weight: 900;
+    }
+
+    .card-dhihaeh .game-icon-circle {
+      background: linear-gradient(135deg, #C084FC, #7E22CE);
+      color: #FFFFFF;
+      font-size: 38px;
+      font-weight: 900;
+    }
+
+    .card-bondi .game-icon-circle {
+      background: linear-gradient(135deg, #60A5FA, #1D4ED8);
+      color: #FFFFFF;
+      font-size: 38px;
+      font-weight: 900;
+    }
+
+    .game-card-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .game-card-title .thaana-sub {
+      display: block;
+      font-size: 20px;
+      color: var(--gold-accent);
+      margin-top: 2px;
+    }
+
+    .game-card-desc {
+      font-size: 11px;
+      color: #CBD5E1;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 6px;
+      min-height: 32px;
+    }
+
+    .game-card-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-play-game {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-emerald);
+      color: #02140D;
+      border: none;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px var(--accent-emerald-glow);
+      transition: all 0.2s;
+    }
+
+    .btn-play-game:hover {
+      background: #00F5AE;
+      transform: translateY(-2px);
+    }
+
+    .btn-locked-game {
+      width: 100%;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #94A3B8;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-locked-game:hover {
+      background: rgba(30, 41, 59, 0.8);
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+
+    .players-online-count {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      text-align: center;
+    }
+
+    /* Lobby Footer */
+    .lobby-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-top: 10px;
+      border-top: 1px solid rgba(51, 65, 85, 0.4);
+    }
+
+    .footer-quick-links {
+      display: flex;
+      gap: 10px;
+    }
+
+    .footer-pill {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .footer-pill:hover {
+      border-color: var(--accent-emerald);
+      color: #FFFFFF;
+    }
+
+    /* ========================================================
+       SCREEN 4: DIGU SUB-LOBBY (MATCH SETUP)
+       ======================================================== */
+    .screen-digusub {
+      background: radial-gradient(circle at 50% 10%, #063824 0%, #02140D 70%, #010A06 100%);
+      padding: 16px 20px;
+      justify-content: space-between;
+    }
+
+    .sublobby-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .btn-back-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      font-size: 11px;
+      font-weight: 800;
+      color: #CBD5E1;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-back-hub:hover {
+      background: #1E293B;
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+
+    .digu-brand-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modes-grid-setup {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 16px 0;
+      flex: 1;
+      align-items: center;
+    }
+
+    .mode-selection-card {
+      background: linear-gradient(180deg, #031B11 0%, #02140D 100%);
+      border: 1.5px solid #1E293B;
+      border-radius: 20px;
+      padding: 18px 14px;
+      height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .mode-selection-card:hover {
+      border-color: var(--accent-emerald);
+      transform: translateY(-4px);
+      box-shadow: 0 0 20px var(--accent-emerald-glow);
+    }
+
+    .mode-selection-card.popular {
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 20px var(--accent-emerald-glow);
+    }
+
+    .badge-popular {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent-emerald);
+      color: #02140D;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .mode-card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #0F172A;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 10px;
+    }
+
+    .mode-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-align: center;
+    }
+
+    .mode-thaana {
+      font-size: 13px;
+      color: var(--gold-accent);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .mode-details {
+      font-size: 10px;
+      color: #94A3B8;
+      text-align: center;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .btn-select-mode {
+      width: 100%;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(5, 213, 154, 0.15);
+      border: 1px solid var(--accent-emerald);
+      color: var(--accent-emerald);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-select-mode:hover {
+      background: var(--accent-emerald);
+      color: #02140D;
+    }
+
+    /* Modal Teaser Popup */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 50;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: linear-gradient(180deg, #031B11 0%, #02140D 100%);
+      border: 2px solid #334155;
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+
+    .btn-close-modal {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .btn-close-modal:hover { color: #FFFFFF; }
+  </style>
+</head>
+<body>
+
+  <!-- PROTOTYPE TOP CONTROLLER -->
+  <div class="prototype-bar">
+    <div class="stepper-nav">
+      <button class="step-btn active" onclick="goToStep(1)">
+        <span>1.</span> Loading Screen
+      </button>
+      <button class="step-btn" onclick="goToStep(2)">
+        <span>2.</span> Account Gateway
+      </button>
+      <button class="step-btn" onclick="goToStep(3)">
+        <span>3.</span> Main Lobby (Game Hub)
+      </button>
+      <button class="step-btn" onclick="goToStep(4)">
+        <span>4.</span> Digu Sub-Lobby
+      </button>
+    </div>
+
+    <div class="toggle-state-box">
+      <span>Auto-skip Account on return:</span>
+      <div class="toggle-switch on" id="toggleExistingUser" onclick="toggleUserPersistence()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <button class="step-btn" onclick="startFullBootFlow()" style="background: rgba(5,213,154,0.15); border-color: var(--accent-emerald); color: var(--accent-emerald);">
+        ▶ Run Full Flow
+      </button>
+    </div>
+  </div>
+
+  <!-- DEVICE SIMULATOR VIEWPORT -->
+  <div class="device-viewport">
+
+    <!-- ========================================================
+         SCREEN 1: LOADING SCREEN
+         ======================================================== -->
+    <div class="screen-panel screen-loading active" id="screen1">
+      <div class="logo-crest-wrap">
+        <div class="crest-medallion">
+          <div class="crest-inner">
+            <span class="font-thaana thaana-letter">ހ</span>
+          </div>
+        </div>
+        <div class="crest-spark">✦</div>
+      </div>
+
+      <h1 class="loading-title">
+        <span class="font-thaana thaana-brand">ހޮޅުއަށި</span>
+        <span style="color: #FFFFFF; font-weight: 900; letter-spacing: 0.05em;">HOLHUASHI</span>
+      </h1>
+      <p class="loading-subtitle">Maldivian Traditional Card Games Hub</p>
+
+      <div class="progress-container">
+        <div class="progress-track">
+          <div class="progress-fill" id="loadingProgressFill"></div>
+        </div>
+        <div class="progress-meta">
+          <span class="progress-status" id="loadingStatusText">Connecting to Holhuashi servers...</span>
+          <span id="loadingPercentText">0%</span>
+        </div>
+      </div>
+
+      <div class="maldivian-tip-box">
+        <p class="font-thaana" style="font-size: 13px; color: var(--gold-accent); margin-bottom: 3px;">
+          "ތާސް ކުޅުމަކީ ހުނަރާއި ހިކުމަތުގެ ކުޅިވަރެކެވެ."
+        </p>
+        <p style="font-size: 11px; color: #94A3B8;">
+          Tip: Form sequences early and keep deadwood low before your opponents gin!
+        </p>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button class="step-btn" onclick="runLoaderAnimation()" style="background: rgba(255,255,255,0.06);">
+          ↺ Replay Loading Animation
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ========================================================
+         SCREEN 2: ACCOUNT GATEWAY
+         ======================================================== -->
+    <div class="screen-panel screen-account" id="screen2">
+      <div class="account-card">
+        <div class="account-badge">
+          <span>🇲🇻</span>
+          <span>Official Island Card Club</span>
+        </div>
+
+        <h2 class="account-h2">Welcome to Holhuashi</h2>
+        <p class="account-p">
+          Sign in to preserve your chips, sync trophies across devices, and challenge friends to live matches.
+        </p>
+
+        <div class="auth-buttons-list">
+          <button class="btn-auth btn-auth-google" onclick="loginAndAdvance('Google', 'Ali_Mv')">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.36 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <button class="btn-auth btn-auth-apple" onclick="loginAndAdvance('Apple', 'Hussain_MV')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.66-.8 1.1-1.92.98-3.04-.95.04-2.1.63-2.77 1.42-.59.68-1.12 1.79-.98 2.88 1.06.08 2.14-.49 2.77-1.26z"/>
+            </svg>
+            <span>Continue with Apple</span>
+          </button>
+
+          <button class="btn-auth btn-auth-guest" onclick="loginAndAdvance('Guest', 'Dhigun_Raajje_42')">
+            <span>🎭 Play as Guest</span>
+          </button>
+        </div>
+
+        <div class="account-perks">
+          <div class="perk-item">
+            <span>☁️</span>
+            <span>Cloud Backup</span>
+          </div>
+          <div class="perk-item">
+            <span>👥</span>
+            <span>Play Friends</span>
+          </div>
+          <div class="perk-item">
+            <span>🏆</span>
+            <span>Leaderboard</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================================
+         SCREEN 3: MAIN LOBBY (GAME SELECTOR HUB)
+         ======================================================== -->
+    <div class="screen-panel screen-mainlobby" id="screen3">
+
+      <!-- Header Bar -->
+      <div class="lobby-header">
+        <div class="player-profile-pill" onclick="goToStep(2)">
+          <div class="profile-avatar" id="lobbyAvatar">A</div>
+          <div class="profile-info">
+            <span class="profile-name" id="lobbyPlayerName">Ali_Mv <small style="font-size: 10px; color: #64748B;">▼</small></span>
+            <span class="profile-lvl">LVL 14 • PLATINUM</span>
+          </div>
+        </div>
+
+        <div class="currencies-group">
+          <div class="currency-chip">
+            <span class="gold-text">🪙</span>
+            <span id="playerCoins">25,400</span>
+          </div>
+          <div class="currency-chip">
+            <span class="gem-text">💎</span>
+            <span>180</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="icon-btn" title="Online Friends" onclick="alert('Friends panel: 3 friends currently online!')">
+            <span>👥</span>
+            <span class="badge-dot"></span>
+          </div>
+          <div class="icon-btn" title="Game Settings" onclick="alert('Settings: Audio, Maldivian Voiceovers, Language, Server Endpoint')">
+            <span>⚙️</span>
+          </div>
+          <div class="icon-btn" title="Switch Account / Sign Out" onclick="goToStep(2)">
+            <span>🚪</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Games Carousel Arena -->
+      <div class="games-carousel-arena">
+        <div class="carousel-section-title">
+          <span>🇲🇻 Select Traditional Card Game</span>
+        </div>
+
+        <div class="carousel-cards-track">
+
+          <!-- 1. DIGU CARD (ACTIVE) -->
+          <div class="game-poster-card card-digu" onclick="goToStep(4)">
+            <div class="card-top-tags">
+              <span class="tag-status-live">
+                <span style="width: 6px; height: 6px; background: #05D59A; border-radius: 50%; box-shadow: 0 0 8px #05D59A;"></span>
+                LIVE • PLAY NOW
+              </span>
+              <span style="font-size: 11px; font-weight: 800; color: #94A3B8;">4P & 1v1</span>
+            </div>
+
+            <div class="game-lead-art">
+              <div class="game-icon-circle">
+                <span class="font-thaana">ޑ</span>
+              </div>
+              <h3 class="game-card-title">
+                DIGU
+                <span class="font-thaana thaana-sub">ޑިގު</span>
+              </h3>
+              <p class="game-card-desc">
+                The authentic Maldivian 10-card Gin Rummy. Form runs, sets, and slam Gin to claim the pot!
+              </p>
+            </div>
+
+            <div class="game-card-bottom">
+              <button class="btn-play-game" onclick="event.stopPropagation(); goToStep(4);">
+                <span>Enter Digu Lobby</span>
+                <span>➔</span>
+              </button>
+              <div class="players-online-count">
+                🟢 1,420 Players at Tables
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. DHIHAEH CARD (COMING SOON) -->
+          <div class="game-poster-card card-dhihaeh" onclick="openTeaserModal('Dhihaeh', 'ދިހައެއް', 'Fast-paced Maldivian 10s counting and trick collection. Players compete to accumulate 10-point capture cards, sweep the table, and outwit opponents across rapid rounds.', 'Rules Drafting & Balancing Phase')">
+            <div class="card-top-tags">
+              <span class="tag-status-soon">
+                <span>🔒</span> COMING SOON
+              </span>
+              <span style="font-size: 11px; font-weight: 800; color: #64748B;">4-Player</span>
+            </div>
+
+            <div class="game-lead-art">
+              <div class="game-icon-circle">
+                <span class="font-thaana">ދި</span>
+              </div>
+              <h3 class="game-card-title">
+                DHIHAEH
+                <span class="font-thaana thaana-sub">ދިހައެއް</span>
+              </h3>
+              <p class="game-card-desc">
+                Maldivian 10s counting & trick capture. Score points by securing high-value cards and clean sweeps.
+              </p>
+            </div>
+
+            <div class="game-card-bottom">
+              <button class="btn-locked-game" onclick="event.stopPropagation(); openTeaserModal('Dhihaeh', 'ދިހައެއް', 'Fast-paced Maldivian 10s counting and trick collection. Players compete to accumulate 10-point capture cards, sweep the table, and outwit opponents across rapid rounds.', 'Rules Drafting & Balancing Phase')">
+                <span>Preview Rules & Teaser</span>
+              </button>
+              <div class="players-online-count" style="color: #64748B;">
+                In Development (Rules Drafting)
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. BONDI CARD (COMING SOON) -->
+          <div class="game-poster-card card-bondi" onclick="openTeaserModal('Bondi', 'ބޮނޑި', 'Strategic Maldivian card clustering and bundle management. Players build powerful card combinations and bluff their hand strength to force table folds.', 'Rules Drafting & Concept Phase')">
+            <div class="card-top-tags">
+              <span class="tag-status-soon">
+                <span>🔒</span> COMING SOON
+              </span>
+              <span style="font-size: 11px; font-weight: 800; color: #64748B;">2-6 Players</span>
+            </div>
+
+            <div class="game-lead-art">
+              <div class="game-icon-circle">
+                <span class="font-thaana">ބ</span>
+              </div>
+              <h3 class="game-card-title">
+                BONDI
+                <span class="font-thaana thaana-sub">ބޮނޑި</span>
+              </h3>
+              <p class="game-card-desc">
+                High-stakes Maldivian card clustering. Form secret bundles and dominate the board with tactical plays.
+              </p>
+            </div>
+
+            <div class="game-card-bottom">
+              <button class="btn-locked-game" onclick="event.stopPropagation(); openTeaserModal('Bondi', 'ބޮނޑި', 'Strategic Maldivian card clustering and bundle management. Players build powerful card combinations and bluff their hand strength to force table folds.', 'Rules Drafting & Concept Phase')">
+                <span>Preview Rules & Teaser</span>
+              </button>
+              <div class="players-online-count" style="color: #64748B;">
+                In Development (Rules Drafting)
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="lobby-footer-bar">
+        <div class="footer-quick-links">
+          <div class="footer-pill" onclick="alert('Daily Lucky Wheel: Spin for free coins!')">
+            <span>🎁</span>
+            <span>Daily Free Spin</span>
+          </div>
+          <div class="footer-pill" onclick="alert('Malé Grand Holhuashi: Global tournament starting at 9:00 PM!')">
+            <span>🏆</span>
+            <span>Island Tournaments</span>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; font-weight: 700; color: #64748B; display: flex; align-items: center; gap: 8px;">
+          <span>Server: Maldives Central (14ms)</span>
+          <span style="width: 8px; height: 8px; background: #05D59A; border-radius: 50%;"></span>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ========================================================
+         SCREEN 4: DIGU SUB-LOBBY (MATCH SETUP)
+         ======================================================== -->
+    <div class="screen-panel screen-digusub" id="screen4">
+
+      <!-- Sub-Lobby Top Bar -->
+      <div class="sublobby-top-bar">
+        <button class="btn-back-hub" onclick="goToStep(3)">
+          <span>◀</span>
+          <span>Main Lobby (Hub)</span>
+        </button>
+
+        <div class="digu-brand-title">
+          <span style="color: var(--accent-emerald);">DIGU</span>
+          <span class="font-thaana" style="color: var(--gold-accent);">ޑިގު</span>
+          <span style="font-size: 11px; font-weight: 700; color: #94A3B8; padding-left: 8px; border-left: 1px solid #334155;">
+            Choose Match Mode
+          </span>
+        </div>
+
+        <div class="currencies-group">
+          <div class="currency-chip">
+            <span class="gold-text">🪙</span>
+            <span>25,400</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 Mode Selection Cards -->
+      <div class="modes-grid-setup">
+
+        <!-- 4P Team Gin -->
+        <div class="mode-selection-card popular" onclick="alert('Entering 4P Team Partner Gin Match!')">
+          <div class="badge-popular">MOST POPULAR</div>
+          <div class="mode-card-icon">👥</div>
+          <div>
+            <h4 class="mode-title">4P Team Match</h4>
+            <div class="font-thaana mode-thaana">ޓީމު މެޗު</div>
+            <p class="mode-details">
+              2 vs 2 Partner Gin. Share winning bonuses, prevent opposing gins, and dominate together!
+            </p>
+          </div>
+          <button class="btn-select-mode">Play 4P Team</button>
+        </div>
+
+        <!-- 1v1 Duel -->
+        <div class="mode-selection-card" onclick="alert('Entering 1-on-1 Head-to-Head Duel!')">
+          <div class="mode-card-icon">⚔️</div>
+          <div>
+            <h4 class="mode-title">1v1 Duel</h4>
+            <div class="font-thaana mode-thaana">ވަކިވަކިން</div>
+            <p class="mode-details">
+              Head-to-head intensity. First to 500 or 1,000 points takes all table stakes.
+            </p>
+          </div>
+          <button class="btn-select-mode">Play 1v1 Duel</button>
+        </div>
+
+        <!-- Private Room -->
+        <div class="mode-selection-card" onclick="alert('Opening Private Table creator!')">
+          <div class="mode-card-icon">🔑</div>
+          <div>
+            <h4 class="mode-title">Private Table</h4>
+            <div class="font-thaana mode-thaana">ޕްރައިވެޓް ކޮޓަރި</div>
+            <p class="mode-details">
+              Create an exclusive room with a 6-letter code. Invite friends to play anywhere.
+            </p>
+          </div>
+          <button class="btn-select-mode">Create Room</button>
+        </div>
+
+        <!-- Pass & Play / AI -->
+        <div class="mode-selection-card" onclick="alert('Starting Local Pass & Play / AI practice!')">
+          <div class="mode-card-icon">🤖</div>
+          <div>
+            <h4 class="mode-title">Pass & Play / AI</h4>
+            <div class="font-thaana mode-thaana">އޮފްލައިން</div>
+            <p class="mode-details">
+              Offline practice against Maldivian AI bots or pass the tablet with friends locally.
+            </p>
+          </div>
+          <button class="btn-select-mode">Play Offline</button>
+        </div>
+
+      </div>
+
+      <!-- Sub-Lobby Bottom -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(51, 65, 85, 0.4);">
+        <div style="font-size: 11px; color: #94A3B8;">
+          Rules: Maldivian 10-Card Rummy (Standard Gin: 1x 4-card + 2x 3-card melds)
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="step-btn" onclick="alert('Rules cheat sheet formula opened!')">📖 View Digu Rules</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TEASER MODAL POPUP -->
+    <div class="modal-overlay" id="teaserModal">
+      <div class="modal-box">
+        <button class="btn-close-modal" onclick="closeTeaserModal()">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span style="font-size: 28px;" id="modalEmoji">🎴</span>
+          <div>
+            <h3 style="font-size: 18px; font-weight: 900; color: #FFFFFF;" id="modalGameTitle">Dhihaeh</h3>
+            <span class="font-thaana" style="font-size: 16px; color: var(--gold-accent);" id="modalGameThaana">ދިހައެއް</span>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: #CBD5E1; line-height: 1.6; margin-bottom: 16px;" id="modalGameDesc">
+          Description text goes here...
+        </p>
+        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #334155; border-radius: 12px; padding: 12px; margin-bottom: 18px;">
+          <div style="font-size: 10px; font-weight: 800; color: #94A3B8; text-transform: uppercase;">Status:</div>
+          <div style="font-size: 12px; font-weight: 800; color: var(--accent-emerald);" id="modalGamePhase">Rules Drafting</div>
+        </div>
+        <button class="btn-auth btn-auth-guest" style="width: 100%;" onclick="alert('You are subscribed to updates for this game mode!'); closeTeaserModal();">
+          🔔 Notify Me When Playable
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let isExistingUser = true;
+    let loaderTimer = null;
+
+    function goToStep(step) {
+      currentStep = step;
+      document.querySelectorAll('.screen-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.step-btn').forEach((b, idx) => {
+        if (idx < 4) b.classList.toggle('active', idx + 1 === step);
+      });
+
+      const target = document.getElementById('screen' + step);
+      if (target) target.classList.add('active');
+
+      if (step === 1) {
+        runLoaderAnimation();
+      }
+    }
+
+    function toggleUserPersistence() {
+      isExistingUser = !isExistingUser;
+      const sw = document.getElementById('toggleExistingUser');
+      sw.classList.toggle('on', isExistingUser);
+    }
+
+    function runLoaderAnimation() {
+      if (loaderTimer) clearInterval(loaderTimer);
+      const fill = document.getElementById('loadingProgressFill');
+      const text = document.getElementById('loadingStatusText');
+      const percent = document.getElementById('loadingPercentText');
+
+      let progress = 0;
+      fill.style.width = '0%';
+      percent.innerText = '0%';
+      text.innerText = 'Connecting to Holhuashi servers...';
+
+      loaderTimer = setInterval(() => {
+        progress += 4;
+        if (progress > 100) progress = 100;
+        fill.style.width = progress + '%';
+        percent.innerText = progress + '%';
+
+        if (progress === 36) {
+          text.innerText = 'Preloading card assets & audio...';
+        } else if (progress === 72) {
+          text.innerText = isExistingUser ? 'Welcome back! Syncing profile...' : 'Checking player authentication...';
+        } else if (progress >= 100) {
+          clearInterval(loaderTimer);
+          text.innerText = 'Ready!';
+          setTimeout(() => {
+            // Decision aligned in grill-me:
+            // Existing user skips Account Gateway directly to Main Lobby (Step 3).
+            // First time / guest user goes to Account Gateway (Step 2).
+            if (isExistingUser) {
+              goToStep(3);
+            } else {
+              goToStep(2);
+            }
+          }, 350);
+        }
+      }, 50);
+    }
+
+    function startFullBootFlow() {
+      goToStep(1);
+    }
+
+    function loginAndAdvance(provider, username) {
+      document.getElementById('lobbyPlayerName').innerHTML = username + ' <small style="font-size: 10px; color: #64748B;">▼</small>';
+      document.getElementById('lobbyAvatar').innerText = username.charAt(0).toUpperCase();
+      isExistingUser = true;
+      document.getElementById('toggleExistingUser').classList.add('on');
+      goToStep(3);
+    }
+
+    function openTeaserModal(title, thaana, desc, phase) {
+      document.getElementById('modalGameTitle').innerText = title;
+      document.getElementById('modalGameThaana').innerText = thaana;
+      document.getElementById('modalGameDesc').innerText = desc;
+      document.getElementById('modalGamePhase').innerText = phase;
+      document.getElementById('teaserModal').classList.add('open');
+    }
+
+    function closeTeaserModal() {
+      document.getElementById('teaserModal').classList.remove('open');
+    }
+
+    // Auto-run loader on start
+    runLoaderAnimation();
+  </script>
+</body>
+</html>

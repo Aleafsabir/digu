@@ -4,12 +4,14 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { useGameStore } from '../../store/useGameStore';
 
 export interface JuicyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'platinum' | 'vermilion' | 'dark';
+  variant?: 'emerald' | 'gold' | 'platinum' | 'vermilion' | 'dark';
   size?: 'sm' | 'md' | 'lg' | 'fab';
   hapticStyle?: ImpactStyle;
 }
 
 const VARIANT_CLASSES: Record<NonNullable<JuicyButtonProps['variant']>, string> = {
+  emerald: 'btn-emerald-glow text-slate-950 font-black',
+  gold: 'bg-gradient-to-r from-[#FDE68A] via-[#E5C378] to-[#B48D36] text-slate-950 font-black shadow-[0_0_15px_rgba(229,195,120,0.5)] border border-[#FEF08A]',
   platinum: 'btn-3d-platinum font-black',
   vermilion: 'btn-3d-vermilion font-black',
   dark: 'btn-3d-dark font-black',
@@ -23,7 +25,7 @@ const SIZE_CLASSES: Record<NonNullable<JuicyButtonProps['size']>, string> = {
 };
 
 export const JuicyButton: React.FC<JuicyButtonProps> = ({
-  variant = 'platinum',
+  variant = 'emerald',
   size = 'md',
   hapticStyle = ImpactStyle.Medium,
   onClick,

@@ -55,7 +55,7 @@ export const TableSurface: React.FC = () => {
     setIsDealingOpeningAnimation,
   } = useGameStore();
 
-  const currentTheme = THEME_CONFIGS[visualTheme || 'sultan'] || THEME_CONFIGS.sultan;
+  const currentTheme = THEME_CONFIGS[visualTheme || 'tournoi'] || THEME_CONFIGS.tournoi;
 
   // In VS AI mode, Seat 0 is always the Human player
   const humanPlayer = gameState.players[0];
@@ -438,28 +438,52 @@ export const TableSurface: React.FC = () => {
           {/* Inner Felt Surface with Theme Texture */}
           <div className={`w-full h-full rounded-none sm:rounded-[18px] p-1 sm:p-2 relative flex flex-col justify-between overflow-hidden min-h-0 ${currentTheme.tableFeltClass} ${currentTheme.feltTextureClass}`}>
             
-            {/* Felt Watermark */}
+            {/* Felt Watermark (Pure Vector Maldivian Liyelaa Jehun Medallion) */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-              <span className={currentTheme.watermarkClass}>
-                {currentTheme.watermarkText}
-              </span>
+              <div className="relative flex items-center justify-center opacity-18 w-72 h-72 sm:w-96 sm:h-96">
+                <svg className="w-full h-full text-[#E5C378]" viewBox="0 0 200 200" fill="none">
+                  <circle cx="100" cy="100" r="92" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
+                  <circle cx="100" cy="100" r="82" stroke="#05D59A" strokeWidth="2" opacity="0.6" />
+                  <circle cx="100" cy="100" r="72" stroke="currentColor" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="58" stroke="#05D59A" strokeWidth="1.5" strokeDasharray="6 3" />
+                  <circle cx="100" cy="100" r="44" stroke="currentColor" strokeWidth="1" />
+                  <g stroke="currentColor" strokeWidth="0.75" opacity="0.5">
+                    <line x1="100" y1="8" x2="100" y2="35" />
+                    <line x1="100" y1="165" x2="100" y2="192" />
+                    <line x1="8" y1="100" x2="35" y2="100" />
+                    <line x1="165" y1="100" x2="192" y2="100" />
+                    <line x1="35" y1="35" x2="54" y2="54" />
+                    <line x1="146" y1="146" x2="165" y2="165" />
+                    <line x1="165" y1="35" x2="146" y2="54" />
+                    <line x1="35" y1="165" x2="54" y2="146" />
+                  </g>
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-thaana text-6xl sm:text-8xl font-black text-[#E5C378] drop-shadow-[0_2px_12px_rgba(229,195,120,0.5)]">
+                    ޑ
+                  </span>
+                  <span className="font-sans-clean text-[10px] sm:text-xs font-black tracking-[0.3em] text-[#05D59A] uppercase -mt-2">
+                    DIGU
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Gin Slam Table Felt Shockwave Ripple Animation & Cinematic Splash */}
             {isSlammingFinish && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30 overflow-hidden">
-                {/* Expanding Fire / Gold Shockwaves */}
+                {/* Expanding Fire / Emerald Shockwaves */}
                 <motion.div
                   initial={{ scale: 0.2, opacity: 1 }}
                   animate={{ scale: [0.2, 3.2], opacity: [1, 0] }}
                   transition={{ duration: 0.85, ease: 'easeOut' }}
-                  className="w-52 h-52 rounded-full border-4 border-red-500 shadow-[0_0_80px_rgba(239,68,68,1)]"
+                  className="w-52 h-52 rounded-full border-4 border-[#05D59A] shadow-[0_0_80px_rgba(5,213,154,1)]"
                 />
                 <motion.div
                   initial={{ scale: 0.15, opacity: 0.95 }}
                   animate={{ scale: [0.15, 2.5], opacity: [0.95, 0] }}
                   transition={{ duration: 0.75, delay: 0.08, ease: 'easeOut' }}
-                  className="w-48 h-48 rounded-full border-3 border-amber-400 shadow-[0_0_60px_rgba(251,191,36,0.9)]"
+                  className="w-48 h-48 rounded-full border-3 border-[#E5C378] shadow-[0_0_60px_rgba(229,195,120,0.9)]"
                 />
                 <motion.div
                   initial={{ scale: 0.1, opacity: 0.9 }}
@@ -473,16 +497,21 @@ export const TableSurface: React.FC = () => {
                   initial={{ scale: 0.2, opacity: 0, y: 30 }}
                   animate={{ scale: [0.2, 1.25, 1], opacity: [0, 1, 1], y: 0 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                  className="flex flex-col items-center select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)]"
+                  className="flex flex-col items-center select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]"
                 >
-                  <div className="bg-gradient-to-r from-red-600 via-amber-500 to-red-600 px-6 sm:px-8 py-2 sm:py-2.5 rounded-2xl border-2 border-yellow-300 shadow-[0_0_60px_rgba(239,68,68,0.9)] flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-[#042618] via-[#05D59A] to-[#042618] px-6 sm:px-8 py-2 sm:py-2.5 rounded-2xl border-2 border-[#E5C378] shadow-[0_0_60px_rgba(5,213,154,0.9)] flex items-center gap-3">
                     <span className="text-2xl sm:text-3xl animate-bounce">⚡</span>
-                    <span className="text-xl sm:text-3xl font-black text-white tracking-widest drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] font-sans-clean whitespace-nowrap">
-                      GIN SLAM!
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-thaana text-3xl sm:text-4xl font-black text-[#E5C378] drop-shadow-[0_2px_10px_rgba(229,195,120,0.8)]">
+                        ޑިގު!
+                      </span>
+                      <span className="text-xl sm:text-3xl font-black text-slate-950 tracking-widest drop-shadow-[0_1px_4px_rgba(255,255,255,0.4)] font-sans-clean whitespace-nowrap">
+                        GIN SLAM!
+                      </span>
+                    </div>
                     <span className="text-2xl sm:text-3xl animate-bounce">⚡</span>
                   </div>
-                  <span className="text-[10px] sm:text-xs font-black uppercase text-amber-200 tracking-widest mt-1 bg-black/90 px-3.5 py-0.5 rounded-full border border-amber-400/70 font-mono shadow-md">
+                  <span className="text-[10px] sm:text-xs font-black uppercase text-[#E5C378] tracking-widest mt-1 bg-black/90 px-3.5 py-0.5 rounded-full border border-[#E5C378]/70 font-mono shadow-md">
                     ★ FACE-DOWN FINISH ★
                   </span>
                 </motion.div>
@@ -744,7 +773,7 @@ export const TableSurface: React.FC = () => {
             {/* Primary Action */}
             <button
               onClick={() => setShowInGameMenu(false)}
-              className="btn-3d-platinum w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md mb-2.5"
+              className="btn-emerald-glow w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md mb-2.5"
             >
               Resume
             </button>

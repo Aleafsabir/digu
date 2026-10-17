@@ -29,6 +29,8 @@ import {
   isNativeMobile,
 } from '../../config/networkConfig';
 import { SocialService } from '../../services/socialService';
+import { checkForAppUpdate } from '../../services/updateService';
+import { APP_VERSION_CONFIG } from '../../config/versionConfig';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -52,6 +54,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setSoundEnabled,
     hapticsEnabled,
     setHapticsEnabled,
+    setUpdateInfo,
+    setShowUpdateModal,
   } = useGameStore();
 
   const {
@@ -66,6 +70,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [pingStatus, setPingStatus] = useState<'idle' | 'testing' | 'online' | 'offline'>('idle');
   const [pingLatency, setPingLatency] = useState<number | null>(null);
   const [serverSavedMsg, setServerSavedMsg] = useState<string | null>(null);
+
+  const [updateCheckStatus, setUpdateCheckStatus] = useState<'idle' | 'checking' | 'latest' | 'available' | 'error'>('idle');
+  const [updateStatusMessage, setUpdateStatusMessage] = useState<string | null>(null);
+
+  const handleManualUpdateCheck = async () => {
+    setUpdateCheckStatus('checking');
+    setUpdateStatusMessage(null);
+    try {
+      const res = await checkForAppUpdate(true);
+      if (res.hasUpdate && res.updateInfo) {
+        setUpdateCheckStatus('available');
+        setUpdateInfo(res.updateInfo);
+        setShowUpdateModal(true);
+      } else if (res.error) {
+        setUpdateCheckStatus('error');
+        setUpdateStatusMessage(res.error);
+      } else {
+        setUpdateCheckStatus('latest');
+        setUpdateStatusMessage(`You are running the latest version (v${APP_VERSION_CONFIG.versionName})!`);
+        setTimeout(() => setUpdateStatusMessage(null), 4000);
+      }
+    } catch {
+      setUpdateCheckStatus('error');
+      setUpdateStatusMessage('Unable to check for updates. Check internet connection.');
+    }
+  };
 
   const handleTestConnection = async (targetUrl?: string) => {
     const url = (targetUrl ?? serverUrlInput).trim().replace(/\/+$/, '');
@@ -145,7 +175,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Header */}
           <div className="flex justify-between items-center border-b border-emerald-950 pb-2.5 mb-2.5 shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg btn-3d-platinum text-slate-950 flex items-center justify-center shadow">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] flex items-center justify-center shadow">
                 <SettingsIcon className="w-4 h-4" />
               </div>
               <h3 className="font-black text-sm sm:text-base text-slate-100 uppercase tracking-wider">
@@ -167,7 +197,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={() => setActiveTab('appearance')}
               className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === 'appearance'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 font-black shadow-md border border-[#00F5AE]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -178,7 +208,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={() => setActiveTab('system')}
               className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === 'system'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 font-black shadow-md border border-[#00F5AE]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -189,7 +219,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={() => setActiveTab('account')}
               className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === 'account'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 font-black shadow-md border border-[#00F5AE]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -209,27 +239,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span className="flex items-center gap-1.5">
                       <Layers className="w-4 h-4 text-emerald-400" /> Deck Back Artwork
                     </span>
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-200">
-                      {DECK_DESIGNS[activeDeck || 'burgundy_gold'].name}
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800 text-[#05D59A]">
+                      {DECK_DESIGNS[activeDeck || 'digu_emerald']?.name || 'Digu Emerald Lacquer'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                    {(['burgundy_gold', 'sapphire_lattice', 'maldivian_lacquer'] as const).map(dKey => {
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    {(['digu_emerald', 'burgundy_gold', 'sapphire_lattice', 'maldivian_lacquer'] as const).map(dKey => {
                       const dCfg = DECK_DESIGNS[dKey];
-                      const isSelected = (activeDeck || 'burgundy_gold') === dKey;
+                      const isSelected = (activeDeck || 'digu_emerald') === dKey;
                       return (
                         <button
                           key={dKey}
                           onClick={() => setActiveDeck(dKey)}
                           className={`p-2.5 rounded-xl text-left transition-all cursor-pointer border flex flex-col justify-between ${
                             isSelected
-                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
+                              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] font-black shadow-[0_0_15px_rgba(5,213,154,0.4)]'
                               : 'bg-[#010D08] hover:bg-slate-800 text-slate-300 border-slate-800'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-black">{dCfg.name}</span>
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 font-bold">
+                            <span className="text-xs font-black truncate">{dCfg.name}</span>
+                            <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-black/40 font-bold shrink-0 ml-1">
                               {dCfg.badge}
                             </span>
                           </div>
@@ -246,7 +276,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span className="flex items-center gap-1.5">
                       <Palette className="w-4 h-4 text-emerald-400" /> Table Atmosphere & Visual Theme
                     </span>
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-200">
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800 text-[#05D59A]">
                       {currentTheme.name}
                     </span>
                   </div>
@@ -260,7 +290,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           onClick={() => setVisualTheme(tKey)}
                           className={`p-2 sm:p-2.5 rounded-xl text-left transition-all cursor-pointer border ${
                             isSelected
-                              ? 'bg-slate-200 text-stone-950 border-white font-black shadow-md'
+                              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] font-black shadow-[0_0_15px_rgba(5,213,154,0.4)]'
                               : 'bg-[#010D08] hover:bg-slate-800 text-slate-300 border-slate-800'
                           }`}
                         >
@@ -382,7 +412,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button
                         type="button"
                         onClick={handleSaveServer}
-                        className="btn-3d-platinum px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-slate-950 cursor-pointer shadow hover:brightness-105 active:scale-95 transition"
+                        className="btn-emerald-glow px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#02140D] cursor-pointer shadow hover:brightness-105 active:scale-95 transition"
                       >
                         Save
                       </button>
@@ -406,19 +436,51 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 {/* App & Device Info Card */}
-                <div className="p-3 rounded-2xl bg-[#02140D] border border-slate-800 space-y-2">
-                  <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                    Application Information
+                <div className="p-3 rounded-2xl bg-[#02140D] border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Application Information
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800 text-[#05D59A] font-bold">
+                      v{APP_VERSION_CONFIG.versionName} (Build {APP_VERSION_CONFIG.versionCode})
+                    </span>
                   </div>
+
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
                     <div className="bg-[#010D08] p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
                       <span className="text-slate-400 font-bold">Platform</span>
-                      <span className="text-amber-300 font-mono font-bold">Thaasbai v0.1.0</span>
+                      <span className="text-amber-300 font-mono font-bold">
+                        {isNativeMobile() ? 'Android APK' : 'Web Client'}
+                      </span>
                     </div>
                     <div className="bg-[#010D08] p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
                       <span className="text-slate-400 font-bold">Orientation</span>
                       <span className="text-emerald-400 font-bold">Landscape Lock</span>
                     </div>
+                  </div>
+
+                  {/* Manual APK Update Check Action */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={handleManualUpdateCheck}
+                      disabled={updateCheckStatus === 'checking'}
+                      className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#063824] to-[#02140D] hover:from-[#0a4d32] hover:to-[#042417] border border-[#05D59A]/40 hover:border-[#05D59A] text-[#05D59A] text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition shadow-md disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${updateCheckStatus === 'checking' ? 'animate-spin text-[#E5C378]' : 'text-[#05D59A]'}`} />
+                      <span>
+                        {updateCheckStatus === 'checking' ? 'Checking for updates...' : 'Check for Updates'}
+                      </span>
+                    </button>
+
+                    {updateStatusMessage && (
+                      <div className={`mt-2 text-[10.5px] font-bold text-center flex items-center justify-center gap-1.5 ${
+                        updateCheckStatus === 'error' ? 'text-rose-400' : 'text-emerald-400'
+                      }`}>
+                        {updateCheckStatus === 'latest' ? <Check className="w-3.5 h-3.5" /> : null}
+                        <span>{updateStatusMessage}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -438,7 +500,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-sm text-white">{profile.displayName}</span>
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black font-mono btn-3d-platinum text-slate-950">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black font-mono bg-gradient-to-r from-[#FFF0C8] via-[#E5C378] to-[#B48D36] text-[#1A1202] shadow-sm">
                           LVL {profile.level}
                         </span>
                       </div>
@@ -552,7 +614,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="shrink-0 border-t border-emerald-950/60 pt-2.5 mt-2.5 flex justify-end">
             <button
               onClick={onClose}
-              className="btn-3d-platinum px-5 py-2 rounded-xl text-xs uppercase tracking-wider font-black cursor-pointer shadow-md"
+              className="btn-emerald-glow px-5 py-2 rounded-xl text-xs uppercase tracking-wider font-black cursor-pointer shadow-md text-[#02140D]"
             >
               Done
             </button>

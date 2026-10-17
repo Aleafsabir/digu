@@ -10,6 +10,10 @@
   --color-titanium-slate: #94A3B8;
   --color-tournoi-emerald: #042618;
   --color-jeweled-jade: #05D59A;
+  --color-stadium-felt: #047857;
+  --color-digu-emerald: #05D59A;
+  --color-island-gold: #E5C378;
+  --color-night-lagoon: #02140D;
   --color-iris-set: #818CF8;
   --color-aquamarine-run: #00A896;
   --color-vermilion-slam: #DC2626;
@@ -83,18 +87,87 @@ body {
   overflow: hidden;
 }
 
+/* Stadium Felt Surface (Pure CSS multi-stop radial gradient) */
+.stadium-felt-surface {
+  background: radial-gradient(circle at 50% 40%, #064E3B 0%, #047857 32%, #034D35 60%, #021B11 85%, #010A06 100%);
+}
+
+/* Modern Glassmorphic Panels */
+.glass-panel-emerald {
+  background: rgba(2, 20, 13, 0.84);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(5, 213, 154, 0.3);
+}
+
+.glass-panel-emerald-elevated {
+  background: rgba(3, 27, 17, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(5, 213, 154, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(5, 213, 154, 0.2);
+}
+
+/* Card Selection Bioluminescent Emerald Glow */
+.card-glow-emerald {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 25px #05D59A !important;
+  border-color: #05D59A !important;
+}
+
+/* Tactile 3D Emerald Button */
+.btn-emerald-glow {
+  background: linear-gradient(135deg, #05D59A 0%, #047857 100%);
+  color: #02140D;
+  border: none;
+  box-shadow: 0 6px 20px rgba(5, 213, 154, 0.4);
+  transition: all 0.15s ease;
+}
+.btn-emerald-glow:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 8px 25px rgba(5, 213, 154, 0.6);
+}
+.btn-emerald-glow:active {
+  transform: translateY(2px);
+}
+
 /* Tactile 3D Button Utility Styles */
+.btn-3d-emerald {
+  background: linear-gradient(180deg, #05D59A 0%, #04A876 50%, #047857 100%);
+  border-bottom: 4px solid #024E35;
+  box-shadow: 0 8px 20px rgba(5, 213, 154, 0.4);
+  color: #02140D;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
+}
+.btn-3d-emerald:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 6px rgba(5, 213, 154, 0.2);
+}
+
+.btn-3d-gold {
+  background: linear-gradient(180deg, #FFF0C8 0%, #E5C378 50%, #B48D36 100%);
+  border-bottom: 4px solid #82611C;
+  box-shadow: 0 8px 20px rgba(229, 195, 120, 0.4);
+  color: #1A1202;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
+}
+.btn-3d-gold:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: 0 2px 6px rgba(229, 195, 120, 0.2);
+}
+
 .btn-3d-platinum {
-  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 50%, #CBD5E1 100%);
-  border-bottom: 4px solid #94A3B8;
-  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
-  color: #0F172A;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8F4F0 50%, #CBDCD5 100%);
+  border-bottom: 4px solid #8CA49D;
+  box-shadow: 0 8px 18px rgba(5, 213, 154, 0.15);
+  color: #02140D;
   transition: transform 0.08s ease, box-shadow 0.08s ease, border-bottom-width 0.08s ease;
 }
 .btn-3d-platinum:active {
   transform: translateY(3px);
   border-bottom-width: 1px;
-  box-shadow: 0 2px 6px rgba(148, 163, 184, 0.2);
+  box-shadow: 0 2px 6px rgba(5, 213, 154, 0.1);
 }
 
 .btn-3d-vermilion {

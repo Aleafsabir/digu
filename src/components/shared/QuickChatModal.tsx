@@ -53,7 +53,7 @@ export const QuickChatModal: React.FC<QuickChatModalProps> = ({
                 onClick={() => setActiveTab('chat')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border-0 ${
                   activeTab === 'chat'
-                    ? 'btn-3d-platinum text-slate-950 shadow-md'
+                    ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_10px_rgba(5,213,154,0.35)]'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -64,7 +64,7 @@ export const QuickChatModal: React.FC<QuickChatModalProps> = ({
                 onClick={() => setActiveTab('emoji')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase transition-all cursor-pointer border-0 ${
                   activeTab === 'emoji'
-                    ? 'btn-3d-platinum text-slate-950 shadow-md'
+                    ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_10px_rgba(5,213,154,0.35)]'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >

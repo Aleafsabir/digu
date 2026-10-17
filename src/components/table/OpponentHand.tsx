@@ -20,8 +20,8 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
   phase,
   thoughtMessage,
 }) => {
-  const visualTheme = useGameStore(state => state.visualTheme) || 'holhuashi';
-  const theme = THEME_CONFIGS[visualTheme] || THEME_CONFIGS.holhuashi;
+  const visualTheme = useGameStore(state => state.visualTheme) || 'tournoi';
+  const theme = THEME_CONFIGS[visualTheme] || THEME_CONFIGS.tournoi;
 
   const playerReaction = useGameStore(state => state.playerReactions[player.seatIndex]);
 
@@ -56,7 +56,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
         {isDealer && (
           <div
             title="Dealer"
-            className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-slate-200 text-stone-950 font-black text-[9px] sm:text-[10px] flex items-center justify-center shadow-md border border-white z-20"
+            className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-gradient-to-r from-[#FFF0C8] via-[#E5C378] to-[#B48D36] text-[#1A1202] font-black text-[9px] sm:text-[10px] flex items-center justify-center shadow-md border border-[#FEF08A] z-20"
           >
             D
           </div>
@@ -67,7 +67,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
           id={`anchor-seat-${player.seatIndex}`}
           className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-slate-400/40 flex items-center justify-center shadow-md transition-all duration-300 ${
             isActiveTurn
-              ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-stone-950 shadow-[0_0_18px_rgba(255,255,255,0.4)]'
+              ? 'bg-gradient-to-br from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_18px_rgba(5,213,154,0.6)] border-[#00F5AE]'
               : 'bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-slate-200'
           }`}
         >

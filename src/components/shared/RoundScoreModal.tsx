@@ -279,12 +279,12 @@ export const RoundScoreModal: React.FC<RoundScoreModalProps> = ({
           </button>
 
           {resolution.matchOver ? (
-            <JuicyButton variant="platinum" size="md" onClick={onResetMatch} className="shadow-lg">
+            <JuicyButton variant="emerald" size="md" onClick={onResetMatch} className="shadow-lg">
               <RotateCcw className="w-4 h-4 mr-1" />
               <span>New Match</span>
             </JuicyButton>
           ) : (
-            <JuicyButton variant="platinum" size="md" onClick={onNextRound} className="shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+            <JuicyButton variant="emerald" size="md" onClick={onNextRound} className="shadow-[0_0_20px_rgba(5,213,154,0.4)]">
               <span>Next Round</span>
               <ChevronRight className="w-4 h-4 ml-1" />
             </JuicyButton>

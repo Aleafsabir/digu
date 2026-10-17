@@ -63,7 +63,7 @@ export const ProfileEditModal: React.FC = () => {
             >
               {currentAvatar.icon}
             </div>
-            <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full btn-3d-platinum text-[9px] font-black font-mono text-slate-950 shadow-md">
+            <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#FFF0C8] via-[#E5C378] to-[#B48D36] text-[9px] font-black font-mono text-[#1A1202] shadow-md border border-[#FEF08A]">
               LVL {profile.level}
             </span>
           </div>
@@ -82,7 +82,7 @@ export const ProfileEditModal: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  className="p-1.5 rounded-xl btn-3d-platinum text-slate-950 font-bold transition border-0 cursor-pointer"
+                  className="p-1.5 rounded-xl btn-emerald-glow text-[#02140D] font-bold transition border-0 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                 </button>
@@ -218,7 +218,7 @@ export const ProfileEditModal: React.FC = () => {
             </button>
           ) : (
             <JuicyButton
-              variant="platinum"
+              variant="emerald"
               size="sm"
               onClick={() => {
                 setProfileModalOpen(false);

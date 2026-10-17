@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             )}
 
-            <JuicyButton variant="platinum" size="md" onClick={this.handleRecover} className="w-full mt-2">
+            <JuicyButton variant="emerald" size="md" onClick={this.handleRecover} className="w-full mt-2">
               <RotateCcw className="w-4 h-4 mr-1" />
               <span>Resume Table</span>
             </JuicyButton>

@@ -35,7 +35,7 @@ export const RulesConfirmationModal: React.FC<RulesConfirmationModalProps> = ({
       case 'SOLO_2P':
         return '2-Player Head-to-Head';
       default:
-        return 'Thaasbai Digu';
+        return 'Holhuashi: Digu';
     }
   };
 
@@ -91,7 +91,7 @@ export const RulesConfirmationModal: React.FC<RulesConfirmationModalProps> = ({
                     onClick={() => onUpdateRules({ buyIn: stake })}
                     className={`flex-1 py-2 rounded-xl font-black text-xs font-mono transition cursor-pointer border ${
                       currentBuyIn === stake
-                        ? 'bg-slate-200 text-stone-950 border-white shadow-md scale-[1.02]'
+                        ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.4)] scale-[1.02]'
                         : 'bg-white/[0.05] text-slate-300 border-slate-800 hover:bg-white/[0.08]'
                     }`}
                   >
@@ -116,7 +116,7 @@ export const RulesConfirmationModal: React.FC<RulesConfirmationModalProps> = ({
                     onClick={() => onUpdateRules({ targetScore: score })}
                     className={`flex-1 py-2 rounded-xl font-black text-xs font-mono transition cursor-pointer border ${
                       pendingRules.targetScore === score
-                        ? 'bg-slate-200 text-stone-950 border-white shadow-md scale-[1.02]'
+                        ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.4)] scale-[1.02]'
                         : 'bg-white/[0.05] text-slate-300 border-slate-800 hover:bg-white/[0.08]'
                     }`}
                   >
@@ -139,7 +139,7 @@ export const RulesConfirmationModal: React.FC<RulesConfirmationModalProps> = ({
               Back
             </button>
             {hasEnoughCoins ? (
-              <JuicyButton variant="platinum" size="md" onClick={onConfirm} className="flex-[2] py-3">
+              <JuicyButton variant="emerald" size="md" onClick={onConfirm} className="flex-[2] py-3">
                 <Play className="w-4 h-4 fill-stone-950" />
                 <span>Deal & Play</span>
               </JuicyButton>

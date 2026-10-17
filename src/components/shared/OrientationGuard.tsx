@@ -78,8 +78,8 @@ export const OrientationGuard: React.FC = () => {
           className="fixed inset-0 z-50 bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] flex flex-col items-center justify-center p-6 text-center select-none font-sans-clean"
         >
           {/* Glowing Maldivian Crest Badge */}
-          <div className="w-14 h-14 rounded-2xl btn-3d-platinum flex items-center justify-center font-black text-slate-950 text-3xl shadow-xl mb-6">
-            ތ
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378] flex items-center justify-center font-black font-thaana text-[#E5C378] text-4xl shadow-[0_0_25px_rgba(5,213,154,0.35)] mb-6">
+            ޑ
           </div>
 
           {/* Animated Rotating Phone Illustration */}
@@ -111,12 +111,12 @@ export const OrientationGuard: React.FC = () => {
             ވަށައިގެން އަނބުރާލައްވާ
           </p>
           <p className="text-xs text-slate-300 max-w-xs leading-relaxed mb-6 font-medium">
-            <strong>Thaasbai: Digu</strong> is designed exclusively for widescreen landscape play. Turn your device horizontally for the full stadium table experience.
+            <strong>Holhuashi: Digu</strong> is designed exclusively for widescreen landscape play. Turn your device horizontally for the full stadium table experience.
           </p>
 
           {/* Quick Action Button for Mobile Browsers */}
           <JuicyButton
-            variant="platinum"
+            variant="emerald"
             size="md"
             onClick={handleRequestLandscape}
           >

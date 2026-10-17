@@ -253,7 +253,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             onClick={() => setActiveTab('CREATE_ROOM')}
             className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
               activeTab === 'CREATE_ROOM'
-                ? 'bg-slate-200 text-stone-950 border-white shadow-md'
+                ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
@@ -265,7 +265,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             onClick={() => setActiveTab('JOIN_ROOM')}
             className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
               activeTab === 'JOIN_ROOM'
-                ? 'bg-slate-200 text-stone-950 border-white shadow-md'
+                ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
@@ -277,7 +277,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             onClick={() => setActiveTab('QUICK_MATCH')}
             className={`py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 border ${
               activeTab === 'QUICK_MATCH'
-                ? 'bg-slate-200 text-stone-950 border-white shadow-md'
+                ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
@@ -298,7 +298,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             </div>
             <button
               onClick={handleClaimDaily}
-              className="btn-3d-platinum px-3 py-1.5 rounded-xl text-slate-900 text-xs font-black transition cursor-pointer shrink-0"
+              className="btn-3d-gold px-3 py-1.5 rounded-xl text-[#1A1202] text-xs font-black transition cursor-pointer shrink-0"
             >
               +1,000 Free
             </button>
@@ -328,7 +328,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                     onClick={() => setSelectedStake(stake)}
                     className={`px-3 py-1 rounded-xl font-mono font-black text-xs transition cursor-pointer border-0 ${
                       selectedStake === stake
-                        ? 'btn-3d-platinum text-slate-950 shadow-md'
+                        ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_10px_rgba(5,213,154,0.4)]'
                         : 'bg-white/[0.05] text-slate-300 hover:bg-white/[0.08]'
                     }`}
                   >
@@ -353,7 +353,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                     </div>
                   </>
                 ) : matchCountdown !== null ? (
-                  <div className="w-14 h-14 rounded-full btn-3d-platinum text-slate-950 flex items-center justify-center shadow-xl z-10 font-mono font-black text-2xl animate-bounce">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#05D59A] to-[#047857] text-[#02140D] border-2 border-[#00F5AE] flex items-center justify-center shadow-xl z-10 font-mono font-black text-2xl animate-bounce">
                     {matchCountdown > 0 ? matchCountdown : 'GO!'}
                   </div>
                 ) : (
@@ -458,7 +458,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                       onClick={() => setSelectedStake(s)}
                       className={`flex-1 py-1 rounded-xl font-mono font-black text-xs transition cursor-pointer border-0 ${
                         selectedStake === s
-                          ? 'btn-3d-platinum text-slate-950 shadow-md'
+                          ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_10px_rgba(5,213,154,0.4)]'
                           : 'bg-white/[0.05] text-slate-300 hover:bg-white/[0.08]'
                       }`}
                     >
@@ -479,7 +479,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                       onClick={() => setSelectedTarget(t)}
                       className={`flex-1 py-1 rounded-xl font-mono font-black text-xs transition cursor-pointer border-0 ${
                         selectedTarget === t
-                          ? 'btn-3d-platinum text-slate-950 shadow-md'
+                          ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_10px_rgba(5,213,154,0.4)]'
                           : 'bg-white/[0.05] text-slate-300 hover:bg-white/[0.08]'
                       }`}
                     >
@@ -641,7 +641,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                               }));
                               setFriendPickerSeatIndex(null);
                             }}
-                            className="px-2.5 py-0.5 rounded-lg btn-3d-platinum text-slate-950 font-black text-[10px] cursor-pointer"
+                            className="px-2.5 py-0.5 rounded-lg btn-emerald-glow text-[#02140D] font-black text-[10px] cursor-pointer"
                           >
                             Send Invite
                           </button>
@@ -661,7 +661,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               return (
                 <div className="space-y-1.5 mt-1">
                   <JuicyButton
-                    variant="platinum"
+                    variant="emerald"
                     size="md"
                     onClick={handleLaunchPrivateRoom}
                     disabled={!isFull || !hasEnoughCoins}
@@ -718,7 +718,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             </div>
 
             <JuicyButton
-              variant="platinum"
+              variant="emerald"
               size="md"
               onClick={handleJoinWithCode}
               disabled={!hasEnoughCoins}

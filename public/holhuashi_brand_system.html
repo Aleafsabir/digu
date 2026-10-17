@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Holhuashi (ހޮޅުއަށި) — Master Brand & Decoupled Insignia UI System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Faruma&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Holhuashi Core Brand Palette */
+      --ocean-black: #010A06;
+      --night-lagoon: #02140D;
+      --lacquer-felt: #031B11;
+      --deep-felt-green: #042618;
+      --accent-emerald: #05D59A;
+      --accent-emerald-glow: rgba(5, 213, 154, 0.45);
+      --gold-accent: #E5C378;
+      --gold-glow: rgba(229, 195, 120, 0.5);
+      --gold-deep: #B48D36;
+      --platinum-light: #F1F5F9;
+      --slate-border: #1E293B;
+
+      /* Game Mode Colors */
+      --digu-emerald: #05D59A;
+      --digu-felt: #047857;
+      --dhihaeh-crimson: #EF4444;
+      --dhihaeh-violet: #A855F7;
+      --dhihaeh-amber: #F59E0B;
+      --bondi-sapphire: #3B82F6;
+      --bondi-cyan: #0284C7;
+      --bondi-navy: #1E3A8A;
+
+      /* UI Surface tokens */
+      --glass-panel: rgba(3, 27, 17, 0.88);
+      --glass-border: rgba(5, 213, 154, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 5%, #053320 0%, #02140D 50%, #010A06 100%);
+      color: #FAF7F2;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 60px;
+      overflow-x: hidden;
+      background-attachment: fixed;
+    }
+
+    .font-thaana {
+      font-family: 'Faruma', serif;
+      direction: rtl;
+    }
+
+    /* Top Sticky Brand Navigation Bar */
+    .brand-top-nav {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      background: rgba(2, 20, 13, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(229, 195, 120, 0.25);
+      z-index: 1000;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    .brand-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-nav-logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid var(--gold-accent);
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    .brand-nav-logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-nav-title-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-nav-wordmark {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      background: linear-gradient(135deg, #FFF9EA 0%, #E5C378 60%, #05D59A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .brand-nav-thaana {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--gold-accent);
+      line-height: 1;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px;
+    }
+
+    .nav-tab-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      color: #94A3B8;
+      padding: 7px 14px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab-btn:hover {
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+
+    .nav-tab-btn.active {
+      background: linear-gradient(135deg, #05D59A, #047857);
+      color: #02140D;
+      border-color: #05D59A;
+      box-shadow: 0 0 16px var(--accent-emerald-glow);
+    }
+
+    /* Master Container */
+    .master-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    /* Hero Section */
+    .hero-banner {
+      background: radial-gradient(circle at 50% 20%, #063824 0%, #031B11 70%, #010A06 100%);
+      border: 1.5px solid rgba(229, 195, 120, 0.35);
+      border-radius: 32px;
+      padding: 36px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(5, 213, 154, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-accent), var(--accent-emerald), transparent);
+    }
+
+    .hero-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(5, 213, 154, 0.12);
+      border: 1px solid rgba(5, 213, 154, 0.4);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--accent-emerald);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero-brand-lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .hero-thaana-calligraphy {
+      font-size: 48px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-shadow: 0 0 25px var(--gold-glow), 0 4px 12px rgba(0,0,0,0.9);
+      line-height: 1.1;
+    }
+
+    .hero-latin-title {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #FFFFFF 0%, #F5DEB3 40%, #E5C378 70%, #B48D36 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 14px rgba(0,0,0,0.8));
+    }
+
+    .hero-tagline {
+      max-width: 720px;
+      font-size: 13.5px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .hero-stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .stat-pill {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+    }
+
+    .stat-pill strong {
+      color: var(--gold-accent);
+      font-weight: 800;
+    }
+
+    /* Section Cards */
+    .asset-section {
+      background: linear-gradient(180deg, #031B11 0%, #02140D 100%);
+      border: 1.5px solid rgba(51, 65, 85, 0.6);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.65);
+      position: relative;
+    }
+
+    .section-header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(5, 213, 154, 0.15);
+      border: 1px solid var(--accent-emerald);
+      color: var(--accent-emerald);
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+    }
+
+    .section-subtitle {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    /* Callout Alert Box */
+    .architectural-callout {
+      background: rgba(5, 213, 154, 0.08);
+      border: 1px solid rgba(5, 213, 154, 0.35);
+      border-radius: 18px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .callout-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .callout-text h4 {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--accent-emerald);
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .callout-text p {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.5;
+    }
+
+    /* 1:1 Clean Insignia Grid */
+    .insignia-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .insignia-card {
+      background: #02140D;
+      border-radius: 24px;
+      border: 1.5px solid #1E293B;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .insignia-card.card-digu { border-color: rgba(5, 213, 154, 0.4); }
+    .insignia-card.card-digu:hover {
+      border-color: var(--digu-emerald);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 30px rgba(5, 213, 154, 0.3);
+      transform: translateY(-6px);
+    }
+
+    .insignia-card.card-dhihaeh { border-color: rgba(168, 85, 247, 0.4); }
+    .insignia-card.card-dhihaeh:hover {
+      border-color: var(--dhihaeh-violet);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 30px rgba(168, 85, 247, 0.3);
+      transform: translateY(-6px);
+    }
+
+    .insignia-card.card-bondi { border-color: rgba(59, 130, 246, 0.4); }
+    .insignia-card.card-bondi:hover {
+      border-color: var(--bondi-sapphire);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 30px rgba(59, 130, 246, 0.3);
+      transform: translateY(-6px);
+    }
+
+    .insignia-card.card-holhuashi { border-color: rgba(229, 195, 120, 0.4); }
+    .insignia-card.card-holhuashi:hover {
+      border-color: var(--gold-accent);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 30px var(--gold-glow);
+      transform: translateY(-6px);
+    }
+
+    .insignia-image-stage {
+      width: 100%;
+      max-width: 210px;
+      aspect-ratio: 1/1;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      background: #010A06;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .insignia-image-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .insignia-card:hover .insignia-image-stage img {
+      transform: scale(1.05);
+    }
+
+    .insignia-glyph-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: rgba(1, 10, 6, 0.85);
+      border: 1px solid var(--gold-accent);
+      color: var(--gold-accent);
+      font-size: 16px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+    .insignia-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .insignia-title-wrap h3 {
+      font-size: 17px;
+      font-weight: 900;
+      color: #FFFFFF;
+    }
+
+    .insignia-title-wrap .thaana-badge {
+      font-size: 16px;
+      color: var(--gold-accent);
+      font-weight: 800;
+    }
+
+    .insignia-sub {
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .insignia-tag-clean {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #CBD5E1;
+      border: 1px solid #334155;
+    }
+
+    /* DECOUPLED GAME UI & STATE SWITCHER LAB */
+    .ui-lab-container {
+      background: #010A06;
+      border: 1.5px solid rgba(229, 195, 120, 0.3);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+    }
+
+    .lab-controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #1E293B;
+    }
+
+    .lab-control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lab-control-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748B;
+      margin-right: 4px;
+    }
+
+    .state-toggle-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      color: #94A3B8;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .state-toggle-btn:hover {
+      color: #FFFFFF;
+      border-color: #64748B;
+    }
+
+    .state-toggle-btn.active {
+      background: linear-gradient(135deg, var(--gold-accent), #B48D36);
+      color: #02140D;
+      border-color: var(--gold-accent);
+      box-shadow: 0 0 14px var(--gold-glow);
+    }
+
+    .lab-cards-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* Programmatic Game UI Mode Card */
+    .game-ui-card {
+      width: 100%;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #031B11 0%, #010A06 100%);
+      border: 2px solid #1E293B;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .game-ui-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+    }
+
+    /* Top Card UI Header */
+    .card-ui-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      z-index: 10;
+    }
+
+    .dynamic-status-pill {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Dynamic UI Status Themes */
+    .status-live {
+      background: rgba(5, 213, 154, 0.18);
+      color: var(--accent-emerald);
+      border: 1px solid var(--accent-emerald);
+      box-shadow: 0 0 14px var(--accent-emerald-glow);
+    }
+
+    .status-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      animation: pulseDot 1.5s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.4); }
+    }
+
+    .status-indev {
+      background: rgba(168, 85, 247, 0.2);
+      color: #E9D5FF;
+      border: 1px solid #A855F7;
+    }
+
+    .status-locked {
+      background: rgba(239, 68, 68, 0.2);
+      color: #FECACA;
+      border: 1px solid #EF4444;
+    }
+
+    .card-player-count {
+      font-size: 10px;
+      font-weight: 800;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Center Insignia Container */
+    .card-insignia-viewport {
+      width: 100%;
+      aspect-ratio: 1/1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 50%, #063824 0%, #010A06 80%);
+    }
+
+    .card-insignia-viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .game-ui-card:hover .card-insignia-viewport img {
+      transform: scale(1.05);
+    }
+
+    /* Frosted Lock Overlay Layer */
+    .card-lock-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 20, 13, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 20;
+    }
+
+    .card-lock-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .lock-icon-orb {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-accent), #B48D36);
+      border: 2px solid #FFF8DC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #02140D;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 20px var(--gold-glow);
+    }
+
+    .lock-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .lock-desc {
+      font-size: 11px;
+      color: #94A3B8;
+      max-width: 180px;
+      line-height: 1.4;
+    }
+
+    /* Bottom Card UI Details */
+    .card-ui-footer {
+      padding: 16px;
+      background: rgba(2, 20, 13, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .card-mode-heading {
+      font-size: 18px;
+      font-weight: 900;
+      color: #FFFFFF;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .card-mode-heading .thaana-text {
+      font-size: 17px;
+      color: var(--gold-accent);
+    }
+
+    .card-mode-subtitle {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .card-ui-action-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-play-live {
+      background: linear-gradient(135deg, var(--accent-emerald), #047857);
+      color: #02140D;
+      box-shadow: 0 4px 15px rgba(5, 213, 154, 0.35);
+    }
+
+    .btn-play-live:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--accent-emerald-glow);
+    }
+
+    .btn-locked-notify {
+      background: rgba(30, 41, 59, 0.8);
+      color: #94A3B8;
+      border: 1px solid #334155;
+    }
+
+    .btn-locked-notify:hover {
+      background: #334155;
+      color: #FFFFFF;
+    }
+
+    /* 3:4 Posters, Currencies, and Badges Grids */
+    .game-posters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .poster-card {
+      background: #02140D;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1.5px solid #1E293B;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .poster-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+    }
+
+    .poster-image-container {
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: #010A06;
+    }
+
+    .poster-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poster-details {
+      padding: 18px;
+      background: rgba(3, 27, 17, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Currencies */
+    .currencies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .currency-card {
+      background: rgba(2, 20, 13, 0.85);
+      border: 1.5px solid #1E293B;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .currency-visual-stage {
+      width: 130px;
+      height: 130px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .currency-visual-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Match Mode Badges */
+    .match-badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .badge-card {
+      background: rgba(3, 27, 17, 0.7);
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .badge-visual-stage {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge-visual-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Buttons */
+    .btn-action {
+      background: linear-gradient(135deg, var(--gold-accent), #B48D36);
+      color: #02140D;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 11.5px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--gold-glow);
+      filter: brightness(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation -->
+  <nav class="brand-top-nav">
+    <a href="#" class="brand-nav-brand">
+      <div class="brand-nav-logo-icon">
+        <img src="brand_assets/holhuashi_app_icon_v3.jpg" alt="Holhuashi App Icon">
+      </div>
+      <div class="brand-nav-title-group">
+        <span class="brand-nav-wordmark">HOLHUASHI</span>
+        <span class="brand-nav-thaana font-thaana">ހޮޅުއަށި</span>
+      </div>
+    </a>
+    <div class="nav-tabs">
+      <button class="nav-tab-btn active" onclick="scrollToSection('sec-insignias')">Clean Insignias</button>
+      <button class="nav-tab-btn" onclick="scrollToSection('sec-uilab')">Decoupled UI Lab</button>
+      <button class="nav-tab-btn" onclick="scrollToSection('sec-appicon')">App Icon</button>
+      <button class="nav-tab-btn" onclick="scrollToSection('sec-posters')">3:4 Posters</button>
+      <button class="nav-tab-btn" onclick="scrollToSection('sec-currencies')">Currencies</button>
+      <button class="nav-tab-btn" onclick="scrollToSection('sec-badges')">Match Badges</button>
+    </div>
+  </nav>
+
+  <div class="master-wrapper">
+
+    <!-- Hero Brand Showcase -->
+    <header class="hero-banner">
+      <div class="hero-badge-pill">
+        <span>🌴 Premier Maldivian Digital Card Club</span>
+      </div>
+      <div class="hero-brand-lockup">
+        <h2 class="hero-thaana-calligraphy font-thaana">ހޮޅުއަށި</h2>
+        <h1 class="hero-latin-title">HOLHUASHI</h1>
+      </div>
+      <p class="hero-tagline">
+        Where islanders gather under coconut palms on warm Indian Ocean nights. Blending authentic Maldivian craftsmanship (<em>Liyelaa Jehun</em> lacquer, <em>Hirigaa</em> coral stone, woven <em>Roanu</em> rope) with ultra-slick, tactile 3D mobile game art.
+      </p>
+
+      <div class="hero-stats-row">
+        <div class="stat-pill">
+          <span>Insignia Design:</span>
+          <strong>Pure 1:1 Isolated Medallions</strong>
+        </div>
+        <div class="stat-pill">
+          <span>Lifecycle Text:</span>
+          <strong>100% Decoupled Game UI</strong>
+        </div>
+        <div class="stat-pill">
+          <span>Localization:</span>
+          <strong>English & Faruma Thaana</strong>
+        </div>
+        <div class="stat-pill">
+          <span>Visual Standard:</span>
+          <strong>Hearthstone 3D Octane</strong>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 01: STANDALONE EXTRACTED 1:1 GAME MODE INSIGNIAS -->
+    <section id="sec-insignias" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">01</div>
+          <div>
+            <h2 class="section-title">Extracted Standalone Game Mode Insignias</h2>
+            <p class="section-subtitle">Pure 1:1 Centerpiece Medallions • Zero Baked-In Text • Universal UI Assets</p>
+          </div>
+        </div>
+        <span class="insignia-tag-clean">1:1 Square Format</span>
+      </div>
+
+      <div class="architectural-callout">
+        <div class="callout-icon">✨</div>
+        <div class="callout-text">
+          <h4>Architectural Rule: Separation of Art from UI Lifecycle State</h4>
+          <p>
+            Per your design directive, all game mode insignias have been strictly isolated from lifecycle text banners (`"LIVE"`, `"IN DEVELOPMENT"`). The pure insignias below can now be reused friction-free across lobby buttons, loading screens, victory banners, avatar frames, and chat badges without stale state stamps.
+          </p>
+        </div>
+      </div>
+
+      <div class="insignia-grid">
+
+        <!-- Mode 1 Insignia: DIGU -->
+        <div class="insignia-card card-digu">
+          <div class="insignia-image-stage">
+            <img src="brand_assets/insignia_digu_1to1.jpg" alt="Digu Clean 1:1 Insignia">
+            <div class="insignia-glyph-badge font-thaana">ޑ</div>
+          </div>
+          <div class="insignia-title-wrap">
+            <h3>DIGU</h3>
+            <span class="thaana-badge font-thaana">ޑިގު</span>
+          </div>
+          <p class="insignia-sub">
+            Authentic <em>Liyelaa Jehun</em> red-and-black lacquer shield with liquid gold <strong>'ޑ' (Daviyani)</strong>, bioluminescent emerald card fan, and felt arena.
+          </p>
+          <span class="insignia-tag-clean">Standalone Emblem</span>
+        </div>
+
+        <!-- Mode 2 Insignia: DHIHAEH -->
+        <div class="insignia-card card-dhihaeh">
+          <div class="insignia-image-stage">
+            <img src="brand_assets/insignia_dhihaeh_1to1.jpg" alt="Dhihaeh Clean 1:1 Insignia">
+            <div class="insignia-glyph-badge font-thaana">ދި</div>
+          </div>
+          <div class="insignia-title-wrap">
+            <h3>DHIHAEH</h3>
+            <span class="thaana-badge font-thaana">ދިހައެއް</span>
+          </div>
+          <p class="insignia-sub">
+            Royal crimson lacquer medallion with embossed golden <strong>"10"</strong> & Thaana monogram <strong>'ދި' (Dhaalu)</strong>, surrounded by orbital card trails.
+          </p>
+          <span class="insignia-tag-clean">Standalone Emblem</span>
+        </div>
+
+        <!-- Mode 3 Insignia: BONDI -->
+        <div class="insignia-card card-bondi">
+          <div class="insignia-image-stage">
+            <img src="brand_assets/insignia_bondi_1to1.jpg" alt="Bondi Clean 1:1 Insignia">
+            <div class="insignia-glyph-badge font-thaana">ބ</div>
+          </div>
+          <div class="insignia-title-wrap">
+            <h3>BONDI</h3>
+            <span class="thaana-badge font-thaana">ބޮނޑި</span>
+          </div>
+          <p class="insignia-sub">
+            Deep Indian Ocean sapphire & cyan coral crest with Thaana <strong>'ބ' (Baa)</strong>, bound by woven golden coir rope (<em>Roanu</em>) around bundled cards.
+          </p>
+          <span class="insignia-tag-clean">Standalone Emblem</span>
+        </div>
+
+        <!-- Master Brand Insignia: HOLHUASHI -->
+        <div class="insignia-card card-holhuashi">
+          <div class="insignia-image-stage">
+            <img src="brand_assets/holhuashi_app_icon_v3.jpg" alt="Holhuashi Master Crest">
+            <div class="insignia-glyph-badge font-thaana">ހ</div>
+          </div>
+          <div class="insignia-title-wrap">
+            <h3>HOLHUASHI</h3>
+            <span class="thaana-badge font-thaana">ހޮޅުއަށި</span>
+          </div>
+          <p class="insignia-sub">
+            Master squircle badge: Coconut timber base, brushed Maldivian gold bevel, 3D molten gold <strong>'ހ' (Haa)</strong>, and crystalline card pips.
+          </p>
+          <span class="insignia-tag-clean">Master App Crest</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 02: DECOUPLED GAME UI & DYNAMIC STATE SWITCHER LAB -->
+    <section id="sec-uilab" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">02</div>
+          <div>
+            <h2 class="section-title">Decoupled Game UI & Dynamic Overlay Lab</h2>
+            <p class="section-subtitle">Real-Time UI State Swapper • Dynamic HTML/CSS Badges • Multi-Language Ready</p>
+          </div>
+        </div>
+        <span class="dynamic-status-pill status-live">Live Interactive Test</span>
+      </div>
+
+      <div class="ui-lab-container">
+        <!-- Interactive Controls Bar -->
+        <div class="lab-controls-bar">
+          <div class="lab-control-group">
+            <span class="lab-control-label">Simulation State:</span>
+            <button class="state-toggle-btn active" id="btnDefaultState" onclick="applyStatePreset('default')">Default (Digu Live, Others In-Dev)</button>
+            <button class="state-toggle-btn" id="btnAllLive" onclick="applyStatePreset('all-live')">All Modes Live ⚡</button>
+            <button class="state-toggle-btn" id="btnAllLocked" onclick="applyStatePreset('all-locked')">Lock All (VIP / Maintenance) 🔒</button>
+          </div>
+
+          <div class="lab-control-group">
+            <span class="lab-control-label">UI Language:</span>
+            <button class="state-toggle-btn active" id="btnLangEn" onclick="toggleLanguage('en')">English</button>
+            <button class="state-toggle-btn" id="btnLangDv" onclick="toggleLanguage('dv')">ދިވެހި (Thaana)</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Game UI Cards -->
+        <div class="lab-cards-showcase">
+
+          <!-- Card 1: DIGU (Dynamic UI) -->
+          <div class="game-ui-card" id="cardUiDigu">
+            <div class="card-ui-header">
+              <span class="dynamic-status-pill status-live" id="pillStatusDigu">LIVE NOW</span>
+              <span class="card-player-count">👥 2-4 Players</span>
+            </div>
+            <div class="card-insignia-viewport">
+              <img src="brand_assets/insignia_digu_1to1.jpg" alt="Digu Insignia">
+              <!-- Frosted Lock Overlay -->
+              <div class="card-lock-overlay" id="lockOverlayDigu">
+                <div class="lock-icon-orb">🔒</div>
+                <div class="lock-title" id="lockTitleDigu">Locked Mode</div>
+                <div class="lock-desc" id="lockDescDigu">Feature under active engineering.</div>
+              </div>
+            </div>
+            <div class="card-ui-footer">
+              <div class="card-title-row">
+                <div class="card-mode-heading">
+                  <span id="titleDigu">DIGU</span>
+                  <span class="thaana-text font-thaana">ޑިގު</span>
+                </div>
+                <span style="font-size:10px; color:var(--accent-emerald); font-weight:800;">10 CARDS</span>
+              </div>
+              <div class="card-mode-subtitle" id="subDigu">10-Card Maldivian Gin Rummy</div>
+              <button class="card-ui-action-btn btn-play-live" id="btnActionDigu" onclick="handleCardAction('digu')">
+                <span>PLAY TABLE</span> ⚡
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: DHIHAEH (Dynamic UI) -->
+          <div class="game-ui-card" id="cardUiDhihaeh">
+            <div class="card-ui-header">
+              <span class="dynamic-status-pill status-indev" id="pillStatusDhihaeh">🔒 IN DEV</span>
+              <span class="card-player-count">👥 4 Players</span>
+            </div>
+            <div class="card-insignia-viewport">
+              <img src="brand_assets/insignia_dhihaeh_1to1.jpg" alt="Dhihaeh Insignia">
+              <!-- Frosted Lock Overlay -->
+              <div class="card-lock-overlay active" id="lockOverlayDhihaeh">
+                <div class="lock-icon-orb">🔒</div>
+                <div class="lock-title" id="lockTitleDhihaeh">IN DEVELOPMENT</div>
+                <div class="lock-desc" id="lockDescDhihaeh">Trick-taking engine and AI bots currently in internal test.</div>
+              </div>
+            </div>
+            <div class="card-ui-footer">
+              <div class="card-title-row">
+                <div class="card-mode-heading">
+                  <span id="titleDhihaeh">DHIHAEH</span>
+                  <span class="thaana-text font-thaana">ދިހައެއް</span>
+                </div>
+                <span style="font-size:10px; color:#A855F7; font-weight:800;">TRICKS</span>
+              </div>
+              <div class="card-mode-subtitle" id="subDhihaeh">Maldivian 10s Trick Taking</div>
+              <button class="card-ui-action-btn btn-locked-notify" id="btnActionDhihaeh" onclick="handleCardAction('dhihaeh')">
+                <span>NOTIFY ON LAUNCH</span> 🔔
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 3: BONDI (Dynamic UI) -->
+          <div class="game-ui-card" id="cardUiBondi">
+            <div class="card-ui-header">
+              <span class="dynamic-status-pill status-indev" id="pillStatusBondi">🔒 IN DEV</span>
+              <span class="card-player-count">👥 2-6 Players</span>
+            </div>
+            <div class="card-insignia-viewport">
+              <img src="brand_assets/insignia_bondi_1to1.jpg" alt="Bondi Insignia">
+              <!-- Frosted Lock Overlay -->
+              <div class="card-lock-overlay active" id="lockOverlayBondi">
+                <div class="lock-icon-orb">🔒</div>
+                <div class="lock-title" id="lockTitleBondi">IN DEVELOPMENT</div>
+                <div class="lock-desc" id="lockDescBondi">Cluster card bundle rules & bluffing logic in design phase.</div>
+              </div>
+            </div>
+            <div class="card-ui-footer">
+              <div class="card-title-row">
+                <div class="card-mode-heading">
+                  <span id="titleBondi">BONDI</span>
+                  <span class="thaana-text font-thaana">ބޮނޑި</span>
+                </div>
+                <span style="font-size:10px; color:#3B82F6; font-weight:800;">CLUSTERS</span>
+              </div>
+              <div class="card-mode-subtitle" id="subBondi">Maldivian Cluster Showdown</div>
+              <button class="card-ui-action-btn btn-locked-notify" id="btnActionBondi" onclick="handleCardAction('bondi')">
+                <span>NOTIFY ON LAUNCH</span> 🔔
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 03: HOLHUASHI MASTER BRAND & APP ICON SUITE -->
+    <section id="sec-appicon" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">03</div>
+          <div>
+            <h2 class="section-title">Master Brand & Primary App Icon</h2>
+            <p class="section-subtitle">Tactile 3D Squircle Badge • Coconut Timber & Brushed Gold Bevel</p>
+          </div>
+        </div>
+        <span class="insignia-tag-clean">1024x1024 Retina</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+        <div style="display: flex; flex-direction: column; align-items: center; background: radial-gradient(circle at 50% 30%, #052F1D 0%, #010D08 90%); border-radius: 24px; padding: 32px 20px; border: 1px solid rgba(229, 195, 120, 0.3);">
+          <div style="width: 220px; height: 220px; border-radius: 50px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 35px rgba(5, 213, 154, 0.35);">
+            <img id="mainIconImg" src="brand_assets/holhuashi_app_icon_v3.jpg" alt="Holhuashi 3D App Icon" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="state-toggle-btn active" onclick="document.getElementById('mainIconImg').src='brand_assets/holhuashi_app_icon_v3.jpg'">Variant 3</button>
+            <button class="state-toggle-btn" onclick="document.getElementById('mainIconImg').src='brand_assets/holhuashi_app_icon_v2.jpg'">Variant 2</button>
+            <button class="state-toggle-btn" onclick="document.getElementById('mainIconImg').src='brand_assets/holhuashi_app_icon_v1.jpg'">Variant 1</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 18px; border-radius: 16px; border: 1px solid #1E293B;">
+            <h4 style="font-size: 13px; font-weight: 800; color: var(--gold-accent); margin-bottom: 6px;">Horizontal Header Wordmark Lockup</h4>
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px; background: #010A06; border-radius: 12px; border: 1px solid #334155; margin-top: 8px;">
+              <img src="brand_assets/holhuashi_app_icon_v3.jpg" alt="Icon" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--gold-accent);">
+              <div>
+                <div class="font-thaana" style="font-size: 18px; color: var(--gold-accent); font-weight: 900; line-height: 1;">ހޮޅުއަށި</div>
+                <div style="font-size: 20px; font-weight: 900; letter-spacing: 0.15em; background: linear-gradient(180deg, #FFFFFF, #E5C378, #05D59A); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">HOLHUASHI</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 18px; border-radius: 16px; border: 1px solid #1E293B;">
+            <h4 style="font-size: 13px; font-weight: 800; color: var(--gold-accent); margin-bottom: 6px;">Micro-Scale Legibility Verification</h4>
+            <div style="display: flex; align-items: flex-end; gap: 16px; margin-top: 8px;">
+              <div style="text-align: center;">
+                <img src="brand_assets/holhuashi_app_icon_v3.jpg" style="width: 64px; height: 64px; border-radius: 14px; border: 1px solid var(--gold-accent); display: block; margin: 0 auto 4px;">
+                <span style="font-size: 10px; color: #64748B;">64px</span>
+              </div>
+              <div style="text-align: center;">
+                <img src="brand_assets/holhuashi_app_icon_v3.jpg" style="width: 48px; height: 48px; border-radius: 10px; border: 1px solid var(--gold-accent); display: block; margin: 0 auto 4px;">
+                <span style="font-size: 10px; color: #64748B;">48px</span>
+              </div>
+              <div style="text-align: center;">
+                <img src="brand_assets/holhuashi_app_icon_v3.jpg" style="width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--gold-accent); display: block; margin: 0 auto 4px;">
+                <span style="font-size: 10px; color: #64748B;">32px</span>
+              </div>
+              <div style="text-align: center;">
+                <img src="brand_assets/holhuashi_app_icon_v3.jpg" style="width: 24px; height: 24px; border-radius: 5px; border: 1px solid var(--gold-accent); display: block; margin: 0 auto 4px;">
+                <span style="font-size: 10px; color: #64748B;">24px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 04: FULL CINEMATIC 3:4 GAME POSTERS -->
+    <section id="sec-posters" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">04</div>
+          <div>
+            <h2 class="section-title">Cinematic 3:4 Vertical Game Posters</h2>
+            <p class="section-subtitle">Stadium Atmosphere • Rich Storytelling & Key Art</p>
+          </div>
+        </div>
+        <span class="insignia-tag-clean">3:4 Poster Ratio</span>
+      </div>
+
+      <div class="game-posters-grid">
+        <div class="poster-card">
+          <div class="poster-image-container">
+            <img src="brand_assets/digu_game_poster.jpg" alt="Digu Poster">
+          </div>
+          <div class="poster-details">
+            <h3 style="color:#FFF; font-size:16px;">DIGU • 10-Card Gin Rummy</h3>
+            <p style="color:#94A3B8; font-size:11px;">Stadium felt arena with flying gold chips, bioluminescent emerald card fan, and lacquer centerpiece.</p>
+          </div>
+        </div>
+
+        <div class="poster-card">
+          <div class="poster-image-container">
+            <img src="brand_assets/dhihaeh_game_poster.jpg" alt="Dhihaeh Poster">
+          </div>
+          <div class="poster-details">
+            <h3 style="color:#FFF; font-size:16px;">DHIHAEH • 10s Trick Taking</h3>
+            <p style="color:#94A3B8; font-size:11px;">Royal crimson medallion with golden 10, sweeping trick capture arcs, and amber-violet lightning sparks.</p>
+          </div>
+        </div>
+
+        <div class="poster-card">
+          <div class="poster-image-container">
+            <img src="brand_assets/bondi_game_poster.jpg" alt="Bondi Poster">
+          </div>
+          <div class="poster-details">
+            <h3 style="color:#FFF; font-size:16px;">BONDI • Cluster Showdown</h3>
+            <p style="color:#94A3B8; font-size:11px;">Sapphire coral insignia bound by woven golden Roanu rope around stacked cards in deep ocean caustics.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 05: CURRENCIES & ECONOMY -->
+    <section id="sec-currencies" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">05</div>
+          <div>
+            <h2 class="section-title">In-Game Currencies & Economic Assets</h2>
+            <p class="section-subtitle">Chunky 3D Mobile Assets • Ran Dhadhu, Lagoon Gems, Daily Wheel</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="currencies-grid">
+        <div class="currency-card">
+          <div class="currency-visual-stage">
+            <img src="brand_assets/ran_dhadhu_gold_coins.jpg" alt="Ran Dhadhu Gold Coins">
+          </div>
+          <h4 style="font-size:15px; font-weight:900; color:#FFF;">Ran Dhadhu (Gold Coins)</h4>
+          <div class="font-thaana" style="font-size:14px; color:var(--gold-accent); margin-bottom:6px;">ރަން ދަނޑު / ރުފިޔާ</div>
+          <p style="font-size:11px; color:#94A3B8;">Thick 3D bullion coins embossed with cowrie shell (<em>Boli</em>) and <em>Dhoni</em> boat sails with geometric rim beveling.</p>
+        </div>
+
+        <div class="currency-card">
+          <div class="currency-visual-stage">
+            <svg viewBox="0 0 140 140" width="120" height="120">
+              <defs>
+                <radialGradient id="gemAura" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#05D59A" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#02140D" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="facetF" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#22D3EE"/>
+                  <stop offset="100%" stop-color="#0284C7"/>
+                </linearGradient>
+              </defs>
+              <circle cx="70" cy="70" r="56" fill="url(#gemAura)" />
+              <polygon points="70,115 35,65 70,80" fill="#0891B2"/>
+              <polygon points="70,115 70,80 105,65" fill="#05D59A"/>
+              <polygon points="70,80 35,65 50,35 70,45" fill="url(#facetF)"/>
+              <polygon points="70,80 70,45 90,35 105,65" fill="#05D59A"/>
+              <polygon points="70,45 50,35 70,25 90,35" fill="#A5F3FC"/>
+              <circle cx="70" cy="45" r="3" fill="#FFF"/>
+            </svg>
+          </div>
+          <h4 style="font-size:15px; font-weight:900; color:#FFF;">Lagoon Gems (Nil)</h4>
+          <div class="font-thaana" style="font-size:14px; color:var(--gold-accent); margin-bottom:6px;">ނީލް / ޖަވާހިރު</div>
+          <p style="font-size:11px; color:#94A3B8;">Faceted oceanic crystal gems reflecting pristine turquoise Maldivian atoll waters with deep internal caustics.</p>
+        </div>
+
+        <div class="currency-card">
+          <div class="currency-visual-stage" style="cursor: pointer;" onclick="const svg=document.getElementById('wheelSvg'); svg.style.transform=`rotate(${720+Math.floor(Math.random()*1080)}deg)`;">
+            <svg id="wheelSvg" viewBox="0 0 140 140" width="120" height="120" style="transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1);">
+              <circle cx="70" cy="70" r="58" fill="#B48D36" stroke="#FFF2B2" stroke-width="2"/>
+              <circle cx="70" cy="70" r="50" fill="#1A0A04" stroke="#E5C378" stroke-width="1.5"/>
+              <path d="M70,70 L70,20 A50,50 0 0,1 112,45 Z" fill="#EF4444"/>
+              <path d="M70,70 L112,45 A50,50 0 0,1 120,70 Z" fill="#031B11"/>
+              <path d="M70,70 L120,70 A50,50 0 0,1 112,95 Z" fill="#E5C378"/>
+              <path d="M70,70 L112,95 A50,50 0 0,1 70,120 Z" fill="#EF4444"/>
+              <path d="M70,70 L70,120 A50,50 0 0,1 28,95 Z" fill="#031B11"/>
+              <path d="M70,70 L28,95 A50,50 0 0,1 20,70 Z" fill="#E5C378"/>
+              <path d="M70,70 L20,70 A50,50 0 0,1 28,45 Z" fill="#EF4444"/>
+              <path d="M70,70 L28,45 A50,50 0 0,1 70,20 Z" fill="#031B11"/>
+              <circle cx="70" cy="70" r="18" fill="#02140D" stroke="#E5C378" stroke-width="2"/>
+              <circle cx="70" cy="70" r="12" fill="#E5C378"/>
+            </svg>
+          </div>
+          <h4 style="font-size:15px; font-weight:900; color:#FFF;">Daily Free Spin Wheel</h4>
+          <div class="font-thaana" style="font-size:14px; color:var(--gold-accent); margin-bottom:6px;">ދުވަހުގެ ނަސީބު ފުރޮޅު</div>
+          <p style="font-size:11px; color:#94A3B8;">Circular wheel adorned with <em>Liyelaa Jehun</em> red, black, and gold lacquer ring. Click wheel to test spin!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 06: MATCH MODE BADGES -->
+    <section id="sec-badges" class="asset-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <div class="section-num">06</div>
+          <div>
+            <h2 class="section-title">Match Mode & Functional UI Badges</h2>
+            <p class="section-subtitle">Tactical Heraldic Crests • Clean Vector & 3D Badges</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="match-badges-grid">
+        <div class="badge-card">
+          <div class="badge-visual-stage">
+            <img src="brand_assets/badge_4p_team_match.jpg" alt="4P Team Match">
+          </div>
+          <h4 style="font-size:13px; font-weight:800; color:#FFF;">2v2 Partnership</h4>
+          <div class="font-thaana" style="font-size:12px; color:var(--gold-accent); margin-bottom:4px;">4 ކުޅުންތެރިން</div>
+          <p style="font-size:10px; color:#94A3B8;">Double crossed shields in platinum & emerald with North-South vs East-West banners.</p>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-visual-stage">
+            <img src="brand_assets/badge_1v1_duel.jpg" alt="1v1 Duel">
+          </div>
+          <h4 style="font-size:13px; font-weight:800; color:#FFF;">1v1 Duel</h4>
+          <div class="font-thaana" style="font-size:12px; color:var(--gold-accent); margin-bottom:4px;">ދެބަސް / ހަނގުރާމަ</div>
+          <p style="font-size:10px; color:#94A3B8;">Crossed Maldivian curved daggers with playing card suit hilts over a fiery arena ring.</p>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-visual-stage">
+            <svg viewBox="0 0 100 100" width="70" height="70">
+              <path d="M34,44 V28 A16,16 0 0,1 66,28 V44" fill="none" stroke="#94A3B8" stroke-width="8" stroke-linecap="round"/>
+              <rect x="24" y="40" width="52" height="44" rx="10" fill="#E5C378" stroke="#FFF" stroke-width="1.2"/>
+              <rect x="30" y="46" width="40" height="32" rx="6" fill="#031B11" stroke="#B48D36" stroke-width="1"/>
+              <path d="M50,56 C48,53 44,53 44,56 C44,60 50,65 50,65 C50,65 56,60 56,56 C56,53 52,53 50,56 Z" fill="#EF4444"/>
+            </svg>
+          </div>
+          <h4 style="font-size:13px; font-weight:800; color:#FFF;">Private Room</h4>
+          <div class="font-thaana" style="font-size:12px; color:var(--gold-accent); margin-bottom:4px;">ޚާއްޞަ މޭޒު</div>
+          <p style="font-size:10px; color:#94A3B8;">Antique brass/gold island padlock with illuminated heart keyhole and coral engraving.</p>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-visual-stage">
+            <svg viewBox="0 0 100 100" width="70" height="70">
+              <rect x="26" y="26" width="48" height="44" rx="14" fill="#361E0E" stroke="#E5C378" stroke-width="2"/>
+              <line x1="50" y1="26" x2="50" y2="14" stroke="#E5C378" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="50" cy="12" r="4" fill="#05D59A"/>
+              <circle cx="38" cy="44" r="5" fill="#05D59A"/>
+              <circle cx="62" cy="44" r="5" fill="#05D59A"/>
+              <path d="M42,56 Q50,62 58,56" fill="none" stroke="#E5C378" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4 style="font-size:13px; font-weight:800; color:#FFF;">Pass & Play</h4>
+          <div class="font-thaana" style="font-size:12px; color:var(--gold-accent); margin-bottom:4px;">އޮފްލައިން ކުޅުން</div>
+          <p style="font-size:10px; color:#94A3B8;">Polished coconut wood automaton mascot holding playing cards for solo offline games.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let currentLang = 'en';
+
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // Dynamic UI State Presets
+    function applyStatePreset(preset) {
+      document.querySelectorAll('.state-toggle-btn').forEach(b => {
+        if (b.id.startsWith('btnDefault') || b.id.startsWith('btnAll')) {
+          b.classList.remove('active');
+        }
+      });
+
+      if (preset === 'default') {
+        document.getElementById('btnDefaultState').classList.add('active');
+        setCardState('digu', 'live');
+        setCardState('dhihaeh', 'indev');
+        setCardState('bondi', 'indev');
+      } else if (preset === 'all-live') {
+        document.getElementById('btnAllLive').classList.add('active');
+        setCardState('digu', 'live');
+        setCardState('dhihaeh', 'live');
+        setCardState('bondi', 'live');
+      } else if (preset === 'all-locked') {
+        document.getElementById('btnAllLocked').classList.add('active');
+        setCardState('digu', 'locked');
+        setCardState('dhihaeh', 'locked');
+        setCardState('bondi', 'locked');
+      }
+    }
+
+    function setCardState(mode, state) {
+      const pill = document.getElementById(`pillStatus${capitalize(mode)}`);
+      const lockOverlay = document.getElementById(`lockOverlay${capitalize(mode)}`);
+      const btn = document.getElementById(`btnAction${capitalize(mode)}`);
+
+      if (state === 'live') {
+        pill.className = 'dynamic-status-pill status-live';
+        pill.textContent = currentLang === 'en' ? 'LIVE NOW' : 'މިހާރު ކުޅެވޭ';
+        lockOverlay.classList.remove('active');
+        btn.className = 'card-ui-action-btn btn-play-live';
+        btn.innerHTML = `<span>${currentLang === 'en' ? 'PLAY TABLE' : 'މޭޒަށް ވަދޭ'}</span> ⚡`;
+      } else if (state === 'indev') {
+        pill.className = 'dynamic-status-pill status-indev';
+        pill.textContent = currentLang === 'en' ? '🔒 IN DEV' : '🔒 ތައްޔާރުވަނީ';
+        lockOverlay.classList.add('active');
+        document.getElementById(`lockTitle${capitalize(mode)}`).textContent = currentLang === 'en' ? 'IN DEVELOPMENT' : 'ތައްޔާރުވަނީ';
+        btn.className = 'card-ui-action-btn btn-locked-notify';
+        btn.innerHTML = `<span>${currentLang === 'en' ? 'NOTIFY ON LAUNCH' : 'އެންގުން ހޯދާ'}</span> 🔔`;
+      } else if (state === 'locked') {
+        pill.className = 'dynamic-status-pill status-locked';
+        pill.textContent = currentLang === 'en' ? '🔒 LOCKED' : '🔒 ތަޅުލެވިފައި';
+        lockOverlay.classList.add('active');
+        document.getElementById(`lockTitle${capitalize(mode)}`).textContent = currentLang === 'en' ? 'VIP EXCLUSIVE' : 'ޚާއްޞަ މޭޒު';
+        btn.className = 'card-ui-action-btn btn-locked-notify';
+        btn.innerHTML = `<span>${currentLang === 'en' ? 'UNLOCK WITH GEMS' : 'ޖަވާހިރުން ހުޅުވާ'}</span> 💎`;
+      }
+    }
+
+    function toggleLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
+      document.getElementById('btnLangDv').classList.toggle('active', lang === 'dv');
+
+      if (lang === 'dv') {
+        document.getElementById('subDigu').textContent = '10 ކާޑުގެ ދިވެހި ޑިގު ކުޅުން';
+        document.getElementById('subDhihaeh').textContent = 'ދިހައެއް ހިފާ އަތުލުން';
+        document.getElementById('subBondi').textContent = 'ބޮނޑި ކްލަސްޓަރ ޝޯޑައުން';
+      } else {
+        document.getElementById('subDigu').textContent = '10-Card Maldivian Gin Rummy';
+        document.getElementById('subDhihaeh').textContent = 'Maldivian 10s Trick Taking';
+        document.getElementById('subBondi').textContent = 'Maldivian Cluster Showdown';
+      }
+
+      // Re-apply active state strings
+      const activeStateBtn = document.querySelector('.state-toggle-btn.active[id^="btn"]');
+      if (activeStateBtn) {
+        if (activeStateBtn.id === 'btnDefaultState') applyStatePreset('default');
+        else if (activeStateBtn.id === 'btnAllLive') applyStatePreset('all-live');
+        else if (activeStateBtn.id === 'btnAllLocked') applyStatePreset('all-locked');
+      }
+    }
+
+    function handleCardAction(mode) {
+      alert(`Interacting with ${capitalize(mode)} in decoupled Game UI!`);
+    }
+
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+  </script>
+</body>
+</html>

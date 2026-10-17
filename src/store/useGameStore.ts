@@ -16,6 +16,7 @@ import {
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { VisualTheme } from '../theme/themeConfig';
 import { DeckDesignId } from '../config/deckConfig';
+import { AppUpdateInfo } from '../config/versionConfig';
 import { useAuthStore } from './useAuthStore';
 
 export interface HandMeldGroup {
@@ -35,8 +36,8 @@ export interface HandAnalysis {
 
 export interface GameStoreState {
   appName: string;
-  activeGame: 'DIGU' | 'DHIHAEH';
-  setActiveGame: (game: 'DIGU' | 'DHIHAEH') => void;
+  activeGame: 'DIGU' | 'DHIHAEH' | 'BONDI';
+  setActiveGame: (game: 'DIGU' | 'DHIHAEH' | 'BONDI') => void;
 
   // Core Engine State
   gameState: GameState;
@@ -85,6 +86,12 @@ export interface GameStoreState {
   // Player Chat & Emoji Reactions
   playerReactions: Record<number, { text?: string; emoji?: string; id: number }>;
   triggerReaction: (playerIndex: number, text?: string, emoji?: string) => void;
+
+  // In-App APK Updates
+  updateInfo: AppUpdateInfo | null;
+  showUpdateModal: boolean;
+  setUpdateInfo: (info: AppUpdateInfo | null) => void;
+  setShowUpdateModal: (show: boolean) => void;
 
   // Actions
   setScreen: (screen: AppScreen) => void;
@@ -266,7 +273,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
   };
 
   return {
-    appName: 'Thaasbai',
+    appName: 'Holhuashi (ހޮޅުއަށި)',
     activeGame: 'DIGU',
     setActiveGame: (game) => set({ activeGame: game }),
     gameState: initialGameState,
@@ -299,10 +306,16 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     pendingRules: { ...DEFAULT_RULES },
     tablePot: 4000,
     tableBuyIn: 1000,
-    visualTheme:
-      (typeof localStorage !== 'undefined'
-        ? (localStorage.getItem('thaasbai_visual_theme') as VisualTheme)
-        : null) || 'tournoi',
+    visualTheme: (() => {
+      if (typeof localStorage === 'undefined') return 'tournoi';
+      const saved = localStorage.getItem('thaasbai_visual_theme');
+      // Enforce the unified Digu Emerald visual language across the whole game
+      if (!saved || saved === 'sultan' || saved === 'holhuashi' || saved === 'risograph' || saved === 'nocturne' || saved === 'swiss') {
+        localStorage.setItem('thaasbai_visual_theme', 'tournoi');
+        return 'tournoi';
+      }
+      return (saved as VisualTheme) || 'tournoi';
+    })(),
 
     setVisualTheme: (theme: VisualTheme) => {
       if (typeof localStorage !== 'undefined') {
@@ -311,10 +324,15 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       set({ visualTheme: theme });
     },
 
-    activeDeck:
-      (typeof localStorage !== 'undefined'
-        ? (localStorage.getItem('thaasbai_active_deck') as DeckDesignId)
-        : null) || 'burgundy_gold',
+    activeDeck: (() => {
+      if (typeof localStorage === 'undefined') return 'digu_emerald';
+      const saved = localStorage.getItem('thaasbai_active_deck');
+      if (!saved || saved === 'burgundy_gold') {
+        localStorage.setItem('thaasbai_active_deck', 'digu_emerald');
+        return 'digu_emerald';
+      }
+      return (saved as DeckDesignId) || 'digu_emerald';
+    })(),
 
     setActiveDeck: (deck: DeckDesignId) => {
       if (typeof localStorage !== 'undefined') {
@@ -371,6 +389,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         });
       }, 2600);
     },
+
+    updateInfo: null,
+    showUpdateModal: false,
+    setUpdateInfo: (info: AppUpdateInfo | null) => set({ updateInfo: info }),
+    setShowUpdateModal: (show: boolean) => set({ showUpdateModal: show }),
 
     setScreen: (screen: AppScreen) => set({ currentScreen: screen }),
 

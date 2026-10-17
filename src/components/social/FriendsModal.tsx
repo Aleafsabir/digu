@@ -89,7 +89,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
           {/* Header */}
           <div className="flex justify-between items-center border-b border-emerald-950 pb-2.5 mb-2.5 shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg btn-3d-platinum text-slate-950 flex items-center justify-center shadow">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] flex items-center justify-center shadow">
                 <Users className="w-4 h-4" />
               </div>
               <div>
@@ -114,10 +114,10 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
           <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-[#010D08] border border-slate-800/80 mb-3 shrink-0 text-xs">
             <button
               onClick={() => setActiveTab('friends')}
-              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
                 activeTab === 'friends'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
+                  : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'
               }`}
             >
               <Users className="w-3.5 h-3.5 shrink-0" />
@@ -126,10 +126,10 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('add')}
-              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
                 activeTab === 'add'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
+                  : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'
               }`}
             >
               <UserPlus className="w-3.5 h-3.5 shrink-0" />
@@ -138,10 +138,10 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('requests')}
-              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative ${
+              className={`py-1.5 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative border ${
                 activeTab === 'requests'
-                  ? 'btn-3d-platinum text-slate-950 font-black shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black border-[#00F5AE] shadow-[0_0_12px_rgba(5,213,154,0.35)]'
+                  : 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'
               }`}
             >
               <Inbox className="w-3.5 h-3.5 shrink-0" />
@@ -168,7 +168,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                     </p>
                     <button
                       onClick={() => setActiveTab('add')}
-                      className="px-4 py-1.5 rounded-xl btn-3d-platinum text-slate-950 font-black text-xs cursor-pointer inline-flex items-center gap-1.5 mt-2"
+                      className="px-4 py-1.5 rounded-xl btn-emerald-glow text-[#02140D] font-black text-xs cursor-pointer inline-flex items-center gap-1.5 mt-2"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>Add Friends</span>
@@ -251,7 +251,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                               disabled={!isOnline}
                               className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${
                                 isOnline
-                                  ? 'btn-3d-platinum text-slate-950 font-black shadow'
+                                  ? 'btn-emerald-glow text-[#02140D] font-black shadow'
                                   : 'bg-slate-800/60 text-slate-500 border border-slate-700/60 cursor-not-allowed'
                               }`}
                             >
@@ -326,7 +326,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                     <button
                       type="submit"
                       disabled={!friendCodeInput.trim() || isLoading}
-                      className="px-4 py-2 rounded-xl btn-3d-platinum text-slate-950 font-black text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-4 py-2 rounded-xl btn-emerald-glow text-[#02140D] font-black text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Add</span>
@@ -422,7 +422,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
           <div className="shrink-0 border-t border-emerald-950/60 pt-2.5 mt-2.5 flex justify-end">
             <button
               onClick={onClose}
-              className="btn-3d-platinum px-5 py-2 rounded-xl text-xs uppercase tracking-wider font-black cursor-pointer shadow-md"
+              className="btn-emerald-glow px-5 py-2 rounded-xl text-xs uppercase tracking-wider font-black cursor-pointer shadow-md text-[#02140D]"
             >
               Close
             </button>

@@ -54,118 +54,116 @@ export interface ThemeConfig {
 }
 
 export const THEME_CONFIGS: Record<VisualTheme, ThemeConfig> = {
-  // MASTER: TOURNOI EMERALD & TITANIUM SILVER
+  // MASTER: DIGU EMERALD, STADIUM FELT & ISLAND GOLD
   tournoi: {
     id: 'tournoi',
-    name: 'Tournoi Emerald',
-    subtitle: 'Platinum Ice & Titanium Silver',
-    badge: 'CASUAL',
+    name: 'Digu Emerald',
+    subtitle: 'Stadium Felt & Island Gold',
+    badge: 'MASTER',
 
-    // Sleek Architectural Border with Subtle Radiance
+    // Sleek Stadium Architectural Frame with Ambient Emerald Radiance
     tableWrapperClass:
-      'bg-gradient-to-b from-[#042618] via-[#021A10] to-[#010D08] border-4 border-[#0F3D26] shadow-[0_25px_60px_rgba(0,0,0,0.95)]',
+      'bg-gradient-to-b from-[#063824] via-[#021B11] to-[#010A06] border-4 border-[#05D59A]/30 shadow-[0_25px_70px_rgba(0,0,0,0.98)]',
     tableBevelClass:
-      'bg-[#02140D] border border-slate-700/60 shadow-inner',
+      'bg-[#02140D] border border-[#05D59A]/20 shadow-inner',
     tableFeltClass:
-      'bg-gradient-to-b from-[#042618] via-[#021A10] to-[#010D08] border border-emerald-900/40 shadow-inner',
+      'stadium-felt-surface shadow-inner border border-[#05D59A]/20',
     feltTextureClass: 'texture-velvet',
-    watermarkText: 'ތާސްބައި',
+    watermarkText: 'ޑ',
     watermarkClass:
-      'font-sans-clean text-[#05D59A]/10 text-6xl sm:text-8xl font-black tracking-widest',
+      'font-thaana text-[#05D59A]/15 text-7xl sm:text-9xl font-black drop-shadow-[0_0_25px_rgba(5,213,154,0.3)]',
 
     fontHeader: 'font-sans-clean',
     fontBody: 'font-sans-clean',
     fontCard: 'font-sans-clean',
     fontNumber: 'font-mono',
 
-    // Titanium Score Placard
+    // Sleek Modern Glassmorphic Score Placard
     placardClass:
-      'bg-[#02140D]/95 border border-slate-700/80 shadow-lg text-white backdrop-blur-md',
-    placardHeaderBorder: 'border-b border-slate-700/50',
+      'glass-panel-emerald-elevated text-white',
+    placardHeaderBorder: 'border-b border-[#05D59A]/30',
 
-    hudPillClass: 'bg-[#02140D]/95 text-[#F1F5F9] border border-slate-400/60 shadow-md backdrop-blur-md',
+    hudPillClass: 'glass-panel-emerald text-[#F1F5F9] shadow-md',
     menuButtonClass:
-      'bg-[#02140D]/90 hover:bg-slate-800 border border-slate-700 text-slate-300 shadow-md',
+      'glass-panel-emerald hover:border-[#05D59A] text-slate-200 shadow-md',
     actionButtonClass:
-      'btn-3d-vermilion',
+      'btn-emerald-glow',
 
     // High-Contrast Clean Ivory Card Face
     cardFaceClass:
       'bg-[#FCFCFA] border-2 border-slate-300 shadow-2xl text-[#1A1715]',
     cardBackClass:
-      'bg-gradient-to-br from-[#06291B] to-[#02140D] border border-[#05D59A]/40 shadow-2xl',
+      'bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378] shadow-2xl',
     cardBackInnerClass:
-      'border border-[#05D59A]/20 bg-[#02140D]',
-    cardBackLabelClass: 'text-[#05D59A] font-sans-clean font-black tracking-widest',
+      'border border-[#E5C378]/40 bg-[#02140D]',
+    cardBackLabelClass: 'text-[#E5C378] font-thaana font-black tracking-widest text-xl',
     redSuitClass: 'text-[#DC2626]',
     blackSuitClass: 'text-[#1A1715]',
-    selectedCardRing: 'shadow-[0_20px_30px_-5px_rgba(255,255,255,0.4)] border-2 border-white',
+    selectedCardRing: 'card-glow-emerald border-2 border-[#05D59A]',
 
-    // Melds: Aquamarine (Runs) & Crisp Iris (Sets)
+    // Melds: Bioluminescent Emerald (Runs) & Island Gold (Sets)
     getMeldHighlight: (_colorKey, _idx, meldType) => {
       const isSet = meldType === 'SET';
       if (isSet) {
         return {
           ringClass: '',
-          badgeClass: 'bg-[#818CF8] text-white font-black shadow-sm',
-          pipClass: 'bg-[#818CF8] shadow-[0_0_8px_rgba(129,140,248,0.9)]',
+          badgeClass: 'bg-[#E5C378] text-slate-950 font-black shadow-sm',
+          pipClass: 'bg-[#E5C378] shadow-[0_0_8px_rgba(229,195,120,0.95)]',
           containerClass:
-            'bg-gradient-to-b from-[#EEF2FF] via-[#FAF6EC] to-[#F3EDE0] border border-[#c8beaa] border-t-4 border-t-[#818CF8] shadow-[0_6px_20px_rgba(129,140,248,0.3)]',
+            'bg-gradient-to-b from-[#FFFBEB] via-[#FAF6EC] to-[#F3EDE0] border border-[#c8beaa] border-t-4 border-t-[#E5C378] shadow-[0_6px_20px_rgba(229,195,120,0.35)]',
         };
       }
       return {
         ringClass: '',
-        badgeClass: 'bg-[#00A896] text-white font-black shadow-sm',
-        pipClass: 'bg-[#00A896] shadow-[0_0_8px_rgba(0,168,150,0.9)]',
+        badgeClass: 'bg-[#05D59A] text-slate-950 font-black shadow-sm',
+        pipClass: 'bg-[#05D59A] shadow-[0_0_8px_rgba(5,213,154,0.95)]',
         containerClass:
-          'bg-gradient-to-b from-[#F0FDFA] via-[#FAF6EC] to-[#F3EDE0] border border-[#c8beaa] border-t-4 border-t-[#00A896] shadow-[0_6px_20px_rgba(0,168,150,0.3)]',
+          'bg-gradient-to-b from-[#ECFDF5] via-[#FAF6EC] to-[#F3EDE0] border border-[#c8beaa] border-t-4 border-t-[#05D59A] shadow-[0_6px_20px_rgba(5,213,154,0.35)]',
       };
     },
   },
-  // 0. SULTAN'S VELVET: Old-Money Casino Royale, Deep Emerald Velvet & Padded Mahogany
+  // 0. ROYAL LACQUER: Maldivian Liyelaa Jehun Lacquerwork, Crimson & Gold
   sultan: {
     id: 'sultan',
-    name: "Sultan's Velvet",
-    subtitle: 'Casino Royale & Emerald Velvet',
+    name: 'Royal Lacquer',
+    subtitle: 'Maldivian Crimson & Island Gold',
     badge: 'ROYALE',
 
-    // Heavy Padded Mahogany Rail with Brass Accents
     tableWrapperClass:
-      'bg-gradient-to-b from-[#211309] to-[#0e0703] border-4 sm:border-6 border-[#3d2311] shadow-[0_25px_60px_rgba(0,0,0,0.98)]',
+      'bg-gradient-to-b from-[#2A050A] via-[#150204] to-[#02140D] border-4 sm:border-6 border-[#EF4444]/30 shadow-[0_25px_70px_rgba(0,0,0,0.98)]',
     tableBevelClass:
-      'bg-[#180e07] border border-amber-600/40 shadow-inner',
-    // Rich Deep Emerald Velvet Felt
+      'bg-[#150204] border border-[#EF4444]/20 shadow-inner',
     tableFeltClass:
-      'bg-gradient-to-b from-[#062419] via-[#041710] to-[#020d09] border border-emerald-900/40 shadow-inner',
+      'bg-gradient-to-b from-[#400B12] via-[#250408] to-[#0F0204] border border-[#EF4444]/20 shadow-inner',
     feltTextureClass: 'texture-velvet',
-    watermarkText: 'ތާސްބައި',
+    watermarkText: 'ޑ',
     watermarkClass:
-      'font-cinzel text-emerald-400/10 text-6xl sm:text-8xl font-black tracking-widest',
+      'font-thaana text-rose-500/15 text-7xl sm:text-9xl font-black drop-shadow-[0_0_25px_rgba(239,68,68,0.3)]',
 
-    fontHeader: 'font-cinzel',
+    fontHeader: 'font-sans-clean',
     fontBody: 'font-sans-clean',
-    fontCard: 'font-cinzel',
-    fontNumber: 'font-cinzel',
+    fontCard: 'font-sans-clean',
+    fontNumber: 'font-mono',
 
-    // Gilded Brass Placard
+    // Gilded Crimson Placard
     placardClass:
-      'bg-gradient-to-b from-[#1c120a]/95 to-[#0d0704]/95 border-2 border-amber-500/70 shadow-2xl text-amber-100',
-    placardHeaderBorder: 'border-b border-amber-500/30',
+      'bg-gradient-to-b from-[#1C0508]/95 to-[#0D0204]/95 border-2 border-[#EF4444]/50 shadow-2xl text-rose-100',
+    placardHeaderBorder: 'border-b border-[#EF4444]/30',
 
-    hudPillClass: 'bg-[#150a04]/90 text-amber-300 border-0 shadow-md',
+    hudPillClass: 'bg-[#150204]/90 text-amber-300 border border-[#EF4444]/20 shadow-md',
     menuButtonClass:
-      'bg-[#1a0e06]/90 hover:bg-[#2a170b] border-0 text-amber-300',
+      'bg-[#1C0508]/90 hover:bg-[#2C080E] border border-[#EF4444]/30 text-amber-300',
     actionButtonClass:
-      'bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:brightness-110 text-stone-950 font-black border-0 shadow-lg',
+      'btn-emerald-glow',
 
     // Aristocrat Ivory Card Face
     cardFaceClass:
       'bg-[#F9F7EE] border border-amber-900/30 shadow-2xl text-[#1a1815]',
     cardBackClass:
-      'bg-gradient-to-br from-[#58111A] to-[#2A050A] border-2 border-amber-400/80 shadow-2xl',
+      'bg-gradient-to-br from-[#58111A] to-[#2A050A] border-2 border-[#E5C378]/80 shadow-2xl',
     cardBackInnerClass:
-      'border border-amber-400/40 bg-[#400B12]',
-    cardBackLabelClass: 'text-amber-300 font-cinzel font-black tracking-widest',
+      'border border-[#E5C378]/40 bg-[#400B12]',
+    cardBackLabelClass: 'text-[#E5C378] font-thaana font-black tracking-widest text-xl',
     redSuitClass: 'text-[#B91C1C]',
     blackSuitClass: 'text-[#18181B]',
     selectedCardRing: 'shadow-[0_15px_30px_rgba(251,191,36,0.5)] border-0',
@@ -203,50 +201,48 @@ export const THEME_CONFIGS: Record<VisualTheme, ThemeConfig> = {
     },
   },
 
-  // 1. HOLHUASHI CRAFT: Authentic Dhivehi Heritage, Linocut Woodcraft & Ocean Indigo
+  // 1. HOLHUASHI LAGOON: Authentic Dhivehi Beachfront Gathering, Night Ocean & Island Gold
   holhuashi: {
     id: 'holhuashi',
-    name: 'Holhuashi',
-    subtitle: 'Dhivehi Heritage & Woodcut',
-    badge: 'CRAFT',
+    name: 'Holhuashi Lagoon',
+    subtitle: 'Night Ocean & Island Gold',
+    badge: 'ISLAND',
 
-    // Deep Coconut Timber Rim, No Neon Circles
     tableWrapperClass:
-      'bg-gradient-to-b from-[#2a170d] via-[#1a0f08] to-[#100905] border-3 sm:border-5 border-[#3d2214] shadow-[0_20px_60px_rgba(0,0,0,0.95)]',
+      'bg-gradient-to-b from-[#0A2218] via-[#02140D] to-[#010A06] border-3 sm:border-5 border-[#E5C378]/30 shadow-[0_20px_60px_rgba(0,0,0,0.95)]',
     tableBevelClass:
-      'bg-gradient-to-b from-[#1e1008] to-[#0d0704] border border-amber-700/40 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)]',
-    // Ocean Indigo Mat with Subtle Woven Texture
+      'bg-gradient-to-b from-[#02140D] to-[#010A06] border border-[#E5C378]/20 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)]',
     tableFeltClass:
-      'bg-gradient-to-b from-[#0b212b] via-[#07161e] to-[#040e13] border border-cyan-900/30 shadow-inner',
+      'bg-gradient-to-b from-[#063824] via-[#032014] to-[#010D08] border border-[#E5C378]/20 shadow-inner',
     feltTextureClass: 'texture-woven-mat',
-    watermarkText: 'ތާސްބައި',
+    watermarkText: 'ހ',
     watermarkClass:
-      'font-thaana text-amber-200/10 text-6xl sm:text-8xl font-black tracking-widest',
+      'font-thaana text-[#E5C378]/15 text-7xl sm:text-9xl font-black drop-shadow-[0_0_25px_rgba(229,195,120,0.3)]',
 
-    fontHeader: 'font-craft',
+    fontHeader: 'font-sans-clean',
     fontBody: 'font-sans-clean',
-    fontCard: 'font-craft',
-    fontNumber: 'font-craft',
+    fontCard: 'font-sans-clean',
+    fontNumber: 'font-mono',
 
     // Lacquerware Placard
     placardClass:
-      'bg-gradient-to-b from-[#1c1109]/95 to-[#0f0904]/95 border-2 border-amber-700/60 shadow-xl text-amber-100',
-    placardHeaderBorder: 'border-b border-amber-700/40',
+      'bg-gradient-to-b from-[#031B11]/95 to-[#010A06]/95 border-2 border-[#E5C378]/50 shadow-xl text-amber-100',
+    placardHeaderBorder: 'border-b border-[#E5C378]/30',
 
-    hudPillClass: 'bg-[#1a0f08]/90 text-amber-300 border-0 shadow-md',
+    hudPillClass: 'bg-[#02140D]/90 text-amber-300 border border-[#E5C378]/20 shadow-md',
     menuButtonClass:
-      'bg-[#22130a]/90 hover:bg-[#341d10] border-0 text-amber-300',
+      'bg-[#031B11]/90 hover:bg-[#063824] border border-[#E5C378]/30 text-amber-300',
     actionButtonClass:
-      'bg-gradient-to-r from-amber-600 to-amber-700 hover:brightness-110 text-stone-950 font-black border-0 shadow-lg',
+      'btn-emerald-glow',
 
     // Cotton Ivory Card Face
     cardFaceClass:
       'bg-[#F6F2E8] border border-[#d2c9b6] shadow-md text-[#1c1917]',
     cardBackClass:
-      'bg-gradient-to-br from-[#851e1e] via-[#661616] to-[#450e0e] border-2 border-amber-500/70 shadow-lg',
+      'bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378]/80 shadow-lg',
     cardBackInnerClass:
-      'border border-amber-400/40 bg-[#521111]/90',
-    cardBackLabelClass: 'text-amber-200 font-craft font-black',
+      'border border-[#E5C378]/40 bg-[#02140D]/90',
+    cardBackLabelClass: 'text-[#E5C378] font-thaana font-black tracking-widest text-xl',
     redSuitClass: 'text-[#B91C1C]',
     blackSuitClass: 'text-[#1C1917]',
     selectedCardRing: 'shadow-[0_15px_30px_rgba(217,119,6,0.4)] border-0',
@@ -357,8 +353,8 @@ export const THEME_CONFIGS: Record<VisualTheme, ThemeConfig> = {
   // 3. MALÉ NOCTURNE: Midnight Jade Stone & Warm Gilded Brass
   nocturne: {
     id: 'nocturne',
-    name: 'Nocturne',
-    subtitle: 'Midnight Jade & Tungsten',
+    name: 'Malé Midnight',
+    subtitle: 'Midnight Jade & Bioluminescence',
     badge: 'NIGHT',
 
     // Honed Serpentine Jade Stone
@@ -370,34 +366,34 @@ export const THEME_CONFIGS: Record<VisualTheme, ThemeConfig> = {
     tableFeltClass:
       'bg-gradient-to-b from-[#0e211b] via-[#081512] to-[#030806] border border-emerald-400/20 shadow-inner',
     feltTextureClass: '',
-    watermarkText: 'THÁASBAI',
+    watermarkText: 'ޑ',
     watermarkClass:
-      'font-cinzel text-emerald-200/10 text-5xl sm:text-7xl font-bold tracking-[0.3em]',
+      'font-thaana text-[#05D59A]/15 text-6xl sm:text-8xl font-black drop-shadow-[0_0_25px_rgba(5,213,154,0.3)]',
 
-    fontHeader: 'font-cinzel',
+    fontHeader: 'font-sans-clean',
     fontBody: 'font-sans-clean',
-    fontCard: 'font-cinzel',
-    fontNumber: 'font-cinzel',
+    fontCard: 'font-sans-clean',
+    fontNumber: 'font-mono',
 
     // Honed Gilded Placard
     placardClass:
-      'bg-[#071310]/95 backdrop-blur-md border border-amber-500/40 shadow-2xl text-stone-200',
-    placardHeaderBorder: 'border-b border-amber-500/25',
+      'bg-[#071310]/95 backdrop-blur-md border border-emerald-500/40 shadow-2xl text-stone-200',
+    placardHeaderBorder: 'border-b border-emerald-500/25',
 
-    hudPillClass: 'bg-[#091713]/90 text-amber-300 border-0 shadow-md',
+    hudPillClass: 'bg-[#091713]/90 text-emerald-300 border-0 shadow-md',
     menuButtonClass:
-      'bg-[#0a1814]/90 hover:bg-[#122b24] border-0 text-amber-300',
+      'bg-[#0a1814]/90 hover:bg-[#122b24] border-0 text-emerald-300',
     actionButtonClass:
-      'bg-gradient-to-r from-emerald-600 to-teal-700 hover:brightness-110 text-stone-950 font-black border-0 shadow-lg',
+      'btn-emerald-glow',
 
     // Obsidian Linen Card Face
     cardFaceClass:
       'bg-[#0c1613] border border-emerald-500/30 shadow-xl text-[#E2EBE7]',
     cardBackClass:
-      'bg-gradient-to-br from-[#0c1a16] to-[#060e0c] border border-amber-500/40 shadow-xl',
+      'bg-gradient-to-br from-[#0c1a16] to-[#060e0c] border border-emerald-500/40 shadow-xl',
     cardBackInnerClass:
-      'border border-amber-400/20 bg-[#07120f]',
-    cardBackLabelClass: 'text-amber-300 font-cinzel font-black tracking-widest',
+      'border border-emerald-400/20 bg-[#07120f]',
+    cardBackLabelClass: 'text-[#05D59A] font-thaana font-black tracking-widest text-xl',
     redSuitClass: 'text-[#E05A47]',
     blackSuitClass: 'text-[#A0C4B6]',
     selectedCardRing: 'shadow-[0_15px_30px_rgba(52,211,153,0.3)] border-0',

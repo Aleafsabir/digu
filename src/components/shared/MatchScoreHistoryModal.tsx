@@ -35,7 +35,7 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
         {/* Header Bar */}
         <div className="flex justify-between items-center border-b border-emerald-950 pb-3 mb-3 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl btn-3d-platinum flex items-center justify-center text-slate-950 font-black text-base shadow-md">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] flex items-center justify-center font-black text-base shadow-md">
               <Trophy className="w-4 h-4" />
             </div>
             <div>
@@ -139,7 +139,7 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
                 {/* Round Header */}
                 <div className="flex justify-between items-center border-b border-emerald-950 pb-2">
                   <div className="flex items-center gap-2">
-                    <span className="btn-3d-platinum text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="bg-[#05D59A]/20 text-[#05D59A] border border-[#05D59A]/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       Round {idx + 1}
                     </span>
                     <span className="text-xs font-black text-slate-200 flex items-center gap-1">
@@ -238,7 +238,7 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
         {/* Footer */}
         <div className="pt-3 mt-3 border-t border-emerald-950 flex justify-end shrink-0">
           <JuicyButton
-            variant="platinum"
+            variant="emerald"
             size="md"
             onClick={onClose}
           >

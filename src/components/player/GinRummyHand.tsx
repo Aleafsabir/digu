@@ -113,7 +113,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           onClick={() => onSortHand('RUNS')}
           className={`relative p-1 sm:p-1.5 rounded-xl transition-all shadow-md active:scale-90 cursor-pointer border ${
             sortMode === 'RUNS' || sortMode === 'SUIT'
-              ? 'bg-slate-200 text-stone-950 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
+              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.45)]'
               : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-800 backdrop-blur-md'
           }`}
           title="Sort by Runs"
@@ -210,7 +210,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           onClick={() => onSortHand('SETS')}
           className={`relative p-1 sm:p-1.5 rounded-xl transition-all shadow-md active:scale-90 cursor-pointer border ${
             sortMode === 'SETS'
-              ? 'bg-slate-200 text-stone-950 border-white shadow-[0_0_12px_rgba(255,255,255,0.4)]'
+              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.45)]'
               : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-800 backdrop-blur-md'
           }`}
           title="Sort by Sets"
@@ -233,20 +233,20 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
 
         {/* Selected Card Shift Nudge Controls */}
         {selectedCardId && selectedIndex >= 0 && (
-          <div className="flex items-center gap-1 bg-[#02140D]/90 backdrop-blur-md border border-slate-700 rounded-full px-2 py-0.5 shadow-md">
+          <div className="flex items-center gap-1 bg-[#02140D]/90 backdrop-blur-md border border-[#05D59A]/30 rounded-full px-2 py-0.5 shadow-md">
             <button
               onClick={handleMoveLeft}
               disabled={selectedIndex === 0}
               className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
                 selectedIndex > 0
-                  ? 'bg-slate-200 text-stone-950 cursor-pointer hover:bg-white'
+                  ? 'bg-[#05D59A] text-slate-950 cursor-pointer hover:bg-[#00F5AE]'
                   : 'text-neutral-600 cursor-not-allowed opacity-30'
               }`}
               title="Shift Left"
             >
               <ChevronLeft className="w-3 h-3" />
             </button>
-            <span className="text-[9px] font-mono text-neutral-300 px-0.5">
+            <span className="text-[9px] font-mono text-[#05D59A] px-0.5 font-bold">
               {selectedIndex + 1}/{handCards.length}
             </span>
             <button
@@ -254,7 +254,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
               disabled={selectedIndex === handCards.length - 1}
               className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
                 selectedIndex < handCards.length - 1
-                  ? 'bg-slate-200 text-stone-950 cursor-pointer hover:bg-white'
+                  ? 'bg-[#05D59A] text-slate-950 cursor-pointer hover:bg-[#00F5AE]'
                   : 'text-neutral-600 cursor-not-allowed opacity-30'
               }`}
               title="Shift Right"

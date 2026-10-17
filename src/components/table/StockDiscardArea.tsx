@@ -35,7 +35,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
   const isDrawPhase = phase === 'AWAIT_DRAW' && isHumanTurn;
   const topDiscard = discardPile.length > 0 ? discardPile[discardPile.length - 1] : null;
 
-  const activeDeck = useGameStore(state => state.activeDeck) || 'burgundy_gold';
+  const activeDeck = useGameStore(state => state.activeDeck) || 'digu_emerald';
   const handAnalysis = useGameStore(state => state.handAnalysis);
   const canGin = handAnalysis.isGinReady || handAnalysis.isThousandRunReady;
   const isActionPhase = phase === 'AWAIT_ACTION' && isHumanTurn;

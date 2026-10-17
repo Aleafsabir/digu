@@ -34,8 +34,8 @@ export const PlayTypeModal: React.FC<PlayTypeModalProps> = ({
         };
       default:
         return {
-          title: 'Thaasbai Digu',
-          icon: <Shield className="w-4 h-4 text-slate-300" />,
+          title: 'Holhuashi: Digu',
+          icon: <Shield className="w-4 h-4 text-[#05D59A]" />,
         };
     }
   };
@@ -73,17 +73,17 @@ export const PlayTypeModal: React.FC<PlayTypeModalProps> = ({
           {/* Option 1: VS AI */}
           <div
             onClick={() => onSelectPlayType('VS_AI')}
-            className="group relative rounded-2xl p-4 sm:p-5 bg-[#031B11] border-2 border-slate-300 shadow-xl hover:scale-[1.02] cursor-pointer transition active:scale-[0.98] flex flex-col justify-between"
+            className="group relative rounded-2xl p-4 sm:p-5 bg-gradient-to-b from-[#063824] via-[#031B11] to-[#010D08] border-2 border-[#05D59A] shadow-[0_0_25px_rgba(5,213,154,0.3)] hover:scale-[1.02] cursor-pointer transition active:scale-[0.98] flex flex-col justify-between"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-200 text-stone-950 shadow">
+              <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#05D59A] text-slate-950 shadow-[0_0_10px_rgba(5,213,154,0.4)]">
                 RECOMMENDED
               </span>
               <span className="text-[9px] font-bold text-[#05D59A]">INSTANT</span>
             </div>
 
             <div className="flex items-center gap-3 my-1">
-              <div className="w-10 h-10 rounded-xl bg-slate-200 text-stone-950 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform font-black">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#05D59A] to-[#047857] text-slate-950 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform font-black">
                 <Bot className="w-6 h-6" />
               </div>
               <div className="flex flex-col text-left">
@@ -109,7 +109,7 @@ export const PlayTypeModal: React.FC<PlayTypeModalProps> = ({
             </div>
 
             <JuicyButton
-              variant="platinum"
+              variant="emerald"
               size="md"
               onClick={e => {
                 e.stopPropagation();
