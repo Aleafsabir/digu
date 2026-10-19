@@ -1,13 +1,13 @@
 {
-  "versionName": "0.2.4",
-  "versionCode": 6,
-  "releaseDate": "2026-10-17",
+  "versionName": "0.2.5",
+  "versionCode": 7,
+  "releaseDate": "2026-10-19",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Native Android Google Sign-In with Google Play Services",
-    "Frictionless Guest play with persistent local profile & 500 Ran Dhadhu",
-    "Seamless account upgrade from Guest to Google without losing coins",
-    "Integrated Google Cloud project holhuashi-digu configuration"
+    "Unique Maldivian friend code format (HLH-XXXXX) generated for all players",
+    "Automatic local & cloud migration resolving duplicate friend code collisions",
+    "Prefix-agnostic friend search (matches raw 5-digit numbers or full codes)",
+    "One-click friend code regeneration button in Social & Profile modal"
   ]
 }

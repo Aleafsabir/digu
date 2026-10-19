@@ -10,6 +10,7 @@ import {
   X,
   Copy,
   Check,
+  RefreshCw,
   Search,
   Send,
   Swords,
@@ -29,7 +30,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
   onInviteFriendToRoom,
   activeRoomCode,
 }) => {
-  const profile = useAuthStore(state => state.profile);
+  const { profile, regenerateFriendCode } = useAuthStore();
   const {
     friends,
     pendingRequests,
@@ -289,7 +290,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                   </span>
                   <div className="flex items-center justify-center gap-2">
                     <span className="font-mono text-xl sm:text-2xl font-black text-amber-300 tracking-wider">
-                      {profile.friendCode || 'DIGU-7482'}
+                      {profile.friendCode}
                     </span>
                     <button
                       onClick={handleCopyMyCode}
@@ -297,6 +298,13 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                       title="Copy Friend Code"
                     >
                       {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => regenerateFriendCode()}
+                      className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition cursor-pointer"
+                      title="Generate New Friend Code"
+                    >
+                      <RefreshCw className="w-4 h-4 text-slate-300 hover:rotate-180 transition-transform duration-300" />
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400 max-w-xs mx-auto">

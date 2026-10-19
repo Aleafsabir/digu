@@ -9,35 +9,50 @@ import { UserProfile } from '../types/auth';
 
 const STORAGE_KEY = 'thaasbai_player_profile_v1';
 
-export const DEFAULT_GUEST_PROFILE: UserProfile = {
-  id: `guest_${Math.random().toString(36).substring(2, 9)}`,
-  displayName: `Player ${Math.floor(1000 + Math.random() * 9000)}`,
-  avatarId: 'sultan',
-  loginProvider: 'GUEST',
-  coins: 10000, // 10,000 free starting chips
-  gems: 50,     // 50 starting gems
-  level: 1,
-  xp: 0,
-  xpNextLevel: 500,
-  cloudSyncStatus: 'LOCAL_ONLY',
-  friendCode: 'DIGU-7482',
-  presenceStatus: 'IN_LOBBY',
-  lastSyncedAt: null,
-  stats: {
-    gamesPlayed: 0,
-    gamesWon: 0,
-    winStreak: 0,
-    bestWinStreak: 0,
-    totalGins: 0,
-    thousandPointRuns: 0,
-    totalPointsScored: 0,
-  },
-  createdAt: new Date().toISOString(),
-};
+/**
+ * Generate a unique 5-digit Holhuashi Friend Code (e.g. HLH-49201)
+ */
+export function generateFriendCode(): string {
+  const digits = Math.floor(10000 + Math.random() * 90000);
+  return `HLH-${digits}`;
+}
+
+export function createGuestProfile(): UserProfile {
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  const guestNumber = Math.floor(1000 + Math.random() * 9000);
+  return {
+    id: `guest_${randomSuffix}_${Date.now().toString(36)}`,
+    displayName: `Player ${guestNumber}`,
+    avatarId: 'sultan',
+    loginProvider: 'GUEST',
+    coins: 10000, // 10,000 free starting chips
+    gems: 50,     // 50 starting gems
+    level: 1,
+    xp: 0,
+    xpNextLevel: 500,
+    cloudSyncStatus: 'LOCAL_ONLY',
+    friendCode: generateFriendCode(),
+    presenceStatus: 'IN_LOBBY',
+    lastSyncedAt: null,
+    stats: {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      winStreak: 0,
+      bestWinStreak: 0,
+      totalGins: 0,
+      thousandPointRuns: 0,
+      totalPointsScored: 0,
+    },
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export const DEFAULT_GUEST_PROFILE: UserProfile = createGuestProfile();
 
 export class CloudSyncService {
   /**
    * Load profile from local storage, falling back to default guest profile.
+   * Automatically migrates legacy shared/static friend codes (e.g. DIGU-7482) to unique codes.
    */
   static loadProfile(): UserProfile {
     try {
@@ -45,22 +60,45 @@ export class CloudSyncService {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          const friendCode = parsed.friendCode || `DIGU-${Math.floor(1000 + Math.random() * 9000)}`;
-          return {
-            ...DEFAULT_GUEST_PROFILE,
+          // Auto-migrate if friend code is missing, empty, or the old hardcoded 'DIGU-7482'
+          const isLegacySharedCode =
+            !parsed.friendCode ||
+            parsed.friendCode === 'DIGU-7482' ||
+            parsed.friendCode === 'DIGU-GUES' ||
+            parsed.friendCode === 'HLH-7482';
+
+          const friendCode = isLegacySharedCode ? generateFriendCode() : parsed.friendCode;
+
+          const profile: UserProfile = {
+            ...createGuestProfile(),
             ...parsed,
             friendCode,
             stats: {
-              ...DEFAULT_GUEST_PROFILE.stats,
+              gamesPlayed: 0,
+              gamesWon: 0,
+              winStreak: 0,
+              bestWinStreak: 0,
+              totalGins: 0,
+              thousandPointRuns: 0,
+              totalPointsScored: 0,
               ...(parsed.stats || {}),
             },
           };
+
+          // If the profile had the legacy hardcoded code, persist the new unique code immediately
+          if (isLegacySharedCode) {
+            CloudSyncService.saveProfileLocally(profile);
+          }
+
+          return profile;
         }
       }
     } catch {
       // Fallback cleanly without stderr spam in test environment
     }
-    return DEFAULT_GUEST_PROFILE;
+    const freshProfile = createGuestProfile();
+    CloudSyncService.saveProfileLocally(freshProfile);
+    return freshProfile;
   }
 
   /**
@@ -107,9 +145,18 @@ export class CloudSyncService {
   ): Promise<UserProfile> {
     await new Promise(resolve => setTimeout(resolve, 800));
 
+    const friendCode =
+      currentProfile.friendCode &&
+      currentProfile.friendCode !== 'DIGU-7482' &&
+      currentProfile.friendCode !== 'DIGU-GUES' &&
+      currentProfile.friendCode !== 'HLH-7482'
+        ? currentProfile.friendCode
+        : generateFriendCode();
+
     const updated: UserProfile = {
       ...currentProfile,
       loginProvider: provider,
+      friendCode,
       email: credentials.email || currentProfile.email,
       phone: credentials.phone || currentProfile.phone,
       displayName: credentials.displayName || currentProfile.displayName,

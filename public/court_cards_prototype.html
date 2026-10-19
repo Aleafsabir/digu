@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bicycle® Renaissance Gemstone Luxury Deck - Digu Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            cinzel: ['Cinzel', 'serif'],
+            serif: ['"Times New Roman"', 'Georgia', 'serif'],
+          },
+          colors: {
+            sapphire: {
+              deep: '#081430',
+              royal: '#0E2864',
+              mid: '#1D4ED8',
+              bright: '#38BDF8',
+            },
+            ruby: {
+              dark: '#5B0E1E',
+              crimson: '#991B1B',
+              bright: '#E11D48',
+              light: '#FDA4AF',
+            },
+            antiqueGold: {
+              light: '#FDE68A',
+              DEFAULT: '#E5C378',
+              rich: '#D4AF37',
+              dark: '#936B09',
+            },
+            diguEmerald: {
+              DEFAULT: '#05D59A',
+              dark: '#02241A',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Card 3D Lift */
+    .card-3d {
+      transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
+      transform-style: preserve-3d;
+    }
+    .card-3d:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.6);
+    }
+    .card-3d.selected {
+      transform: translateY(-24px) scale(1.06);
+      box-shadow: 0 24px 45px -5px rgba(5, 213, 154, 0.65);
+    }
+
+    /* Hand Fan Overlap */
+    .hand-card {
+      margin-left: -32px;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .hand-card:first-child {
+      margin-left: 0;
+    }
+    .hand-card:hover {
+      margin-top: -20px;
+      margin-right: 14px;
+      margin-left: -18px;
+      z-index: 50 !important;
+    }
+
+    /* Traditional Felt Backgrounds */
+    .felt-emerald {
+      background: radial-gradient(circle at 50% 35%, #054d33 0%, #032e1f 50%, #01160e 100%);
+    }
+    .felt-burgundy {
+      background: radial-gradient(circle at 50% 35%, #58111A 0%, #30090e 55%, #150205 100%);
+    }
+    .felt-sapphire {
+      background: radial-gradient(circle at 50% 35%, #0c2356 0%, #071534 55%, #020712 100%);
+    }
+  </style>
+</head>
+<body class="bg-[#020B07] text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="bg-[#031A11]/95 backdrop-blur border-b border-[#05D59A]/20 sticky top-0 z-50 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5C378] to-[#936B09] p-0.5 shadow-[0_0_15px_rgba(229,195,120,0.4)] flex items-center justify-center">
+          <div class="w-full h-full bg-[#081430] rounded-[10px] flex items-center justify-center">
+            <span class="text-lg font-cinzel font-black text-[#FDE68A]">♠</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-black tracking-wide text-white">BICYCLE® RENAISSANCE GEMSTONE DECK</h1>
+            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">MATCHING USER SPEC</span>
+          </div>
+          <p class="text-xs text-slate-400">Renaissance Engraving Portraits • Lace Ruff Queen • Slashed Doublet Jack • Faceted Gemstone Pips</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center gap-2">
+        <button id="btnComparisonMode" onclick="toggleComparisonMode()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#042618] hover:bg-[#063823] text-[#E5C378] border border-[#E5C378]/30 flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span id="txtComparisonMode">Compare Royal vs Emerald</span>
+        </button>
+
+        <button onclick="openConfirmModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-black bg-gradient-to-r from-[#05D59A] to-[#0284C7] text-[#02140D] hover:shadow-[0_0_20px_rgba(5,213,154,0.5)] transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Confirm This Bicycle Design</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Color Editions Selector Bar -->
+  <nav class="bg-[#02140D] border-b border-white/10 px-4 py-2.5 sm:px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between overflow-x-auto gap-2 no-scrollbar">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-slate-400 mr-1 uppercase tracking-wider hidden sm:inline">Deck Palette:</span>
+        
+        <button onclick="selectEdition('royal_sapphire')" id="tab-royal_sapphire" class="edition-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-[#1D4ED8] text-white shadow-[0_0_15px_rgba(29,78,216,0.5)]">
+          <span>👑 Royal Sapphire & Crimson Velvet (Exact Reference)</span>
+        </button>
+
+        <button onclick="selectEdition('digu_emerald')" id="tab-digu_emerald" class="edition-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-[#042618] text-slate-300 hover:text-white border border-white/5">
+          <span>💎 Digu Emerald & Gold Edition (Island Lagoon Gemstones)</span>
+        </button>
+
+        <button onclick="selectEdition('deck_backs')" id="tab-deck_backs" class="edition-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-[#042618] text-slate-300 hover:text-white border border-white/5">
+          <span>🎴 Matching Gold Filigree Card Backs</span>
+        </button>
+      </div>
+
+      <!-- Felt Table Switcher -->
+      <div class="flex items-center gap-1.5 pl-4 border-l border-white/10 shrink-0">
+        <span class="text-[11px] text-slate-400 font-medium hidden md:inline">Felt:</span>
+        <button onclick="setFelt('emerald')" title="Emerald Lagoon" class="w-5 h-5 rounded-full bg-[#054d33] border-2 border-white/50 focus:scale-110 transition"></button>
+        <button onclick="setFelt('burgundy')" title="Royal Burgundy" class="w-5 h-5 rounded-full bg-[#58111A] border border-white/20 hover:scale-110 transition"></button>
+        <button onclick="setFelt('sapphire')" title="Midnight Sapphire" class="w-5 h-5 rounded-full bg-[#0c2356] border border-white/20 hover:scale-110 transition"></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Reference Deck Analysis Card -->
+  <div class="bg-gradient-to-r from-[#0c2356] via-[#091b40] to-[#040e24] border-b border-sky-400/25 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-sky-100">
+      <div class="flex items-center gap-3">
+        <div class="px-2.5 py-1 rounded bg-amber-400/20 text-amber-300 font-black uppercase text-[10px] border border-amber-400/30">
+          IMAGE REPRODUCTION
+        </div>
+        <div>
+          <span class="font-bold text-white">Anatomy Breakdown from Reference Image:</span>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sky-200/80 text-[11px] mt-0.5">
+            <span>• <strong>King</strong>: Renaissance crimson velvet robe with ermine fur border, holding dagger hilt.</span>
+            <span>• <strong>Queen</strong>: Standing pleated lace Elizabethan ruff, striped blue/gold silk sleeves.</span>
+            <span>• <strong>Jack</strong>: Slashed red velvet doublet, wide gold belt, halberd over shoulder, feathered cap.</span>
+            <span>• <strong>Pips</strong>: 3D Faceted gemstones (faceted rubies & sapphires).</span>
+            <span>• <strong>Face Background</strong>: Elegant pale damask watermark scrolling across card surface.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Canvas Felt Table Area -->
+  <main id="feltCanvas" class="felt-emerald flex-1 flex flex-col p-4 sm:p-6 transition-colors duration-500 relative">
+    
+    <!-- Controls Header -->
+    <div class="max-w-7xl mx-auto w-full mb-6 bg-black/45 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span id="editionBadge" class="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-[#1D4ED8] text-white">EXACT IMAGE REPRODUCTION</span>
+          <span class="text-xs text-[#E5C378] font-cinzel font-bold">Bicycle® Renaissance Masterpiece</span>
+        </div>
+        <h2 id="editionTitle" class="text-xl sm:text-2xl font-black text-white tracking-wide">Renaissance Court Figures & Faceted Gemstone Pips</h2>
+        <p id="editionDesc" class="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+          Rendered with classical steel-engraving cross-hatching, rich velvet drapery, the iconic high Elizabethan lace ruff collar for Queens, slashed sleeve doublets for Jacks, and faceted 3D cut gemstone pips on faint damask parchment.
+        </p>
+      </div>
+
+      <!-- Filters & Card Sizing -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex bg-black/50 rounded-lg p-0.5 border border-white/10">
+          <button onclick="filterRank('ALL')" class="rank-btn px-2.5 py-1 rounded text-xs font-bold bg-[#05D59A] text-[#02140D]">All Cards</button>
+          <button onclick="filterRank('K')" class="rank-btn px-2.5 py-1 rounded text-xs font-bold text-slate-300 hover:text-white">Kings</button>
+          <button onclick="filterRank('Q')" class="rank-btn px-2.5 py-1 rounded text-xs font-bold text-slate-300 hover:text-white">Queens</button>
+          <button onclick="filterRank('J')" class="rank-btn px-2.5 py-1 rounded text-xs font-bold text-slate-300 hover:text-white">Jacks</button>
+          <button onclick="filterRank('FEATURE')" class="rank-btn px-2.5 py-1 rounded text-xs font-bold text-amber-300 hover:text-white">Ace & Number</button>
+        </div>
+
+        <div class="flex bg-black/50 rounded-lg p-0.5 border border-white/10">
+          <button onclick="setSize('hand')" id="size-hand" class="size-btn px-2 py-1 rounded text-xs font-bold bg-[#E5C378] text-[#02140D]">Hand</button>
+          <button onclick="setSize('table')" id="size-table" class="size-btn px-2 py-1 rounded text-xs font-bold text-slate-300 hover:text-white">Table</button>
+          <button onclick="setSize('jumbo')" id="size-jumbo" class="size-btn px-2 py-1 rounded text-xs font-bold text-slate-300 hover:text-white">Zoom</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Single-Edition Gallery View -->
+    <div id="galleryView" class="max-w-7xl mx-auto w-full flex-1">
+      
+      <!-- Showcase Row: Featured Centerpiece Ace of Spades & Number Cards (Matches User Image!) -->
+      <div id="section-feature" class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-amber-300">Featured Centerpiece Cards (From Image)</h3>
+          </div>
+          <span class="text-xs text-slate-400">Faceted Sapphire Ace of Spades • Gemstone 7 of Clubs & 4 of Hearts • Ornate Back</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center" id="featuredGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Kings Section -->
+      <div id="section-kings" class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-[#E5C378]"></div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-[#E5C378]">Kings (K / 13 Points)</h3>
+          </div>
+          <span class="text-xs text-slate-400">Crimson Velvet Robe • Ermine Fur Lining • Dagger & Scepter • Reversible Mirror</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center" id="kingsGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Queens Section -->
+      <div id="section-queens" class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-sky-400"></div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-sky-400">Queens (Q / 12 Points)</h3>
+          </div>
+          <span class="text-xs text-slate-400">Standing Pleated Lace Elizabethan Ruff Collar • Striped Blue/Gold Silk Sleeves</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center" id="queensGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Jacks Section -->
+      <div id="section-jacks" class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-rose-400">Jacks (J / 11 Points)</h3>
+          </div>
+          <span class="text-xs text-slate-400">Slashed Velvet Doublet • Broad Gold Belt • Halberd Poleaxe • Feathered Beret</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 justify-items-center" id="jacksGrid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Comparison View (Royal Sapphire vs Digu Emerald) -->
+    <div id="comparisonView" class="max-w-7xl mx-auto w-full flex-1 hidden">
+      <div class="bg-black/50 backdrop-blur rounded-2xl p-5 border border-white/10 mb-6">
+        <h3 class="text-lg font-black text-[#E5C378] mb-1">Direct Head-to-Head Comparison: Royal Sapphire vs Digu Emerald</h3>
+        <p class="text-xs text-slate-300">Compare the same Renaissance King, Queen, and Jack in original Royal Sapphire vs Digu Lagoon Emerald.</p>
+      </div>
+      <div class="space-y-8" id="comparisonMatrix">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Live In-Game Hand Simulator -->
+    <div class="max-w-5xl mx-auto w-full mt-auto pt-6 border-t border-white/10">
+      <div class="bg-black/60 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/15 shadow-2xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-black text-[#05D59A] tracking-wider">Realistic 10-Card Hand Simulation</span>
+            <span class="text-[10px] text-slate-400">• Click cards to inspect fan elevation & damask texture</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleHandMelds()" id="btnHandMeld" class="px-2.5 py-1 rounded text-xs font-bold bg-[#042618] hover:bg-[#063823] text-[#05D59A] border border-[#05D59A]/30 transition">
+              Melds Active (Set of Kings + Royal Run)
+            </button>
+            <button onclick="resetHandSelection()" class="px-2 py-1 rounded text-xs text-slate-400 hover:text-white transition">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-center items-end py-4 px-2 overflow-x-auto min-h-[175px]" id="handContainer">
+          <!-- 10 Cards fanned out dynamically -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Inspection Modal -->
+  <div id="inspectModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#06182c] border-2 border-[#E5C378] rounded-3xl max-w-2xl w-full p-6 shadow-[0_0_50px_rgba(229,195,120,0.35)] relative flex flex-col md:flex-row items-center gap-6">
+      <button onclick="closeInspectModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">×</button>
+
+      <div class="shrink-0">
+        <div id="modalCardHolder" class="w-[180px] h-[270px] rounded-2xl shadow-2xl"></div>
+      </div>
+
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span id="modalRankSuitBadge" class="text-xs font-black uppercase px-2.5 py-0.5 rounded bg-[#1D4ED8] text-white">QUEEN OF CLUBS ♣</span>
+          <span class="text-[10px] uppercase font-bold text-amber-300 tracking-wider">RENAISSANCE GEMSTONE</span>
+        </div>
+        <h3 id="modalTitle" class="text-xl font-black text-white mt-1">Queen of Clubs (Renaissance Elizabethan Ruff)</h3>
+        <p id="modalSub" class="text-xs text-[#E5C378] mt-0.5">Faithfully Recreated from Bicycle Reference Image</p>
+
+        <div class="space-y-2 mt-4 text-xs text-slate-300">
+          <div class="bg-black/30 p-2.5 rounded-xl border border-white/5">
+            <span class="font-bold text-[#E5C378] block mb-0.5">Design Authenticity:</span>
+            <p id="modalAnatomyDesc">Includes the magnificent high-standing Elizabethan pleated lace ruff collar, striped blue & gold silk ribbon sleeves, delicate pearl necklace, and holding a golden sceptre.</p>
+          </div>
+
+          <div class="bg-black/30 p-2.5 rounded-xl border border-white/5">
+            <span class="font-bold text-sky-400 block mb-0.5">Faceted 3D Gemstone & Damask:</span>
+            <p>Every suit pip features multi-faceted diamond-cut refractions, and the card background carries an authentic subtle Renaissance filigree damask watermark.</p>
+          </div>
+        </div>
+
+        <div class="mt-5 flex gap-2">
+          <button onclick="closeInspectModal()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#05D59A] to-[#0284C7] text-[#02140D] font-bold text-xs">
+            Close Inspector
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#02140D] border-2 border-[#05D59A] rounded-3xl max-w-lg w-full p-6 shadow-[0_0_50px_rgba(5,213,154,0.3)] relative">
+      <button onclick="closeConfirmModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">×</button>
+
+      <div class="text-center mb-5">
+        <span class="text-[10px] uppercase font-black px-2.5 py-0.5 rounded bg-[#05D59A]/20 text-[#05D59A] border border-[#05D59A]/40">DECISION APPROVAL</span>
+        <h3 class="text-xl font-black text-white mt-1">Approve Renaissance Bicycle Court Faces?</h3>
+        <p class="text-xs text-slate-400 mt-1">This will implement these Renaissance engraved court cards and faceted gemstone pips into <code class="text-emerald-400">PlayingCard.tsx</code>.</p>
+      </div>
+
+      <div class="space-y-3">
+        <div class="p-3.5 rounded-xl bg-black/40 border border-[#05D59A]/30">
+          <span class="text-xs font-bold text-[#05D59A] block mb-1">Approved Style:</span>
+          <span class="font-black text-white text-sm">Bicycle® Renaissance Gemstone Deck (Lace Ruff Queen, Velvet Robe King, Slashed Doublet Jack)</span>
+        </div>
+
+        <button onclick="approveImplementation()" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#05D59A] to-[#0284C7] text-[#02140D] font-black text-sm shadow-[0_0_20px_rgba(5,213,154,0.4)] transition">
+          Confirm Approval & Generate Implementation Code
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-[#042618] border border-[#05D59A] text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+    <span class="text-[#05D59A] font-bold">✓</span>
+    <span id="toastMsg" class="text-xs font-bold">Approved!</span>
+  </div>
+
+  <!-- SCRIPT ENGINE & HIGH-FIDELITY VECTOR GRAPHICS -->
+  <script>
+    const EDITIONS = {
+      royal_sapphire: {
+        badge: 'EXACT IMAGE REPRODUCTION',
+        badgeBg: 'bg-[#1D4ED8]',
+        title: 'Bicycle® Renaissance Royal Sapphire Edition',
+        desc: 'Direct match to your uploaded image: classical steel-engraving Renaissance portraits, Elizabethan lace ruff Queen, slashed velvet Jack, crimson ermine King, faceted cut gemstone pips, and subtle damask watermark parchment.',
+        colors: {
+          robeKing: '#881337',
+          robeKingHighlight: '#BE123C',
+          robeQueen: '#1D4ED8',
+          robeQueenSecondary: '#F59E0B',
+          robeJack: '#B91C1C',
+          gold: '#E5C378',
+          goldDark: '#936B09',
+          goldLight: '#FDE68A',
+          gemSpade: '#1E40AF',
+          gemHeart: '#DC2626',
+          gemDiamond: '#D97706',
+          gemClub: '#1D4ED8',
+          watermark: '#0A2540',
+          watermarkOpacity: '0.07',
+          backBg: '#091A42',
+          backGold: '#E5C378',
+        }
+      },
+      digu_emerald: {
+        badge: 'DIGU ISLAND LUXURY',
+        badgeBg: 'bg-[#05D59A] text-[#02140D]',
+        title: 'Bicycle® Renaissance Digu Emerald Edition',
+        desc: 'Retains the identical Renaissance engraving style, high standing lace ruffs, and slashed velvet doublets, but tailored with glowing Maldivian emerald gemstone pips and 24k bullion gold embroidery.',
+        colors: {
+          robeKing: '#064E3B',
+          robeKingHighlight: '#059669',
+          robeQueen: '#047857',
+          robeQueenSecondary: '#E5C378',
+          robeJack: '#065F46',
+          gold: '#E5C378',
+          goldDark: '#936B09',
+          goldLight: '#FDE68A',
+          gemSpade: '#05D59A',
+          gemHeart: '#C41E3A',
+          gemDiamond: '#E5C378',
+          gemClub: '#05D59A',
+          watermark: '#042618',
+          watermarkOpacity: '0.08',
+          backBg: '#02140D',
+          backGold: '#E5C378',
+        }
+      },
+      deck_backs: {
+        badge: 'GOLD FILIGREE CARD BACKS',
+        badgeBg: 'bg-amber-600',
+        title: 'Ornate Baroque Gemstone Card Backs',
+        desc: 'The magnificent card back from your image: deep royal sapphire or emerald velvet with 24k gold acanthus leaf filigree framing a centerpiece oval cut sapphire jewel.',
+        colors: {}
+      }
+    };
+
+    const SUITS = [
+      { id: 'SPADES', symbol: '♠', isRed: false, colorClass: 'text-slate-900', label: 'Spades' },
+      { id: 'HEARTS', symbol: '♥', isRed: true, colorClass: 'text-[#DC2626]', label: 'Hearts' },
+      { id: 'DIAMONDS', symbol: '♦', isRed: true, colorClass: 'text-[#D97706]', label: 'Diamonds' },
+      { id: 'CLUBS', symbol: '♣', isRed: false, colorClass: 'text-slate-900', label: 'Clubs' },
+    ];
+
+    let currentEdition = 'royal_sapphire';
+    let currentFilterRank = 'ALL';
+    let currentCardSize = 'hand';
+    let isComparisonMode = false;
+    let handMeldsActive = true;
+    let selectedHandCardId = 'KD';
+
+    const SIZE_CONFIGS = {
+      hand: { w: 'w-[96px] md:w-[108px]', h: 'h-[144px] md:h-[162px]', fontRank: 'text-base sm:text-lg', fontPip: 'w-3 h-3 sm:w-3.5 sm:h-3.5' },
+      table: { w: 'w-[84px] md:w-[94px]', h: 'h-[126px] md:h-[140px]', fontRank: 'text-sm sm:text-base', fontPip: 'w-2.5 h-2.5 sm:w-3 sm:h-3' },
+      jumbo: { w: 'w-[160px] md:w-[180px]', h: 'h-[240px] md:h-[270px]', fontRank: 'text-2xl', fontPip: 'w-5 h-5' },
+    };
+
+    /* -------------------------------------------------------------------------
+       FACETED 3D GEMSTONE PIP GENERATOR (Matches the cut crystals in the image)
+       ------------------------------------------------------------------------- */
+    function getFacetedGemPip(suitId, sizeClass = "w-4 h-4") {
+      if (suitId === 'HEARTS') {
+        // Faceted Cut Ruby Gem
+        return `
+          <svg viewBox="0 0 40 40" class="${sizeClass}" fill="none">
+            <defs>
+              <linearGradient id="ruby-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FF4D6D"/>
+                <stop offset="50%" stopColor="#DC2626"/>
+                <stop offset="100%" stopColor="#881337"/>
+              </linearGradient>
+            </defs>
+            <path d="M20 37 C10 26 2 20 2 11 C2 5 7 2 12 2 C16 2 19 5 20 8 C21 5 24 2 28 2 C33 2 38 5 38 11 C38 20 30 26 20 37 Z" fill="url(#ruby-main)" stroke="#4C0519" stroke-width="0.8"/>
+            <!-- Facet Cut Lines & Shading -->
+            <polygon points="20,8 14,14 20,28 26,14" fill="#EF4444" opacity="0.6"/>
+            <polygon points="12,2 14,14 2,11" fill="#FF758F" opacity="0.5"/>
+            <polygon points="28,2 26,14 38,11" fill="#991B1B" opacity="0.7"/>
+            <polygon points="20,28 14,14 2,11 20,37" fill="#7F1D1D" opacity="0.6"/>
+            <polygon points="20,28 26,14 38,11 20,37" fill="#991B1B" opacity="0.5"/>
+            <!-- Specular Glint -->
+            <circle cx="10" cy="8" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+          </svg>
+        `;
+      } else if (suitId === 'DIAMONDS') {
+        // Faceted Lozenge Cut Gemstone (Amber / Ruby)
+        return `
+          <svg viewBox="0 0 40 40" class="${sizeClass}" fill="none">
+            <defs>
+              <linearGradient id="dia-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FDE68A"/>
+                <stop offset="45%" stopColor="#D97706"/>
+                <stop offset="100%" stopColor="#78350F"/>
+              </linearGradient>
+            </defs>
+            <polygon points="20,2 36,20 20,38 4,20" fill="url(#dia-main)" stroke="#451A03" stroke-width="0.8"/>
+            <!-- Internal Facets -->
+            <polygon points="20,10 28,20 20,30 12,20" fill="#FBBF24" opacity="0.75"/>
+            <polygon points="20,2 20,10 12,20 4,20" fill="#FEF08A" opacity="0.6"/>
+            <polygon points="20,2 20,10 28,20 36,20" fill="#B45309" opacity="0.7"/>
+            <polygon points="20,38 20,30 12,20 4,20" fill="#92400E" opacity="0.8"/>
+            <polygon points="20,38 20,30 28,20 36,20" fill="#78350F" opacity="0.9"/>
+            <circle cx="15" cy="14" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+          </svg>
+        `;
+      } else if (suitId === 'CLUBS') {
+        // Faceted Cut Sapphire Trefoil (Matches 7 of Clubs in image!)
+        return `
+          <svg viewBox="0 0 40 40" class="${sizeClass}" fill="none">
+            <defs>
+              <linearGradient id="club-gem" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#60A5FA"/>
+                <stop offset="50%" stopColor="#1D4ED8"/>
+                <stop offset="100%" stopColor="#0B1E48"/>
+              </linearGradient>
+            </defs>
+            <!-- Top Lozenge -->
+            <circle cx="20" cy="12" r="8" fill="url(#club-gem)" stroke="#06122C" stroke-width="0.75"/>
+            <!-- Left Lozenge -->
+            <circle cx="11" cy="22" r="8" fill="url(#club-gem)" stroke="#06122C" stroke-width="0.75"/>
+            <!-- Right Lozenge -->
+            <circle cx="29" cy="22" r="8" fill="url(#club-gem)" stroke="#06122C" stroke-width="0.75"/>
+            <!-- Base Stem -->
+            <path d="M18 20 L22 20 L24 35 L16 35 Z" fill="url(#club-gem)" stroke="#06122C" stroke-width="0.75"/>
+            <!-- Center Facet Ring -->
+            <circle cx="20" cy="19" r="4.5" fill="#3B82F6" stroke="#93C5FD" stroke-width="0.5"/>
+            <!-- Facet Highlights -->
+            <circle cx="18" cy="10" r="1.2" fill="#FFFFFF" opacity="0.8"/>
+            <circle cx="9" cy="20" r="1.2" fill="#FFFFFF" opacity="0.8"/>
+            <circle cx="27" cy="20" r="1.2" fill="#FFFFFF" opacity="0.8"/>
+          </svg>
+        `;
+      } else {
+        // Faceted Cut Sapphire Spade (Matches Ace of Spades in image!)
+        return `
+          <svg viewBox="0 0 40 40" class="${sizeClass}" fill="none">
+            <defs>
+              <linearGradient id="spade-gem" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38BDF8"/>
+                <stop offset="45%" stopColor="#1D4ED8"/>
+                <stop offset="100%" stopColor="#091A42"/>
+              </linearGradient>
+            </defs>
+            <path d="M20 2 C20 2 36 18 36 26 C36 32 30 35 24 33 C22 32 21 30 20 28 C19 30 18 32 16 33 C10 35 4 32 4 26 C4 18 20 2 20 2 Z" fill="url(#spade-gem)" stroke="#06122C" stroke-width="0.8"/>
+            <path d="M18 28 L22 28 L24 38 L16 38 Z" fill="url(#spade-gem)" stroke="#06122C" stroke-width="0.75"/>
+            <!-- Internal Gemstone Facet Lines -->
+            <polygon points="20,6 26,18 20,26 14,18" fill="#60A5FA" opacity="0.6"/>
+            <polygon points="20,6 36,26 26,18" fill="#1E3A8A" opacity="0.7"/>
+            <polygon points="20,6 4,26 14,18" fill="#93C5FD" opacity="0.5"/>
+            <circle cx="15" cy="14" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+          </svg>
+        `;
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       RENAISSANCE ENGRAVING COURT ART GENERATOR
+       (Matches the exact figures in the user's uploaded image)
+       ------------------------------------------------------------------------- */
+    function getRenaissanceCourtSvg(editionKey, rank, suitId) {
+      const p = EDITIONS[editionKey].colors;
+      const isRed = (suitId === 'HEARTS' || suitId === 'DIAMONDS');
+
+      // Shared Renaissance Damask Watermark Pattern in Background
+      const damaskWatermark = `
+        <defs>
+          <pattern id="damask-pat-${editionKey}" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M15 0 C18 6 24 10 30 15 C24 20 18 24 15 30 C12 24 6 20 0 15 C6 10 12 6 15 0 Z" fill="none" stroke="${p.watermark}" stroke-width="0.4" opacity="${p.watermarkOpacity}"/>
+            <circle cx="15" cy="15" r="2.5" fill="none" stroke="${p.watermark}" stroke-width="0.3" opacity="${p.watermarkOpacity}"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#damask-pat-${editionKey})" />
+      `;
+
+      if (rank === 'K') {
+        // RENAISSANCE KING (Matches King of Diamonds in user image):
+        // Wearing crimson velvet mantle draped over one shoulder with white ermine fur trim, sculpted crown, holding dagger hilt.
+        const topHalf = `
+          <g>
+            <!-- Heavy Velvet Mantle Robe with Engraving Folds -->
+            <path d="M18 65 C18 42 26 34 42 34 C60 34 68 42 70 65 Z" fill="${p.robeKing}" stroke="#2B050D" stroke-width="0.8"/>
+            <!-- Velvet Shading Hatching -->
+            <path d="M22 65 C22 46 28 38 42 38" stroke="${p.robeKingHighlight}" stroke-width="2.5" fill="none" opacity="0.7"/>
+            <path d="M30 65 C30 48 36 42 46 42" stroke="${p.robeKingHighlight}" stroke-width="2" fill="none" opacity="0.5"/>
+
+            <!-- Thick White Ermine Fur Collar Trim with Black Ermine Tails -->
+            <path d="M22 62 Q42 44 64 62" fill="#FFFDF9" stroke="#1A1817" stroke-width="0.8"/>
+            <path d="M30 56 L31 59 M42 53 L42 57 M54 56 L55 59" stroke="#111" stroke-width="1.5" stroke-linecap="round"/>
+
+            <!-- Curled Renaissance Hair and Beard -->
+            <path d="M26 22 C20 30 22 46 30 48 L56 48 C62 46 64 30 58 22 Z" fill="#6B4F35" stroke="#1A140F" stroke-width="0.6"/>
+            <!-- Facial Features & Gaze -->
+            <path d="M32 24 Q32 40 43 41 Q54 40 54 24 Z" fill="#FCE7D0"/>
+            <!-- Curled Moustache & Beard -->
+            <path d="M34 32 Q43 43 52 32 Q49 46 43 47 Q37 46 34 32 Z" fill="#543D2A" stroke="#1A140F" stroke-width="0.6"/>
+            <ellipse cx="38" cy="28" rx="1.1" ry="0.8" fill="#1A140F"/>
+            <ellipse cx="48" cy="28" rx="1.1" ry="0.8" fill="#1A140F"/>
+
+            <!-- Sculpted 24k Gold Renaissance Crown -->
+            <path d="M28 22 L31 12 L37 17 L43 9 L49 17 L55 12 L58 22 Z" fill="${p.gold}" stroke="#451A03" stroke-width="0.8"/>
+            <circle cx="43" cy="9" r="1.5" fill="#DC2626"/>
+            <circle cx="37" cy="17" r="1.2" fill="#1D4ED8"/>
+            <circle cx="49" cy="17" r="1.2" fill="#1D4ED8"/>
+
+            <!-- Dagger / Scepter in Hand (Held upright like in user image) -->
+            <rect x="22" y="30" width="3.5" height="24" rx="1" fill="#E2E8F0" stroke="#111" stroke-width="0.5"/>
+            <!-- Gold Hilt -->
+            <rect x="18" y="38" width="11" height="2.5" rx="1" fill="${p.gold}" stroke="#451A03" stroke-width="0.5"/>
+            <circle cx="23.5" cy="42" r="3.5" fill="#FCE7D0" stroke="#111" stroke-width="0.5"/>
+            <!-- Gold Cord Sash -->
+            <path d="M32 50 Q48 58 64 50" stroke="${p.goldLight}" stroke-width="1.8" fill="none"/>
+          </g>
+        `;
+
+        return `
+          <svg viewBox="0 0 88 130" class="w-full h-full" fill="none">
+            ${damaskWatermark}
+            ${topHalf}
+            <g transform="rotate(180 44 65)">
+              ${topHalf}
+            </g>
+          </svg>
+        `;
+
+      } else if (rank === 'Q') {
+        // RENAISSANCE QUEEN (Matches Queen of Clubs in user image):
+        // Magnificent standing pleated lace Elizabethan ruff collar behind head, striped blue & gold silk ribbon sleeves, holding golden sceptre.
+        const topHalf = `
+          <g>
+            <!-- STANDING PLEATED LACE ELIZABETHAN RUFF COLLAR (Behind Head) -->
+            <path d="M22 28 C18 14 30 8 44 8 C58 8 70 14 66 28 C64 36 60 42 56 46 L32 46 C28 42 24 36 22 28 Z" fill="#F8FAFC" stroke="#94A3B8" stroke-width="0.6"/>
+            <!-- Lace Pleats Radiating Lines -->
+            <path d="M44 8 L44 26 M36 10 L40 26 M52 10 L48 26 M28 14 L36 28 M60 14 L52 28 M22 22 L32 32 M66 22 L56 32" stroke="#CBD5E1" stroke-width="0.6"/>
+
+            <!-- Striped Puffed Renaissance Silk Sleeves (Blue & Gold Ribbons) -->
+            <path d="M18 65 C16 48 22 40 32 40 L56 40 C66 40 72 48 70 65 Z" fill="${p.robeQueen}" stroke="#0F172A" stroke-width="0.8"/>
+            <!-- Gold Ribbon Stripes on Puffed Sleeves -->
+            <path d="M22 65 C21 54 26 44 32 40" stroke="${p.robeQueenSecondary}" stroke-width="3" fill="none"/>
+            <path d="M28 65 C27 56 32 48 38 42" stroke="#FDE68A" stroke-width="1.5" fill="none"/>
+            <path d="M66 65 C67 54 62 44 56 40" stroke="${p.robeQueenSecondary}" stroke-width="3" fill="none"/>
+            <path d="M60 65 C61 56 56 48 50 42" stroke="#FDE68A" stroke-width="1.5" fill="none"/>
+
+            <!-- Bodice & Pearl String Necklace -->
+            <path d="M34 44 L54 44 L50 65 L38 65 Z" fill="#FFFDF9" stroke="#111" stroke-width="0.5"/>
+            <path d="M36 40 Q44 48 52 40" stroke="${p.gold}" stroke-width="1.5" fill="none"/>
+            <circle cx="44" cy="45" r="1.5" fill="#FFF" stroke="#CBD5E1" stroke-width="0.4"/>
+
+            <!-- Delicate Face & Queen Coronet -->
+            <path d="M35 24 Q35 40 44 41 Q53 40 53 24 Z" fill="#FCE7D0"/>
+            <ellipse cx="40" cy="29" rx="1.1" ry="0.8" fill="#1A140F"/>
+            <ellipse cx="48" cy="29" rx="1.1" ry="0.8" fill="#1A140F"/>
+            <path d="M42 35 Q44 37 46 35" stroke="#BE123C" stroke-width="1" stroke-linecap="round"/>
+
+            <!-- Golden Coronet with Pearl Peaks -->
+            <path d="M33 22 L35 15 L40 18 L44 12 L48 18 L53 15 L55 22 Z" fill="${p.gold}" stroke="#451A03" stroke-width="0.75"/>
+            <circle cx="44" cy="11" r="1.2" fill="#FFF"/>
+
+            <!-- Hand Holding Golden Flower Sceptre (As seen in Queen of Clubs) -->
+            <line x1="20" y1="36" x2="20" y2="65" stroke="${p.gold}" stroke-width="2"/>
+            <circle cx="20" cy="33" r="3.5" fill="${p.gold}" stroke="#451A03" stroke-width="0.6"/>
+            <circle cx="20" cy="46" r="3" fill="#FCE7D0" stroke="#111" stroke-width="0.5"/>
+          </g>
+        `;
+
+        return `
+          <svg viewBox="0 0 88 130" class="w-full h-full" fill="none">
+            ${damaskWatermark}
+            ${topHalf}
+            <g transform="rotate(180 44 65)">
+              ${topHalf}
+            </g>
+          </svg>
+        `;
+
+      } else {
+        // RENAISSANCE JACK (Matches Jack of Hearts in user image):
+        // Slashed scarlet velvet doublet showing golden under-fabric, wide golden belt with buckle, holding halberd poleaxe over shoulder, feathered beret.
+        const topHalf = `
+          <g>
+            <!-- Scarlet Velvet Doublet with Slashed Sleeve Cuts -->
+            <path d="M18 65 C16 46 24 38 42 38 C60 38 68 46 66 65 Z" fill="${p.robeJack}" stroke="#2B050D" stroke-width="0.8"/>
+            <!-- Slashed Doublet Cuts Showing Gold Linings (Iconic Renaissance Cavalier) -->
+            <ellipse cx="26" cy="52" rx="2.5" ry="5" fill="${p.gold}" stroke="#111" stroke-width="0.5" transform="rotate(-20 26 52)"/>
+            <ellipse cx="32" cy="56" rx="2" ry="4" fill="${p.gold}" stroke="#111" stroke-width="0.5" transform="rotate(-15 32 56)"/>
+            <ellipse cx="58" cy="52" rx="2.5" ry="5" fill="${p.gold}" stroke="#111" stroke-width="0.5" transform="rotate(20 58 52)"/>
+            <ellipse cx="52" cy="56" rx="2" ry="4" fill="${p.gold}" stroke="#111" stroke-width="0.5" transform="rotate(15 52 56)"/>
+
+            <!-- Broad Golden Belt with Renaissance Buckle (Matches Jack in image!) -->
+            <rect x="22" y="58" width="40" height="6" fill="${p.gold}" stroke="#451A03" stroke-width="0.75"/>
+            <rect x="38" y="56" width="8" height="10" fill="#FFFDF9" stroke="#451A03" stroke-width="0.8"/>
+
+            <!-- Cavalier Face with Long Wavy Locks -->
+            <path d="M28 26 C24 36 26 46 32 48 L52 48 C58 46 60 36 56 26 Z" fill="#854D0E" stroke="#1A140F" stroke-width="0.6"/>
+            <path d="M34 26 Q34 40 42 41 Q50 40 50 26 Z" fill="#FCE7D0"/>
+            <ellipse cx="39" cy="30" rx="1.1" ry="0.8" fill="#1A140F"/>
+            <ellipse cx="46" cy="30" rx="1.1" ry="0.8" fill="#1A140F"/>
+            <path d="M40 36 Q42 37 45 36" stroke="#991B1B" stroke-width="0.8" fill="none"/>
+
+            <!-- Tilted Renaissance Velvet Beret / Cap with Feather -->
+            <ellipse cx="42" cy="22" rx="16" ry="6" fill="${p.robeJack}" stroke="#2B050D" stroke-width="0.8" transform="rotate(-10 42 22)"/>
+            <!-- White Feather plume pointing backward -->
+            <path d="M48 20 Q60 14 62 8 Q56 12 46 18 Z" fill="#F8FAFC" stroke="#94A3B8" stroke-width="0.5"/>
+
+            <!-- HALBERD / POLEAXE (Resting diagonally over shoulder like in image!) -->
+            <line x1="62" y1="14" x2="62" y2="65" stroke="#713F12" stroke-width="2.5"/>
+            <!-- Ornate Silver Halberd Blade -->
+            <path d="M62 16 C70 14 74 22 62 26 C60 22 60 18 62 16 Z" fill="#E2E8F0" stroke="#1E293B" stroke-width="0.8"/>
+            <polygon points="62,12 60,16 64,16" fill="#CBD5E1"/>
+
+            <!-- Hand Holding Halberd / Leaf Staff -->
+            <circle cx="28" cy="46" r="3.5" fill="#FCE7D0" stroke="#111" stroke-width="0.5"/>
+          </g>
+        `;
+
+        return `
+          <svg viewBox="0 0 88 130" class="w-full h-full" fill="none">
+            ${damaskWatermark}
+            ${topHalf}
+            <g transform="rotate(180 44 65)">
+              ${topHalf}
+            </g>
+          </svg>
+        `;
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       ORIGNAL BAROQUE CARD BACK (Matches the blue & gold backs in user image!)
+       ------------------------------------------------------------------------- */
+    function getBaroqueCardBackSvg(editionKey = 'royal_sapphire') {
+      const isEmerald = (editionKey === 'digu_emerald');
+      const bgFill = isEmerald ? '#021C13' : '#0A1938';
+      const borderGlow = isEmerald ? '#05D59A' : '#38BDF8';
+      const jewelColor = isEmerald ? '#05D59A' : '#1D4ED8';
+
+      return `
+        <svg viewBox="0 0 100 145" class="w-full h-full rounded-xl" fill="none">
+          <defs>
+            <linearGradient id="back-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FDE68A"/>
+              <stop offset="50%" stopColor="#E5C378"/>
+              <stop offset="100%" stopColor="#936B09"/>
+            </linearGradient>
+            <radialGradient id="center-gem" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#60A5FA"/>
+              <stop offset="60%" stopColor="${jewelColor}"/>
+              <stop offset="100%" stopColor="#030816"/>
+            </radialGradient>
+          </defs>
+          <!-- Deep Royal Background -->
+          <rect width="100" height="145" rx="8" fill="${bgFill}"/>
+          <!-- Outer Gold Beaded Border -->
+          <rect x="4" y="4" width="92" height="137" rx="6" stroke="url(#back-gold)" stroke-width="1.2"/>
+          <rect x="6.5" y="6.5" width="87" height="132" rx="4.5" stroke="${borderGlow}" stroke-width="0.6" stroke-dasharray="2 1.5" opacity="0.6"/>
+
+          <!-- Baroque Acanthus Leaf Scrollwork Filigree (Top & Bottom Mirrors) -->
+          <path d="M12 12 Q24 16 26 28 Q16 26 12 12 Z M88 12 Q76 16 74 28 Q84 26 88 12 Z M12 133 Q24 129 26 117 Q16 119 12 133 Z M88 133 Q76 129 74 117 Q84 119 88 133 Z" fill="url(#back-gold)"/>
+          <path d="M22 32 C30 18 50 16 50 28 C50 16 70 18 78 32 C68 40 60 30 50 36 C40 30 32 40 22 32 Z" fill="url(#back-gold)" opacity="0.9"/>
+          <path d="M22 113 C30 127 50 129 50 117 C50 129 70 127 78 113 C68 105 60 115 50 109 C40 115 32 105 22 113 Z" fill="url(#back-gold)" opacity="0.9"/>
+
+          <!-- Symmetrical Center Medallion with Radiant Faceted Sapphire Gemstone -->
+          <polygon points="50,48 68,72.5 50,97 32,72.5" fill="none" stroke="url(#back-gold)" stroke-width="1.5"/>
+          <circle cx="50" cy="72.5" r="16" fill="url(#back-gold)"/>
+          <circle cx="50" cy="72.5" r="13" fill="url(#center-gem)" stroke="#FDE68A" stroke-width="0.8"/>
+          <!-- Gemstone Facet Cuts -->
+          <polygon points="50,62 58,72.5 50,83 42,72.5" fill="#93C5FD" opacity="0.7"/>
+          <circle cx="47" cy="68" r="2" fill="#FFFFFF" opacity="0.9"/>
+
+          <!-- 4 Teardrop Gem Inlays on Compass Points (Matches user image exactly!) -->
+          <path d="M50 44 C47 48 47 52 50 54 C53 52 53 48 50 44 Z" fill="url(#center-gem)" stroke="url(#back-gold)" stroke-width="0.5"/>
+          <path d="M50 101 C47 97 47 93 50 91 C53 93 53 97 50 101 Z" fill="url(#center-gem)" stroke="url(#back-gold)" stroke-width="0.5"/>
+          <path d="M22 72.5 C26 69.5 30 69.5 32 72.5 C30 75.5 26 75.5 22 72.5 Z" fill="url(#center-gem)" stroke="url(#back-gold)" stroke-width="0.5"/>
+          <path d="M78 72.5 C74 69.5 70 69.5 68 72.5 C70 75.5 74 75.5 78 72.5 Z" fill="url(#center-gem)" stroke="url(#back-gold)" stroke-width="0.5"/>
+        </svg>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+       CARD COMPONENT MARKUP GENERATOR
+       ------------------------------------------------------------------------- */
+    function renderRenaissanceCard(editionKey, rank, suitObj, sizeMode = 'hand', isSelected = false, meldInfo = null) {
+      const cfg = SIZE_CONFIGS[sizeMode];
+      const isRed = suitObj.isRed;
+      const suitColor = isRed ? 'text-[#DC2626]' : 'text-[#0E2864]';
+      const cardId = `${rank}${suitObj.id[0]}`;
+
+      const courtSvg = getRenaissanceCourtSvg(editionKey, rank, suitObj.id);
+      const gemPip = getFacetedGemPip(suitObj.id, cfg.fontPip);
+
+      return `
+        <div id="card-${cardId}" onclick="handleCardClick('${cardId}', '${editionKey}', '${rank}', '${suitObj.id}')"
+             class="card-3d ${cfg.w} ${cfg.h} rounded-xl sm:rounded-2xl p-1 sm:p-1.5 bg-[#FAF7EE] shadow-md flex flex-col justify-between relative cursor-pointer select-none border border-black/15 transition-all overflow-hidden ${isSelected ? 'selected ring-2 ring-[#05D59A] z-30' : ''}">
+          
+          <!-- Top Left Index (Rank + Faceted 3D Cut Gemstone Pip) -->
+          <div class="flex justify-between items-start leading-none pointer-events-none px-1 pt-0.5 z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black ${cfg.fontRank} ${suitColor} tracking-tighter drop-shadow-sm">${rank}</span>
+              <div class="mt-0.5">${gemPip}</div>
+            </div>
+            ${meldInfo ? `
+              <span class="text-[7px] font-mono font-black uppercase px-1 py-0.5 rounded shadow-sm ${meldInfo.badgeClass}">
+                ${meldInfo.label}
+              </span>
+            ` : ''}
+          </div>
+
+          <!-- Illustrated Renaissance Court Figure on Damask Canvas -->
+          <div class="flex-1 -my-1 w-full flex items-center justify-center overflow-hidden pointer-events-none">
+            ${courtSvg}
+          </div>
+
+          <!-- Bottom Right Inverted Index -->
+          <div class="flex justify-end items-end leading-none rotate-180 pointer-events-none px-1 pb-0.5 z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black ${cfg.fontRank} ${suitColor} tracking-tighter drop-shadow-sm">${rank}</span>
+              <div class="mt-0.5">${gemPip}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+       FEATURED CARDS RENDERER (Ace of Spades, 7 of Clubs, 4 of Hearts, Back)
+       ------------------------------------------------------------------------- */
+    function renderFeaturedCards() {
+      const container = document.getElementById('featuredGrid');
+      
+      // 1. Centerpiece Ace of Spades (Direct recreation of user image Ace!)
+      const aceCard = `
+        <div onclick="handleCardClick('AS', currentEdition, 'A', 'SPADES')" class="card-3d w-[96px] md:w-[108px] h-[144px] md:h-[162px] rounded-xl sm:rounded-2xl p-2 bg-[#FAF7EE] shadow-md flex flex-col justify-between relative cursor-pointer border border-black/15 select-none overflow-hidden">
+          <div class="flex justify-between items-start leading-none z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#0E2864]">A</span>
+              ${getFacetedGemPip('SPADES', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col items-center justify-center -my-1">
+            <span class="font-cinzel font-bold text-[8px] tracking-widest text-[#0E2864] uppercase -mb-0.5">BICYCLE</span>
+            <div class="w-16 h-16 flex items-center justify-center">
+              ${getFacetedGemPip('SPADES', 'w-14 h-14')}
+            </div>
+            <span class="text-[5px] uppercase font-bold text-slate-500 tracking-tighter mt-0.5 text-center">THE UNITED STATES<br>PLAYING CARD COMPANY</span>
+          </div>
+          <div class="flex justify-end items-end leading-none rotate-180 z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#0E2864]">A</span>
+              ${getFacetedGemPip('SPADES', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 2. 7 of Clubs with Faceted Sapphire Crystals (From user image)
+      const sevenClubs = `
+        <div onclick="handleCardClick('7C', currentEdition, '7', 'CLUBS')" class="card-3d w-[96px] md:w-[108px] h-[144px] md:h-[162px] rounded-xl sm:rounded-2xl p-2 bg-[#FAF7EE] shadow-md flex flex-col justify-between relative cursor-pointer border border-black/15 select-none overflow-hidden">
+          <div class="flex justify-between items-start leading-none z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#0E2864]">7</span>
+              ${getFacetedGemPip('CLUBS', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+          <div class="flex-1 grid grid-cols-2 gap-1 items-center justify-items-center p-1">
+            ${getFacetedGemPip('CLUBS', 'w-4 h-4')}
+            ${getFacetedGemPip('CLUBS', 'w-4 h-4')}
+            <div class="col-span-2">${getFacetedGemPip('CLUBS', 'w-4 h-4')}</div>
+            ${getFacetedGemPip('CLUBS', 'w-4 h-4')}
+            ${getFacetedGemPip('CLUBS', 'w-4 h-4')}
+            <div class="col-span-2">${getFacetedGemPip('CLUBS', 'w-4 h-4')}</div>
+          </div>
+          <div class="flex justify-end items-end leading-none rotate-180 z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#0E2864]">7</span>
+              ${getFacetedGemPip('CLUBS', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 3. 4 of Hearts with Faceted Ruby Crystals (From user image)
+      const fourHearts = `
+        <div onclick="handleCardClick('4H', currentEdition, '4', 'HEARTS')" class="card-3d w-[96px] md:w-[108px] h-[144px] md:h-[162px] rounded-xl sm:rounded-2xl p-2 bg-[#FAF7EE] shadow-md flex flex-col justify-between relative cursor-pointer border border-black/15 select-none overflow-hidden">
+          <div class="flex justify-between items-start leading-none z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#DC2626]">4</span>
+              ${getFacetedGemPip('HEARTS', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+          <div class="flex-1 grid grid-cols-2 gap-2 items-center justify-items-center p-2">
+            ${getFacetedGemPip('HEARTS', 'w-5 h-5')}
+            ${getFacetedGemPip('HEARTS', 'w-5 h-5')}
+            ${getFacetedGemPip('HEARTS', 'w-5 h-5')}
+            ${getFacetedGemPip('HEARTS', 'w-5 h-5')}
+          </div>
+          <div class="flex justify-end items-end leading-none rotate-180 z-10">
+            <div class="flex flex-col items-center">
+              <span class="font-cinzel font-black text-base text-[#DC2626]">4</span>
+              ${getFacetedGemPip('HEARTS', 'w-3 h-3 mt-0.5')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 4. Exact Matching Card Back (From user image)
+      const cardBack = `
+        <div class="card-3d w-[96px] md:w-[108px] h-[144px] md:h-[162px] rounded-xl sm:rounded-2xl shadow-md cursor-pointer border border-black/20 overflow-hidden flex items-center justify-center p-0.5 bg-[#FAF7EE]">
+          ${getBaroqueCardBackSvg(currentEdition)}
+        </div>
+      `;
+
+      container.innerHTML = aceCard + cardBack + sevenClubs + fourHearts;
+    }
+
+    /* -------------------------------------------------------------------------
+       CONTROLLERS & EVENT HANDLERS
+       ------------------------------------------------------------------------- */
+    function selectEdition(key) {
+      currentEdition = key;
+      document.querySelectorAll('.edition-tab').forEach(t => {
+        t.className = 'edition-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-[#042618] text-slate-300 hover:text-white border border-white/5';
+      });
+      const activeTab = document.getElementById(`tab-${key}`);
+      if (activeTab) {
+        activeTab.className = `edition-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 ${EDITIONS[key].badgeBg} text-white shadow-lg`;
+      }
+
+      const meta = EDITIONS[key];
+      document.getElementById('editionBadge').innerText = meta.badge;
+      document.getElementById('editionBadge').className = `text-[10px] uppercase font-black px-2 py-0.5 rounded ${meta.badgeBg}`;
+      document.getElementById('editionTitle').innerText = meta.title;
+      document.getElementById('editionDesc').innerText = meta.desc;
+
+      renderAllGrids();
+      renderFeaturedCards();
+      renderHandSimulator();
+    }
+
+    function filterRank(rank) {
+      currentFilterRank = rank;
+      document.querySelectorAll('.rank-btn').forEach(btn => {
+        btn.className = 'rank-btn px-2.5 py-1 rounded text-xs font-bold text-slate-300 hover:text-white';
+      });
+      event.target.className = 'rank-btn px-2.5 py-1 rounded text-xs font-bold bg-[#05D59A] text-[#02140D]';
+
+      document.getElementById('section-feature').style.display = (rank === 'ALL' || rank === 'FEATURE') ? 'block' : 'none';
+      document.getElementById('section-kings').style.display = (rank === 'ALL' || rank === 'K') ? 'block' : 'none';
+      document.getElementById('section-queens').style.display = (rank === 'ALL' || rank === 'Q') ? 'block' : 'none';
+      document.getElementById('section-jacks').style.display = (rank === 'ALL' || rank === 'J') ? 'block' : 'none';
+    }
+
+    function setSize(size) {
+      currentCardSize = size;
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.className = 'size-btn px-2 py-1 rounded text-xs font-bold text-slate-300 hover:text-white';
+      });
+      document.getElementById(`size-${size}`).className = 'size-btn px-2 py-1 rounded text-xs font-bold bg-[#E5C378] text-[#02140D]';
+      renderAllGrids();
+    }
+
+    function setFelt(type) {
+      const el = document.getElementById('feltCanvas');
+      el.className = `felt-${type} flex-1 flex flex-col p-4 sm:p-6 transition-colors duration-500 relative`;
+    }
+
+    function toggleComparisonMode() {
+      isComparisonMode = !isComparisonMode;
+      const gallery = document.getElementById('galleryView');
+      const comp = document.getElementById('comparisonView');
+      const txt = document.getElementById('txtComparisonMode');
+
+      if (isComparisonMode) {
+        gallery.classList.add('hidden');
+        comp.classList.remove('hidden');
+        txt.innerText = 'Back to Deck View';
+        renderComparisonMatrix();
+      } else {
+        gallery.classList.remove('hidden');
+        comp.classList.add('hidden');
+        txt.innerText = 'Compare Royal vs Emerald';
+      }
+    }
+
+    function renderAllGrids() {
+      document.getElementById('kingsGrid').innerHTML = SUITS.map(s => renderRenaissanceCard(currentEdition, 'K', s, currentCardSize)).join('');
+      document.getElementById('queensGrid').innerHTML = SUITS.map(s => renderRenaissanceCard(currentEdition, 'Q', s, currentCardSize)).join('');
+      document.getElementById('jacksGrid').innerHTML = SUITS.map(s => renderRenaissanceCard(currentEdition, 'J', s, currentCardSize)).join('');
+    }
+
+    function renderComparisonMatrix() {
+      const matrixEl = document.getElementById('comparisonMatrix');
+      const samples = [
+        { rank: 'K', suit: SUITS[2], title: 'King of Diamonds ♦ (Crimson Velvet Robe & Scepter)' },
+        { rank: 'Q', suit: SUITS[3], title: 'Queen of Clubs ♣ (Elizabethan Standing Pleated Lace Ruff)' },
+        { rank: 'J', suit: SUITS[1], title: 'Jack of Hearts ♥ (Slashed Velvet Doublet & Halberd)' },
+      ];
+
+      matrixEl.innerHTML = samples.map(s => `
+        <div class="bg-black/40 backdrop-blur rounded-2xl p-4 border border-white/10">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-sm font-black text-white">${s.title}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-6 justify-items-center">
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase font-bold text-sky-400 mb-2">Royal Sapphire & Crimson Velvet</span>
+              ${renderRenaissanceCard('royal_sapphire', s.rank, s.suit, 'hand')}
+            </div>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] uppercase font-bold text-[#05D59A] mb-2">Digu Island Emerald & Gold</span>
+              ${renderRenaissanceCard('digu_emerald', s.rank, s.suit, 'hand')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* -------------------------------------------------------------------------
+       HAND SIMULATOR
+       ------------------------------------------------------------------------- */
+    function renderHandSimulator() {
+      const container = document.getElementById('handContainer');
+      const mockHand = [
+        { rank: 'K', suit: SUITS[2], meld: handMeldsActive ? { label: 'SET', badgeClass: 'bg-amber-500/80 text-white' } : null },
+        { rank: 'K', suit: SUITS[0], meld: handMeldsActive ? { label: 'SET', badgeClass: 'bg-amber-500/80 text-white' } : null },
+        { rank: 'K', suit: SUITS[1], meld: handMeldsActive ? { label: 'SET', badgeClass: 'bg-amber-500/80 text-white' } : null },
+        { rank: 'Q', suit: SUITS[3], meld: handMeldsActive ? { label: 'RUN', badgeClass: 'bg-emerald-500/80 text-white' } : null },
+        { rank: 'J', suit: SUITS[3], meld: handMeldsActive ? { label: 'RUN', badgeClass: 'bg-emerald-500/80 text-white' } : null },
+        { rank: '10', suit: SUITS[3], meld: handMeldsActive ? { label: 'RUN', badgeClass: 'bg-emerald-500/80 text-white' } : null, isNumber: true },
+        { rank: 'Q', suit: SUITS[1], meld: null },
+        { rank: 'J', suit: SUITS[1], meld: null },
+        { rank: '7', suit: SUITS[3], isNumber: true },
+        { rank: '4', suit: SUITS[1], isNumber: true },
+      ];
+
+      container.innerHTML = mockHand.map(c => {
+        const id = `${c.rank}${c.suit.id[0]}`;
+        const isSel = selectedHandCardId === id;
+        const isRed = c.suit.isRed;
+        const suitColor = isRed ? 'text-[#DC2626]' : 'text-[#0E2864]';
+        const gemPip = getFacetedGemPip(c.suit.id, 'w-3 h-3');
+
+        if (c.isNumber) {
+          return `
+            <div onclick="selectHandCard('${id}')" class="hand-card w-[90px] h-[135px] rounded-xl p-1.5 bg-[#FAF7EE] shadow-md flex flex-col justify-between border border-black/15 select-none cursor-pointer relative overflow-hidden ${isSel ? '-translate-y-6 shadow-2xl ring-2 ring-[#05D59A]' : ''}">
+              <div class="flex justify-between items-start leading-none pointer-events-none z-10">
+                <div class="flex flex-col items-center">
+                  <span class="font-cinzel font-black text-sm ${suitColor}">${c.rank}</span>
+                  <div class="mt-0.5">${gemPip}</div>
+                </div>
+                ${c.meld ? `<span class="text-[7px] font-mono font-bold px-1 py-0.5 rounded ${c.meld.badgeClass}">${c.meld.label}</span>` : ''}
+              </div>
+              <div class="self-center flex items-center justify-center my-auto">
+                ${getFacetedGemPip(c.suit.id, 'w-8 h-8')}
+              </div>
+              <div class="flex justify-end items-end leading-none rotate-180 pointer-events-none z-10">
+                <div class="flex flex-col items-center">
+                  <span class="font-cinzel font-black text-sm ${suitColor}">${c.rank}</span>
+                  <div class="mt-0.5">${gemPip}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        const courtSvg = getRenaissanceCourtSvg(currentEdition, c.rank, c.suit.id);
+        return `
+          <div onclick="selectHandCard('${id}')" class="hand-card w-[90px] h-[135px] rounded-xl p-1 bg-[#FAF7EE] shadow-md flex flex-col justify-between border border-black/15 select-none cursor-pointer relative overflow-hidden ${isSel ? '-translate-y-6 shadow-2xl ring-2 ring-[#05D59A] z-40' : ''}">
+            <div class="flex justify-between items-start leading-none pointer-events-none px-0.5 z-10">
+              <div class="flex flex-col items-center">
+                <span class="font-cinzel font-black text-sm ${suitColor}">${c.rank}</span>
+                <div class="mt-0.5">${gemPip}</div>
+              </div>
+              ${c.meld ? `<span class="text-[7px] font-mono font-bold px-1 py-0.5 rounded ${c.meld.badgeClass}">${c.meld.label}</span>` : ''}
+            </div>
+            <div class="flex-1 my-0.5 overflow-hidden rounded pointer-events-none">${courtSvg}</div>
+            <div class="flex justify-end items-end leading-none rotate-180 pointer-events-none px-0.5 z-10">
+              <div class="flex flex-col items-center">
+                <span class="font-cinzel font-black text-sm ${suitColor}">${c.rank}</span>
+                <div class="mt-0.5">${gemPip}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectHandCard(id) {
+      selectedHandCardId = (selectedHandCardId === id) ? null : id;
+      renderHandSimulator();
+    }
+
+    function toggleHandMelds() {
+      handMeldsActive = !handMeldsActive;
+      document.getElementById('btnHandMeld').innerText = handMeldsActive ? 'Melds Active (Set + Run)' : 'Highlight Melds';
+      renderHandSimulator();
+    }
+
+    function resetHandSelection() {
+      selectedHandCardId = null;
+      renderHandSimulator();
+    }
+
+    /* -------------------------------------------------------------------------
+       INSPECTION MODAL
+       ------------------------------------------------------------------------- */
+    function handleCardClick(cardId, editionKey, rank, suitId) {
+      const suitObj = SUITS.find(s => s.id === suitId) || SUITS[0];
+      const modal = document.getElementById('inspectModal');
+      const cardHolder = document.getElementById('modalCardHolder');
+
+      cardHolder.innerHTML = renderRenaissanceCard(editionKey, rank, suitObj, 'jumbo');
+
+      const rankTitle = (rank === 'K') ? 'King' : (rank === 'Q') ? 'Queen' : (rank === 'J') ? 'Jack' : rank;
+      document.getElementById('modalRankSuitBadge').innerText = `${rankTitle} of ${suitObj.label} ${suitObj.symbol}`;
+
+      if (rank === 'K') {
+        document.getElementById('modalTitle').innerText = `King of ${suitObj.label} (Renaissance Crimson Robe)`;
+        document.getElementById('modalAnatomyDesc').innerText = "Classical Renaissance monarch robed in rich crimson velvet with white ermine fur border, sculpted gold crown, holding dagger hilt.";
+      } else if (rank === 'Q') {
+        document.getElementById('modalTitle').innerText = `Queen of ${suitObj.label} (Elizabethan Standing Ruff)`;
+        document.getElementById('modalAnatomyDesc').innerText = "Direct replica from your image: featuring the iconic standing pleated white lace Elizabethan ruff collar behind her head, striped blue and gold puffed silk sleeves, pearl necklace, and golden sceptre.";
+      } else if (rank === 'J') {
+        document.getElementById('modalTitle').innerText = `Jack of ${suitObj.label} (Slashed Velvet Cavalier)`;
+        document.getElementById('modalAnatomyDesc').innerText = "Dashing Renaissance page in slashed scarlet velvet doublet with gold under-linings, broad gold belt, tilted feathered cap, and halberd poleaxe over his shoulder.";
+      } else {
+        document.getElementById('modalTitle').innerText = `${rankTitle} of ${suitObj.label}`;
+        document.getElementById('modalAnatomyDesc').innerText = "Features cut 3D faceted gemstones on subtle Renaissance damask parchment.";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeInspectModal() {
+      document.getElementById('inspectModal').classList.add('hidden');
+    }
+
+    function openConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function approveImplementation() {
+      const msg = "Approved Renaissance Bicycle Gemstone Deck. Please implement into PlayingCard.tsx!";
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast("Approved & copied!");
+        closeConfirmModal();
+      }).catch(() => {
+        showToast("Approved!");
+        closeConfirmModal();
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAllGrids();
+      renderFeaturedCards();
+      renderHandSimulator();
+    });
+  </script>
+</body>
+</html>

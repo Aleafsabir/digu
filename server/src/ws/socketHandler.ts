@@ -96,11 +96,27 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
       activeClients.set(profileId, socket);
 
       const existing = inMemoryProfiles.get(profileId);
+      let resolvedFriendCode = (friendCode || '').trim().toUpperCase();
+      if (
+        !resolvedFriendCode ||
+        resolvedFriendCode === 'DIGU-7482' ||
+        resolvedFriendCode === 'DIGU-GUES' ||
+        resolvedFriendCode === 'HLH-7482'
+      ) {
+        resolvedFriendCode =
+          existing?.friend_code &&
+          existing.friend_code !== 'DIGU-7482' &&
+          existing.friend_code !== 'DIGU-GUES' &&
+          existing.friend_code !== 'HLH-7482'
+            ? existing.friend_code
+            : `HLH-${Math.floor(10000 + Math.random() * 90000)}`;
+      }
+
       inMemoryProfiles.set(profileId, {
         id: profileId,
         display_name: displayName || existing?.display_name || 'Player',
         avatar_id: avatarId || existing?.avatar_id || 'boduthakurufaanu',
-        friend_code: friendCode || existing?.friend_code || `DIGU-${profileId.substring(0, 4).toUpperCase()}`,
+        friend_code: resolvedFriendCode,
         level: level || existing?.level || 1,
         presence_status: 'IN_LOBBY',
         last_active_at: new Date().toISOString(),
@@ -109,8 +125,8 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
       // Update presence in database
       try {
         await query(
-          "UPDATE profiles SET presence_status = 'IN_LOBBY', last_active_at = now() WHERE id = $1",
-          [profileId]
+          "UPDATE profiles SET presence_status = 'IN_LOBBY', friend_code = $2, last_active_at = now() WHERE id = $1",
+          [profileId, resolvedFriendCode]
         );
       } catch {}
 
@@ -120,7 +136,7 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
       socket.send(
         JSON.stringify({
           type: 'AUTH_SUCCESS',
-          payload: { profileId, status: 'IN_LOBBY' },
+          payload: { profileId, status: 'IN_LOBBY', friendCode: resolvedFriendCode },
         })
       );
       break;

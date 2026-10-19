@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { UserProfile } from '../types/auth';
-import { CloudSyncService } from '../services/cloudSyncService';
+import { CloudSyncService, generateFriendCode } from '../services/cloudSyncService';
 import { CurrencyTransaction } from '../types/database';
 import { DatabaseService } from '../services/databaseService';
 import { SocialService } from '../services/socialService';
@@ -20,6 +20,7 @@ interface AuthStoreState {
   // Profile modifications
   setDisplayName: (name: string) => void;
   setAvatar: (avatarId: string) => void;
+  regenerateFriendCode: () => string;
 
   // Auth providers
   loginAsGuest: () => void;
@@ -68,6 +69,21 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const updated = { ...get().profile, avatarId };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+  },
+
+  regenerateFriendCode: () => {
+    const newCode = generateFriendCode();
+    const updated = { ...get().profile, friendCode: newCode };
+    CloudSyncService.saveProfileLocally(updated);
+    set({ profile: updated });
+    SocialService.send('AUTH_INIT', {
+      profileId: updated.id,
+      displayName: updated.displayName,
+      avatarId: updated.avatarId,
+      friendCode: updated.friendCode,
+      level: updated.level,
+    });
+    return newCode;
   },
 
   loginAsGuest: () => {

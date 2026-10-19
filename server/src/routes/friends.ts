@@ -65,7 +65,7 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
       id: otherId,
       display_name: 'Player',
       avatar_id: 'boduthakurufaanu',
-      friend_code: `DIGU-${otherId.substring(0, 4).toUpperCase()}`,
+      friend_code: `HLH-${Math.floor(10000 + Math.random() * 90000)}`,
       level: 1,
       presence_status: activeClients.has(otherId) ? 'IN_LOBBY' : 'OFFLINE',
       last_active_at: new Date().toISOString(),
@@ -210,13 +210,18 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
   }
 
   const cleanCode = friendCode.trim().toUpperCase();
+  const digitsOnly = cleanCode.replace(/^HLH-|^DIGU-/, '').trim();
 
   let targetUser: any = null;
 
   try {
     const targetRes = await query(
-      'SELECT id, display_name, avatar_id, level, friend_code FROM profiles WHERE UPPER(friend_code) = $1',
-      [cleanCode]
+      `SELECT id, display_name, avatar_id, level, friend_code FROM profiles 
+       WHERE UPPER(friend_code) = $1 
+          OR UPPER(friend_code) = $2 
+          OR UPPER(friend_code) = $3
+          OR (length($4) >= 4 AND UPPER(friend_code) LIKE '%' || $4)`,
+      [cleanCode, `HLH-${digitsOnly}`, `DIGU-${digitsOnly}`, digitsOnly]
     );
     if (targetRes?.rows?.length > 0) {
       targetUser = targetRes.rows[0];
@@ -226,7 +231,15 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
   if (!targetUser) {
     // Search in-memory connected profiles
     for (const p of inMemoryProfiles.values()) {
-      if (p.friend_code.toUpperCase() === cleanCode) {
+      const pCode = (p.friend_code || '').toUpperCase();
+      const pDigits = pCode.replace(/^HLH-|^DIGU-/, '').trim();
+
+      if (
+        pCode === cleanCode ||
+        pCode === `HLH-${digitsOnly}` ||
+        pCode === `DIGU-${digitsOnly}` ||
+        (digitsOnly.length >= 4 && pDigits === digitsOnly)
+      ) {
         targetUser = p;
         break;
       }

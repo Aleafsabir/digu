@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { Friend, FriendRequest, MatchInvitation, PresenceStatus } from '../types/social';
 import { SocialService } from '../services/socialService';
+import { useAuthStore } from './useAuthStore';
+import { CloudSyncService } from '../services/cloudSyncService';
 
 interface SocialStoreState {
   friends: Friend[];
@@ -138,6 +140,19 @@ export const useSocialStore = create<SocialStoreState>((set, get) => ({
 
         case 'MATCH_INVITE_RECEIVED': {
           set({ incomingInvitation: msg.payload });
+          break;
+        }
+
+        case 'AUTH_SUCCESS': {
+          const confirmedCode = msg.payload?.friendCode;
+          if (confirmedCode) {
+            const authState = useAuthStore.getState();
+            if (authState.profile && authState.profile.friendCode !== confirmedCode) {
+              const updated = { ...authState.profile, friendCode: confirmedCode };
+              CloudSyncService.saveProfileLocally(updated);
+              useAuthStore.setState({ profile: updated });
+            }
+          }
           break;
         }
 
