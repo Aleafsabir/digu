@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RummyValidator } from '../../src/core/engine/validator';
+import { FastMeldParser } from '../../src/core/engine/fastMeldParser';
+import { TeamHandOptimizer } from '../../src/core/engine/solver';
 import { Card } from '../../src/core/models/types';
 
 describe('RummyValidator', () => {
@@ -228,6 +230,77 @@ describe('RummyValidator', () => {
       ];
 
       expect(RummyValidator.validateGin([meld4, meld3a, meld3b])).toBe(false);
+    });
+
+    it('validates and decomposes composite 7-card run + 3-card meld into standard 4+3+3 Gin', () => {
+      // Exact scenario: 7C-KC run (7 cards) + 10H-QH run (3 cards)
+      const run7: Card[] = [7, 8, 9, 10, 11, 12, 13].map(r => ({
+        id: `C-${r.toString().padStart(2, '0')}`,
+        suit: 'CLUBS',
+        rank: r as any,
+      }));
+      const run3: Card[] = [10, 11, 12].map(r => ({
+        id: `H-${r.toString().padStart(2, '0')}`,
+        suit: 'HEARTS',
+        rank: r as any,
+      }));
+
+      // validateGin must return true for [run7, run3]
+      expect(RummyValidator.validateGin([run7, run3])).toBe(true);
+
+      // decomposeGinMelds must decompose it into exactly 3 melds of sizes 3, 3, 4
+      const decomposed = RummyValidator.decomposeGinMelds([run7, run3]);
+      expect(decomposed).not.toBeNull();
+      expect(decomposed!.length).toBe(3);
+      const sizes = decomposed!.map(m => m.length).sort((a, b) => a - b);
+      expect(sizes).toEqual([3, 3, 4]);
+      expect(decomposed!.every(g => RummyValidator.isValidRun(g) || RummyValidator.isValidSet(g))).toBe(true);
+    });
+
+    it('validates and decomposes composite 6-card run + 4-card set into standard 4+3+3 Gin', () => {
+      const run6: Card[] = [2, 3, 4, 5, 6, 7].map(r => ({
+        id: `C-${r.toString().padStart(2, '0')}`,
+        suit: 'CLUBS',
+        rank: r as any,
+      }));
+      const set4: Card[] = [
+        { id: 'S-13', suit: 'SPADES', rank: 13 },
+        { id: 'H-13', suit: 'HEARTS', rank: 13 },
+        { id: 'D-13', suit: 'DIAMONDS', rank: 13 },
+        { id: 'C-13', suit: 'CLUBS', rank: 13 },
+      ];
+
+      expect(RummyValidator.validateGin([run6, set4])).toBe(true);
+      const decomposed = RummyValidator.decomposeGinMelds([run6, set4]);
+      expect(decomposed).not.toBeNull();
+      expect(decomposed!.length).toBe(3);
+      const sizes = decomposed!.map(m => m.length).sort((a, b) => a - b);
+      expect(sizes).toEqual([3, 3, 4]);
+    });
+  });
+
+  describe('Screenshot Regression: 11-Card Hand with 7-Card Run and Gin Ready', () => {
+    it('detects Gin Ready and identifies Queen of Spades as finish card in 7C..KC + 10H..QH + QS hand', () => {
+      const clubs7: Card[] = [7, 8, 9, 10, 11, 12, 13].map(r => ({
+        id: `C-${r.toString().padStart(2, '0')}`,
+        suit: 'CLUBS',
+        rank: r as any,
+      }));
+      const hearts3: Card[] = [10, 11, 12].map(r => ({
+        id: `H-${r.toString().padStart(2, '0')}`,
+        suit: 'HEARTS',
+        rank: r as any,
+      }));
+      const queenOfSpades: Card = { id: 'S-12', suit: 'SPADES', rank: 12 };
+
+      const hand11: Card[] = [...clubs7, ...hearts3, queenOfSpades];
+
+      const analysis = FastMeldParser.analyzeHandFast(hand11);
+      expect(analysis.isGinReady).toBe(true);
+      expect(analysis.validGinFinishCardIds).toContain('S-12');
+
+      const solverFinishIds = TeamHandOptimizer.getValidGinFinishCardIds(hand11);
+      expect(solverFinishIds).toContain('S-12');
     });
   });
 });

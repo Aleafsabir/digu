@@ -129,7 +129,10 @@ export class DiguAI {
       const subset10 = botHand11.filter((_, idx) => idx !== i);
       const res = FastMeldParser.analyzeHandFast(subset10);
 
-      if (res.deadwoodPoints === 0 && RummyValidator.validateGin(res.melds.map(m => m.cards))) {
+      if (
+        RummyValidator.findStandardGinPartition(subset10) !== null ||
+        (res.deadwoodPoints === 0 && RummyValidator.validateGin(res.melds.map(m => m.cards)))
+      ) {
         return {
           action: 'GIN_SLAM',
           cardId: finishCandidate.id,

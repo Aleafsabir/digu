@@ -1,10 +1,11 @@
 {
-  "versionName": "0.2.6",
-  "versionCode": 8,
+  "versionName": "0.2.7",
+  "versionCode": 9,
   "releaseDate": "2026-10-24",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
+    "Fix Gin Recognition: Correctly validates composite runs >= 6 cards (e.g. 7-card single-suit runs decomposing into 4+3+3)",
     "New Game Icon: 'The 1,000-Point Suited Fan' with Maldivian Ace of Spades & Royal Lacquer back",
     "Royal Lacquer Aesthetic: Cinnabar vermilion felt, burnished gold accents & 4-font hierarchy",
     "Authentic Dhivehi Typography: Clean Faruma / MV Waheed / Noto Sans Thaana font stack",

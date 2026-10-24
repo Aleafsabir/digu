@@ -177,6 +177,10 @@ export class TeamHandOptimizer {
         validIds.push(cards[i].id);
         continue;
       }
+      if (RummyValidator.findStandardGinPartition(remaining10) !== null) {
+        validIds.push(cards[i].id);
+        continue;
+      }
       const opt = this.optimizeMergedHand(remaining10);
       if (opt.debtScore === 0 && RummyValidator.validateGin(opt.melds)) {
         validIds.push(cards[i].id);

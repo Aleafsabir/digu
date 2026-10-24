@@ -127,17 +127,118 @@ export class RummyValidator {
   /**
    * Standard Gin: Hand must contain exactly 10 melded cards partitioned into:
    * One 4-Card Meld + Two 3-Card Melds = 10 Cards (0 Deadwood).
+   * Supports standard 3-meld hands as well as composite runs (e.g. 7-card run + 3-card run).
    */
   static validateGin(melds: Card[][]): boolean {
-    if (melds.length !== 3) return false;
-    const sizes = melds.map(m => m.length).sort((a, b) => a - b);
-    if (sizes[0] !== 3 || sizes[1] !== 3 || sizes[2] !== 4) return false;
+    return this.decomposeGinMelds(melds) !== null;
+  }
 
-    // Ensure all 10 cards are distinct
+  /**
+   * Decomposes any valid 10-card Gin hand into exactly three melds:
+   * One 4-card meld + Two 3-card melds (0 Deadwood).
+   * Supports standard 3-meld hands, composite runs (e.g. 7-card run + 3-card meld,
+   * 6-card run + 4-card meld), or raw 10-card sets.
+   */
+  static decomposeGinMelds(melds: Card[][]): Card[][] | null {
+    if (!melds || melds.length === 0) return null;
+
     const allCards = melds.flat();
+    if (allCards.length !== 10) return null;
     const uniqueIds = new Set(allCards.map(c => c.id));
-    if (uniqueIds.size !== 10) return false;
+    if (uniqueIds.size !== 10) return null;
 
-    return melds.every(group => this.isValidSet(group) || this.isValidRun(group));
+    // Fast-path: Hand already provided as 3 valid melds of sizes [3, 3, 4]
+    if (melds.length === 3) {
+      const sizes = melds.map(m => m.length).sort((a, b) => a - b);
+      if (sizes[0] === 3 && sizes[1] === 3 && sizes[2] === 4) {
+        if (melds.every(group => this.isValidSet(group) || this.isValidRun(group))) {
+          return melds;
+        }
+      }
+    }
+
+    // Direct decomposition of composite runs when 2 melds are provided:
+    // e.g. [7-card run, 3-card meld] -> [4-card run, 3-card run, 3-card meld]
+    if (melds.length === 2) {
+      const sortedByLen = [...melds].sort((a, b) => a.length - b.length);
+      const mSmall = sortedByLen[0];
+      const mLarge = sortedByLen[1];
+
+      if (mSmall.length === 3 && mLarge.length === 7 && (this.isValidSet(mSmall) || this.isValidRun(mSmall)) && this.isValidRun(mLarge)) {
+        const sortedLarge = [...mLarge].sort((a, b) => a.rank - b.rank);
+        const run3 = sortedLarge.slice(0, 3);
+        const run4 = sortedLarge.slice(3, 7);
+        if (this.isValidRun(run3) && this.isValidRun(run4)) {
+          return [run4, run3, mSmall];
+        }
+        const run4Alt = sortedLarge.slice(0, 4);
+        const run3Alt = sortedLarge.slice(4, 7);
+        if (this.isValidRun(run4Alt) && this.isValidRun(run3Alt)) {
+          return [run4Alt, run3Alt, mSmall];
+        }
+      }
+
+      if (mSmall.length === 4 && mLarge.length === 6 && (this.isValidSet(mSmall) || this.isValidRun(mSmall)) && this.isValidRun(mLarge)) {
+        const sortedLarge = [...mLarge].sort((a, b) => a.rank - b.rank);
+        const run3a = sortedLarge.slice(0, 3);
+        const run3b = sortedLarge.slice(3, 6);
+        if (this.isValidRun(run3a) && this.isValidRun(run3b)) {
+          return [mSmall, run3a, run3b];
+        }
+      }
+    }
+
+    // Comprehensive combinatorial 4+3+3 search across the 10 distinct cards
+    return this.findStandardGinPartition(allCards);
+  }
+
+  /**
+   * Finds a valid 4+3+3 partition (One 4-Card Meld + Two 3-Card Melds)
+   * among exactly 10 distinct cards, or returns null if impossible.
+   */
+  static findStandardGinPartition(cards: Card[]): Card[][] | null {
+    if (cards.length !== 10) return null;
+    const uniqueIds = new Set(cards.map(c => c.id));
+    if (uniqueIds.size !== 10) return null;
+
+    const n = 10;
+    // Iterate through all 4-card combinations for the 4-card meld (10 choose 4 = 210)
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        for (let k = j + 1; k < n; k++) {
+          for (let l = k + 1; l < n; l++) {
+            const m4 = [cards[i], cards[j], cards[k], cards[l]];
+            if (this.isValidSet(m4) || this.isValidRun(m4)) {
+              // 6 remaining cards
+              const remaining6: Card[] = [];
+              for (let idx = 0; idx < n; idx++) {
+                if (idx !== i && idx !== j && idx !== k && idx !== l) {
+                  remaining6.push(cards[idx]);
+                }
+              }
+
+              // Check partitions of remaining6 into two 3-card melds (5 choose 2 = 10 combinations)
+              for (let p = 1; p < 6; p++) {
+                for (let q = p + 1; q < 6; q++) {
+                  const m3a = [remaining6[0], remaining6[p], remaining6[q]];
+                  if (this.isValidSet(m3a) || this.isValidRun(m3a)) {
+                    const m3b: Card[] = [];
+                    for (let rIdx = 1; rIdx < 6; rIdx++) {
+                      if (rIdx !== p && rIdx !== q) {
+                        m3b.push(remaining6[rIdx]);
+                      }
+                    }
+                    if (this.isValidSet(m3b) || this.isValidRun(m3b)) {
+                      return [m4, m3a, m3b];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 }

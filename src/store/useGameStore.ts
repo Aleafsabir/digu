@@ -879,9 +879,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         handWithoutFinish.length === 10 &&
         RummyValidator.checkThousandPointRun(handWithoutFinish);
 
-      // Check standard 4+3+3 Gin via optimizer
+      // Check standard 4+3+3 Gin via optimizer or partition search
+      const ginPartition = RummyValidator.findStandardGinPartition(handWithoutFinish);
       const optimization = TeamHandOptimizer.optimizeMergedHand(handWithoutFinish);
-      const isStandardGin = RummyValidator.validateGin(optimization.melds);
+      const isStandardGin = ginPartition !== null || RummyValidator.validateGin(optimization.melds);
 
       if (!isThousandPointRun && !isStandardGin) {
         set({
@@ -901,7 +902,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       }
 
       try {
-        const meldsToResolve = isThousandPointRun ? [handWithoutFinish] : optimization.melds;
+        const decomposedMelds = ginPartition || RummyValidator.decomposeGinMelds(optimization.melds);
+        const meldsToResolve = isThousandPointRun
+          ? [handWithoutFinish]
+          : (decomposedMelds || optimization.melds);
 
         // Strip 11th finish card from player 0 hand so round resolver receives exact 10 resting cards (20 team cards)
         const playersForResolution = gameState.players.map((p, idx) =>

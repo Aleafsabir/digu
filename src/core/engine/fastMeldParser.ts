@@ -180,9 +180,35 @@ export class FastMeldParser {
 
     solve(0, 0, [], 0);
 
-    const selectedMelds = bestMeldIndices.map(idx => candidateMelds[idx]);
+    const rawSelectedMelds = bestMeldIndices.map(idx => candidateMelds[idx]);
     const unmeldedCards = cards.filter((_, idx) => (bestMask & (1 << idx)) === 0);
     const deadwoodPoints = unmeldedCards.reduce((sum, c) => sum + RummyValidator.getCardPoints(c.rank), 0);
+
+    // Decompose any composite runs (size 6 or 7) in selectedMelds into standard sub-melds
+    const selectedMelds: FastMeld[] = [];
+    for (const meld of rawSelectedMelds) {
+      if (meld.type === 'RUN' && meld.cards.length === 7) {
+        const sorted = [...meld.cards].sort((a, b) => a.rank - b.rank);
+        const r3 = sorted.slice(0, 3);
+        const r4 = sorted.slice(3, 7);
+        if (RummyValidator.isValidRun(r3) && RummyValidator.isValidRun(r4)) {
+          selectedMelds.push({ cards: r3, type: 'RUN', points: RummyValidator.sumPoints(r3) });
+          selectedMelds.push({ cards: r4, type: 'RUN', points: RummyValidator.sumPoints(r4) });
+          continue;
+        }
+      }
+      if (meld.type === 'RUN' && meld.cards.length === 6) {
+        const sorted = [...meld.cards].sort((a, b) => a.rank - b.rank);
+        const r3a = sorted.slice(0, 3);
+        const r3b = sorted.slice(3, 6);
+        if (RummyValidator.isValidRun(r3a) && RummyValidator.isValidRun(r3b)) {
+          selectedMelds.push({ cards: r3a, type: 'RUN', points: RummyValidator.sumPoints(r3a) });
+          selectedMelds.push({ cards: r3b, type: 'RUN', points: RummyValidator.sumPoints(r3b) });
+          continue;
+        }
+      }
+      selectedMelds.push(meld);
+    }
 
     // 4. Evaluate Gin Ready & Finish Cards for 11-card hand
     const validGinFinishCardIds: string[] = [];
@@ -196,6 +222,11 @@ export class FastMeldParser {
           continue;
         }
 
+        if (RummyValidator.findStandardGinPartition(remaining10) !== null) {
+          validGinFinishCardIds.push(finishCard.id);
+          continue;
+        }
+
         const subResult = FastMeldParser.analyzeHandFast(remaining10);
         if (subResult.deadwoodPoints === 0 && RummyValidator.validateGin(subResult.melds.map(m => m.cards))) {
           validGinFinishCardIds.push(finishCard.id);
@@ -203,7 +234,10 @@ export class FastMeldParser {
       }
     }
 
-    const isGinReady = validGinFinishCardIds.length > 0 || isThousandRunReady || (N === 10 && deadwoodPoints === 0 && RummyValidator.validateGin(selectedMelds.map(m => m.cards)));
+    const isGinReady =
+      validGinFinishCardIds.length > 0 ||
+      isThousandRunReady ||
+      (N === 10 && (RummyValidator.findStandardGinPartition(cards) !== null || (deadwoodPoints === 0 && RummyValidator.validateGin(selectedMelds.map(m => m.cards)))));
 
     const result: FastAnalysisResult = {
       deadwoodPoints,
