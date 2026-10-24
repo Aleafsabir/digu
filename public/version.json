@@ -1,13 +1,16 @@
 {
-  "versionName": "0.2.5",
-  "versionCode": 7,
-  "releaseDate": "2026-10-19",
+  "versionName": "0.2.6",
+  "versionCode": 8,
+  "releaseDate": "2026-10-24",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Unique Maldivian friend code format (HLH-XXXXX) generated for all players",
-    "Automatic local & cloud migration resolving duplicate friend code collisions",
-    "Prefix-agnostic friend search (matches raw 5-digit numbers or full codes)",
-    "One-click friend code regeneration button in Social & Profile modal"
+    "New Game Icon: 'The 1,000-Point Suited Fan' with Maldivian Ace of Spades & Royal Lacquer back",
+    "Royal Lacquer Aesthetic: Cinnabar vermilion felt, burnished gold accents & 4-font hierarchy",
+    "Authentic Dhivehi Typography: Clean Faruma / MV Waheed / Noto Sans Thaana font stack",
+    "Physical Brand Vector Deck: Stacked corner indices, double-headed courts & filigree card backs",
+    "3-Tier Bot AI Intelligence: Casual, Holhuashi Regular, and Thulhaadhoo Master with -100pt defense",
+    "Lyria Stereo Audio: Dynamic table & lobby soundtracks with live volume sliders and tactile card SFX",
+    "Streamlined HUD: Centered table, dynamic 3D Gin button, and split In-Game Match settings"
   ]
 }

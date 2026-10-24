@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digu — Royal Lacquer Suite (Bicycle/Royal Physical SVG Deck + Lyria Audio Folder Engine)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+Thaana:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), url('/fonts/Faruma.woff2') format('woff2'), url('/fonts/Faruma.ttf') format('truetype');
+      font-weight: 400 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'MV Waheed';
+      src: local('MV Waheed'), local('MV_Waheed'), url('/fonts/MVWaheed.woff2') format('woff2');
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      --ground: #0d0605;
+      --surface: #170b09;
+      --control: #301a14;
+      --felt: #160a08;
+      --inlay: #f7f0ea;
+      --cinnabar: #c84b31;
+      --royal-gold: #e5c378;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--ground);
+      color: var(--inlay);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .font-serif-luxury { font-family: 'Cinzel', serif; }
+    .font-card-index {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-feature-settings: "tnum" 1, "cv01" 1;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .font-thaana {
+      font-family: 'Faruma', 'MV Waheed', 'Noto Sans Thaana', sans-serif;
+    }
+    .font-broken-mvboli {
+      font-family: 'MV Boli', cursive, sans-serif;
+    }
+
+    /* Royal Lacquer Felt Texture */
+    .felt-lacquer {
+      background: radial-gradient(ellipse at 50% 50%, #26120e 0%, #160a08 60%, #0d0605 100%);
+      box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.95);
+    }
+    /* Authentic Physical Bicycle/Kem Linen Cardstock */
+    .card-physical {
+      background: linear-gradient(160deg, #ffffff 0%, #fcfaf5 65%, #f4efe4 100%);
+      border: 1px solid rgba(25, 15, 12, 0.35);
+      box-shadow: -3px 6px 16px rgba(0, 0, 0, 0.65), 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.9);
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease;
+      transform-origin: 50% 120%;
+    }
+    .card-physical-selected {
+      transform: translateY(-22px) scale(1.05) !important;
+      box-shadow: 0 0 0 3px var(--royal-gold), 0 22px 42px rgba(229, 195, 120, 0.55) !important;
+      z-index: 60 !important;
+    }
+    /* 3D Circular Gin Pad (Appears Only When Ready To Gin!) */
+    .btn-gin-pad-active {
+      background: radial-gradient(circle at 40% 30%, #e56040 0%, #c84b31 55%, #7a1d0d 100%);
+      box-shadow: 0 0 40px rgba(200, 75, 49, 0.9), inset 0 3px 6px rgba(255, 255, 255, 0.6), 0 12px 24px rgba(0,0,0,0.85);
+      border: 3px solid #e5c378;
+    }
+    @keyframes urgentPulse {
+      0%, 100% { box-shadow: inset 0 0 40px rgba(200, 75, 49, 0.5); }
+      50% { box-shadow: inset 0 0 85px rgba(200, 75, 49, 0.95); }
+    }
+    .timer-urgent { animation: urgentPulse 1s infinite ease-in-out; }
+    @keyframes ringBurst {
+      0% { transform: scale(0.2); opacity: 1; }
+      100% { transform: scale(3.2); opacity: 0; }
+    }
+    .shockwave-anim { animation: ringBurst 0.85s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+    @keyframes ginPopIn {
+      0% { transform: scale(0.3) translateX(-30px); opacity: 0; }
+      70% { transform: scale(1.06) translateX(4px); opacity: 1; }
+      100% { transform: scale(1) translateX(0); opacity: 1; }
+    }
+    .gin-reveal-enter { animation: ginPopIn 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 bg-[#0d0605]">
+
+  <!-- Hidden HTML5 Audio Player for Lyria / NCS MP3 files in /assets/audio/ -->
+  <audio id="lyriaAudioPlayer" loop preload="auto"></audio>
+  <input type="file" id="localMp3Picker" accept="audio/*" class="hidden" onchange="loadLocalMp3File(this)">
+
+  <!-- Top Navigation & Screen Switcher Bar -->
+  <header class="w-full max-w-[980px] flex flex-col gap-2.5 p-3 mb-3 bg-[#170b09] border border-[#301a14] rounded-2xl shadow-2xl">
+    
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <div class="w-3.5 h-3.5 rounded-full bg-[#c84b31] border border-[#e5c378] animate-pulse"></div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-serif-luxury font-black text-[#e5c378] tracking-widest text-base">DIGU</span>
+            <span class="font-thaana font-bold text-[#e5c378] text-base">ޑިގު</span>
+            <span class="text-[10px] font-mono-code bg-[#301a14] text-[#e5c378] px-2 py-0.5 rounded-full border border-[#c84b31]/40">
+              BICYCLE / ROYAL PHYSICAL SVG DECK • LYRIA MP3 ENGINE
+            </span>
+          </div>
+          <p class="text-[11px] text-[#f7f0ea]/60 font-medium">Stacked Physical Corner Indices • Double-Headed Court SVGs • White-Bordered Filigree Backs • Lyria Folder Audio</p>
+        </div>
+      </div>
+
+      <!-- Quick Lyria BGM Controls in Header -->
+      <div class="flex items-center gap-1.5">
+        <button id="headerBgmBtn" onclick="playSpecificBgm('/assets/audio/bgm_table.mp3', 'Table BGM')" class="py-1.5 px-2.5 rounded-xl bg-[#301a14] hover:bg-[#42241c] border border-[#e5c378]/40 text-xs font-bold text-[#e5c378] flex items-center gap-1 shadow transition active:scale-95">
+          <span>🎵</span>
+          <span id="headerBgmLabel">Play Table BGM</span>
+        </button>
+        <button onclick="playSpecificBgm('/assets/audio/bgm_lobby.mp3', 'Lobby BGM')" class="py-1.5 px-2.5 rounded-xl bg-[#301a14] hover:bg-[#42241c] border border-[#c84b31]/50 text-xs font-bold text-[#f7f0ea] flex items-center gap-1 shadow transition active:scale-95">
+          <span>🏛️</span>
+          <span>Lobby BGM</span>
+        </button>
+        <button onclick="stopLyriaMusic()" class="py-1.5 px-2 rounded-xl bg-[#24110d] hover:bg-[#c84b31] border border-[#301a14] text-xs font-bold text-[#f7f0ea]/80 shadow transition active:scale-95" title="Mute BGM">
+          🔇
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen Switcher Navigation Pills -->
+    <nav class="flex flex-wrap items-center gap-1.5 text-xs pt-2 border-t border-[#301a14]/80">
+      <button onclick="switchScreen('game-table')" id="nav-game-table" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#c84b31] text-[#f7f0ea] border border-[#e5c378] shadow-md">
+        🎴 1. Game Table
+      </button>
+      <button onclick="switchScreen('card-art-studio')" id="nav-card-art-studio" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        ♠️ 2. Bicycle / Royal Deck Studio
+      </button>
+      <button onclick="switchScreen('audio-studio')" id="nav-audio-studio" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        🎵 3. Lyria Music Guide &amp; SFX
+      </button>
+      <button onclick="switchScreen('lobby')" id="nav-lobby" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        🏛️ 4. Lobby
+      </button>
+      <button onclick="switchScreen('mode-modal')" id="nav-mode-modal" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        🤖 5. Modes &amp; 3-Tier AI
+      </button>
+      <button onclick="switchScreen('fonts-studio')" id="nav-fonts-studio" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        🔤 6. Fonts &amp; Thaana Fix
+      </button>
+      <button onclick="switchScreen('ingame-settings')" id="nav-ingame-settings" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        🎛️ 7. In-Game Settings
+      </button>
+      <button onclick="switchScreen('system-settings')" id="nav-system-settings" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        ⚙️ 8. System Settings
+      </button>
+      <button onclick="switchScreen('score-modal')" id="nav-score-modal" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        📊 9. Score
+      </button>
+      <button onclick="switchScreen('profile-modal')" id="nav-profile-modal" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        👤 10. Profile
+      </button>
+      <button onclick="switchScreen('rules-modal')" id="nav-rules-modal" class="nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent">
+        📜 11. Rules
+      </button>
+    </nav>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 1: GAME TABLE (Landscape Mobile Viewport 920px × 430px)           -->
+  <!-- Physical Bicycle/Royal Cards + Centered Decks + Dynamic Gin Pad           -->
+  <!-- ========================================================================= -->
+  <main id="screen-game-table" class="screen-view w-full max-w-[920px] flex flex-col items-center">
+    
+    <!-- Quick Simulation Action Bar -->
+    <div class="w-full flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 mb-2 bg-[#170b09]/80 border border-[#301a14] rounded-xl text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-[#e5c378] font-bold">Interactive Controls:</span>
+        <button id="btnToggleGin" class="py-1 px-3 rounded-lg bg-gradient-to-r from-[#c84b31] to-[#e5c378] text-[#0d0605] font-black text-xs shadow active:scale-95 transition">
+          ⚡ Toggle Gin Ready (0 Deadwood)
+        </button>
+        <button id="btnToggleTimer" class="py-1 px-2.5 rounded-lg bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] border border-[#c84b31]/40 text-xs transition">
+          &lt;5s Urgent Timer
+        </button>
+        <button onclick="openInGameOverlay()" class="py-1 px-2.5 rounded-lg bg-[#301a14] hover:bg-[#42241c] text-[#e5c378] border border-[#e5c378]/40 text-xs font-bold transition">
+          🎛️ In-Game Settings Overlay
+        </button>
+      </div>
+
+      <!-- Quick Deck Back Switcher right above Table -->
+      <div class="flex items-center gap-1.5 text-[11px]">
+        <span class="text-[#f7f0ea]/60 font-mono-code">Deck Back:</span>
+        <button onclick="setDeckBack('royal_lacquer')" class="px-2 py-0.5 rounded bg-[#301a14] text-[#e5c378] border border-[#e5c378]/50 font-bold">Royal Gold</button>
+        <button onclick="setDeckBack('bicycle_red')" class="px-2 py-0.5 rounded bg-[#7f1d1d] text-white font-bold">Bicycle Red</button>
+        <button onclick="setDeckBack('bicycle_blue')" class="px-2 py-0.5 rounded bg-[#1e3a8a] text-white font-bold">Rider Blue</button>
+        <button onclick="setDeckBack('casino_emerald')" class="px-2 py-0.5 rounded bg-[#064e3b] text-white font-bold">KEM Green</button>
+      </div>
+    </div>
+
+    <!-- The Landscape Card Table (920px × 430px) -->
+    <div id="landscapeTableFrame" class="relative w-full h-[430px] felt-lacquer rounded-[38px] border-[5px] border-[#301a14] shadow-[0_30px_90px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col justify-between p-3 select-none">
+      
+      <!-- Crimson Urgent Vignette -->
+      <div id="urgentVignette" class="absolute inset-0 pointer-events-none z-40 transition-opacity duration-300 opacity-0 timer-urgent"></div>
+
+      <!-- Left Notch Simulation (Landscape Inset) -->
+      <div class="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-16 bg-[#0d0605] rounded-r-xl pointer-events-none z-50"></div>
+      <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-white/10 rounded-l-xl pointer-events-none z-50"></div>
+
+      <!-- =================================================================== -->
+      <!-- IN-GAME SETTINGS OVERLAY (Fast Match HUD Overlay inside Table!)     -->
+      <!-- =================================================================== -->
+      <div id="tableInGameOverlay" class="hidden absolute inset-0 z-50 bg-[#0d0605]/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-[560px] bg-[#170b09] border-2 border-[#e5c378]/60 rounded-3xl p-5 shadow-2xl">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#301a14]">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🎛️</span>
+              <div>
+                <h3 class="font-serif-luxury font-black text-base text-[#e5c378] tracking-wider">IN-GAME MATCH SETTINGS</h3>
+                <p class="text-[10px] text-[#f7f0ea]/60">Fast Table HUD Controls • Zero Server/Account Clutter</p>
+              </div>
+            </div>
+            <button onclick="closeInGameOverlay()" class="w-8 h-8 rounded-full bg-[#301a14] hover:bg-[#c84b31] text-[#f7f0ea] font-bold flex items-center justify-center transition">✕</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div class="p-3 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-2.5">
+              <div class="text-[10px] font-mono-code font-bold text-[#e5c378] uppercase">Quick Match Audio</div>
+              <div>
+                <div class="flex justify-between text-[11px] mb-1">
+                  <span>🎵 Lyria / NCS Music Volume</span>
+                  <span id="igMusicVal" class="font-mono-code text-[#e5c378]">70%</span>
+                </div>
+                <input type="range" min="0" max="100" value="70" oninput="updateMusicVolume(this.value)" class="w-full accent-[#c84b31] h-1.5 bg-[#301a14] rounded-lg cursor-pointer">
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] mb-1">
+                  <span>🃏 Card &amp; Table SFX</span>
+                  <span id="igSfxVal" class="font-mono-code text-[#e5c378]">85%</span>
+                </div>
+                <input type="range" min="0" max="100" value="85" oninput="updateSfxVolume(this.value)" class="w-full accent-[#c84b31] h-1.5 bg-[#301a14] rounded-lg cursor-pointer">
+              </div>
+              <label class="flex items-center justify-between text-[11px] pt-1 border-t border-[#301a14]/70 cursor-pointer">
+                <span>📳 Haptic Snap Pulse</span>
+                <input type="checkbox" checked onchange="sfxUiTap()" class="accent-[#c84b31] scale-110">
+              </label>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-[#0d0605] border border-[#301a14] flex flex-col justify-between">
+              <div>
+                <div class="text-[10px] font-mono-code font-bold text-[#e5c378] uppercase mb-2">Live Physical Deck Back Swap</div>
+                <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                  <button onclick="setDeckBack('royal_lacquer')" class="py-1.5 px-2 rounded-lg bg-[#301a14] border border-[#e5c378] text-[#e5c378] font-bold text-left truncate">👑 Royal Cinnabar</button>
+                  <button onclick="setDeckBack('bicycle_red')" class="py-1.5 px-2 rounded-lg bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:border-[#c84b31] text-left truncate">♦️ Bicycle Red</button>
+                  <button onclick="setDeckBack('bicycle_blue')" class="py-1.5 px-2 rounded-lg bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:border-[#c84b31] text-left truncate">♠️ Rider Blue</button>
+                  <button onclick="setDeckBack('casino_emerald')" class="py-1.5 px-2 rounded-lg bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:border-[#c84b31] text-left truncate">♣️ KEM Emerald</button>
+                </div>
+              </div>
+              <div class="mt-2 pt-2 border-t border-[#301a14] flex items-center justify-between text-[10px] font-mono-code text-[#f7f0ea]/60">
+                <span>Bot Difficulty (Locked):</span>
+                <span class="text-[#e5c378] font-bold">MASTER</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#301a14]">
+            <div class="flex gap-2">
+              <button onclick="closeInGameOverlay(); switchScreen('rules-modal');" class="py-1.5 px-3 rounded-xl bg-[#301a14] hover:bg-[#42241c] text-xs font-bold text-[#f7f0ea]">📜 Rules</button>
+              <button onclick="closeInGameOverlay(); switchScreen('score-modal');" class="py-1.5 px-3 rounded-xl bg-[#301a14] hover:bg-[#42241c] text-xs font-bold text-[#e5c378]">📊 Scorecard</button>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="closeInGameOverlay(); switchScreen('lobby');" class="py-1.5 px-3 rounded-xl bg-[#c84b31]/20 border border-[#c84b31] text-xs font-bold text-[#c84b31]">Leave Table</button>
+              <button onclick="closeInGameOverlay()" class="py-1.5 px-4 rounded-xl bg-gradient-to-r from-[#c84b31] to-[#e5c378] text-[#0d0605] font-black text-xs shadow">Resume Match</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TOP TABLE RIM: Partner North Seat, Pot, In-Game Menu, Target Score  -->
+      <!-- =================================================================== -->
+      <div class="relative flex items-center justify-between z-20 px-8 pt-1">
+        <div class="flex items-center gap-2">
+          <button onclick="openInGameOverlay()" class="w-8 h-8 rounded-xl bg-[#170b09]/90 hover:bg-[#301a14] border border-[#e5c378]/40 text-[#e5c378] flex items-center justify-center shadow cursor-pointer transition active:scale-95" title="In-Game Match Settings">
+            ☰
+          </button>
+          <div class="bg-[#170b09]/90 px-3 py-1 rounded-xl border border-[#301a14] flex items-center gap-1.5 text-xs font-mono-code shadow">
+            <span class="text-[#e5c378] font-black">🪙 4,000 POT</span>
+          </div>
+        </div>
+
+        <!-- Center: Teammate Partner (North Seat - Team A) with White-Bordered Mini Backs -->
+        <div class="flex items-center gap-2 bg-[#170b09]/90 px-3.5 py-1 rounded-2xl border border-[#301a14] shadow-lg">
+          <div class="w-7 h-7 rounded-xl bg-[#301a14] border border-[#e5c378]/50 flex items-center justify-center text-xs">🤝</div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-black text-[#f7f0ea]">Partner (North)</span>
+              <span class="text-[8px] font-mono-code px-1.5 py-0.2 rounded bg-[#301a14] text-[#e5c378] border border-[#e5c378]/40 font-black">TEAM A</span>
+            </div>
+            <div class="flex -space-x-1 mt-0.5">
+              <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+              <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+              <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+              <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+              <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="bg-[#170b09]/90 px-3 py-1 rounded-xl border border-[#301a14] flex items-center gap-2 text-xs font-mono-code font-black shadow">
+            <span class="text-[#e5c378]">TEAM A: 30</span>
+            <span class="text-[#f7f0ea]/30">|</span>
+            <span class="text-[#c84b31]">TEAM B: 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- CENTER FELT PLAYFIELD: West (L) + East (R) + PERFECTLY CENTERED DECKS-->
+      <!-- =================================================================== -->
+      <div class="relative flex items-center justify-between z-10 px-8 my-auto">
+        
+        <!-- West Flank: Opponent West (Seat 1 - Team B) -->
+        <div class="flex flex-col items-center gap-1 w-20 shrink-0">
+          <div class="relative w-10 h-10 rounded-2xl bg-[#170b09] border-2 border-[#c84b31]/70 shadow-lg flex items-center justify-center text-sm">
+            👤
+            <span class="absolute -bottom-1 -right-1 bg-[#c84b31] text-[#f7f0ea] font-mono-code text-[7px] font-black px-1 rounded-full">B</span>
+          </div>
+          <span class="text-[10px] font-bold text-[#f7f0ea]">Ali (West)</span>
+          <div class="flex -space-x-1.5">
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+          </div>
+        </div>
+
+        <!-- CENTER FELT: Discard & Draw Pile are Centered in Harmony! -->
+        <div class="flex-1 flex items-center justify-center relative">
+          
+          <div id="centerFeltCluster" class="flex items-center justify-center gap-8 transition-all duration-300">
+            
+            <!-- DYNAMIC 3D GIN BUTTON (Appears ONLY when ready to Gin!) -->
+            <div id="dynamicGinWrapper" class="hidden flex-col items-center gin-reveal-enter">
+              <span class="text-[9px] font-mono-code text-[#e5c378] font-bold mb-1 tracking-wider animate-pulse">⚡ KNOCK &amp; GIN</span>
+              <button id="circularGinPad" onclick="handleGinSlamClick()" class="btn-gin-pad-active w-24 h-24 rounded-full flex flex-col items-center justify-center relative shadow-2xl transition-all cursor-pointer animate-pulse active:scale-95" title="Tap to slam Gin!">
+                <div class="absolute top-1.5 w-3/4 h-5 rounded-full bg-white/40 blur-[1px] pointer-events-none"></div>
+                <span class="font-thaana text-sm text-[#0d0605] font-black leading-none">ޑިގު</span>
+                <span class="font-serif-luxury text-2xl font-black text-[#f7f0ea] leading-none my-0.5 drop-shadow-md">GIN</span>
+                <span class="text-[7.5px] font-mono-code text-[#0d0605] font-black uppercase bg-[#e5c378] px-2 rounded-full">TAP SLAM</span>
+              </button>
+            </div>
+
+            <!-- Discard Pile (Table Size: 78px × 114px) with Physical Double-Headed K♥ -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono-code text-[#c84b31] font-bold mb-1.5 tracking-wider">DISCARD</span>
+              <div id="discardDropZone" onclick="handlePickupDiscard()" class="w-[78px] h-[114px] card-physical rounded-[10px] cursor-pointer relative shadow-xl hover:scale-105 active:scale-95 transition overflow-hidden">
+                <!-- Populated by renderTableDecks() with authentic physical K♥ -->
+              </div>
+            </div>
+
+            <!-- Stock Draw Pile (Table Size: 78px × 114px) with White-Bordered Bicycle/Royal Back -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono-code text-[#e5c378] font-bold mb-1.5 tracking-wider">DRAW PILE</span>
+              <div onclick="handleDrawStock()" id="tableStockCard" class="relative w-[78px] h-[114px] rounded-[10px] shadow-2xl flex flex-col items-center justify-center cursor-pointer active:scale-95 transition">
+                <div id="tableStockBackArt" class="w-full h-full rounded-[10px] overflow-hidden shadow-lg"></div>
+                <!-- Physical 3D Card Stack Edges (White/Ivory Cardstock Stack!) -->
+                <div class="absolute -bottom-1 -right-1 w-full h-full rounded-[10px] bg-[#e6dfd3] border border-black/30 -z-10"></div>
+                <div class="absolute -bottom-2 -right-2 w-full h-full rounded-[10px] bg-[#d4cbb8] border border-black/40 -z-20"></div>
+              </div>
+            </div>
+
+            <!-- Clean Pristine Felt Target for Slammed Face-Down Card -->
+            <div id="hiddenSlamTarget" class="absolute -right-24 top-0 w-[84px] h-[126px] pointer-events-none"></div>
+
+          </div>
+
+        </div>
+
+        <!-- East Flank: Opponent East (Seat 3 - Team B) -->
+        <div class="flex flex-col items-center gap-1 w-20 shrink-0">
+          <div class="relative w-10 h-10 rounded-2xl bg-[#170b09] border-2 border-[#c84b31]/70 shadow-lg flex items-center justify-center text-sm">
+            👤
+            <span class="absolute -bottom-1 -right-1 bg-[#c84b31] text-[#f7f0ea] font-mono-code text-[7px] font-black px-1 rounded-full">B</span>
+          </div>
+          <span class="text-[10px] font-bold text-[#f7f0ea]">Hassan (East)</span>
+          <div class="flex -space-x-1.5">
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+            <div class="w-3 h-4 rounded-[2px] bg-[#b91c1c] border border-[#faf6ee] shadow-sm"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- SOUTH SEAT: Player Sanctuary & EXACT In-Game Spacing (-space-x-7)   -->
+      <!-- =================================================================== -->
+      <div class="w-full flex flex-col items-center z-20 pb-0">
+        
+        <div class="flex items-center justify-center gap-3 mb-1 z-30">
+          <div class="flex items-center gap-1.5 bg-[#170b09]/95 backdrop-blur-md px-3.5 py-1 rounded-full border border-[#301a14] shadow-md">
+            <span class="text-[9px] font-mono-code text-[#f7f0ea]/70 uppercase font-black tracking-wider">DEADWOOD:</span>
+            <span id="deadwoodText" class="text-xs font-mono-code font-black text-[#e5c378]">8 / 10</span>
+            <span id="ginReadyTag" class="hidden text-[8px] font-black uppercase text-[#e5c378] bg-[#301a14] px-2 py-0.5 rounded-full border border-[#e5c378] animate-pulse">
+              ⚡ GIN READY
+            </span>
+          </div>
+
+          <div id="turnTimerPill" class="flex items-center gap-1.5 bg-[#170b09]/95 px-3 py-1 rounded-full border border-[#301a14] shadow-md">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+            <span id="timerText" class="font-mono-code text-xs font-black text-[#f7f0ea]">22s</span>
+            <span class="text-[9px] font-black uppercase text-[#f7f0ea]/60">YOUR TURN</span>
+          </div>
+        </div>
+
+        <!-- Hand Container: EXACT In-Game Spacing (-space-x-7 flex layout) -->
+        <div id="exactHandContainer" class="flex items-end justify-center -space-x-7 px-4 pb-0 min-h-[126px] overflow-visible select-none">
+          <!-- Injected dynamically with authentic physical Bicycle/Royal SVG cards -->
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="tableToast" class="mt-2 text-xs font-mono-code font-bold text-[#e5c378] bg-[#170b09] px-4 py-1 rounded-full border border-[#301a14] shadow">
+      PHYSICAL BICYCLE / ROYAL JUMBO-INDEX DECK ACTIVE • NOTICE HOW STACKED CORNER INDICES KEEP EVERY CARD VISIBLE IN THE FAN
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 2: BICYCLE / ROYAL PHYSICAL SVG DECK STUDIO                        -->
+  <!-- Inspect Double-Headed Court Cards, Ornate Ace of Spades & Filigree Backs  -->
+  <!-- ========================================================================= -->
+  <section id="screen-card-art-studio" class="screen-view hidden w-full max-w-[960px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#301a14]">
+      <div>
+        <h2 class="font-serif-luxury font-black text-xl text-[#e5c378] tracking-wider">BICYCLE &amp; ROYAL PHYSICAL SVG CARD STUDIO</h2>
+        <p class="text-xs text-[#f7f0ea]/70">Stacked corner indices (`Rank` over `Suit`), double-headed vertically mirrored court portraits, filigree Ace of Spades, and white-bordered casino backs</p>
+      </div>
+      <button onclick="switchScreen('game-table')" class="py-1.5 px-3.5 rounded-xl bg-[#c84b31] text-[#f7f0ea] text-xs font-bold shadow">View Live on Table →</button>
+    </div>
+
+    <!-- Row 1: Physical Card Fronts at Large Inspection Scale (124px × 180px) -->
+    <div>
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase">1. Physical Casino Fronts — Stacked Corner Index + Double-Headed Courts + Filigree Ace</span>
+        <span class="text-[11px] font-mono-code text-[#f7f0ea]/60">100% Pure Scalable Vector Graphics (Zero Blurry Bitmaps)</span>
+      </div>
+      <div id="studioFrontsRow" class="grid grid-cols-2 sm:grid-cols-5 gap-4 p-5 rounded-2xl bg-[#0d0605] border border-[#301a14] place-items-center">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Row 2: White-Bordered Physical Card Backs (Bicycle Red, Rider Blue, Royal Lacquer, KEM Emerald) -->
+    <div>
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase">2. White-Bordered Physical Filigree Backs — Click Any Deck to Apply to Table</span>
+        <span id="activeBackBadge" class="text-[11px] font-mono-code text-[#e5c378] font-bold">Active: ROYAL LACQUER</span>
+      </div>
+      <div id="studioBacksRow" class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-[#0d0605] border border-[#301a14] place-items-center">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 3: LYRIA MUSIC WORKFLOW GUIDE & TACTILE SFX STUDIO                 -->
+  <!-- ========================================================================= -->
+  <section id="screen-audio-studio" class="screen-view hidden w-full max-w-[940px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl space-y-5">
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#301a14]">
+      <div>
+        <h2 class="font-serif-luxury font-black text-xl text-[#e5c378] tracking-wider">GOOGLE LYRIA MUSIC GUIDE &amp; AUDIO FOLDER ENGINE</h2>
+        <p class="text-xs text-[#f7f0ea]/70">Generate NCS / Casino Lounge tracks in Google Lyria and drop them into <code>public/assets/audio/</code></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="document.getElementById('localMp3Picker').click()" class="py-2 px-3.5 rounded-xl bg-[#301a14] hover:bg-[#42241c] border border-[#e5c378] text-[#e5c378] font-bold text-xs shadow transition">
+          📂 Audition Local MP3 File Now
+        </button>
+        <button onclick="toggleLyriaMusic()" id="studioBgmBtn" class="py-2 px-4 rounded-xl bg-gradient-to-r from-[#c84b31] to-[#e5c378] text-[#0d0605] font-black text-xs shadow active:scale-95 transition">
+          ▶️ Play /assets/audio/bgm_table.mp3
+        </button>
+      </div>
+    </div>
+
+    <!-- Step-by-Step Lyria Workflow & Folder Drop Guide -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Step 1: Where to Generate -->
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-2">
+        <span class="text-[10px] font-mono-code bg-[#c84b31] text-[#f7f0ea] px-2 py-0.5 rounded font-bold uppercase">STEP 1 • OPEN GOOGLE LYRIA</span>
+        <h4 class="font-bold text-sm text-[#e5c378]">Generate Free in Browser (No API Needed)</h4>
+        <ul class="text-xs text-[#f7f0ea]/75 space-y-1.5 leading-relaxed list-disc pl-4">
+          <li><strong>Google AI Studio</strong> (<a href="https://aistudio.google.com" target="_blank" class="text-[#e5c378] underline">aistudio.google.com</a>): Choose model <code>Lyria 3.5</code> (full 2-min song) or <code>Lyria 3 Clip</code> (30s loop), paste prompt, and click <strong>Download MP3</strong>.</li>
+          <li><strong>Google Labs MusicFX DJ</strong> (<a href="https://aitestkitchen.withgoogle.com/tools/music-fx" target="_blank" class="text-[#e5c378] underline">MusicFX</a>): Turn on <strong>Loop</strong> mode, paste prompt, and download the <code>.mp3</code>.</li>
+        </ul>
+      </div>
+
+      <!-- Step 2: Copy Prompts -->
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#e5c378]/50 space-y-2">
+        <span class="text-[10px] font-mono-code bg-[#e5c378] text-[#0d0605] px-2 py-0.5 rounded font-bold uppercase">STEP 2 • COPY LYRIA PROMPTS</span>
+        <div class="space-y-2">
+          <div class="p-2 rounded-xl bg-[#170b09] border border-[#301a14]">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-[11px] font-bold text-[#e5c378]">Prompt A: Table Groove (NCS Chill Lofi)</span>
+              <button onclick="copyPrompt('promptTable')" class="text-[10px] bg-[#301a14] hover:bg-[#c84b31] px-2 py-0.5 rounded text-[#f7f0ea] font-mono-code">Copy</button>
+            </div>
+            <p id="promptTable" class="text-[10px] text-[#f7f0ea]/70 font-mono-code leading-snug">Instrumental only, no vocals. Smooth NCS chill lofi and tropical lounge beat at 88 BPM. Warm Fender Rhodes jazz chords, deep sub-bass, crisp rimshot groove, subtle acoustic guitar plucks, VIP card room vibe, seamless loop.</p>
+          </div>
+          <div class="p-2 rounded-xl bg-[#170b09] border border-[#301a14]">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-[11px] font-bold text-[#e5c378]">Prompt B: Lobby Theme (Tropical House)</span>
+              <button onclick="copyPrompt('promptLobby')" class="text-[10px] bg-[#301a14] hover:bg-[#c84b31] px-2 py-0.5 rounded text-[#f7f0ea] font-mono-code">Copy</button>
+            </div>
+            <p id="promptLobby" class="text-[10px] text-[#f7f0ea]/70 font-mono-code leading-snug">Instrumental only, no vocals. Upbeat NCS tropical chill house and melodic island lounge at 105 BPM. Warm marimba and plucked acoustic guitar, lush synth pads, clean shaker groove, seamless loop.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Where to Place Files -->
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-2">
+        <span class="text-[10px] font-mono-code bg-[#301a14] text-[#e5c378] border border-[#e5c378]/40 px-2 py-0.5 rounded font-bold uppercase">STEP 3 • DROP IN FOLDER</span>
+        <h4 class="font-bold text-sm text-[#f7f0ea]">Folder: <code>public/assets/audio/</code></h4>
+        <p class="text-xs text-[#f7f0ea]/70 leading-relaxed">Save your downloaded MP3s into <code>c:\Users\Aleef Sabir\Digu\public\assets\audio\</code> with these filenames:</p>
+        <div class="p-2.5 rounded-xl bg-[#170b09] border border-[#301a14] font-mono-code text-[11px] space-y-1">
+          <div class="text-[#e5c378]">📄 bgm_table.mp3 <span class="text-[#f7f0ea]/50">(In-Game Table)</span></div>
+          <div class="text-[#e5c378]">📄 bgm_lobby.mp3 <span class="text-[#f7f0ea]/50">(Main Lobby)</span></div>
+          <div class="text-[#f7f0ea]/70">📄 bgm_victory.mp3 <span class="text-[#f7f0ea]/40">(Optional Win)</span></div>
+        </div>
+        <div id="audioStatusBanner" class="text-[10px] font-mono-code text-[#e5c378] pt-1">
+          Status: Ready — Drop MP3s in folder or click "Audition Local MP3" above!
+        </div>
+      </div>
+    </div>
+
+    <!-- Tactile Card SFX Audition Pads -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase">Tactile Card &amp; Table Sound Effects (Zero-Latency Physical Card SFX)</span>
+        <span id="studioSfxVolLabel" class="text-xs font-mono-code text-[#e5c378]">SFX Volume: 85%</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <button onclick="sfxStockDraw()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">1. Stock Draw Flick 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Crisp card slide</div>
+        </button>
+        <button onclick="sfxDiscardPickup()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">2. Discard Pickup Snap 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Two-stage lift</div>
+        </button>
+        <button onclick="sfxDiscardThud()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">3. Felt Discard Drop 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Muted table drop</div>
+        </button>
+        <button onclick="sfxFanTick()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">4. Fan Reorder Tick 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Card-on-card click</div>
+        </button>
+        <button onclick="sfxGinReadyChime()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">5. 0-Deadwood Chime 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Gin pad reveal bell</div>
+        </button>
+        <button onclick="sfxUrgentHeartbeat()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#c84b31]">6. &lt;5s Timer Pulse 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Low heartbeat thud</div>
+        </button>
+        <button onclick="sfxGinSlam()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#c84b31] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">7. Face-Down Gin Slam 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">Table thud + slap</div>
+        </button>
+        <button onclick="sfxRiffleShuffle()" class="p-3 rounded-xl bg-[#0d0605] hover:bg-[#24110d] border border-[#301a14] hover:border-[#e5c378] text-left transition">
+          <div class="font-bold text-xs text-[#e5c378]">8. Deal Riffle Cascade 🔊</div>
+          <div class="text-[10px] text-[#f7f0ea]/60">10-card deal</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 4: MOBILE LOBBY SCREEN                                             -->
+  <!-- ========================================================================= -->
+  <section id="screen-lobby" class="screen-view hidden w-full max-w-[900px] flex flex-col gap-4">
+    <div class="flex items-center justify-between p-3.5 bg-[#170b09] border border-[#301a14] rounded-2xl shadow-xl">
+      <div onclick="switchScreen('profile-modal')" class="flex items-center gap-3 cursor-pointer group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#c84b31] to-[#170b09] border-2 border-[#e5c378] p-0.5 shadow-lg group-hover:scale-105 transition">
+          <div class="w-full h-full rounded-xl bg-[#301a14] flex items-center justify-center text-xl">👑</div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm text-[#f7f0ea]">Sultan Ali</span>
+            <span class="text-[9px] font-mono-code bg-[#301a14] text-[#e5c378] px-2 py-0.5 rounded-full border border-[#e5c378]/40">LVL 14</span>
+          </div>
+          <span class="text-xs font-mono-code text-[#f7f0ea]/60">HLH-49201 • <span class="font-thaana text-[#e5c378]">މާވަޑިޔާ</span> (Thulhaadhoo Master)</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1.5 bg-[#0d0605] px-3 py-1.5 rounded-xl border border-[#301a14] shadow-inner">
+          <span class="text-sm">🪙</span>
+          <span class="font-mono-code font-black text-sm text-[#e5c378]">42,500</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-[#0d0605] px-3 py-1.5 rounded-xl border border-[#301a14] shadow-inner">
+          <span class="text-sm">💎</span>
+          <span class="font-mono-code font-black text-sm text-[#c84b31]">120</span>
+        </div>
+        <button onclick="switchScreen('system-settings')" class="px-3 py-2 rounded-xl bg-[#301a14] hover:bg-[#42241c] border border-[#e5c378]/30 text-[#f7f0ea] text-xs font-bold flex items-center gap-1.5 shadow transition active:scale-95">
+          <span>⚙️</span>
+          <span class="hidden sm:inline">System Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+      <div onclick="switchScreen('mode-modal')" class="relative group cursor-pointer overflow-hidden rounded-3xl bg-gradient-to-b from-[#24110d] to-[#170b09] border-2 border-[#c84b31] p-5 shadow-2xl hover:border-[#e5c378] transition">
+        <div class="flex justify-between items-start mb-3">
+          <span class="font-mono-code text-[9px] font-black uppercase tracking-wider bg-[#c84b31] text-[#f7f0ea] px-2.5 py-0.5 rounded-full">POPULAR</span>
+          <span class="font-thaana text-2xl font-bold text-[#e5c378]">ޑިގު</span>
+        </div>
+        <h3 class="font-serif-luxury font-black text-xl text-[#e5c378] tracking-wider mb-1">DIGU</h3>
+        <p class="text-xs text-[#f7f0ea]/70 leading-relaxed mb-4">Maldivian Rummy with team merges, strict Ace restrictions, and 1,000-point runs.</p>
+        <div class="flex items-center justify-between pt-2 border-t border-[#301a14] text-xs">
+          <span class="text-[#e5c378] font-bold">Select Mode &amp; AI Tier</span>
+          <span class="px-3 py-1 rounded-xl bg-[#c84b31] text-[#f7f0ea] font-bold group-hover:scale-105 transition">Play Now →</span>
+        </div>
+      </div>
+
+      <div class="relative rounded-3xl bg-[#170b09] border border-[#301a14] p-5 shadow-xl opacity-75">
+        <div class="flex justify-between items-start mb-3">
+          <span class="font-mono-code text-[9px] font-black uppercase tracking-wider bg-[#301a14] text-[#f7f0ea]/70 px-2 py-0.5 rounded-full">COMING SOON</span>
+          <span class="font-thaana text-2xl font-bold text-[#f7f0ea]/40">ދިހައެއް</span>
+        </div>
+        <h3 class="font-serif-luxury font-black text-xl text-[#f7f0ea]/70 tracking-wider mb-1">DHIHAEH</h3>
+        <p class="text-xs text-[#f7f0ea]/50 leading-relaxed mb-4">The fast-paced 10-card counting trick game of the central atolls.</p>
+        <div class="pt-2 border-t border-[#301a14] text-xs text-[#f7f0ea]/40">In Development</div>
+      </div>
+
+      <div class="relative rounded-3xl bg-[#170b09] border border-[#301a14] p-5 shadow-xl opacity-75">
+        <div class="flex justify-between items-start mb-3">
+          <span class="font-mono-code text-[9px] font-black uppercase tracking-wider bg-[#301a14] text-[#f7f0ea]/70 px-2 py-0.5 rounded-full">COMING SOON</span>
+          <span class="font-thaana text-2xl font-bold text-[#f7f0ea]/40">ބޮނޑި</span>
+        </div>
+        <h3 class="font-serif-luxury font-black text-xl text-[#f7f0ea]/70 tracking-wider mb-1">BONDI</h3>
+        <p class="text-xs text-[#f7f0ea]/50 leading-relaxed mb-4">Strategic bluffing and card capturing played in island holhuashi huts.</p>
+        <div class="pt-2 border-t border-[#301a14] text-xs text-[#f7f0ea]/40">In Development</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 5: MODE SELECTION & 3-TIER BOT AI SELECTOR                         -->
+  <!-- ========================================================================= -->
+  <section id="screen-mode-modal" class="screen-view hidden w-full max-w-[900px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-[#301a14]">
+      <div>
+        <h2 class="font-serif-luxury font-black text-xl text-[#e5c378] tracking-wider">SELECT DIGU MODE &amp; BOT AI DIFFICULTY</h2>
+        <p class="text-xs text-[#f7f0ea]/70">Configure bot intelligence heuristics before entering the table</p>
+      </div>
+      <button onclick="switchScreen('lobby')" class="w-8 h-8 rounded-full bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] flex items-center justify-center font-bold">✕</button>
+    </div>
+
+    <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14]">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase tracking-wider">1. Bot Gameplay Style &amp; AI Tier (diguAI.ts)</span>
+        <span id="selectedAiSummary" class="text-[11px] font-mono-code text-[#c84b31] font-bold">Active: THULHAADHOO MASTER</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div id="ai-card-casual" onclick="selectAiTier('casual')" class="cursor-pointer p-3.5 rounded-2xl bg-[#170b09] border border-[#301a14] hover:border-[#e5c378]/50 transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-sm text-[#f7f0ea]">🌴 Casual (Finolhu)</span>
+            <span class="font-thaana text-xs text-[#e5c378]/70">ފިނޮޅު</span>
+          </div>
+          <p class="text-[11px] text-[#f7f0ea]/65 leading-relaxed mb-2">Relaxed island play. Evaluates only immediate 3-card melds, ignores opponent discard memory, and has a 25% forgiving discard variance.</p>
+        </div>
+
+        <div id="ai-card-regular" onclick="selectAiTier('regular')" class="cursor-pointer p-3.5 rounded-2xl bg-[#170b09] border border-[#301a14] hover:border-[#e5c378]/50 transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-sm text-[#f7f0ea]">🛖 Holhuashi Regular</span>
+            <span class="font-thaana text-xs text-[#e5c378]/70">ހޮޅުއަށި</span>
+          </div>
+          <p class="text-[11px] text-[#f7f0ea]/65 leading-relaxed mb-2">Balanced club player. Values 2-card pairs &amp; open sequences, dumps stranded Aces early (-15pt risk), and avoids feeding obvious ranks.</p>
+        </div>
+
+        <div id="ai-card-master" onclick="selectAiTier('master')" class="cursor-pointer p-3.5 rounded-2xl bg-[#24110d] border-2 border-[#e5c378] shadow-lg transition">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-sm text-[#e5c378]">👑 Thulhaadhoo Master</span>
+            <span class="font-thaana text-xs text-[#e5c378]">މާވަޑިޔާ</span>
+          </div>
+          <p class="text-[11px] text-[#f7f0ea]/80 leading-relaxed mb-2">Full card-counting tactician. Tracks every seat's pickups, locks down downstream discards against the 3-Gin (-100pt) penalty, and feeds 2v2 partner merges.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div onclick="switchScreen('game-table')" class="cursor-pointer group p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] hover:border-[#c84b31] transition shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-[#301a14] border border-[#e5c378]/40 flex items-center justify-center text-lg mb-2">⚔️</div>
+          <h4 class="font-bold text-sm text-[#f7f0ea] mb-1">2-Player Solo (1v1)</h4>
+          <p class="text-[11px] text-[#f7f0ea]/60 leading-relaxed">Fast-paced head-to-head duel. Zero teammates. Pure rummy skill and card memory.</p>
+        </div>
+        <div class="mt-4 pt-2 border-t border-[#301a14] flex justify-between items-center text-xs font-mono-code">
+          <span class="text-[#e5c378]">🪙 1,000 Buy-in</span>
+          <span class="text-[#c84b31] font-bold group-hover:translate-x-1 transition">Launch →</span>
+        </div>
+      </div>
+
+      <div onclick="switchScreen('game-table')" class="cursor-pointer group p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] hover:border-[#c84b31] transition shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-[#301a14] border border-[#e5c378]/40 flex items-center justify-center text-lg mb-2">🔥</div>
+          <h4 class="font-bold text-sm text-[#f7f0ea] mb-1">4-Player Cutthroat</h4>
+          <p class="text-[11px] text-[#f7f0ea]/60 leading-relaxed">4 individual seats. Beware upstream feeder penalties for feeding 3 consecutive Gins!</p>
+        </div>
+        <div class="mt-4 pt-2 border-t border-[#301a14] flex justify-between items-center text-xs font-mono-code">
+          <span class="text-[#e5c378]">🪙 2,500 Buy-in</span>
+          <span class="text-[#c84b31] font-bold group-hover:translate-x-1 transition">Launch →</span>
+        </div>
+      </div>
+
+      <div onclick="switchScreen('game-table')" class="cursor-pointer group p-4 rounded-2xl bg-[#0d0605] border-2 border-[#c84b31] hover:border-[#e5c378] transition shadow-lg flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-xl bg-[#c84b31] border border-[#e5c378] flex items-center justify-center text-lg mb-2">🤝</div>
+          <h4 class="font-bold text-sm text-[#e5c378] mb-1">4-Player Team Mode (2v2)</h4>
+          <p class="text-[11px] text-[#f7f0ea]/70 leading-relaxed">North &amp; South vs East &amp; West. Teammates combine remaining 20 cards on round reveal!</p>
+        </div>
+        <div class="mt-4 pt-2 border-t border-[#301a14] flex justify-between items-center text-xs font-mono-code">
+          <span class="text-[#e5c378] font-black">🪙 4,000 Buy-in</span>
+          <span class="text-[#c84b31] font-bold group-hover:translate-x-1 transition">Launch →</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 6: FONTS & DHIVEHI THAANA FIX INSPECTOR                            -->
+  <!-- ========================================================================= -->
+  <section id="screen-fonts-studio" class="screen-view hidden w-full max-w-[900px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl space-y-5">
+    <div class="flex items-center justify-between pb-3 border-b border-[#301a14]">
+      <div>
+        <h2 class="font-serif-luxury font-black text-xl text-[#e5c378] tracking-wider">4-FONT HIERARCHY &amp; DHIVEHI THAANA FIX</h2>
+        <p class="text-xs text-[#f7f0ea]/70">Root cause fix for the mobile/Windows `MV Boli` fallback in `index.html` and `src/index.css`</p>
+      </div>
+      <button onclick="switchScreen('game-table')" class="w-8 h-8 rounded-full bg-[#301a14] text-[#f7f0ea] font-bold">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#c84b31]/60">
+        <span class="text-[10px] font-mono-code bg-[#c84b31]/20 text-[#c84b31] px-2 py-0.5 rounded font-bold uppercase">❌ BEFORE (Broken in index.html)</span>
+        <h4 class="font-bold text-sm text-[#f7f0ea] mt-2 mb-1">Why Dhivehi Looked Like MV Boli:</h4>
+        <p class="text-xs text-[#f7f0ea]/70 leading-relaxed mb-3">
+          <code>index.html</code> requested <code>family=Faruma</code> from Google Fonts. Because <code>Faruma</code> does not exist on Google Fonts, Google's CSS API returned <strong>HTTP 400 Bad Request</strong>, forcing Windows/WebView to fall back to <strong>MV Boli</strong>:
+        </p>
+        <div class="p-3 rounded-xl bg-[#170b09] border border-[#301a14] flex items-center justify-between">
+          <span class="text-xs text-[#f7f0ea]/50">System Fallback (MV Boli):</span>
+          <span class="font-broken-mvboli text-xl text-[#c84b31]">ހޮޅުއަށި • ޑިގު • ލިޔެލާ ޖެހުން</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#0d0605] border-2 border-[#e5c378]">
+        <span class="text-[10px] font-mono-code bg-[#e5c378]/20 text-[#e5c378] px-2 py-0.5 rounded font-bold uppercase">✅ AFTER (Fixed for Web &amp; Mobile APK)</span>
+        <h4 class="font-bold text-sm text-[#e5c378] mt-2 mb-1">Bundled `@font-face` + Noto Sans Thaana:</h4>
+        <p class="text-xs text-[#f7f0ea]/80 leading-relaxed mb-3">
+          We remove invalid parameters from Google Fonts, bundle <code>Faruma.woff2</code> &amp; <code>MVWaheed.woff2</code> in <code>public/fonts/</code>, and load <code>Noto Sans Thaana</code> so it <strong>never</strong> falls back to MV Boli:
+        </p>
+        <div class="p-3 rounded-xl bg-[#170b09] border border-[#e5c378]/50 flex items-center justify-between">
+          <span class="text-xs text-[#e5c378]">Authentic Thaana Render:</span>
+          <span class="font-thaana font-bold text-xl text-[#e5c378]">ހޮޅުއަށި • ޑިގު • ލިޔެލާ ޖެހުން</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 7: IN-GAME SETTINGS (Standalone Preview)                           -->
+  <!-- ========================================================================= -->
+  <section id="screen-ingame-settings" class="screen-view hidden w-full max-w-[760px] bg-[#170b09] border-2 border-[#e5c378]/60 rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#301a14]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono-code bg-[#c84b31] text-[#f7f0ea] px-2 py-0.5 rounded-full font-bold">TABLE HUD OVERLAY</span>
+          <h2 class="font-serif-luxury font-black text-xl text-[#e5c378]">IN-GAME MATCH SETTINGS</h2>
+        </div>
+        <p class="text-xs text-[#f7f0ea]/70 mt-0.5">Triggered from top-left `☰` on the Game Table — fast audio/haptic sliders, live card-back swap &amp; match controls</p>
+      </div>
+      <button onclick="switchScreen('game-table')" class="w-8 h-8 rounded-full bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] flex items-center justify-center font-bold">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-3">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase block">Live Audio &amp; Sensory</span>
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span>🎵 Lyria Match Music (`bgm_table.mp3`)</span>
+            <span class="font-mono-code text-[#e5c378]">70%</span>
+          </div>
+          <input type="range" min="0" max="100" value="70" oninput="updateMusicVolume(this.value)" class="w-full accent-[#c84b31]">
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span>🃏 Card Flick &amp; Gin Slam SFX</span>
+            <span class="font-mono-code text-[#e5c378]">85%</span>
+          </div>
+          <input type="range" min="0" max="100" value="85" oninput="updateSfxVolume(this.value)" class="w-full accent-[#c84b31]">
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-3">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase block">Live Physical Deck Swap</span>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button onclick="setDeckBack('royal_lacquer')" class="p-2.5 rounded-xl bg-[#301a14] border-2 border-[#e5c378] text-[#e5c378] font-bold text-left">👑 Royal Cinnabar</button>
+          <button onclick="setDeckBack('bicycle_red')" class="p-2.5 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 text-left">♦️ Bicycle Red</button>
+          <button onclick="setDeckBack('bicycle_blue')" class="p-2.5 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 text-left">♠️ Rider Blue</button>
+          <button onclick="setDeckBack('casino_emerald')" class="p-2.5 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 text-left">♣️ KEM Emerald</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 8: SYSTEM SETTINGS (Lobby Global Config)                           -->
+  <!-- ========================================================================= -->
+  <section id="screen-system-settings" class="screen-view hidden w-full max-w-[820px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#301a14]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono-code bg-[#301a14] text-[#e5c378] border border-[#e5c378]/40 px-2 py-0.5 rounded-full font-bold">LOBBY GLOBAL CONFIG</span>
+          <h2 class="font-serif-luxury font-black text-xl text-[#e5c378]">SYSTEM SETTINGS</h2>
+        </div>
+        <p class="text-xs text-[#f7f0ea]/70 mt-0.5">Global Device Audio/Haptics, Default AI &amp; Physical Deck Preferences, Server Endpoint &amp; Cloud Account</p>
+      </div>
+      <button onclick="switchScreen('lobby')" class="w-8 h-8 rounded-full bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] flex items-center justify-center font-bold">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-3">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase block">1. Global Game Defaults</span>
+        <div>
+          <label class="text-[11px] text-[#f7f0ea]/70 block mb-1">Default Solo/2v2 Bot AI Tier</label>
+          <select onchange="selectAiTier(this.value)" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-3 py-2 text-xs text-[#e5c378] font-bold">
+            <option value="master" selected>👑 Thulhaadhoo Master (Smart)</option>
+            <option value="regular">🛖 Holhuashi Regular (Balanced)</option>
+            <option value="casual">🌴 Casual Finolhu (Forgiving)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] text-[#f7f0ea]/70 block mb-1">Default Physical Deck Edition</label>
+          <select onchange="setDeckBack(this.value)" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-3 py-2 text-xs text-[#f7f0ea] font-bold">
+            <option value="royal_lacquer">👑 Royal Cinnabar &amp; Gold</option>
+            <option value="bicycle_red">♦️ Bicycle Classic Rider Red</option>
+            <option value="bicycle_blue">♠️ Bicycle Classic Rider Blue</option>
+            <option value="casino_emerald">♣️ KEM Casino Emerald</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-3">
+        <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase block">2. Network &amp; OTA Updates</span>
+        <div>
+          <label class="text-[11px] text-[#f7f0ea]/70 block mb-1">Socket.IO Multiplayer Server</label>
+          <input type="text" value="https://digu-holhuashi.onrender.com" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-2.5 py-1.5 text-[11px] font-mono-code text-[#f7f0ea]">
+        </div>
+        <div class="flex items-center justify-between text-xs bg-[#170b09] px-3 py-2 rounded-xl border border-[#301a14]">
+          <span class="text-[#f7f0ea]/70">Server Ping:</span>
+          <span class="font-mono-code font-bold text-emerald-400">● 42ms (Online)</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] space-y-3 flex flex-col justify-between">
+        <div class="space-y-2.5">
+          <span class="text-xs font-mono-code font-bold text-[#e5c378] uppercase block">3. Account &amp; Cloud Sync</span>
+          <div class="p-2.5 rounded-xl bg-[#170b09] border border-[#301a14] text-xs">
+            <div class="font-bold text-[#f7f0ea]">Sultan Ali</div>
+            <div class="font-mono-code text-[10px] text-[#e5c378]">ID: HLH-49201 • Cloud Synced</div>
+          </div>
+        </div>
+        <button onclick="sfxUiTap()" class="w-full py-2 rounded-xl bg-[#c84b31] text-[#f7f0ea] text-xs font-bold shadow">
+          ☁️ Force Cloud Backup Now
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 9: ROUND SCORE MODAL                                               -->
+  <!-- ========================================================================= -->
+  <section id="screen-score-modal" class="screen-view hidden w-full max-w-[800px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#301a14]">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-serif-luxury font-black text-xl text-[#e5c378]">ROUND RESOLUTION</span>
+          <span class="text-xs font-mono-code bg-[#c84b31] text-[#f7f0ea] px-2 py-0.5 rounded-full font-bold">TEAM A GIN WIN!</span>
+        </div>
+        <p class="text-xs text-[#f7f0ea]/70">Round 1 complete • 20-Card Team Merge Breakdown</p>
+      </div>
+      <button onclick="switchScreen('game-table')" class="w-8 h-8 rounded-full bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] flex items-center justify-center font-bold">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#e5c378]/60 shadow-lg">
+        <div class="flex justify-between items-center mb-2 pb-2 border-b border-[#301a14]">
+          <span class="font-bold text-sm text-[#e5c378]">TEAM A (You + Partner)</span>
+          <span class="font-mono-code font-black text-base text-[#e5c378]">+175 pts</span>
+        </div>
+        <div class="space-y-1.5 text-xs text-[#f7f0ea]/80">
+          <div class="flex justify-between"><span>Melded Cards (Q♠Q♥Q♦, 9♥10♥J♥):</span><span class="font-mono-code text-[#e5c378]">+75 pts</span></div>
+          <div class="flex justify-between"><span>Gin Bonus (+100 flat):</span><span class="font-mono-code text-[#e5c378]">+100 pts</span></div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#c84b31]/60 shadow-lg">
+        <div class="flex justify-between items-center mb-2 pb-2 border-b border-[#301a14]">
+          <span class="font-bold text-sm text-[#c84b31]">TEAM B (Ali + Hassan)</span>
+          <span class="font-mono-code font-black text-base text-[#c84b31]">-45 pts</span>
+        </div>
+        <div class="space-y-1.5 text-xs text-[#f7f0ea]/80">
+          <div class="flex justify-between"><span>Combined Melds:</span><span class="font-mono-code text-[#e5c378]">+30 pts</span></div>
+          <div class="flex justify-between"><span>Stranded Ace Liability (Rank 1):</span><span class="font-mono-code text-[#c84b31]">-15 pts</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 10: PROFILE MODAL & SCREEN 11: RULES MODAL                         -->
+  <!-- ========================================================================= -->
+  <section id="screen-profile-modal" class="screen-view hidden w-full max-w-[700px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#301a14]">
+      <h2 class="font-serif-luxury font-black text-xl text-[#e5c378]">PLAYER PROFILE</h2>
+      <button onclick="switchScreen('game-table')" class="w-8 h-8 rounded-full bg-[#301a14] text-[#f7f0ea] font-bold">✕</button>
+    </div>
+    <div class="p-4 rounded-2xl bg-[#0d0605] border border-[#301a14] flex items-center gap-4">
+      <div class="w-16 h-16 rounded-2xl bg-[#301a14] border-2 border-[#e5c378] flex items-center justify-center text-3xl">👑</div>
+      <div>
+        <h3 class="font-black text-lg text-[#f7f0ea]">Sultan Ali</h3>
+        <p class="text-xs text-[#e5c378] font-mono-code">HLH-49201 • 68% Win Rate • 142 Matches</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-rules-modal" class="screen-view hidden w-full max-w-[750px] bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-[#301a14]">
+      <h2 class="font-serif-luxury font-black text-xl text-[#e5c378]">MALDIVIAN DIGU RULES</h2>
+      <button onclick="switchScreen('game-table')" class="w-8 h-8 rounded-full bg-[#301a14] text-[#f7f0ea] font-bold">✕</button>
+    </div>
+    <div class="space-y-3 text-xs text-[#f7f0ea]/80">
+      <div class="p-3.5 rounded-2xl bg-[#0d0605] border border-[#c84b31]">
+        <strong class="text-[#c84b31] block mb-1">⚠️ THE STRICT ACE RULE</strong>
+        Aces (Rank 1) CANNOT be used in standard sequences (A-2-3 or Q-K-A). Aces only meld in Sets (3–4 Aces) or a 1,000-Point Run. Unmelded Aces count as -15 pts deadwood debt.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- PHYSICAL BICYCLE / ROYAL SVG CARD ENGINE & LYRIA AUDIO ENGINE             -->
+  <!-- ========================================================================= -->
+  <script>
+    let activeDeckBack = 'royal_lacquer';
+    let activeAiTier = 'master';
+
+    // Crisp Vector Suit SVG Paths (Far sharper than font glyphs!)
+    function getSuitSVGPath(suit, cx, cy, scale = 1, fill = '#111827') {
+      if (suit === 'SPADES' || suit === '♠') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})">
+          <path d="M0 -11 C-5 -5 -10 -1 -10 4 C-10 7.5 -7 9.5 -4 9.5 C-2 9.5 -0.8 8.5 0 7 C0.8 8.5 2 9.5 4 9.5 C7 9.5 10 7.5 10 4 C10 -1 5 -5 0 -11 Z" fill="${fill}"/>
+          <path d="M-1.2 5.5 L-3.5 11.5 L3.5 11.5 L1.2 5.5 Z" fill="${fill}"/>
+        </g>`;
+      }
+      if (suit === 'HEARTS' || suit === '♥') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})">
+          <path d="M0 -5.5 C-2 -9.5 -6.5 -10.5 -9 -7.5 C-11.5 -4.5 -11 0.5 -7 4.5 L0 11.5 L7 4.5 C11 0.5 11.5 -4.5 9 -7.5 C6.5 -10.5 2 -9.5 0 -5.5 Z" fill="${fill}"/>
+        </g>`;
+      }
+      if (suit === 'DIAMONDS' || suit === '♦') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})">
+          <path d="M0 -11.5 C2.5 -6 6 -2.5 10 0 C6 2.5 2.5 6 0 11.5 C-2.5 6 -6 2.5 -10 0 C-6 -2.5 -2.5 -6 0 -11.5 Z" fill="${fill}"/>
+        </g>`;
+      }
+      // CLUBS
+      return `<g transform="translate(${cx},${cy}) scale(${scale})">
+        <circle cx="0" cy="-5.2" r="4.5" fill="${fill}"/>
+        <circle cx="-5" cy="2" r="4.5" fill="${fill}"/>
+        <circle cx="5" cy="2" r="4.5" fill="${fill}"/>
+        <path d="M-1.3 3.5 L-3.5 11 L3.5 11 L1.3 3.5 Z" fill="${fill}"/>
+      </g>`;
+    }
+
+    // Generates a full Physical Bicycle / Royal Casino Card Front SVG (viewBox="0 0 100 148")
+    // Features:
+    // - Stacked Top-Left & Inverted Bottom-Right Corner Indices (Rank directly above Suit!)
+    // - Double-Headed Vertically Mirrored Illustrated Court Figures for K, Q, J
+    // - Ornate Bicycle Filigree Medallion for Ace of Spades (A♠) and Aces
+    // - Jumbo Framed Center Suit Pip + Corner Pips for Number Cards (2-10)
+    function getPhysicalCardFrontSVG(card) {
+      const ink = card.isRed ? '#b91c1c' : '#0f172a';
+      const gold = '#d4af37';
+      const darkGold = '#9a7b2c';
+      const navy = '#1e293b';
+      const crimson = '#b91c1c';
+      const rankText = card.label;
+      const fontSize = rankText === '10' ? '16' : '18';
+      const letterSpacing = rankText === '10' ? '-1.5' : '0';
+
+      let centerArt = '';
+
+      if (rankText === 'A' && (card.suit === 'SPADES' || card.suitIcon === '♠')) {
+        // BICYCLE / ROYAL ORNATE ACE OF SPADES FILIGREE MEDALLION
+        centerArt = `
+          <rect x="20" y="14" width="60" height="120" rx="4" stroke="${gold}" stroke-width="0.9" stroke-opacity="0.7" fill="none"/>
+          <g transform="translate(50, 72)">
+            <!-- Outer Filigree Halo -->
+            <circle cx="0" cy="0" r="27" stroke="${gold}" stroke-width="1.2" stroke-dasharray="2 1.5" fill="#faf6ee"/>
+            <circle cx="0" cy="0" r="23" stroke="${ink}" stroke-width="0.8" stroke-opacity="0.4" fill="none"/>
+            <!-- Big Engraved Spade Silhouette -->
+            <path d="M0 -24 C-11 -11 -21 -2 -21 9 C-21 16 -15 20 -8.5 20 C-4.5 20 -1.5 17.5 0 14.5 C1.5 17.5 4.5 20 8.5 20 C15 20 21 16 21 9 C21 -2 11 -11 0 -24 Z" fill="${ink}"/>
+            <path d="M-2.8 12 L-8 25 L8 25 L2.8 12 Z" fill="${ink}"/>
+            <!-- Inner Gold Filigree Engraving inside the Spade -->
+            <path d="M0 -17 C-7 -7 -14 0 -14 8 C-14 12.5 -10 15 -5.5 15 C-2.5 15 0 12.5 0 10 C0 12.5 2.5 15 5.5 15 C10 15 14 12.5 14 8 C14 0 7 -7 0 -17 Z" stroke="${gold}" stroke-width="1.2" fill="none"/>
+            <!-- Inner Royal Crown & Rosette -->
+            <path d="M-7 4 L-5 -3 L0 1 L5 -3 L7 4 Z" fill="${gold}"/>
+            <circle cx="0" cy="7" r="2.2" fill="#faf6ee"/>
+            <!-- Ribbon Banner -->
+            <rect x="-22" y="27" width="44" height="7" rx="2" fill="#faf6ee" stroke="${gold}" stroke-width="1"/>
+            <text x="0" y="32.2" text-anchor="middle" font-family="Cinzel, serif" font-size="4.5" font-weight="900" fill="${ink}" letter-spacing="0.8">ROYAL DIGU</text>
+          </g>
+        `;
+      } else if (rankText === 'A') {
+        // Ornate Casino Ace for Hearts, Diamonds, Clubs
+        centerArt = `
+          <rect x="20" y="14" width="60" height="120" rx="4" stroke="${gold}" stroke-width="0.9" stroke-opacity="0.7" fill="none"/>
+          <circle cx="50" cy="74" r="22" stroke="${gold}" stroke-width="1.4" stroke-dasharray="3 1.5" fill="${ink}" fill-opacity="0.04"/>
+          <circle cx="50" cy="74" r="17" stroke="${ink}" stroke-width="0.8" stroke-opacity="0.3" fill="none"/>
+          ${getSuitSVGPath(card.suitIcon, 50, 74, 1.55, ink)}
+        `;
+      } else if (rankText === 'K' || rankText === 'Q' || rankText === 'J') {
+        // DOUBLE-HEADED (TWO-WAY MIRRORED) BICYCLE / ROYAL COURT PORTRAIT
+        const uid = `court_${card.id}_${Math.random().toString(36).slice(2, 6)}`;
+        const crownHTML = rankText === 'K'
+          ? `<path d="M36 33 L38 22 L44 28 L50 20 L56 28 L62 22 L64 33 Z" fill="${gold}" stroke="${ink}" stroke-width="1.2"/>
+             <circle cx="50" cy="19" r="1.8" fill="${crimson}"/><circle cx="38" cy="21" r="1.5" fill="${crimson}"/><circle cx="62" cy="21" r="1.5" fill="${crimson}"/>`
+          : rankText === 'Q'
+          ? `<path d="M38 33 C38 24 44 21 50 20 C56 21 62 24 62 33 Z" fill="${gold}" stroke="${ink}" stroke-width="1.2"/>
+             <circle cx="50" cy="25" r="2.2" fill="${crimson}"/>`
+          : `<path d="M37 33 L41 24 L59 24 L63 33 Z" fill="${card.isRed ? crimson : navy}" stroke="${gold}" stroke-width="1.3"/>
+             <path d="M35 33 H65" stroke="${gold}" stroke-width="2"/>`;
+
+        const attributeHTML = rankText === 'K'
+          ? `<line x1="65" y1="30" x2="60" y2="68" stroke="${gold}" stroke-width="2.2"/>
+             <circle cx="65" cy="29" r="3.5" fill="${gold}" stroke="${ink}" stroke-width="1"/>`
+          : rankText === 'Q'
+          ? `<line x1="64" y1="38" x2="58" y2="66" stroke="#15803d" stroke-width="1.6"/>
+             <circle cx="64" cy="36" r="4" fill="${crimson}" stroke="${gold}" stroke-width="1"/>
+             <circle cx="64" cy="36" r="1.5" fill="${gold}"/>`
+          : `<line x1="65" y1="26" x2="61" y2="68" stroke="${ink}" stroke-width="2"/>
+             <path d="M65 24 L71 31 L65 36 Z" fill="${gold}" stroke="${ink}" stroke-width="1"/>`;
+
+        const halfPortrait = `
+          <!-- Watermark Suit Pip inside Court Box -->
+          ${getSuitSVGPath(card.suitIcon, 30, 30, 0.58, ink)}
+          <!-- Royal Shoulders & Brocade Robe -->
+          <path d="M26 74 C27 54 36 48 50 48 C64 48 73 54 74 74 Z" fill="${card.isRed ? crimson : navy}" stroke="${ink}" stroke-width="1.3"/>
+          <!-- Gold Collar V-Stole & Ermine Trim -->
+          <path d="M36 49 L50 69 L64 49" fill="none" stroke="${gold}" stroke-width="3.5"/>
+          <path d="M42 49 L50 61 L58 49" fill="#faf6ee" stroke="${ink}" stroke-width="1"/>
+          <!-- Brocade Pattern Dots -->
+          <circle cx="34" cy="62" r="1.5" fill="${gold}"/><circle cx="66" cy="62" r="1.5" fill="${gold}"/>
+          <!-- Head & Classical Profile -->
+          <path d="M40 33 C39 28 61 28 60 33 L59 43 C59 48 41 48 41 43 Z" fill="#fae8d4" stroke="${ink}" stroke-width="1.2"/>
+          <!-- Hair / Curls -->
+          <path d="M39 33 C36 36 36 43 40 45 M61 33 C64 36 64 43 60 45" stroke="${gold}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- Eyes, Nose & Royal Beard/Lips -->
+          <circle cx="46.5" cy="37.5" r="1" fill="${ink}"/>
+          <circle cx="53.5" cy="37.5" r="1" fill="${ink}"/>
+          <path d="M50 37.5 L49.2 41 L51 41" stroke="${ink}" stroke-width="0.9" fill="none"/>
+          ${rankText === 'K' ? `<path d="M43 43.5 Q50 48 57 43.5" stroke="${ink}" stroke-width="1.5" fill="none"/>` : `<path d="M47.5 43.5 Q50 45 52.5 43.5" stroke="${crimson}" stroke-width="1.2" fill="none"/>`}
+          <!-- Crown & Royal Attribute (Scepter / Rose / Halberd) -->
+          ${crownHTML}
+          ${attributeHTML}
+        `;
+
+        centerArt = `
+          <defs>
+            <clipPath id="${uid}_top">
+              <polygon points="22,16 78,16 78,70 22,78"/>
+            </clipPath>
+            <clipPath id="${uid}_bot">
+              <polygon points="22,78 78,70 78,132 22,132"/>
+            </clipPath>
+          </defs>
+          <!-- Outer & Inner Court Frame -->
+          <rect x="21" y="15" width="58" height="118" rx="3" fill="#faf5e8" stroke="${gold}" stroke-width="1.5"/>
+          <rect x="23" y="17" width="54" height="114" rx="2" fill="none" stroke="${ink}" stroke-width="0.7" stroke-opacity="0.6"/>
+          <!-- Top Half of Double-Headed Court -->
+          <g clip-path="url(#${uid}_top)">
+            ${halfPortrait}
+          </g>
+          <!-- Bottom Mirrored Half (Rotated 180 deg around center 50,74) -->
+          <g clip-path="url(#${uid}_bot)">
+            <g transform="rotate(180 50 74)">
+              ${halfPortrait}
+            </g>
+          </g>
+          <!-- Classic Diagonal Court Divider Sash -->
+          <line x1="22" y1="78" x2="78" y2="70" stroke="${gold}" stroke-width="2.4"/>
+          <line x1="22" y1="78" x2="78" y2="70" stroke="${ink}" stroke-width="0.7"/>
+        `;
+      } else {
+        // JUMBO-INDEX CASINO NUMBER CARDS (2-10)
+        // Clean inner frame + corner mini pips + large sculpted center suit pip
+        centerArt = `
+          <rect x="22" y="16" width="56" height="116" rx="4" stroke="${ink}" stroke-width="0.6" stroke-opacity="0.18" fill="none"/>
+          ${getSuitSVGPath(card.suitIcon, 31, 28, 0.48, ink)}
+          <g transform="rotate(180 69 120)">
+            ${getSuitSVGPath(card.suitIcon, 69, 120, 0.48, ink)}
+          </g>
+          ${getSuitSVGPath(card.suitIcon, 50, 74, 1.55, ink)}
+        `;
+      }
+
+      return `
+        <svg class="w-full h-full select-none pointer-events-none" viewBox="0 0 100 148" fill="none">
+          <!-- TOP-LEFT STACKED PHYSICAL CORNER INDEX (Always visible in -space-x-7 fan!) -->
+          <g>
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">${rankText}</text>
+            ${getSuitSVGPath(card.suitIcon, 11, 32, 0.62, ink)}
+          </g>
+
+          <!-- CENTER ARTWORK (Double-Headed Court / Filigree Ace / Jumbo Pip) -->
+          ${centerArt}
+
+          <!-- BOTTOM-RIGHT INVERTED STACKED PHYSICAL CORNER INDEX -->
+          <g transform="rotate(180 50 74)">
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">${rankText}</text>
+            ${getSuitSVGPath(card.suitIcon, 11, 32, 0.62, ink)}
+          </g>
+        </svg>
+      `;
+    }
+
+    // Generates Authentic White-Bordered Physical Card Back SVG (Bicycle Rider / Royal Filigree style)
+    function getDeckBackSVG(deckId) {
+      const themes = {
+        royal_lacquer:  { primary: '#881313', dark: '#3b0707', accent: '#e5c378', name: 'Royal Cinnabar & Gold' },
+        bicycle_red:    { primary: '#b91c1c', dark: '#7f1d1d', accent: '#faf6ee', name: 'Bicycle Classic Red' },
+        bicycle_blue:   { primary: '#1d4ed8', dark: '#1e3a8a', accent: '#faf6ee', name: 'Bicycle Rider Blue' },
+        casino_emerald: { primary: '#047857', dark: '#064e3b', accent: '#e5c378', name: 'KEM Casino Emerald' },
+      };
+      const t = themes[deckId] || themes.royal_lacquer;
+      const pid = `pat_${deckId}_${Math.random().toString(36).slice(2, 6)}`;
+
+      return `
+        <svg class="w-full h-full" viewBox="0 0 100 148" fill="none">
+          <defs>
+            <pattern id="${pid}" width="6" height="6" patternUnits="userSpaceOnUse">
+              <path d="M0 3L3 0L6 3L3 6Z" fill="none" stroke="${t.accent}" stroke-width="0.55" stroke-opacity="0.32"/>
+              <circle cx="3" cy="3" r="0.7" fill="${t.accent}" fill-opacity="0.35"/>
+            </pattern>
+          </defs>
+          <!-- 1. Crisp White/Ivory Outer Physical Poker Border -->
+          <rect width="100" height="148" rx="10" fill="#faf6ee"/>
+          <!-- 2. Colored Guilloché Field Inside Border -->
+          <rect x="5.5" y="5.5" width="89" height="137" rx="6" fill="${t.primary}"/>
+          <rect x="5.5" y="5.5" width="89" height="137" rx="6" fill="url(#${pid})"/>
+          <!-- 3. Double Filigree Inner Framing -->
+          <rect x="8.5" y="8.5" width="83" height="131" rx="4" stroke="${t.accent}" stroke-width="1.3"/>
+          <rect x="11" y="11" width="78" height="126" rx="2.5" stroke="${t.accent}" stroke-width="0.6" stroke-dasharray="2 1.5"/>
+
+          <!-- 4. Corner Rosette Flourishes (4 Corners) -->
+          <circle cx="16" cy="16" r="3.5" fill="${t.dark}" stroke="${t.accent}" stroke-width="1"/>
+          <circle cx="84" cy="16" r="3.5" fill="${t.dark}" stroke="${t.accent}" stroke-width="1"/>
+          <circle cx="16" cy="132" r="3.5" fill="${t.dark}" stroke="${t.accent}" stroke-width="1"/>
+          <circle cx="84" cy="132" r="3.5" fill="${t.dark}" stroke="${t.accent}" stroke-width="1"/>
+
+          <!-- 5. Top Symmetrical Bicycle/Royal Medallion -->
+          <g transform="translate(50, 44)">
+            <circle cx="0" cy="0" r="21" fill="${t.dark}" stroke="${t.accent}" stroke-width="1.4"/>
+            <circle cx="0" cy="0" r="17" stroke="${t.accent}" stroke-width="0.7" stroke-dasharray="2 1.5"/>
+            <path d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z" fill="${t.primary}" stroke="${t.accent}" stroke-width="1"/>
+            <circle cx="0" cy="0" r="4.5" fill="${t.accent}"/>
+          </g>
+
+          <!-- 6. Bottom Mirrored Symmetrical Bicycle/Royal Medallion -->
+          <g transform="translate(50, 104)">
+            <circle cx="0" cy="0" r="21" fill="${t.dark}" stroke="${t.accent}" stroke-width="1.4"/>
+            <circle cx="0" cy="0" r="17" stroke="${t.accent}" stroke-width="0.7" stroke-dasharray="2 1.5"/>
+            <path d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z" fill="${t.primary}" stroke="${t.accent}" stroke-width="1"/>
+            <circle cx="0" cy="0" r="4.5" fill="${t.accent}"/>
+          </g>
+
+          <!-- 7. Center Royal Clasp Band Joining Twin Medallions -->
+          <rect x="28" y="68" width="44" height="12" rx="6" fill="${t.dark}" stroke="${t.accent}" stroke-width="1.3"/>
+          <text x="50" y="76" text-anchor="middle" font-family="Cinzel, serif" font-weight="900" font-size="6.5" fill="${t.accent}" letter-spacing="1.5">DIGU</text>
+        </svg>
+      `;
+    }
+
+    function renderTableDecks() {
+      const stockArt = document.getElementById('tableStockBackArt');
+      if (stockArt) stockArt.innerHTML = getDeckBackSVG(activeDeckBack);
+
+      const discardZone = document.getElementById('discardDropZone');
+      if (discardZone) {
+        discardZone.innerHTML = getPhysicalCardFrontSVG({
+          id: 'discard_kh',
+          suit: 'HEARTS',
+          rank: 13,
+          label: 'K',
+          suitIcon: '♥',
+          isRed: true,
+        });
+      }
+    }
+
+    function setDeckBack(deckId) {
+      activeDeckBack = deckId;
+      sfxUiTap();
+      renderTableDecks();
+      const badge = document.getElementById('activeBackBadge');
+      if (badge) badge.innerText = 'Active: ' + deckId.replace('_', ' ').toUpperCase();
+      renderCardArtStudio();
+    }
+
+    // Sample Hand Data (Shows Ace of Spades, Court Cards K/Q/J, and Number Cards in exact -space-x-7 fan)
+    const handCards = [
+      { id: 'c1', suit: 'SPADES', rank: 4, label: '4', suitIcon: '♠', isRed: false },
+      { id: 'c2', suit: 'SPADES', rank: 5, label: '5', suitIcon: '♠', isRed: false },
+      { id: 'c3', suit: 'SPADES', rank: 6, label: '6', suitIcon: '♠', isRed: false },
+      { id: 'c4', suit: 'HEARTS', rank: 9, label: '9', suitIcon: '♥', isRed: true },
+      { id: 'c5', suit: 'HEARTS', rank: 10, label: '10', suitIcon: '♥', isRed: true },
+      { id: 'c6', suit: 'HEARTS', rank: 11, label: 'J', suitIcon: '♥', isRed: true },
+      { id: 'c7', suit: 'DIAMONDS', rank: 12, label: 'Q', suitIcon: '♦', isRed: true },
+      { id: 'c8', suit: 'CLUBS', rank: 12, label: 'Q', suitIcon: '♣', isRed: false },
+      { id: 'c9', suit: 'SPADES', rank: 12, label: 'Q', suitIcon: '♠', isRed: false },
+      { id: 'c10', suit: 'SPADES', rank: 1, label: 'A', suitIcon: '♠', isRed: false, isAce: true },
+      { id: 'c11', suit: 'DIAMONDS', rank: 13, label: 'K', suitIcon: '♦', isRed: true, is11th: true },
+    ];
+
+    let selectedCardId = null;
+    let isGinReadyState = false;
+    let isUrgentTimerState = false;
+
+    function renderExactHand() {
+      const container = document.getElementById('exactHandContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      const N = handCards.length;
+      const mid = (N - 1) / 2;
+
+      handCards.forEach((c, i) => {
+        const isDrawn11th = c.is11th && i === handCards.length - 1;
+        const isSelected = selectedCardId === c.id;
+        const fanAngle = isDrawn11th ? 4.5 : isSelected ? 0 : (i - mid) * 1.5;
+
+        const el = document.createElement('div');
+        el.className = `card-physical relative w-[84px] h-[126px] rounded-[11px] select-none cursor-pointer ${isSelected ? 'card-physical-selected' : ''} ${isDrawn11th ? 'ml-6' : ''}`;
+        el.style.transform = `rotate(${fanAngle}deg)`;
+        el.style.zIndex = isSelected ? 60 : i + 1;
+
+        el.innerHTML = `
+          ${getPhysicalCardFrontSVG(c)}
+          ${c.isAce ? '<span class="absolute -top-2 right-1 bg-[#c84b31] text-[#f7f0ea] font-mono-code text-[7.5px] font-black px-1.5 py-0.2 rounded-full shadow">-15 PT</span>' : ''}
+          ${isDrawn11th ? '<span class="absolute -top-2 left-1 bg-[#301a14] text-[#e5c378] border border-[#e5c378]/60 font-mono-code text-[7.5px] font-black px-1.5 py-0.2 rounded-full shadow">DRAWN</span>' : ''}
+        `;
+
+        el.addEventListener('click', () => {
+          sfxFanTick();
+          selectedCardId = (selectedCardId === c.id) ? null : c.id;
+          renderExactHand();
+        });
+
+        container.appendChild(el);
+      });
+    }
+
+    function renderCardArtStudio() {
+      const frontsRow = document.getElementById('studioFrontsRow');
+      if (frontsRow) {
+        const showcase = [
+          { id: 'st_as', suit: 'SPADES', label: 'A', suitIcon: '♠', isRed: false, title: 'Bicycle Filigree Ace (A♠)' },
+          { id: 'st_kh', suit: 'HEARTS', label: 'K', suitIcon: '♥', isRed: true,  title: 'Double-Headed King (K♥)' },
+          { id: 'st_qd', suit: 'DIAMONDS', label: 'Q', suitIcon: '♦', isRed: true, title: 'Double-Headed Queen (Q♦)' },
+          { id: 'st_jc', suit: 'CLUBS', label: 'J', suitIcon: '♣', isRed: false,  title: 'Double-Headed Jack (J♣)' },
+          { id: 'st_10s', suit: 'SPADES', label: '10', suitIcon: '♠', isRed: false, title: 'Jumbo Index 10 (10♠)' },
+        ];
+        frontsRow.innerHTML = showcase.map(c => `
+          <div class="flex flex-col items-center gap-2">
+            <div class="card-physical w-[122px] h-[180px] rounded-[13px] overflow-hidden shadow-2xl">
+              ${getPhysicalCardFrontSVG(c)}
+            </div>
+            <span class="text-[11px] font-mono-code text-[#e5c378] font-bold text-center">${c.title}</span>
+          </div>
+        `).join('');
+      }
+
+      const backsRow = document.getElementById('studioBacksRow');
+      if (backsRow) {
+        const decks = [
+          { id: 'royal_lacquer',  title: 'Royal Cinnabar & Gold', sub: 'Default Heritage' },
+          { id: 'bicycle_red',    title: 'Bicycle Rider Red',     sub: 'Classic Crimson' },
+          { id: 'bicycle_blue',   title: 'Bicycle Rider Blue',    sub: 'Classic Cobalt' },
+          { id: 'casino_emerald', title: 'KEM Casino Emerald',    sub: 'Tournament Green' },
+        ];
+        backsRow.innerHTML = decks.map(d => {
+          const isSel = activeDeckBack === d.id;
+          return `
+            <div onclick="setDeckBack('${d.id}')" class="cursor-pointer p-3 rounded-2xl bg-[#170b09] border-2 ${isSel ? 'border-[#e5c378] shadow-xl scale-105' : 'border-[#301a14] opacity-85 hover:opacity-100'} flex flex-col items-center gap-2 transition">
+              <div class="w-[110px] h-[162px] rounded-[12px] overflow-hidden shadow-2xl">
+                ${getDeckBackSVG(d.id)}
+              </div>
+              <div class="text-center">
+                <div class="text-xs font-bold text-[#f7f0ea]">${d.title}</div>
+                <div class="text-[10px] font-mono-code text-[#e5c378]">${isSel ? '✓ ACTIVE ON TABLE' : d.sub}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // LYRIA / NCS FOLDER AUDIO PLAYER + LOCAL MP3 PICKER
+    // -------------------------------------------------------------------------
+    let audioCtx = null;
+    let sfxVolume = 0.85;
+    let musicVolume = 0.70;
+    let isLyriaPlaying = false;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSpecificBgm(url, label) {
+      const player = document.getElementById('lyriaAudioPlayer');
+      const headerLabel = document.getElementById('headerBgmLabel');
+      const studioBtn = document.getElementById('studioBgmBtn');
+      const statusBanner = document.getElementById('audioStatusBanner');
+
+      if (!player.src.endsWith(url)) {
+        player.src = url;
+      }
+      player.volume = musicVolume;
+      player.play().then(() => {
+        isLyriaPlaying = true;
+        if (headerLabel) headerLabel.innerText = '🔊 ' + label;
+        if (studioBtn) studioBtn.innerText = '⏸️ Pause ' + label;
+        if (statusBanner) statusBanner.innerText = 'Status: 🔊 Streaming ' + url + ' (4.2 MB Lyria Stereo MP3)';
+      }).catch(() => {
+        if (statusBanner) statusBanner.innerText = 'Status: ⚠️ Could not play ' + url;
+      });
+    }
+
+    function stopLyriaMusic() {
+      const player = document.getElementById('lyriaAudioPlayer');
+      player.pause();
+      isLyriaPlaying = false;
+      const headerLabel = document.getElementById('headerBgmLabel');
+      const studioBtn = document.getElementById('studioBgmBtn');
+      if (headerLabel) headerLabel.innerText = 'Play Table BGM';
+      if (studioBtn) studioBtn.innerText = '▶️ Play /assets/audio/bgm_table.mp3';
+    }
+
+    function toggleLyriaMusic() {
+      if (isLyriaPlaying) {
+        stopLyriaMusic();
+      } else {
+        playSpecificBgm('/assets/audio/bgm_table.mp3', 'Table BGM');
+      }
+    }
+
+    function loadLocalMp3File(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const player = document.getElementById('lyriaAudioPlayer');
+      player.src = url;
+      player.volume = musicVolume;
+      player.play();
+      isLyriaPlaying = true;
+      document.getElementById('headerBgmLabel').innerText = '⏸️ Playing: ' + file.name;
+      document.getElementById('studioBgmBtn').innerText = '⏸️ Playing: ' + file.name;
+      document.getElementById('audioStatusBanner').innerText = 'Status: 🔊 Playing local file: ' + file.name;
+    }
+
+    function copyPrompt(id) {
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text);
+      sfxUiTap();
+      document.getElementById('audioStatusBanner').innerText = 'Status: ✅ Copied Lyria prompt to clipboard!';
+    }
+
+    function updateSfxVolume(val) {
+      sfxVolume = Number(val) / 100;
+      const l1 = document.getElementById('igSfxVal');
+      const l2 = document.getElementById('studioSfxVolLabel');
+      if (l1) l1.innerText = val + '%';
+      if (l2) l2.innerText = 'SFX Volume: ' + val + '%';
+    }
+
+    function updateMusicVolume(val) {
+      musicVolume = Number(val) / 100;
+      const player = document.getElementById('lyriaAudioPlayer');
+      if (player) player.volume = musicVolume;
+      const l1 = document.getElementById('igMusicVal');
+      if (l1) l1.innerText = val + '%';
+    }
+
+    // Tactile Physical Card SFX
+    function sfxStockDraw() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.055, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.3));
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2200, now);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.45 * sfxVolume, now);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(now);
+    }
+    function sfxDiscardPickup() { sfxStockDraw(); setTimeout(sfxFanTick, 55); }
+    function sfxDiscardThud() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(145, now);
+      osc.frequency.exponentialRampToValueAtTime(48, now + 0.09);
+      gain.gain.setValueAtTime(0.45 * sfxVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.11);
+    }
+    function sfxFanTick() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(980, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.025);
+      gain.gain.setValueAtTime(0.22 * sfxVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.032);
+    }
+    function sfxGinReadyChime() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [587.33, 880, 1174.66].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+        gain.gain.setValueAtTime(0.22 * sfxVolume, now + idx * 0.055);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + idx * 0.055 + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.055);
+        osc.stop(now + idx * 0.055 + 0.48);
+      });
+    }
+    function sfxUrgentHeartbeat() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.18].forEach((offset, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(idx === 0 ? 95 : 75, now + offset);
+        osc.frequency.exponentialRampToValueAtTime(36, now + offset + 0.12);
+        gain.gain.setValueAtTime(0.5 * sfxVolume, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.15);
+      });
+    }
+    function sfxGinSlam() {
+      if (sfxVolume <= 0.01) return;
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.24);
+      gain.gain.setValueAtTime(0.75 * sfxVolume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.27);
+      setTimeout(sfxGinReadyChime, 90);
+    }
+    function sfxRiffleShuffle() {
+      for (let i = 0; i < 8; i++) setTimeout(sfxStockDraw, i * 38);
+    }
+    function sfxUiTap() { sfxFanTick(); }
+
+    function selectAiTier(tier) {
+      activeAiTier = tier;
+      sfxUiTap();
+      const names = { casual: 'CASUAL (FINOLHU)', regular: 'HOLHUASHI REGULAR', master: 'THULHAADHOO MASTER' };
+      ['casual', 'regular', 'master'].forEach(t => {
+        const card = document.getElementById(`ai-card-${t}`);
+        if (!card) return;
+        card.className = (t === tier)
+          ? 'cursor-pointer p-3.5 rounded-2xl bg-[#24110d] border-2 border-[#e5c378] shadow-lg transition'
+          : 'cursor-pointer p-3.5 rounded-2xl bg-[#170b09] border border-[#301a14] hover:border-[#e5c378]/50 transition';
+      });
+      const summary = document.getElementById('selectedAiSummary');
+      if (summary) summary.innerText = 'Active: ' + names[tier];
+    }
+
+    function openInGameOverlay() { sfxUiTap(); document.getElementById('tableInGameOverlay').classList.remove('hidden'); }
+    function closeInGameOverlay() { sfxUiTap(); document.getElementById('tableInGameOverlay').classList.add('hidden'); }
+
+    function switchScreen(screenId) {
+      sfxUiTap();
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.className = 'nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#301a14] text-[#f7f0ea]/80 hover:bg-[#42241c] border border-transparent';
+      });
+      const activeScreen = document.getElementById(`screen-${screenId}`);
+      if (activeScreen) activeScreen.classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${screenId}`);
+      if (activeNav) activeNav.className = 'nav-btn py-1.5 px-2.5 rounded-xl font-bold transition bg-[#c84b31] text-[#f7f0ea] border border-[#e5c378] shadow-md';
+    }
+
+    document.getElementById('btnToggleGin').addEventListener('click', () => {
+      isGinReadyState = !isGinReadyState;
+      const ginWrapper = document.getElementById('dynamicGinWrapper');
+      const tag = document.getElementById('ginReadyTag');
+      const deadwoodText = document.getElementById('deadwoodText');
+      if (isGinReadyState) {
+        sfxGinReadyChime();
+        ginWrapper.classList.remove('hidden');
+        ginWrapper.classList.add('flex');
+        tag.classList.remove('hidden');
+        deadwoodText.innerText = '0 / 10';
+        document.getElementById('tableToast').innerText = '⚡ GIN READY! 3D GIN PAD REVEALED • TAP TO SLAM WIN!';
+      } else {
+        sfxUiTap();
+        ginWrapper.classList.add('hidden');
+        ginWrapper.classList.remove('flex');
+        tag.classList.add('hidden');
+        deadwoodText.innerText = '8 / 10';
+        document.getElementById('tableToast').innerText = 'PHYSICAL BICYCLE / ROYAL JUMBO-INDEX DECK ACTIVE';
+      }
+    });
+
+    document.getElementById('btnToggleTimer').addEventListener('click', () => {
+      isUrgentTimerState = !isUrgentTimerState;
+      const vignette = document.getElementById('urgentVignette');
+      const timerText = document.getElementById('timerText');
+      if (isUrgentTimerState) {
+        sfxUrgentHeartbeat();
+        vignette.style.opacity = '1';
+        timerText.innerText = '4s';
+      } else {
+        sfxUiTap();
+        vignette.style.opacity = '0';
+        timerText.innerText = '22s';
+      }
+    });
+
+    function handleGinSlamClick() {
+      if (!isGinReadyState) return;
+      sfxGinSlam();
+      const ring = document.createElement('div');
+      ring.className = 'absolute inset-0 m-auto w-32 h-32 rounded-full border-4 border-[#e5c378] shadow-[0_0_60px_#c84b31] shockwave-anim pointer-events-none z-50';
+      document.getElementById('landscapeTableFrame').appendChild(ring);
+
+      const targetArea = document.getElementById('hiddenSlamTarget');
+      targetArea.innerHTML = `
+        <div class="w-[84px] h-[126px] rounded-[11px] overflow-hidden shadow-[0_0_35px_rgba(200,75,49,0.95)] relative rotate-6 scale-105 transition-all">
+          ${getDeckBackSVG(activeDeckBack)}
+        </div>
+      `;
+      setTimeout(() => ring.remove(), 900);
+    }
+
+    function handleDrawStock() {
+      sfxStockDraw();
+      document.getElementById('tableToast').innerText = '🃏 STOCK DRAW FLICK PLAYED';
+    }
+    function handlePickupDiscard() {
+      sfxDiscardPickup();
+      document.getElementById('tableToast').innerText = '📥 DISCARD PICKUP SNAP PLAYED • CLAIMED K♥';
+    }
+
+    // Initial render
+    renderTableDecks();
+    renderExactHand();
+    renderCardArtStudio();
+  </script>
+</body>
+</html>

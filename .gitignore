@@ -25,4 +25,6 @@ dist-ssr
 *.tsbuildinfo
 maldives_fleet_financial_model_excel_workbook.html
 build-apk-output
+.taste-skill/
+.impeccable/
 

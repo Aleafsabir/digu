@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digu — Current vs. Proposed Landscape Comparison</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Faruma&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #020609;
+      color: #f1f5f9;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-serif-luxury {
+      font-family: 'Cinzel', serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .font-thaana {
+      font-family: 'Faruma', sans-serif;
+    }
+    /* Felt Textures */
+    .ocean-felt-current {
+      background: radial-gradient(circle at 50% 50%, #032115 0%, #02140d 70%, #010a06 100%);
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.9);
+    }
+    .ocean-felt-proposed {
+      background: radial-gradient(ellipse at 50% 45%, #0c384c 0%, #082433 55%, #04141e 100%);
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.92);
+    }
+    /* Card Styles */
+    .card-surface {
+      background: linear-gradient(145deg, #ffffff 0%, #f6f3eb 100%);
+      border: 1px solid rgba(0,0,0,0.14);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease;
+    }
+    .card-selected-glow {
+      transform: translateY(-16px) scale(1.06) !important;
+      box-shadow: 0 0 0 2.5px #f59e0b, 0 12px 24px rgba(245, 158, 11, 0.4) !important;
+      z-index: 50 !important;
+    }
+    /* Circular Gin Pad Glow (Current) */
+    .btn-gin-pad-glow {
+      background: radial-gradient(circle, #05d59a 0%, #047857 70%, #022c1f 100%);
+      box-shadow: 0 0 30px rgba(5, 213, 154, 0.7), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    }
+    .btn-gin-pad-dormant {
+      background: radial-gradient(circle, #0c2017 0%, #05130d 100%);
+      border: 2px dashed rgba(5, 213, 154, 0.25);
+    }
+    /* Urgent Pulse Animation */
+    @keyframes urgentPulse {
+      0%, 100% { box-shadow: inset 0 0 35px rgba(239, 68, 68, 0.5); }
+      50% { box-shadow: inset 0 0 75px rgba(239, 68, 68, 0.9); }
+    }
+    .timer-urgent-active {
+      animation: urgentPulse 1s infinite ease-in-out;
+    }
+    /* Shockwave Rings */
+    @keyframes ringBurst {
+      0% { transform: scale(0.2); opacity: 1; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+    .shockwave-anim {
+      animation: ringBurst 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-3 sm:p-5 bg-[#020609]">
+
+  <!-- Top Global Header & Interactive Switchboard -->
+  <header class="w-full flex flex-wrap items-center justify-between gap-3 p-3.5 mb-4 bg-[#071118] border border-cyan-900/60 rounded-2xl shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping"></div>
+      <div>
+        <h1 class="font-serif-luxury font-black text-amber-300 text-lg tracking-wider">DIGU — ARCHITECTURAL COMPARISON</h1>
+        <p class="text-xs text-slate-400">Side-by-side evaluation: Current Production Table vs. Proposed Landscape Ergonomics</p>
+      </div>
+    </div>
+
+    <!-- Master Interactive Controls (Synchronized across both viewports) -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <!-- Hand Size Synchronizer -->
+      <div class="flex items-center gap-1.5 bg-black/60 px-3 py-1.5 rounded-xl border border-cyan-950">
+        <span class="text-slate-400 font-mono-code font-bold">Hand Size:</span>
+        <button id="btnMinus" class="w-6 h-6 rounded-lg bg-cyan-950 hover:bg-cyan-900 font-bold text-cyan-200 active:scale-90 transition">-</button>
+        <span id="globalCardCount" class="font-mono-code font-black text-amber-400 px-1.5 text-sm">11</span>
+        <button id="btnPlus" class="w-6 h-6 rounded-lg bg-cyan-950 hover:bg-cyan-900 font-bold text-cyan-200 active:scale-90 transition">+</button>
+      </div>
+
+      <!-- Test Gin Ready State -->
+      <button id="btnSyncGin" class="py-1.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 font-black text-slate-950 shadow-md active:scale-95 transition flex items-center gap-1.5">
+        <span>⚡ Toggle Gin Ready</span>
+      </button>
+
+      <!-- Simulate <5s Urgency -->
+      <button id="btnSyncTimer" class="py-1.5 px-3 rounded-xl bg-rose-950/80 hover:bg-rose-900 border border-rose-700 font-bold text-rose-300 active:scale-95 transition">
+        Simulate &lt;5s Timer
+      </button>
+
+      <!-- Toggle Ergonomic Reach Overlays -->
+      <button id="btnToggleZones" class="py-1.5 px-3 rounded-xl bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 font-bold text-cyan-200 active:scale-95 transition">
+        Overlay Ergonomic Zones
+      </button>
+    </div>
+  </header>
+
+  <!-- Side-by-Side Dual Viewport Grid (800x370 Scaled Landscape Mockups) -->
+  <div class="w-full grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+    
+    <!-- ========================================================================= -->
+    <!-- LEFT PANEL: CURRENT GAME (Production Implementation)                     -->
+    <!-- ========================================================================= -->
+    <div class="flex flex-col bg-[#071118]/80 border border-slate-800 rounded-3xl p-3 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+          <span class="font-bold text-sm text-slate-200">CURRENT PRODUCTION TABLE</span>
+        </div>
+        <span class="text-[11px] font-mono-code text-slate-400 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">Linear Stacking • Circular Pad</span>
+      </div>
+
+      <!-- Current Viewport Container (Scaled to 100% of container) -->
+      <div id="viewportCurrent" class="relative w-full h-[370px] ocean-felt-current rounded-[28px] border-4 border-slate-800 overflow-hidden flex flex-col justify-between p-2 select-none">
+        
+        <!-- Top Bar: Opponents side-by-side in center, pot on right -->
+        <div class="flex items-center justify-between z-20 px-2">
+          <div class="flex items-center gap-1">
+            <button class="w-7 h-7 rounded-lg bg-black/60 border border-slate-700 text-slate-300 flex items-center justify-center text-xs">☰</button>
+            <button class="w-7 h-7 rounded-lg bg-black/60 border border-slate-700 text-slate-300 flex items-center justify-center text-xs">⛶</button>
+          </div>
+
+          <!-- Opponent Avatar Chips bunched at top center -->
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1 bg-[#02140D]/90 px-2 py-0.5 rounded-xl border border-slate-700 text-[10px]">
+              <span>👤</span>
+              <span class="text-slate-200 font-bold">Bot Ali (West)</span>
+              <span class="text-cyan-400 font-mono-code">10c</span>
+            </div>
+            <div class="flex items-center gap-1 bg-[#02140D]/90 px-2 py-0.5 rounded-xl border border-slate-700 text-[10px]">
+              <span>🤝</span>
+              <span class="text-slate-200 font-bold">Partner (North)</span>
+              <span class="text-cyan-400 font-mono-code">10c</span>
+            </div>
+            <div class="flex items-center gap-1 bg-[#02140D]/90 px-2 py-0.5 rounded-xl border border-slate-700 text-[10px]">
+              <span>👤</span>
+              <span class="text-slate-200 font-bold">Bot Ahmed (East)</span>
+              <span class="text-cyan-400 font-mono-code">10c</span>
+            </div>
+          </div>
+
+          <!-- Pot & Trophy -->
+          <div class="flex items-center gap-1">
+            <div class="bg-[#02140D]/90 px-2 py-0.5 rounded-xl border border-slate-700 text-[10px] font-mono-code text-amber-300">🪙 4,000</div>
+            <div class="bg-[#02140D]/90 px-2 py-0.5 rounded-xl border border-slate-700 text-[10px] font-mono-code text-slate-300">🏆 500p</div>
+          </div>
+        </div>
+
+        <!-- Center Felt: Big Circular GIN Pad on left + Discard & Stock on right -->
+        <div class="flex items-center justify-around my-auto z-10 px-4">
+          
+          <!-- Big Circular Gin Pad -->
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono-code text-[#E5C378] font-bold mb-1">⚡ KNOCK & GIN</span>
+            <div id="currentGinPad" class="btn-gin-pad-dormant w-24 h-24 rounded-full flex flex-col items-center justify-center relative shadow-lg">
+              <span class="font-thaana text-xs text-emerald-400/50 font-bold">ޑިގު</span>
+              <span class="text-xl font-black text-slate-400/60 leading-none">GIN</span>
+              <span class="text-[7px] font-mono-code text-slate-400/50 uppercase">0 Deadwood</span>
+            </div>
+            <span id="currentGinStatusText" class="text-[9px] font-mono-code text-slate-400 mt-1">0 DEADWOOD</span>
+          </div>
+
+          <!-- Discard Pile + Stock Pile -->
+          <div class="flex items-center gap-6">
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono-code text-emerald-400 font-bold mb-1">DISCARD</span>
+              <div class="w-[66px] h-[94px] bg-white rounded-xl shadow-lg border border-stone-300 flex flex-col justify-between p-1">
+                <div class="flex justify-between items-center text-[10px] text-rose-600 font-black"><span>K</span><span>♥</span></div>
+                <div class="self-center text-rose-600 text-sm">♥</div>
+                <div class="flex justify-between items-center text-[10px] text-rose-600 font-black rotate-180"><span>K</span><span>♥</span></div>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono-code text-[#E5C378] font-bold mb-1">DRAW PILE</span>
+              <div class="w-[66px] h-[94px] bg-gradient-to-br from-[#052b1b] to-[#01140c] border-2 border-emerald-600/60 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                <span class="text-emerald-400 font-serif-luxury font-black text-[10px]">DIGU</span>
+                <span class="font-mono-code text-[8px] text-emerald-300 font-bold mt-1">DRAW</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom: Over-Hand Bar & Negative Margin Horizontal Hand -->
+        <div class="w-full flex flex-col items-center z-20">
+          
+          <!-- Over-Hand HUD Bar -->
+          <div class="flex items-center gap-2 mb-1">
+            <button class="p-1 rounded-xl bg-[#02140D] border border-slate-800 text-[10px] text-slate-400 px-2 py-0.5">Runs (A23)</button>
+            <div class="px-2.5 py-0.5 rounded-full bg-[#02140D] border border-slate-700 text-[10px] font-mono-code">
+              DEADWOOD <span id="currentDeadwoodVal" class="text-slate-200 font-bold">8 / 10</span>
+            </div>
+            <!-- Small 20px turn ring -->
+            <div id="currentTimerPill" class="flex items-center gap-1 bg-[#02140D] border border-slate-700 px-2 py-0.5 rounded-full text-[10px]">
+              <span id="currentTimerNum" class="font-mono-code font-bold text-emerald-400">22s</span>
+            </div>
+            <button class="p-1 rounded-xl bg-[#02140D] border border-slate-800 text-[10px] text-slate-400 px-2 py-0.5">Sets (777)</button>
+          </div>
+
+          <!-- Current Hand: Fixed negative margin flex layout (-space-x-7) -->
+          <div id="currentHandContainer" class="flex items-end justify-center -space-x-6 pb-0 overflow-visible min-h-[95px]">
+            <!-- Injected dynamically -->
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Current Architecture Assessment -->
+      <div class="mt-3 p-3 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs space-y-1.5">
+        <div class="font-bold text-rose-300 flex items-center gap-1.5">
+          <span>⚠️</span><span>Current Limitations Identified</span>
+        </div>
+        <ul class="list-disc list-inside text-slate-400 space-y-1 text-[11px] leading-relaxed">
+          <li><strong>Opponent Congestion:</strong> All 3 opponents are crowded together along the top rim; seat arrangement does not reflect real table geometry (North/Partner, West, East).</li>
+          <li><strong>Hand Clipping & Stacking:</strong> Negative margin `-space-x-7` causes cards to overlap horizontally without compensating for 11–13 cards, obscuring rank pips.</li>
+          <li><strong>Big Circular Pad Takes Felt Space:</strong> The `w-34 h-34` circular GIN pad pushes the stock and discard piles off-center.</li>
+          <li><strong>Gesture Conflict:</strong> Framer Motion horizontal reorder conflicts with upward drag-to-discard without a 30dp threshold.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- RIGHT PANEL: PROPOSED LANDSCAPE (Architectural & Ergonomic Redesign)     -->
+    <!-- ========================================================================= -->
+    <div class="flex flex-col bg-[#071118]/80 border border-cyan-800/80 rounded-3xl p-3 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-2 mb-2 border-b border-cyan-900/60 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-bold text-sm text-amber-300">PROPOSED LANDSCAPE TABLE</span>
+        </div>
+        <span class="text-[11px] font-mono-code text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-700/60">4-Seat Layout • Radial Arc Fan</span>
+      </div>
+
+      <!-- Proposed Viewport Container (Scaled to 100% of container) -->
+      <div id="viewportProposed" class="relative w-full h-[370px] ocean-felt-proposed rounded-[28px] border-4 border-[#162734] overflow-hidden flex flex-col justify-between p-2 select-none">
+        
+        <!-- Urgent Crimson Vignette -->
+        <div id="propUrgentVignette" class="absolute inset-0 pointer-events-none z-40 transition-opacity duration-300 opacity-0 timer-urgent-active"></div>
+
+        <!-- Safe Area Notches (Toggleable) -->
+        <div id="propSafeNotchL" class="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-14 bg-black/80 rounded-r-xl pointer-events-none z-50"></div>
+        <div id="propSafePillR" class="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-white/20 rounded-l-xl pointer-events-none z-50"></div>
+
+        <!-- Top Table Rim (14% Height - 48px) -->
+        <div class="flex items-center justify-between z-20 px-4">
+          <!-- Left: Menu + Pot -->
+          <div class="flex items-center gap-2">
+            <button class="w-7 h-7 rounded-xl bg-black/45 border border-cyan-900 text-slate-300 flex items-center justify-center text-xs shadow-md">☰</button>
+            <div class="bg-black/45 px-2.5 py-0.5 rounded-xl border border-cyan-900 text-[10px] font-mono-code text-amber-400 font-bold">🪙 4,000 POT</div>
+          </div>
+
+          <!-- Center: North Partner Seat (Team A) -->
+          <div class="flex items-center gap-2 bg-[#02131c]/90 px-3 py-0.5 rounded-xl border border-cyan-800/60 shadow-lg">
+            <span class="text-xs">🤝</span>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1">
+                <span class="text-[9px] font-black text-slate-200">Partner (North)</span>
+                <span class="text-[7px] font-mono-code px-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold">TEAM A</span>
+              </div>
+              <div class="flex -space-x-1 mt-0.5">
+                <div class="w-2 h-3 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+                <div class="w-2 h-3 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+                <div class="w-2 h-3 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+                <div class="w-2 h-3 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+                <div class="w-2 h-3 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Team A vs Team B Score -->
+          <div class="bg-black/45 px-2.5 py-0.5 rounded-xl border border-cyan-900 text-[10px] font-mono-code font-bold">
+            <span class="text-emerald-400">A: 30</span> <span class="text-slate-600">|</span> <span class="text-rose-400">B: 0</span>
+          </div>
+        </div>
+
+        <!-- Center Playfield: West Opponent (L) + Felt Center (Melds & Decks) + East Opponent (R) -->
+        <div class="flex items-center justify-between z-10 px-4 my-auto">
+          
+          <!-- West Flank (Opponent West - Seat 1) -->
+          <div class="flex flex-col items-center gap-1 w-16 shrink-0">
+            <div class="w-8 h-8 rounded-xl bg-rose-950/80 border border-rose-500/60 shadow-md flex items-center justify-center text-xs">👤</div>
+            <span class="text-[9px] font-bold text-slate-200">Ali (West)</span>
+            <div class="flex -space-x-1">
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+            </div>
+          </div>
+
+          <!-- Center Felt: Separated Melds + Stock + Discard + Face-Down Slam Slot -->
+          <div class="flex-1 flex flex-col items-center px-2">
+            
+            <!-- Live Melds Strip -->
+            <div class="w-full max-w-[340px] flex items-center justify-between text-[9px] font-mono-code mb-2">
+              <div class="bg-black/50 px-2 py-0.5 rounded-lg border border-emerald-800 text-emerald-300">A-MELDS: 7♠ 7♥ 7♦</div>
+              <div class="bg-black/50 px-2 py-0.5 rounded-lg border border-rose-800 text-rose-300">B-MELDS: None</div>
+            </div>
+
+            <!-- Central Decks & Slam Slot -->
+            <div class="flex items-center justify-center gap-4">
+              <!-- Stock Draw Deck with 3D layers -->
+              <div class="relative w-[54px] h-[78px] rounded-xl bg-gradient-to-br from-[#123142] to-[#061923] border-2 border-cyan-500/70 shadow-xl flex flex-col items-center justify-center cursor-pointer active:scale-95 transition">
+                <span class="text-cyan-400 font-serif-luxury font-bold text-[9px]">DIGU</span>
+                <span class="font-mono-code text-[7px] text-cyan-300 font-bold mt-0.5">DRAW</span>
+                <div class="absolute -top-1 -right-1 w-full h-full rounded-xl bg-cyan-950/70 border border-cyan-800/40 -z-10"></div>
+              </div>
+
+              <!-- Discard Pile -->
+              <div id="propDiscardPile" class="relative w-[54px] h-[78px] rounded-xl bg-white border border-stone-300 shadow-xl flex flex-col justify-between p-1 cursor-pointer active:scale-95 transition">
+                <div class="flex justify-between items-center text-[9px] text-rose-600 font-black"><span>K</span><span>♥</span></div>
+                <div class="self-center text-rose-600 text-xs">♥</div>
+                <div class="flex justify-between items-center text-[9px] text-rose-600 font-black rotate-180"><span>K</span><span>♥</span></div>
+                <div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-slate-900 text-amber-300 text-[6px] font-bold px-1.5 rounded-full border border-amber-500/60">DISCARD</div>
+              </div>
+
+              <!-- Dedicated Face-Down Finish Slam Target -->
+              <div id="propFinishSlot" class="relative w-[58px] h-[82px] rounded-xl border-2 border-dashed border-amber-400/80 bg-amber-950/25 shadow-[inset_0_0_15px_rgba(245,158,11,0.3)] flex flex-col items-center justify-center cursor-pointer transition hover:bg-amber-950/40">
+                <span class="text-amber-400 text-sm">★</span>
+                <span class="text-[7px] font-mono-code font-black text-amber-300 text-center leading-tight">SLAM<br>FINISH</span>
+                <span class="text-[6px] text-amber-400/80 uppercase font-semibold mt-0.5">Face-down</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- East Flank (Opponent East - Seat 3) -->
+          <div class="flex flex-col items-center gap-1 w-16 shrink-0">
+            <div class="w-8 h-8 rounded-xl bg-rose-950/80 border border-rose-500/60 shadow-md flex items-center justify-center text-xs">👤</div>
+            <span class="text-[9px] font-bold text-slate-200">Hassan (East)</span>
+            <div class="flex -space-x-1">
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+              <div class="w-2.5 h-3.5 rounded-[1px] bg-cyan-950 border border-cyan-700/60"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- South Seat: Player Sanctuary with Radial Parabolic Hand & Two-Thumb Controls -->
+        <div class="w-full flex flex-col items-center z-20">
+          
+          <!-- Over-Hand Ergonomic Two-Thumb Bar -->
+          <div class="w-full flex items-center justify-between px-6 mb-1">
+            <!-- Left Thumb: Sort Runs -->
+            <button id="btnPropSortRuns" class="h-5 px-2.5 rounded-lg bg-black/60 hover:bg-slate-800 border border-cyan-800 text-cyan-300 font-bold text-[9px] shadow active:scale-95 transition">
+              Runs (A♠2♠)
+            </button>
+
+            <!-- Center: Deadwood Meter + Timer Pill -->
+            <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1 bg-[#011119]/90 px-2.5 py-0.5 rounded-full border border-cyan-800/80 text-[9px] font-mono-code">
+                <span class="text-slate-400">DEADWOOD:</span>
+                <span id="propDeadwoodVal" class="text-amber-400 font-black">8 / 10</span>
+                <span id="propGinReadyTag" class="hidden text-amber-300 font-black text-[8px] animate-pulse">⚡ GIN READY</span>
+              </div>
+
+              <div class="flex items-center gap-1 bg-[#011119]/90 px-2 py-0.5 rounded-full border border-emerald-500/70 text-[8px]">
+                <span id="propTimerSec" class="font-mono-code font-bold text-emerald-400">22s</span>
+                <span class="text-slate-300">TURN</span>
+              </div>
+            </div>
+
+            <!-- Right Thumb: Sort Sets + Contextual Action -->
+            <div class="flex items-center gap-1">
+              <button id="btnPropSortSets" class="h-5 px-2.5 rounded-lg bg-black/60 hover:bg-slate-800 border border-cyan-800 text-cyan-300 font-bold text-[9px] shadow active:scale-95 transition">
+                Sets (7♠7♥)
+              </button>
+              <button id="btnPropActionDiscard" disabled class="h-5 px-2.5 rounded-lg bg-slate-800 text-slate-400 font-bold text-[9px] border border-slate-700 opacity-50 cursor-not-allowed">
+                Discard
+              </button>
+              <button id="btnPropActionSlam" class="hidden h-5 px-2.5 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-[9px] shadow-lg animate-bounce cursor-pointer">
+                ⚡ SLAM GIN!
+              </button>
+            </div>
+          </div>
+
+          <!-- Proposed Hand: Mathematical Parabolic Radial Fan -->
+          <div id="proposedHandContainer" class="relative w-full h-[98px] flex items-end justify-center select-none overflow-visible">
+            <!-- Dynamically injected with arc & radial tilt -->
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Proposed Architecture Improvements -->
+      <div class="mt-3 p-3 rounded-2xl bg-cyan-950/30 border border-cyan-900/60 text-xs space-y-1.5">
+        <div class="font-bold text-emerald-400 flex items-center gap-1.5">
+          <span>✅</span><span>Proposed Architectural Improvements</span>
+        </div>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-[11px] leading-relaxed">
+          <li><strong>Authentic 4-Seat Table Geometry:</strong> North Partner seat is centered at the top; West & East opponents flank the felt sides, giving natural spatial card flow.</li>
+          <li><strong>Parabolic Radial Fan:</strong> Spacing dynamically scales between $34\text{–}46\text{px}$, combined with parabolic vertical drop and gentle $\pm 12^\circ$ radial tilt.</li>
+          <li><strong>Two-Thumb Biomechanics:</strong> Left thumb operates Runs/Menu; Right thumb operates Sets/Discard/Gin Slam. No awkward hand-reaching across the phone.</li>
+          <li><strong>Balanced Felt & Finish Slot:</strong> Dedicated Face-Down Finish Slot replaces the oversized circular pad, allowing live meld trays to remain visible.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Detailed Architectural Comparison Breakdown Matrix -->
+  <section class="w-full bg-[#071118] border border-slate-800 rounded-3xl p-5 shadow-2xl mb-4">
+    <h2 class="font-serif-luxury font-black text-amber-300 text-base mb-3 flex items-center gap-2">
+      <span>📊</span><span>SYSTEMS & ERGONOMICS COMPARISON MATRIX</span>
+    </h2>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-400 font-mono-code uppercase text-[10px]">
+            <th class="py-2 px-3">Design Vector</th>
+            <th class="py-2 px-3 text-slate-400">Current Production Game</th>
+            <th class="py-2 px-3 text-cyan-300">Proposed Landscape Architecture</th>
+            <th class="py-2 px-3 text-emerald-400">Player Impact & Benefit</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 text-slate-300">
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Table & Seat Spatial Zoning</td>
+            <td class="py-2.5 px-3 text-slate-400">All 3 opponents bunched along the top rim in horizontal flex chips.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">True 4-Seat Layout: North (Partner), West (Seat 1), East (Seat 3), South (Player).</td>
+            <td class="py-2.5 px-3 text-emerald-300">Clear spatial intuition for clockwise turns and discard feeding.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Card Fanning Geometry</td>
+            <td class="py-2.5 px-3 text-slate-400">Flat line with static negative margin (`-space-x-7`). Overlaps clip rank pips on 11–13 cards.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">Parabolic vertical arc ($y = \text{norm}^2 \times 7.5\text{px}$) with dynamic spacing ($34\text{–}46\text{px}$) & $\pm 12^\circ$ tilt.</td>
+            <td class="py-2.5 px-3 text-emerald-300">Natural thumb curvature; 100% card pip visibility without screen edge clipping.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Finish Slot & Gin Slam</td>
+            <td class="py-2.5 px-3 text-slate-400">Oversized `w-34 h-34` circular green pad on left flank, pushing decks off-center.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">Dedicated card-proportioned Finish Slot with golden dashed border and Thaana celebration.</td>
+            <td class="py-2.5 px-3 text-emerald-300">Harmonious center felt balance; authentic Maldivian face-down card slam.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Touch Ergonomics</td>
+            <td class="py-2.5 px-3 text-slate-400">Center-stacked action bar; requires one-hand reach across wide landscape viewport.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">Split Two-Thumb Zones: Left thumb reaches Runs/Menu; Right thumb reaches Sets/Discard/Slam.</td>
+            <td class="py-2.5 px-3 text-emerald-300">Zero grip shifting while holding phone with two hands in landscape.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Under 5s Turn Urgency</td>
+            <td class="py-2.5 px-3 text-slate-400">Small 20×20px circular timer in HUD pill. Often missed by player.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">Perimeter crimson radial vignette pulse (`inset 0 0 45px rgba(239,68,68,0.7)`).</td>
+            <td class="py-2.5 px-3 text-emerald-300">Peripheral vision warning prevents unintended turn timeouts.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Double-Tap Draw Race Guard</td>
+            <td class="py-2.5 px-3 text-slate-400">260ms async flight window allows double-tap to draw 2 cards (hand corrupts to 12).</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">350ms Mutex Lockout immediately blocks secondary tap inputs.</td>
+            <td class="py-2.5 px-3 text-emerald-300">Eliminates illegal 12-card hand states and socket race conditions.</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 px-3 font-bold text-slate-200">Hand Solver Performance</td>
+            <td class="py-2.5 px-3 text-slate-400">12 synchronous recursive backtracking searches per card touch/reorder.</td>
+            <td class="py-2.5 px-3 text-cyan-200 font-semibold">Zero-allocation bitmask parser (`FastMeldParser`) with memoized hash cache.</td>
+            <td class="py-2.5 px-3 text-emerald-300">Eliminates GC stutter; guarantees solid 60fps during dragging and animations.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    const sampleCards = [
+      { id: 'c1', suit: 'SPADES', rank: 4, label: '4', suitIcon: '♠', isRed: false },
+      { id: 'c2', suit: 'SPADES', rank: 5, label: '5', suitIcon: '♠', isRed: false },
+      { id: 'c3', suit: 'SPADES', rank: 6, label: '6', suitIcon: '♠', isRed: false },
+      { id: 'c4', suit: 'HEARTS', rank: 9, label: '9', suitIcon: '♥', isRed: true },
+      { id: 'c5', suit: 'HEARTS', rank: 10, label: '10', suitIcon: '♥', isRed: true },
+      { id: 'c6', suit: 'HEARTS', rank: 11, label: 'J', suitIcon: '♥', isRed: true },
+      { id: 'c7', suit: 'DIAMONDS', rank: 2, label: '2', suitIcon: '♦', isRed: true },
+      { id: 'c8', suit: 'DIAMONDS', rank: 2, label: '2', suitIcon: '♦', isRed: true },
+      { id: 'c9', suit: 'CLUBS', rank: 2, label: '2', suitIcon: '♣', isRed: false },
+      { id: 'c10', suit: 'SPADES', rank: 1, label: 'A', suitIcon: '♠', isRed: false, isAce: true },
+      { id: 'c11', suit: 'CLUBS', rank: 8, label: '8', suitIcon: '♣', isRed: false, is11th: true },
+      { id: 'c12', suit: 'HEARTS', rank: 7, label: '7', suitIcon: '♥', isRed: true },
+      { id: 'c13', suit: 'DIAMONDS', rank: 13, label: 'K', suitIcon: '♦', isRed: true },
+    ];
+
+    let currentHandCount = 11;
+    let isGinReady = false;
+    let isTimerUrgent = false;
+    let zonesVisible = false;
+    let selectedProposedId = null;
+
+    // Render Current Hand (Flat negative margin)
+    function renderCurrentHand() {
+      const container = document.getElementById('currentHandContainer');
+      container.innerHTML = '';
+      const cards = sampleCards.slice(0, currentHandCount);
+
+      cards.forEach((c, i) => {
+        const el = document.createElement('div');
+        const textColor = c.isRed ? 'text-rose-600' : 'text-slate-900';
+        el.className = 'w-[52px] h-[78px] card-surface rounded-xl flex flex-col justify-between p-1 cursor-pointer transition hover:-translate-y-1';
+        el.innerHTML = `
+          <div class="flex justify-between items-center text-[9px] font-black ${textColor}">
+            <span>${c.label}</span><span>${c.suitIcon}</span>
+          </div>
+          <div class="self-center text-xs ${textColor}">${c.suitIcon}</div>
+          <div class="flex justify-between items-center text-[9px] font-black ${textColor} rotate-180">
+            <span>${c.label}</span><span>${c.suitIcon}</span>
+          </div>
+          ${c.isAce ? '<div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white font-mono-code font-black text-[6px] px-1 rounded-full uppercase">-15</div>' : ''}
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    // Render Proposed Hand (Mathematical Parabolic Radial Fan)
+    function renderProposedHand() {
+      const container = document.getElementById('proposedHandContainer');
+      container.innerHTML = '';
+      const cards = sampleCards.slice(0, currentHandCount);
+      const N = cards.length;
+      const mid = (N - 1) / 2;
+
+      const spacing = Math.max(32, 44 - (N - 10) * 3.8);
+      const maxRotAngle = 12;
+      const deltaAngle = maxRotAngle / Math.max(mid, 1);
+
+      cards.forEach((c, i) => {
+        const norm = i - mid;
+        const rot = norm * deltaAngle;
+        const xOffset = norm * spacing;
+        const yOffset = Math.pow(Math.abs(norm) / (mid || 1), 2) * 7.5;
+
+        const isDrawn11th = c.is11th && i === cards.length - 1;
+        const isSelected = selectedProposedId === c.id;
+
+        const el = document.createElement('div');
+        el.className = `card-surface absolute bottom-0 w-[50px] h-[76px] rounded-xl flex flex-col justify-between p-1 select-none cursor-pointer ${isSelected ? 'card-selected-glow' : ''}`;
+        
+        const extraShift = isDrawn11th ? 12 : 0;
+        el.style.left = `calc(50% - 25px + ${xOffset + extraShift}px)`;
+        el.style.bottom = `${-yOffset}px`;
+        el.style.transform = `rotate(${rot}deg)`;
+        el.style.zIndex = isSelected ? 50 : 10 + i;
+
+        const textColor = c.isRed ? 'text-rose-600' : 'text-slate-900';
+        el.innerHTML = `
+          <div class="flex justify-between items-center text-[9px] font-black ${textColor}">
+            <span>${c.label}</span><span>${c.suitIcon}</span>
+          </div>
+          <div class="self-center text-xs ${textColor}">${c.suitIcon}</div>
+          <div class="flex justify-between items-center text-[9px] font-black ${textColor} rotate-180">
+            <span>${c.label}</span><span>${c.suitIcon}</span>
+          </div>
+          ${isDrawn11th ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-400 text-slate-950 font-mono-code font-black text-[6px] px-1 rounded-full uppercase shadow">11TH</div>' : ''}
+          ${c.isAce ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white font-mono-code font-black text-[6px] px-1 rounded-full uppercase shadow">-15</div>' : ''}
+        `;
+
+        el.addEventListener('click', () => {
+          if (selectedProposedId === c.id) {
+            selectedProposedId = null;
+            document.getElementById('btnPropActionDiscard').disabled = true;
+            document.getElementById('btnPropActionDiscard').className = 'h-5 px-2.5 rounded-lg bg-slate-800 text-slate-400 font-bold text-[9px] border border-slate-700 opacity-50 cursor-not-allowed';
+          } else {
+            selectedProposedId = c.id;
+            document.getElementById('btnPropActionDiscard').disabled = false;
+            document.getElementById('btnPropActionDiscard').className = 'h-5 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[9px] shadow-md active:scale-95 cursor-pointer';
+          }
+          renderProposedHand();
+        });
+
+        container.appendChild(el);
+      });
+    }
+
+    // Interactive Hand Size Controls
+    document.getElementById('btnMinus').addEventListener('click', () => {
+      if (currentHandCount > 10) {
+        currentHandCount--;
+        document.getElementById('globalCardCount').innerText = currentHandCount;
+        selectedProposedId = null;
+        renderCurrentHand();
+        renderProposedHand();
+      }
+    });
+
+    document.getElementById('btnPlus').addEventListener('click', () => {
+      if (currentHandCount < 13) {
+        currentHandCount++;
+        document.getElementById('globalCardCount').innerText = currentHandCount;
+        selectedProposedId = null;
+        renderCurrentHand();
+        renderProposedHand();
+      }
+    });
+
+    // Toggle Gin Ready
+    document.getElementById('btnSyncGin').addEventListener('click', () => {
+      isGinReady = !isGinReady;
+      
+      // Update Current Side
+      const currentPad = document.getElementById('currentGinPad');
+      const currentStatus = document.getElementById('currentGinStatusText');
+      const currentDeadwood = document.getElementById('currentDeadwoodVal');
+
+      // Update Proposed Side
+      const propDeadwood = document.getElementById('propDeadwoodVal');
+      const propGinTag = document.getElementById('propGinReadyTag');
+      const propSlamBtn = document.getElementById('btnPropActionSlam');
+
+      if (isGinReady) {
+        currentPad.className = 'btn-gin-pad-glow w-24 h-24 rounded-full flex flex-col items-center justify-center relative shadow-2xl cursor-pointer animate-pulse';
+        currentPad.innerHTML = `
+          <span class="font-thaana text-sm text-emerald-950 font-black">ޑިގު</span>
+          <span class="text-2xl font-black text-white drop-shadow-md">GIN</span>
+          <span class="text-[7.5px] font-mono-code text-emerald-950 font-bold bg-white/50 px-2 rounded-full">TAP</span>
+        `;
+        currentStatus.innerText = '⚡ READY TO WIN';
+        currentStatus.className = 'text-[9px] font-mono-code text-amber-300 font-bold mt-1 animate-pulse';
+        currentDeadwood.innerText = '0 / 10';
+        currentDeadwood.className = 'text-emerald-400 font-bold';
+
+        propDeadwood.innerText = '0 / 10';
+        propDeadwood.className = 'text-emerald-400 font-black';
+        propGinTag.classList.remove('hidden');
+        propSlamBtn.classList.remove('hidden');
+      } else {
+        currentPad.className = 'btn-gin-pad-dormant w-24 h-24 rounded-full flex flex-col items-center justify-center relative shadow-lg';
+        currentPad.innerHTML = `
+          <span class="font-thaana text-xs text-emerald-400/50 font-bold">ޑިގު</span>
+          <span class="text-xl font-black text-slate-400/60 leading-none">GIN</span>
+          <span class="text-[7px] font-mono-code text-slate-400/50 uppercase">0 Deadwood</span>
+        `;
+        currentStatus.innerText = '0 DEADWOOD';
+        currentStatus.className = 'text-[9px] font-mono-code text-slate-400 mt-1';
+        currentDeadwood.innerText = '8 / 10';
+        currentDeadwood.className = 'text-slate-200 font-bold';
+
+        propDeadwood.innerText = '8 / 10';
+        propDeadwood.className = 'text-amber-400 font-black';
+        propGinTag.classList.add('hidden');
+        propSlamBtn.classList.add('hidden');
+      }
+    });
+
+    // Toggle Urgency Timer
+    document.getElementById('btnSyncTimer').addEventListener('click', () => {
+      isTimerUrgent = !isTimerUrgent;
+      const currentPill = document.getElementById('currentTimerPill');
+      const currentNum = document.getElementById('currentTimerNum');
+      const propVignette = document.getElementById('propUrgentVignette');
+      const propTimerSec = document.getElementById('propTimerSec');
+
+      if (isTimerUrgent) {
+        currentPill.className = 'flex items-center gap-1 bg-rose-950/80 border border-rose-500 px-2 py-0.5 rounded-full text-[10px] animate-pulse';
+        currentNum.innerText = '4s';
+        currentNum.className = 'font-mono-code font-black text-rose-400';
+
+        propVignette.style.opacity = '1';
+        propTimerSec.innerText = '4s';
+        propTimerSec.className = 'font-mono-code font-black text-rose-400 animate-ping';
+      } else {
+        currentPill.className = 'flex items-center gap-1 bg-[#02140D] border border-slate-700 px-2 py-0.5 rounded-full text-[10px]';
+        currentNum.innerText = '22s';
+        currentNum.className = 'font-mono-code font-bold text-emerald-400';
+
+        propVignette.style.opacity = '0';
+        propTimerSec.innerText = '22s';
+        propTimerSec.className = 'font-mono-code font-bold text-emerald-400';
+      }
+    });
+
+    // Toggle Zones
+    document.getElementById('btnToggleZones').addEventListener('click', () => {
+      zonesVisible = !zonesVisible;
+      document.getElementById('viewportProposed').style.outline = zonesVisible ? '3px dashed #06b6d4' : 'none';
+      document.getElementById('viewportCurrent').style.outline = zonesVisible ? '3px dashed #94a3b8' : 'none';
+    });
+
+    // Proposed Gin Slam Burst
+    document.getElementById('btnPropActionSlam').addEventListener('click', () => {
+      const ring = document.createElement('div');
+      ring.className = 'absolute inset-0 m-auto w-24 h-24 rounded-full border-4 border-amber-400 shadow-[0_0_50px_#f59e0b] shockwave-anim pointer-events-none z-50';
+      document.getElementById('viewportProposed').appendChild(ring);
+
+      document.getElementById('propFinishSlot').innerHTML = `
+        <div class="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.9)] border-2 border-white">
+          <span class="text-slate-950 font-black text-xs leading-none">ޑިގު!</span>
+          <span class="text-slate-950 font-serif-luxury font-black text-[6px] uppercase mt-0.5">GIN SLAM</span>
+        </div>
+      `;
+
+      setTimeout(() => ring.remove(), 850);
+    });
+
+    // Initial render
+    renderCurrentHand();
+    renderProposedHand();
+  </script>
+</body>
+</html>

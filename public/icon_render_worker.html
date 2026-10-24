@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+Thaana:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; display: flex; align-items: center; justify-content: center; }
+    #container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+    #container.round { border-radius: 50%; overflow: hidden; }
+    svg { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type') || 'master';
+    const container = document.getElementById('container');
+    if (type === 'round') container.className = 'round';
+    
+    const svgFile = type === 'foreground' 
+      ? '/assets/icon_proposal_2_foreground.svg' 
+      : '/assets/icon_proposal_2_master_512.svg';
+
+    fetch(svgFile)
+      .then(r => r.text())
+      .then(txt => {
+        container.innerHTML = txt;
+        window.__READY = true;
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digu — Mobile Ergonomics & Viewport Zoning Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --safe-top: 48px;
+      --safe-bottom: 34px;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #04090d;
+      color: #f1f5f9;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .font-serif-luxury {
+      font-family: 'Cinzel', serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Felt Texture */
+    .ocean-felt {
+      background: radial-gradient(circle at 50% 40%, #0d3446 0%, #08212e 60%, #04121a 100%);
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+    }
+    /* Card Styles */
+    .card-surface {
+      background: linear-gradient(145deg, #ffffff 0%, #f7f5f0 100%);
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease;
+      transform-origin: 50% 120%;
+    }
+    .card-surface:active {
+      transform: scale(1.05);
+    }
+    .card-selected {
+      transform: translateY(-24px) scale(1.08) !important;
+      box-shadow: 0 0 0 2.5px #f59e0b, 0 16px 32px rgba(245, 158, 11, 0.35) !important;
+      z-index: 50 !important;
+    }
+    /* Timer Urgent Vignette */
+    @keyframes urgentPulse {
+      0%, 100% { box-shadow: inset 0 0 35px rgba(239, 68, 68, 0.45); }
+      50% { box-shadow: inset 0 0 75px rgba(239, 68, 68, 0.85); }
+    }
+    .timer-urgent {
+      animation: urgentPulse 1s infinite ease-in-out;
+    }
+    /* Gold Shockwave */
+    @keyframes shockwave {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(2.8); opacity: 0; }
+    }
+    .shockwave-ring {
+      animation: shockwave 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-6 bg-[#04080c]">
+
+  <!-- Simulation Control Sidebar (Desktop Companion) -->
+  <aside class="hidden lg:flex flex-col gap-4 w-80 p-5 bg-[#091319] border border-cyan-900/40 rounded-2xl shadow-2xl mr-6 text-sm">
+    <div class="flex items-center gap-2 pb-3 border-b border-cyan-900/40">
+      <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+      <h2 class="font-serif-luxury font-bold text-amber-300 text-lg tracking-wider">DIGU PROTOTYPE</h2>
+    </div>
+    
+    <div class="space-y-3">
+      <div class="text-xs uppercase font-mono-code text-cyan-400 font-bold tracking-wider">Viewport Architecture</div>
+      <label class="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-cyan-950 cursor-pointer">
+        <span>Show 15/45/40 Zones</span>
+        <input type="checkbox" id="toggleZones" class="accent-amber-400 scale-125 cursor-pointer">
+      </label>
+      <label class="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-cyan-950 cursor-pointer">
+        <span>Safe Area Overlays</span>
+        <input type="checkbox" id="toggleSafeArea" checked class="accent-amber-400 scale-125 cursor-pointer">
+      </label>
+    </div>
+
+    <div class="space-y-3 pt-2 border-t border-cyan-900/40">
+      <div class="text-xs uppercase font-mono-code text-cyan-400 font-bold tracking-wider">Card Fanning Engine</div>
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs">
+          <span>Hand Card Count:</span>
+          <span id="cardCountLabel" class="font-mono-code font-bold text-amber-400">11 Cards</span>
+        </div>
+        <input type="range" id="cardCountSlider" min="10" max="13" value="11" class="w-full accent-amber-400 cursor-pointer">
+      </div>
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button id="btnSortRuns" class="py-2 px-3 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-200 text-xs font-bold transition">Sort Runs</button>
+        <button id="btnSortSets" class="py-2 px-3 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-200 text-xs font-bold transition">Sort Sets</button>
+      </div>
+    </div>
+
+    <div class="space-y-3 pt-2 border-t border-cyan-900/40">
+      <div class="text-xs uppercase font-mono-code text-cyan-400 font-bold tracking-wider">Ergonomics & Feel</div>
+      <div class="flex gap-2">
+        <button id="btnTriggerGin" class="flex-1 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-600 font-bold text-slate-950 text-xs shadow-lg active:scale-95 transition">⚡ Test Gin Ready</button>
+        <button id="btnSimUrgentTimer" class="flex-1 py-2 rounded-lg bg-rose-950 hover:bg-rose-900 border border-rose-700 font-bold text-rose-300 text-xs transition">&lt;5s Timer Pulse</button>
+      </div>
+      <div id="gestureStatus" class="p-2.5 rounded-lg bg-black/60 font-mono-code text-[11px] text-slate-400 border border-cyan-900/50">
+        Touch Drag Threshold: <span class="text-emerald-400 font-bold">30dp (Active)</span><br>
+        Double-Tap Guard: <span class="text-emerald-400 font-bold">350ms Debounce</span>
+      </div>
+    </div>
+
+    <div class="pt-2 border-t border-cyan-900/40 text-[11px] text-slate-400 leading-relaxed">
+      Interactive prototype demonstrating touch targets, responsive fanning, and Maldivian felt aesthetics before source code implementation.
+    </div>
+  </aside>
+
+  <!-- Mobile Device Simulation Frame (390 x 844 iPhone 14/15/16 Geometry) -->
+  <main id="phoneFrame" class="relative w-[390px] h-[844px] max-h-[100vh] ocean-felt rounded-[48px] border-[6px] border-[#1e2a33] shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col justify-between">
+    
+    <!-- Urgent Vignette Overlay -->
+    <div id="urgentVignette" class="absolute inset-0 pointer-events-none z-40 transition-opacity duration-300 opacity-0 timer-urgent"></div>
+
+    <!-- Safe Area: Top (Notch / Dynamic Island) -->
+    <div id="safeAreaTop" class="absolute top-0 left-0 right-0 h-[48px] z-50 pointer-events-none flex justify-center items-start pt-2">
+      <!-- Dynamic Island Pill -->
+      <div class="w-28 h-6 bg-black rounded-full shadow-inner flex items-center justify-between px-2.5">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#0a1b24] border border-cyan-950"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-[#1b2b34]/80 flex items-center justify-center">
+          <div class="w-1 h-1 rounded-full bg-emerald-400"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safe Area: Bottom (Home Gesture Bar) -->
+    <div id="safeAreaBottom" class="absolute bottom-0 left-0 right-0 h-[34px] z-50 pointer-events-none flex justify-center items-center">
+      <div class="w-32 h-1 bg-white/40 rounded-full"></div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- ZONE 1: TOP 15% (Meta, Opponents, Timer, Pot)                     -->
+    <!-- ================================================================= -->
+    <section id="zoneTop" class="relative h-[15%] w-full pt-[48px] px-3 flex flex-col justify-between z-30 transition-colors">
+      <div class="zone-label hidden absolute top-12 left-3 text-[10px] font-mono-code bg-red-500/80 text-white px-1.5 py-0.5 rounded pointer-events-none">TOP 15% ZONE</div>
+      
+      <div class="flex items-center justify-between w-full">
+        <!-- Opponent West -->
+        <div class="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-xl border border-cyan-900/50">
+          <div class="w-7 h-7 rounded-lg bg-teal-900/80 border border-teal-500/50 flex items-center justify-center text-xs">👤</div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-slate-200 leading-tight">Ahmed</span>
+            <span class="text-[9px] font-mono-code text-cyan-400">10 cards</span>
+          </div>
+        </div>
+
+        <!-- Center Turn Timer Pill -->
+        <div id="timerContainer" class="flex items-center gap-2 bg-[#02131c]/90 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+          <div class="relative w-5 h-5 flex items-center justify-center">
+            <svg class="w-5 h-5 -rotate-90">
+              <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+              <circle id="timerProgress" cx="10" cy="10" r="8" stroke="#10b981" stroke-width="2" fill="none" stroke-dasharray="50.2" stroke-dashoffset="12"/>
+            </svg>
+            <span id="timerText" class="absolute font-mono-code text-[9px] font-bold text-emerald-300">22</span>
+          </div>
+          <span class="text-[10px] font-bold text-slate-200 tracking-wider">YOUR TURN</span>
+        </div>
+
+        <!-- Opponent East -->
+        <div class="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded-xl border border-cyan-900/50">
+          <div class="flex flex-col text-right">
+            <span class="text-[10px] font-bold text-slate-200 leading-tight">Hassan</span>
+            <span class="text-[9px] font-mono-code text-cyan-400">10 cards</span>
+          </div>
+          <div class="w-7 h-7 rounded-lg bg-teal-900/80 border border-teal-500/50 flex items-center justify-center text-xs">👤</div>
+        </div>
+      </div>
+
+      <!-- Subtle Table Pot Strip -->
+      <div class="flex items-center justify-between text-[11px] px-1 text-slate-400 font-medium">
+        <span class="font-mono-code text-amber-400 flex items-center gap-1">🪙 4,000 POT</span>
+        <span class="font-mono-code text-cyan-300">ROUND 1 • 2v2 TEAM</span>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- ZONE 2: CENTER 45% (Felt Playfield, Decks, Melds, Slam Slot)       -->
+    <!-- ================================================================= -->
+    <section id="zoneCenter" class="relative h-[45%] w-full px-3 flex flex-col justify-around items-center z-20 transition-colors">
+      <div class="zone-label hidden absolute top-2 left-3 text-[10px] font-mono-code bg-blue-500/80 text-white px-1.5 py-0.5 rounded pointer-events-none">CENTER 45% PLAYFIELD</div>
+
+      <!-- Team Melds Mini-Board -->
+      <div class="w-full flex justify-between gap-2 px-1">
+        <!-- Team A Melds -->
+        <div class="flex-1 bg-black/35 backdrop-blur-sm rounded-xl p-2 border border-emerald-900/40">
+          <div class="flex justify-between items-center text-[10px] font-bold text-emerald-400 mb-1">
+            <span>TEAM A (YOU)</span>
+            <span class="font-mono-code">30 pts</span>
+          </div>
+          <div class="flex gap-1">
+            <div class="px-2 py-1 bg-emerald-950/70 border border-emerald-700/60 rounded text-[9px] font-mono-code text-emerald-200">7♠ 7♥ 7♦</div>
+          </div>
+        </div>
+
+        <!-- Team B Melds -->
+        <div class="flex-1 bg-black/35 backdrop-blur-sm rounded-xl p-2 border border-rose-900/40">
+          <div class="flex justify-between items-center text-[10px] font-bold text-rose-400 mb-1">
+            <span>TEAM B</span>
+            <span class="font-mono-code">0 pts</span>
+          </div>
+          <div class="flex items-center justify-center text-[10px] text-slate-500 py-1">
+            No melds yet
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Center Felt: Stock Deck + Discard Pile + Face-Down Slam Target -->
+      <div class="flex items-center justify-center gap-4 sm:gap-6 my-auto">
+        
+        <!-- Stock Draw Pile -->
+        <div id="stockDeck" class="relative w-[68px] h-[98px] rounded-xl bg-gradient-to-br from-[#122e3f] to-[#081822] border-2 border-cyan-600/60 shadow-xl flex flex-col items-center justify-center cursor-pointer active:scale-95 transition-all">
+          <div class="w-10 h-14 rounded-lg border border-cyan-500/40 flex items-center justify-center">
+            <span class="text-cyan-400 font-serif-luxury font-bold text-xs">DIGU</span>
+          </div>
+          <span class="absolute bottom-1 font-mono-code text-[9px] text-cyan-300 font-bold">DRAW</span>
+          <!-- Deck Stack Effect -->
+          <div class="absolute -top-1 -right-1 w-full h-full rounded-xl bg-cyan-950/60 border border-cyan-800/40 -z-10"></div>
+          <div class="absolute -top-2 -right-2 w-full h-full rounded-xl bg-cyan-950/40 border border-cyan-900/30 -z-20"></div>
+        </div>
+
+        <!-- Discard Pile -->
+        <div id="discardPile" class="relative w-[68px] h-[98px] rounded-xl bg-white border border-stone-300 shadow-xl flex flex-col justify-between p-1.5 cursor-pointer active:scale-95 transition-all">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-rose-600 text-xs leading-none">K</span>
+            <span class="text-rose-600 text-xs leading-none">♥</span>
+          </div>
+          <div class="self-center text-rose-600 text-lg leading-none">♥</div>
+          <div class="flex justify-between items-center rotate-180">
+            <span class="font-black text-rose-600 text-xs leading-none">K</span>
+            <span class="text-rose-600 text-xs leading-none">♥</span>
+          </div>
+          <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-slate-900/90 text-amber-300 text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-amber-500/50">DISCARD</div>
+        </div>
+
+        <!-- Dedicated Finish Slam Slot (Maldivian Special Face-Down Gin) -->
+        <div id="finishSlot" class="relative w-[72px] h-[102px] rounded-xl border-2 border-dashed border-amber-400/60 bg-amber-950/20 shadow-[inset_0_0_20px_rgba(245,158,11,0.2)] flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-amber-950/40">
+          <span class="text-amber-400 text-lg">★</span>
+          <span class="text-[9px] font-mono-code font-bold text-amber-300 text-center leading-tight">SLAM<br>FINISH</span>
+          <span class="text-[8px] text-amber-400/80 mt-1 uppercase font-semibold">Face-down</span>
+        </div>
+
+      </div>
+
+      <!-- Action Toast Indicator -->
+      <div id="actionToast" class="py-1 px-3 rounded-full bg-black/60 border border-cyan-800 text-[11px] text-cyan-200">
+        Tap a card to elevate • Drag up to discard
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- ZONE 3: BOTTOM 40% (Player Sanctuary, Fanned Hand, Thumb Controls) -->
+    <!-- ================================================================= -->
+    <section id="zoneBottom" class="relative h-[40%] w-full pb-[34px] flex flex-col justify-end z-30 transition-colors">
+      <div class="zone-label hidden absolute top-1 left-3 text-[10px] font-mono-code bg-emerald-500/80 text-white px-1.5 py-0.5 rounded pointer-events-none">BOTTOM 40% PLAYER SANCTUARY</div>
+
+      <!-- Ergonomic Action Bar (Comfortable Thumb Reach Zone) -->
+      <div class="flex items-center justify-between px-4 mb-2 z-40">
+        
+        <!-- Deadwood & Gin Meter -->
+        <div id="deadwoodMeter" class="flex items-center gap-1.5 bg-[#021118]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-cyan-800/60 shadow-lg">
+          <span class="text-[10px] font-mono-code text-slate-400 uppercase font-bold">Deadwood:</span>
+          <span id="deadwoodValue" class="text-xs font-mono-code font-black text-amber-400">8 pts</span>
+          <span id="ginReadyBadge" class="hidden text-[9px] font-bold text-amber-300 bg-amber-900/60 px-1.5 py-0.5 rounded-full border border-amber-400 animate-pulse">⚡ GIN READY</span>
+        </div>
+
+        <!-- Thumb Quick Actions -->
+        <div class="flex items-center gap-2">
+          <button id="btnActionDiscard" disabled class="h-8 px-3 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs border border-slate-700 opacity-50 cursor-not-allowed transition flex items-center gap-1">
+            <span>Discard</span>
+          </button>
+          <button id="btnActionSlam" class="hidden h-8 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-xs shadow-[0_0_20px_rgba(245,158,11,0.6)] active:scale-95 transition flex items-center gap-1 animate-bounce">
+            <span>⚡ SLAM GIN!</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Dynamic Card Fan Container -->
+      <div id="handFanContainer" class="relative w-full h-[145px] px-2 flex items-end justify-center select-none overflow-visible">
+        <!-- Cards dynamically injected here via JS mathematically positioned with angle, y-arc, and z-index -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Interactive Logic & Mathematical Card Fan Engine -->
+  <script>
+    // Sample Hand Data (Suit + Rank)
+    const initialHand = [
+      { id: 'c1', suit: 'SPADES', rank: 4, label: '4', suitIcon: '♠', isRed: false },
+      { id: 'c2', suit: 'SPADES', rank: 5, label: '5', suitIcon: '♠', isRed: false },
+      { id: 'c3', suit: 'SPADES', rank: 6, label: '6', suitIcon: '♠', isRed: false },
+      { id: 'c4', suit: 'HEARTS', rank: 9, label: '9', suitIcon: '♥', isRed: true },
+      { id: 'c5', suit: 'HEARTS', rank: 10, label: '10', suitIcon: '♥', isRed: true },
+      { id: 'c6', suit: 'HEARTS', rank: 11, label: 'J', suitIcon: '♥', isRed: true },
+      { id: 'c7', suit: 'DIAMONDS', rank: 2, label: '2', suitIcon: '♦', isRed: true },
+      { id: 'c8', suit: 'DIAMONDS', rank: 2, label: '2', suitIcon: '♦', isRed: true },
+      { id: 'c9', suit: 'CLUBS', rank: 2, label: '2', suitIcon: '♣', isRed: false },
+      { id: 'c10', suit: 'SPADES', rank: 1, label: 'A', suitIcon: '♠', isRed: false, isAceLiability: true },
+      { id: 'c11', suit: 'CLUBS', rank: 8, label: '8', suitIcon: '♣', isRed: false },
+      { id: 'c12', suit: 'HEARTS', rank: 7, label: '7', suitIcon: '♥', isRed: true },
+      { id: 'c13', suit: 'DIAMONDS', rank: 13, label: 'K', suitIcon: '♦', isRed: true },
+    ];
+
+    let currentCards = initialHand.slice(0, 11);
+    let selectedCardId = null;
+    let isGinReady = false;
+    let isUrgentTimer = false;
+    let timerVal = 22;
+
+    // References
+    const handFanContainer = document.getElementById('handFanContainer');
+    const cardCountSlider = document.getElementById('cardCountSlider');
+    const cardCountLabel = document.getElementById('cardCountLabel');
+    const toggleZones = document.getElementById('toggleZones');
+    const toggleSafeArea = document.getElementById('toggleSafeArea');
+    const btnActionDiscard = document.getElementById('btnActionDiscard');
+    const btnActionSlam = document.getElementById('btnActionSlam');
+    const deadwoodValue = document.getElementById('deadwoodValue');
+    const ginReadyBadge = document.getElementById('ginReadyBadge');
+    const urgentVignette = document.getElementById('urgentVignette');
+    const actionToast = document.getElementById('actionToast');
+    const finishSlot = document.getElementById('finishSlot');
+
+    // Render Cards using the Pure Mathematical Fanning Geometry
+    function renderHand() {
+      handFanContainer.innerHTML = '';
+      const N = currentCards.length;
+      const mid = (N - 1) / 2;
+
+      // Dynamic spacing: compress as card count increases (10 cards: 38px -> 13 cards: 26px)
+      const baseSpacing = Math.max(24, 46 - (N - 10) * 6.5);
+      const maxRotation = 18; // Max fan tilt angle degrees
+      const deltaAngle = Math.min(3.6, maxRotation / Math.max(mid, 1));
+
+      currentCards.forEach((card, i) => {
+        const norm = i - mid;
+        const rot = norm * deltaAngle;
+        const xOffset = norm * baseSpacing;
+        // Parabolic vertical drop creates natural curved thumb arc
+        const yOffset = Math.pow(Math.abs(norm) / (mid || 1), 2) * 12;
+
+        const el = document.createElement('div');
+        el.className = `card-surface absolute bottom-0 w-[64px] h-[96px] rounded-xl flex flex-col justify-between p-1.5 select-none cursor-pointer ${selectedCardId === card.id ? 'card-selected' : ''}`;
+        el.style.left = `calc(50% - 32px + ${xOffset}px)`;
+        el.style.bottom = `${-yOffset}px`;
+        el.style.transform = `rotate(${rot}deg)`;
+        el.style.zIndex = selectedCardId === card.id ? 50 : 10 + i;
+
+        // Visual content
+        const textColor = card.isRed ? 'text-rose-600' : 'text-slate-900';
+        el.innerHTML = `
+          <div class="flex justify-between items-center pointer-events-none">
+            <span class="font-black text-xs leading-none ${textColor}">${card.label}</span>
+            <span class="text-xs leading-none ${textColor}">${card.suitIcon}</span>
+          </div>
+          <div class="self-center text-lg leading-none ${textColor} pointer-events-none">${card.suitIcon}</div>
+          <div class="flex justify-between items-center rotate-180 pointer-events-none">
+            <span class="font-black text-xs leading-none ${textColor}">${card.label}</span>
+            <span class="text-xs leading-none ${textColor}">${card.suitIcon}</span>
+          </div>
+          ${card.isAceLiability ? '<div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white font-mono-code font-black text-[7px] px-1 rounded-full uppercase shadow">Ace -15</div>' : ''}
+        `;
+
+        // Touch & Tap Ergonomics Handling (with 350ms Debounce and Drag Threshold)
+        let touchStartY = 0;
+        let touchStartX = 0;
+        let isDragging = false;
+
+        el.addEventListener('pointerdown', (e) => {
+          touchStartX = e.clientX;
+          touchStartY = e.clientY;
+          isDragging = false;
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          const dy = e.clientY - touchStartY;
+          const dx = e.clientX - touchStartX;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 30) { // 30dp threshold for drag-to-play
+            isDragging = true;
+            if (dy < -40) {
+              actionToast.innerText = `Dragging ${card.label}${card.suitIcon} to discard...`;
+              actionToast.className = 'py-1 px-3 rounded-full bg-amber-500 text-slate-950 font-bold text-[11px] shadow-lg';
+            }
+          }
+        });
+
+        el.addEventListener('pointerup', (e) => {
+          const dy = e.clientY - touchStartY;
+          if (isDragging && dy < -70) {
+            // Drag-to-discard triggered
+            discardCard(card.id);
+            return;
+          }
+          if (!isDragging) {
+            toggleSelectCard(card.id);
+          }
+        });
+
+        handFanContainer.appendChild(el);
+      });
+    }
+
+    function toggleSelectCard(id) {
+      if (selectedCardId === id) {
+        selectedCardId = null;
+        btnActionDiscard.disabled = true;
+        btnActionDiscard.className = 'h-8 px-3 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs border border-slate-700 opacity-50 cursor-not-allowed transition';
+        actionToast.innerText = 'Tap a card to elevate • Drag up to discard';
+        actionToast.className = 'py-1 px-3 rounded-full bg-black/60 border border-cyan-800 text-[11px] text-cyan-200';
+      } else {
+        selectedCardId = id;
+        btnActionDiscard.disabled = false;
+        btnActionDiscard.className = 'h-8 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md active:scale-95 cursor-pointer transition';
+        const c = currentCards.find(card => card.id === id);
+        actionToast.innerText = `Selected ${c.label}${c.suitIcon} (Elevated +16dp)`;
+        actionToast.className = 'py-1 px-3 rounded-full bg-cyan-950 border border-cyan-500 text-[11px] text-cyan-200';
+      }
+      renderHand();
+    }
+
+    function discardCard(id) {
+      const idx = currentCards.findIndex(c => c.id === id);
+      if (idx !== -1) {
+        const discarded = currentCards[idx];
+        currentCards.splice(idx, 1);
+        selectedCardId = null;
+        btnActionDiscard.disabled = true;
+        btnActionDiscard.className = 'h-8 px-3 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs border border-slate-700 opacity-50 cursor-not-allowed transition';
+        
+        // Update Discard Pile Face
+        const discardEl = document.getElementById('discardPile');
+        discardEl.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-black ${discarded.isRed ? 'text-rose-600' : 'text-slate-900'} text-xs leading-none">${discarded.label}</span>
+            <span class="${discarded.isRed ? 'text-rose-600' : 'text-slate-900'} text-xs leading-none">${discarded.suitIcon}</span>
+          </div>
+          <div class="self-center ${discarded.isRed ? 'text-rose-600' : 'text-slate-900'} text-lg leading-none">${discarded.suitIcon}</div>
+          <div class="flex justify-between items-center rotate-180">
+            <span class="font-black ${discarded.isRed ? 'text-rose-600' : 'text-slate-900'} text-xs leading-none">${discarded.label}</span>
+            <span class="${discarded.isRed ? 'text-rose-600' : 'text-slate-900'} text-xs leading-none">${discarded.suitIcon}</span>
+          </div>
+          <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-slate-900/90 text-amber-300 text-[8px] font-bold px-1.5 py-0.5 rounded-full border border-amber-500/50">DISCARD</div>
+        `;
+
+        actionToast.innerText = `Discarded ${discarded.label}${discarded.suitIcon} cleanly!`;
+        actionToast.className = 'py-1 px-3 rounded-full bg-emerald-950 border border-emerald-500 text-[11px] text-emerald-200';
+        
+        cardCountSlider.value = currentCards.length;
+        cardCountLabel.innerText = `${currentCards.length} Cards`;
+        renderHand();
+      }
+    }
+
+    // Interactive Controls
+    cardCountSlider.addEventListener('input', (e) => {
+      const count = parseInt(e.target.value);
+      cardCountLabel.innerText = `${count} Cards`;
+      currentCards = initialHand.slice(0, count);
+      selectedCardId = null;
+      renderHand();
+    });
+
+    toggleZones.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      document.querySelectorAll('.zone-label').forEach(el => {
+        el.style.display = checked ? 'block' : 'none';
+      });
+      document.getElementById('zoneTop').style.background = checked ? 'rgba(239, 68, 68, 0.12)' : 'transparent';
+      document.getElementById('zoneCenter').style.background = checked ? 'rgba(59, 130, 246, 0.12)' : 'transparent';
+      document.getElementById('zoneBottom').style.background = checked ? 'rgba(16, 185, 129, 0.12)' : 'transparent';
+    });
+
+    toggleSafeArea.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      document.getElementById('safeAreaTop').style.display = checked ? 'flex' : 'none';
+      document.getElementById('safeAreaBottom').style.display = checked ? 'flex' : 'none';
+    });
+
+    document.getElementById('btnSortRuns').addEventListener('click', () => {
+      currentCards.sort((a, b) => a.suit.localeCompare(b.suit) || a.rank - b.rank);
+      renderHand();
+    });
+
+    document.getElementById('btnSortSets').addEventListener('click', () => {
+      currentCards.sort((a, b) => a.rank - b.rank || a.suit.localeCompare(b.suit));
+      renderHand();
+    });
+
+    document.getElementById('btnTriggerGin').addEventListener('click', () => {
+      isGinReady = !isGinReady;
+      if (isGinReady) {
+        deadwoodValue.innerText = '0 pts';
+        deadwoodValue.className = 'text-xs font-mono-code font-black text-emerald-400 drop-shadow-[0_0_8px_#10b981]';
+        ginReadyBadge.classList.remove('hidden');
+        btnActionSlam.classList.remove('hidden');
+        actionToast.innerText = '⚡ GIN READY! Slam the 11th card into the finish slot!';
+        actionToast.className = 'py-1 px-3 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-bold text-[11px] shadow-lg animate-bounce';
+      } else {
+        deadwoodValue.innerText = '8 pts';
+        deadwoodValue.className = 'text-xs font-mono-code font-black text-amber-400';
+        ginReadyBadge.classList.add('hidden');
+        btnActionSlam.classList.add('hidden');
+        actionToast.innerText = 'Tap a card to elevate • Drag up to discard';
+        actionToast.className = 'py-1 px-3 rounded-full bg-black/60 border border-cyan-800 text-[11px] text-cyan-200';
+      }
+    });
+
+    document.getElementById('btnSimUrgentTimer').addEventListener('click', () => {
+      isUrgentTimer = !isUrgentTimer;
+      if (isUrgentTimer) {
+        urgentVignette.style.opacity = '1';
+        document.getElementById('timerText').innerText = '4';
+        document.getElementById('timerText').className = 'absolute font-mono-code text-[9px] font-black text-rose-400 animate-ping';
+        document.getElementById('timerProgress').setAttribute('stroke', '#ef4444');
+      } else {
+        urgentVignette.style.opacity = '0';
+        document.getElementById('timerText').innerText = '22';
+        document.getElementById('timerText').className = 'absolute font-mono-code text-[9px] font-bold text-emerald-300';
+        document.getElementById('timerProgress').setAttribute('stroke', '#10b981');
+      }
+    });
+
+    // Face Down Slam Finish Action
+    function triggerSlamAnimation() {
+      // Create expanding shockwave rings
+      const ring1 = document.createElement('div');
+      ring1.className = 'absolute inset-0 m-auto w-32 h-32 rounded-full border-4 border-amber-400 shadow-[0_0_50px_#f59e0b] shockwave-ring pointer-events-none z-50';
+      document.getElementById('phoneFrame').appendChild(ring1);
+
+      const ring2 = document.createElement('div');
+      ring2.className = 'absolute inset-0 m-auto w-24 h-24 rounded-full border-2 border-emerald-400 shadow-[0_0_40px_#10b981] shockwave-ring pointer-events-none z-50';
+      ring2.style.animationDelay = '0.12s';
+      document.getElementById('phoneFrame').appendChild(ring2);
+
+      finishSlot.innerHTML = `
+        <div class="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.8)] border-2 border-white">
+          <span class="text-slate-950 font-black text-sm">ޑިގު!</span>
+          <span class="text-slate-950 font-serif-luxury font-bold text-[9px]">GIN SLAM</span>
+        </div>
+      `;
+
+      actionToast.innerText = '★ MALDIVIAN GIN SLAM DECLARED FACE-DOWN! ★';
+      actionToast.className = 'py-1.5 px-4 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-xs shadow-2xl animate-pulse';
+
+      setTimeout(() => {
+        ring1.remove();
+        ring2.remove();
+      }, 1000);
+    }
+
+    btnActionSlam.addEventListener('click', triggerSlamAnimation);
+    finishSlot.addEventListener('click', () => {
+      if (isGinReady) triggerSlamAnimation();
+    });
+
+    btnActionDiscard.addEventListener('click', () => {
+      if (selectedCardId) discardCard(selectedCardId);
+    });
+
+    // Initial render
+    renderHand();
+  </script>
+</body>
+</html>

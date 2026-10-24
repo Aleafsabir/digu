@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { useAnimationStore } from '../store/useAnimationStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { DiguAI, Card } from '@game/core';
 import { playGinSlamImpactSound } from '../utils/audioEffects';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -90,10 +91,12 @@ export function useAITurnController() {
               ? currentGameState.discardPile[currentGameState.discardPile.length - 1]
               : null;
 
+          const aiTier = useSettingsStore.getState().aiTier;
           const shouldDrawDiscard = DiguAI.shouldDrawDiscard(
             currentBot.hand,
             topDiscard,
-            currentGameState.rules
+            currentGameState.rules,
+            aiTier
           );
 
           // Pondering pause: brisk if taking discard, thoughtful if considering stock
@@ -197,7 +200,8 @@ export function useAITurnController() {
           }
 
           const botHand = currentBot.hand;
-          const decision = DiguAI.chooseBestAction(botHand);
+          const aiTier = useSettingsStore.getState().aiTier;
+          const decision = DiguAI.chooseBestAction(botHand, aiTier);
           const discardCard =
             botHand.find(c => c.id === decision.cardId) || botHand[botHand.length - 1];
           const isGinSlam = decision.action === 'GIN_SLAM';

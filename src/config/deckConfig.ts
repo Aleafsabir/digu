@@ -1,4 +1,12 @@
-export type DeckDesignId = 'digu_emerald' | 'burgundy_gold' | 'sapphire_lattice' | 'maldivian_lacquer';
+export type DeckDesignId =
+  | 'royal_lacquer'
+  | 'bicycle_red'
+  | 'bicycle_blue'
+  | 'casino_emerald'
+  | 'digu_emerald'
+  | 'burgundy_gold'
+  | 'sapphire_lattice'
+  | 'maldivian_lacquer';
 
 export interface DeckDesignMeta {
   id: DeckDesignId;
@@ -14,15 +22,60 @@ export interface DeckDesignMeta {
 }
 
 export const DECK_DESIGNS: Record<DeckDesignId, DeckDesignMeta> = {
+  royal_lacquer: {
+    id: 'royal_lacquer',
+    name: 'Royal Cinnabar & Gold',
+    tagline: 'Liyelaa Jehun Edition',
+    badge: 'HERITAGE',
+    description: 'Crisp ivory poker border with deep lacquer cinnabar guilloché and twin 24K gold medallions.',
+    primaryColor: '#881313',
+    accentColor: '#e5c378',
+    previewBg: 'bg-gradient-to-br from-[#881313] via-[#3b0707] to-[#170b09]',
+    unlocked: true,
+  },
+  bicycle_red: {
+    id: 'bicycle_red',
+    name: 'Bicycle Classic Rider Red',
+    tagline: 'Authentic Casino Standard',
+    badge: 'CLASSIC',
+    description: 'Iconic American poker standard: crisp ivory white border with crimson filigree scrollwork.',
+    primaryColor: '#b91c1c',
+    accentColor: '#faf6ee',
+    previewBg: 'bg-gradient-to-br from-[#b91c1c] to-[#7f1d1d]',
+    unlocked: true,
+  },
+  bicycle_blue: {
+    id: 'bicycle_blue',
+    name: 'Bicycle Classic Rider Blue',
+    tagline: 'Authentic Casino Standard',
+    badge: 'CLASSIC',
+    description: 'Deep cobalt blue filigree scrollwork with crisp ivory white border and mirrored medallions.',
+    primaryColor: '#1d4ed8',
+    accentColor: '#faf6ee',
+    previewBg: 'bg-gradient-to-br from-[#1d4ed8] to-[#1e3a8a]',
+    unlocked: true,
+  },
+  casino_emerald: {
+    id: 'casino_emerald',
+    name: 'KEM Casino Emerald',
+    tagline: 'Tournament Acetate Edition',
+    badge: 'TOURNAMENT',
+    description: 'Vibrant green casino crosshatch with gold accents and crisp ivory borders.',
+    primaryColor: '#047857',
+    accentColor: '#e5c378',
+    previewBg: 'bg-gradient-to-br from-[#047857] to-[#064e3b]',
+    unlocked: true,
+  },
+  // Legacy aliases for backward compatibility
   digu_emerald: {
     id: 'digu_emerald',
     name: 'Digu Emerald Lacquer',
     tagline: 'Flagship Maldivian Felt',
     badge: 'DEFAULT',
     description: 'Deep stadium felt green framed with liquid gold filigree and an authentic ޑ Thaana crest.',
-    primaryColor: '#042618',
-    accentColor: '#05D59A',
-    previewBg: 'bg-gradient-to-br from-[#042618] via-[#02140D] to-[#010A06]',
+    primaryColor: '#047857',
+    accentColor: '#e5c378',
+    previewBg: 'bg-gradient-to-br from-[#047857] to-[#064e3b]',
     unlocked: true,
   },
   burgundy_gold: {
@@ -31,9 +84,9 @@ export const DECK_DESIGNS: Record<DeckDesignId, DeckDesignMeta> = {
     tagline: 'Luxury Velvet Deck',
     badge: 'PREMIUM',
     description: 'Deep wine-red velvet canvas framed with 24K gold arabesque filigree and a royal star crest.',
-    primaryColor: '#58111A',
-    accentColor: '#D4AF37',
-    previewBg: 'bg-gradient-to-br from-[#58111A] to-[#2A050A]',
+    primaryColor: '#881313',
+    accentColor: '#e5c378',
+    previewBg: 'bg-gradient-to-br from-[#881313] via-[#3b0707] to-[#170b09]',
     unlocked: true,
   },
   sapphire_lattice: {
@@ -42,9 +95,9 @@ export const DECK_DESIGNS: Record<DeckDesignId, DeckDesignMeta> = {
     tagline: 'Gin Rummy Plus Classic',
     badge: 'PLUS',
     description: 'Royal navy diamond cross-mesh with crisp white geometric filigree and an oval brass medallion.',
-    primaryColor: '#0E224E',
-    accentColor: '#38BDF8',
-    previewBg: 'bg-gradient-to-br from-[#0E224E] to-[#061026]',
+    primaryColor: '#1d4ed8',
+    accentColor: '#faf6ee',
+    previewBg: 'bg-gradient-to-br from-[#1d4ed8] to-[#1e3a8a]',
     unlocked: true,
   },
   maldivian_lacquer: {
@@ -53,9 +106,9 @@ export const DECK_DESIGNS: Record<DeckDesignId, DeckDesignMeta> = {
     tagline: 'Liyelaa Jehun Heritage',
     badge: 'HERITAGE',
     description: 'Authentic Maldivian lacquer art: black and crimson canvas with yellow-gold floral borders.',
-    primaryColor: '#1A0606',
-    accentColor: '#F59E0B',
-    previewBg: 'bg-gradient-to-br from-[#1A0606] via-[#450A0A] to-[#1A0606]',
+    primaryColor: '#881313',
+    accentColor: '#e5c378',
+    previewBg: 'bg-gradient-to-br from-[#881313] via-[#3b0707] to-[#170b09]',
     unlocked: true,
   },
 };

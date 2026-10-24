@@ -74,10 +74,13 @@ jobs:
           name: "Holhuashi: Digu ${{ steps.version_info.outputs.tag }}"
           body: |
             ## Holhuashi: Digu ${{ steps.version_info.outputs.tag }} Release
-            - **Visual Identity**: Complete Holhuashi Digu Emerald (`#05D59A`), Island Gold (`#E5C378`), and authentic Faruma Thaana (`ޑިގު` / `ޑ`).
-            - **Card & Match Engine**: Full 10-Card Gin Rummy rules, meld grouping, scatter cut, and intelligent AI bot players.
-            - **Live Auto-Updater**: Built-in APK version checking and one-tap direct download from GitHub Releases.
-            - **Multiplayer & Social**: Cloud profile sync, private tables, match invites, and presence tracking.
+            - **New App Icon**: "The 1,000-Point Suited Fan" featuring the Maldivian Ace of Spades, 24K gold Dhivehi ޑ, and royal lacquer cardback.
+            - **Royal Lacquer Theme**: Default lacquer felt (`#0d0605`), cinnabar vermilion (`#c84b31`), burnished gold (`#e5c378`), and 4-font hierarchy (Noto Sans Thaana, Cinzel, Plus Jakarta Sans, JetBrains Mono).
+            - **Physical Brand Vector Deck**: Stacked corner indices for dense hand fanning, double-headed mirrored court portraits, filigree Ace of Spades, and 4 physical card backs.
+            - **FastMeldParser Engine**: Sub-millisecond bitmask solver with canonical key memoization for 1,000-point runs and standard 4+3+3 melds.
+            - **3-Tier Bot AI Intelligence**: Casual, Holhuashi Regular, and Thulhaadhoo Master with near-meld holds and ruthless -100pt zero-meld penalty defense.
+            - **Lyria Stereo Audio & Tactile SFX**: Seamless lobby and table MP3 music streams with live volume controls, plus synthesized card draws, discard thuds, reorder ticks, and Gin chimes.
+            - **Streamlined HUD & Split Settings**: Centered minimalist table with dynamic 3D Gin button, exact in-game hand scale, quick In-Game Match settings, and lobby system settings.
           files: |
             android/app/build/outputs/apk/debug/app-debug.apk
           prerelease: false

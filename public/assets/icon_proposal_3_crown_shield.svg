@@ -1,0 +1,48 @@
+<svg viewBox="0 0 512 512" width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="p3-bg" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#1f0a07" />
+      <stop offset="60%" stop-color="#0c0403" />
+      <stop offset="100%" stop-color="#050101" />
+    </radialGradient>
+    <linearGradient id="p3-gold" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9a6c1e" />
+      <stop offset="25%" stop-color="#eecb77" />
+      <stop offset="50%" stop-color="#fff8db" />
+      <stop offset="75%" stop-color="#dca53b" />
+      <stop offset="100%" stop-color="#8a5a12" />
+    </linearGradient>
+    <linearGradient id="p3-cinnabar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c84b31" />
+      <stop offset="100%" stop-color="#551007" />
+    </linearGradient>
+    <filter id="p3-shieldshadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#p3-bg)" />
+
+  <!-- Shield Outer Border -->
+  <g filter="url(#p3-shieldshadow)">
+    <path d="M256 42 L414 88 C414 260 348 380 256 448 C164 380 98 260 98 88 Z" fill="#140604" stroke="url(#p3-cinnabar)" stroke-width="10" />
+    <path d="M256 58 L398 98 C398 250 338 362 256 428 C174 362 114 250 114 98 Z" fill="url(#p3-bg)" stroke="url(#p3-gold)" stroke-width="3" />
+  </g>
+
+  <!-- Sultanate Crown -->
+  <g transform="translate(256, 126)" filter="url(#p3-shieldshadow)">
+    <path d="M-64 12 L-44 -22 L-16 0 L0 -30 L16 0 L44 -22 L64 12 Z" fill="url(#p3-gold)" />
+    <circle cx="-44" cy="-24" r="4.5" fill="#ffffff" />
+    <circle cx="0" cy="-32" r="6" fill="#c84b31" stroke="#ffffff" stroke-width="1.5" />
+    <circle cx="44" cy="-24" r="4.5" fill="#ffffff" />
+  </g>
+
+  <!-- Monolithic Spade with Negative Space 'ޑ' -->
+  <g transform="translate(256, 268)" filter="url(#p3-shieldshadow)">
+    <path d="M0 -105 C-56 -30 -100 15 -100 58 C-100 95 -70 112 -34 112 C-16 112 -4 102 0 88 C4 102 16 112 34 112 C70 112 100 95 100 58 C100 15 56 -30 0 -105 Z" fill="url(#p3-gold)" />
+    <path d="M-14 82 L-28 128 L28 128 L14 82 Z" fill="url(#p3-gold)" />
+    <text x="0" y="80" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="142" fill="#0c0403">ޑ</text>
+  </g>
+
+  <text x="256" y="442" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="20" fill="url(#p3-gold)" letter-spacing="8">DIGU</text>
+</svg>

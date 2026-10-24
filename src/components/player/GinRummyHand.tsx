@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Reorder } from 'framer-motion';
 import { Card, PlayerState } from '../../core/models/types';
 import { HandAnalysis } from '../../store/useGameStore';
 import { PlayingCard, MeldColor, MeldHighlight, RANK_LABELS } from '../shared/PlayingCard';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
+import { playFanReorderTick, playGinReadyChime, playUrgentTimerHeartbeat } from '../../utils/audioEffects';
 import {
   ArrowDownToLine,
   ChevronLeft,
@@ -33,15 +34,15 @@ const MELD_COLORS: MeldColor[] = ['cyan', 'emerald', 'amber', 'purple'];
 export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   handCards,
   selectedCardId,
-  sortMode,
+  sortMode: _sortMode,
   handAnalysis,
   isActionPhase,
   onCardClick,
   onReorderHand,
-  onSortHand,
+  onSortHand: _onSortHand,
   onMoveCard,
   onDiscardCard,
-  onDiscardSelected,
+  onDiscardSelected: _onDiscardSelected,
   onSlamFinish,
   hiddenCardId,
   draggedDrawIndex,
@@ -56,25 +57,42 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   const timerRadius = 9;
   const timerCircumference = 2 * Math.PI * timerRadius;
   const timerOffset = timerCircumference - (remainingSeconds / 30) * timerCircumference;
-  const timerColor =
-    remainingSeconds > 12 ? '#05D59A' : remainingSeconds > 6 ? '#F59E0B' : '#EF4444';
+
+  // Golden chime when Gin condition is attained
+  const prevCanGinRef = useRef(false);
+  useEffect(() => {
+    if (canGin && !prevCanGinRef.current && isHumanTurn) {
+      playGinReadyChime();
+    }
+    prevCanGinRef.current = canGin;
+  }, [canGin, isHumanTurn]);
+
+  // Urgent heartbeat pulse when under 4 seconds
+  useEffect(() => {
+    if (isHumanTurn && remainingSeconds > 0 && remainingSeconds <= 3) {
+      playUrgentTimerHeartbeat();
+    }
+  }, [remainingSeconds, isHumanTurn]);
 
   const selectedIndex = selectedCardId ? handCards.findIndex(c => c.id === selectedCardId) : -1;
 
   const handleMoveLeft = () => {
     if (selectedIndex > 0 && onMoveCard) {
+      playFanReorderTick();
       onMoveCard(selectedIndex, selectedIndex - 1);
     }
   };
 
   const handleMoveRight = () => {
     if (selectedIndex >= 0 && selectedIndex < handCards.length - 1 && onMoveCard) {
+      playFanReorderTick();
       onMoveCard(selectedIndex, selectedIndex + 1);
     }
   };
 
   const handleCardClick = (cardId: string) => {
     if (isDraggingRef.current) return;
+    playFanReorderTick();
     const now = Date.now();
     // Double tap/click to instantly discard or Gin Slam during action phase
     if (isActionPhase && lastClickTimeRef.current.id === cardId && now - lastClickTimeRef.current.time < 380) {
@@ -105,57 +123,32 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none z-20">
-      {/* Floating Over-Hand HUD (Small Icons, Zero Bottom Bar Clutter) */}
-      <div className="relative z-30 flex items-center justify-center gap-2 sm:gap-3 mb-1">
-        {/* Sort by Runs Icon Button */}
-        <button
-          onClick={() => onSortHand('RUNS')}
-          className={`relative p-1 sm:p-1.5 rounded-xl transition-all shadow-md active:scale-90 cursor-pointer border ${
-            sortMode === 'RUNS' || sortMode === 'SUIT'
-              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.45)]'
-              : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-800 backdrop-blur-md'
-          }`}
-          title="Sort by Runs"
-        >
-          <div className="relative w-8 h-6 sm:w-9 sm:h-7 flex items-center justify-center pointer-events-none">
-            <div className="absolute left-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm -rotate-12 flex flex-col justify-between p-0.5">
-              <span className="text-[6px] font-black text-stone-900 leading-none">A</span>
-              <span className="text-[5px] text-stone-900 leading-none self-end">♠</span>
-            </div>
-            <div className="absolute left-2 sm:left-2.5 bottom-0.5 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-0 flex flex-col justify-between p-0.5 z-10">
-              <span className="text-[6px] font-black text-stone-900 leading-none">2</span>
-              <span className="text-[5px] text-stone-900 leading-none self-end">♠</span>
-            </div>
-            <div className="absolute right-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-12 flex flex-col justify-between p-0.5 z-20">
-              <span className="text-[6px] font-black text-stone-900 leading-none">3</span>
-              <span className="text-[5px] text-stone-900 leading-none self-end">♠</span>
-            </div>
-          </div>
-        </button>
-
-        {/* Deadwood Meter Pill (Gin Rummy Plus style: DEADWOOD 0 / 10 • ⚡ GIN READY) */}
+      {/* Floating Over-Hand HUD: Clean Deadwood Meter, Turn Countdown, and Card Shift Controls */}
+      <div className="relative z-30 flex items-center justify-center gap-2.5 sm:gap-3.5 mb-1.5">
+        
+        {/* Deadwood Meter Pill (Royal Lacquer Style) */}
         <div
-          className={`px-3 sm:px-4 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
+          className={`px-3.5 sm:px-4.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
             handAnalysis.deadwoodPoints === 0
-              ? 'bg-[#010D08]/95 border-emerald-500/80 shadow-[0_0_15px_rgba(5,213,154,0.4)]'
-              : 'bg-[#02140D]/95 border-slate-700/80'
+              ? 'bg-[#170b09]/95 border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.4)]'
+              : 'bg-[#170b09]/95 border-[#301a14]'
           }`}
           title={`Deadwood: ${handAnalysis.deadwoodPoints} points`}
         >
-          <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400 font-mono tracking-wider">
+          <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#f7f0ea]/70 font-mono tracking-wider">
             DEADWOOD
           </span>
           <span
             className={`text-xs sm:text-sm font-black font-mono px-2 py-0.5 rounded leading-none ${
               handAnalysis.deadwoodPoints === 0
-                ? 'bg-emerald-950 border border-emerald-700 text-[#05D59A] drop-shadow-[0_0_8px_#05D59A]'
-                : 'bg-slate-900 border border-slate-700 text-slate-200'
+                ? 'bg-[#301a14] border border-[#e5c378] text-[#e5c378] drop-shadow-[0_0_8px_#e5c378]'
+                : 'bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]'
             }`}
           >
             {handAnalysis.deadwoodPoints} / 10
           </span>
           {canGin && (
-            <span className="text-[9px] font-black uppercase text-[#E5C378] tracking-wider animate-pulse flex items-center gap-0.5">
+            <span className="text-[9px] font-black uppercase text-[#e5c378] bg-[#301a14] px-2 py-0.5 rounded-full border border-[#e5c378] tracking-wider animate-pulse flex items-center gap-0.5">
               <span>⚡</span>
               <span>GIN READY</span>
             </span>
@@ -167,8 +160,8 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           <div
             className={`px-2.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all border ${
               remainingSeconds <= 6
-                ? 'bg-rose-950/80 border-rose-500/80 shadow-[0_0_12px_rgba(239,68,68,0.5)] animate-pulse'
-                : 'bg-[#02140D]/95 border-slate-700/80'
+                ? 'bg-[#301a14] border-[#c84b31] shadow-[0_0_12px_rgba(200,75,49,0.7)] animate-pulse'
+                : 'bg-[#170b09]/95 border-[#301a14]'
             }`}
             title={`Your Turn: ${remainingSeconds}s remaining`}
           >
@@ -178,7 +171,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                   cx="10"
                   cy="10"
                   r={timerRadius}
-                  className="stroke-slate-800"
+                  className="stroke-[#301a14]"
                   strokeWidth="2.5"
                   fill="none"
                 />
@@ -186,7 +179,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                   cx="10"
                   cy="10"
                   r={timerRadius}
-                  stroke={timerColor}
+                  stroke={remainingSeconds <= 6 ? '#c84b31' : '#e5c378'}
                   strokeWidth="2.5"
                   fill="none"
                   strokeDasharray={timerCircumference}
@@ -197,60 +190,34 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
               </svg>
               <span
                 className={`absolute font-mono text-[8px] font-black ${
-                  remainingSeconds <= 6 ? 'text-rose-400' : 'text-slate-200'
+                  remainingSeconds <= 6 ? 'text-[#c84b31]' : 'text-[#f7f0ea]'
                 }`}
               >
                 {remainingSeconds}
               </span>
             </div>
-            <span className="text-[9px] font-black uppercase text-slate-400 font-sans-clean hidden sm:inline">
+            <span className="text-[9px] font-black uppercase text-[#f7f0ea]/70 font-sans hidden sm:inline">
               TURN
             </span>
           </div>
         )}
 
-        {/* Sort by Sets Icon Button */}
-        <button
-          onClick={() => onSortHand('SETS')}
-          className={`relative p-1 sm:p-1.5 rounded-xl transition-all shadow-md active:scale-90 cursor-pointer border ${
-            sortMode === 'SETS'
-              ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_15px_rgba(5,213,154,0.45)]'
-              : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-800 backdrop-blur-md'
-          }`}
-          title="Sort by Sets"
-        >
-          <div className="relative w-8 h-6 sm:w-9 sm:h-7 flex items-center justify-center pointer-events-none">
-            <div className="absolute left-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm -rotate-12 flex flex-col justify-between p-0.5">
-              <span className="text-[6px] font-black text-stone-900 leading-none">7</span>
-              <span className="text-[5px] text-stone-900 leading-none self-end">♠</span>
-            </div>
-            <div className="absolute left-2 sm:left-2.5 bottom-0.5 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-0 flex flex-col justify-between p-0.5 z-10">
-              <span className="text-[6px] font-black text-[#DC2626] leading-none">7</span>
-              <span className="text-[5px] text-[#DC2626] leading-none self-end">♥</span>
-            </div>
-            <div className="absolute right-0 bottom-0 w-4 sm:w-4.5 h-5 sm:h-6 bg-white rounded-[2px] border border-stone-300 shadow-sm rotate-12 flex flex-col justify-between p-0.5 z-20">
-              <span className="text-[6px] font-black text-[#DC2626] leading-none">7</span>
-              <span className="text-[5px] text-[#DC2626] leading-none self-end">♦</span>
-            </div>
-          </div>
-        </button>
-
-        {/* Selected Card Shift Nudge Controls */}
+        {/* Selected Card Shift Nudge Controls (Accessibility) */}
         {selectedCardId && selectedIndex >= 0 && (
-          <div className="flex items-center gap-1 bg-[#02140D]/90 backdrop-blur-md border border-[#05D59A]/30 rounded-full px-2 py-0.5 shadow-md">
+          <div className="flex items-center gap-1 bg-[#170b09]/95 backdrop-blur-md border border-[#e5c378]/40 rounded-full px-2 py-0.5 shadow-md">
             <button
               onClick={handleMoveLeft}
               disabled={selectedIndex === 0}
               className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
                 selectedIndex > 0
-                  ? 'bg-[#05D59A] text-slate-950 cursor-pointer hover:bg-[#00F5AE]'
-                  : 'text-neutral-600 cursor-not-allowed opacity-30'
+                  ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
+                  : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
               }`}
               title="Shift Left"
             >
               <ChevronLeft className="w-3 h-3" />
             </button>
-            <span className="text-[9px] font-mono text-[#05D59A] px-0.5 font-bold">
+            <span className="text-[9px] font-mono text-[#e5c378] px-0.5 font-bold">
               {selectedIndex + 1}/{handCards.length}
             </span>
             <button
@@ -258,25 +225,14 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
               disabled={selectedIndex === handCards.length - 1}
               className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
                 selectedIndex < handCards.length - 1
-                  ? 'bg-[#05D59A] text-slate-950 cursor-pointer hover:bg-[#00F5AE]'
-                  : 'text-neutral-600 cursor-not-allowed opacity-30'
+                  ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
+                  : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
               }`}
               title="Shift Right"
             >
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-        )}
-
-        {/* Discard Selected Button (Only shown when a card is explicitly selected during action phase and not Gin ready) */}
-        {isActionPhase && selectedCardId && !canGin && (
-          <button
-            onClick={onDiscardSelected}
-            className="flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-black text-[10px] sm:text-xs uppercase shadow-md active:scale-95 cursor-pointer"
-          >
-            <ArrowDownToLine className="w-3 h-3 text-[#05D59A]" />
-            <span>DISCARD</span>
-          </button>
         )}
       </div>
 

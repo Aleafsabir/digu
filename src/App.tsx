@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useGameStore } from './store/useGameStore';
+import { useGameStore, safeSaveSession } from './store/useGameStore';
 import { TableSurface } from './components/table/TableSurface';
 import { OrientationGuard } from './components/shared/OrientationGuard';
 import { LaunchSplashScreen } from './components/screens/LaunchSplashScreen';
@@ -23,6 +23,7 @@ import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useSocialStore } from './store/useSocialStore';
 import { useAuthStore } from './store/useAuthStore';
+import { MusicManager } from './utils/audioEffects';
 
 export default function App() {
   // Mobile Screen Timeout Prevention (Screen Wake Lock API + iOS Safari Lifecycle)
@@ -78,6 +79,33 @@ export default function App() {
     restoreActiveMatchSession();
   }, [restoreActiveMatchSession]);
 
+  // Synchronous Mobile Lifecycle State Flush (Background / Lockscreen / App Minimization)
+  useEffect(() => {
+    const handleLifecycleFlush = () => {
+      const state = useGameStore.getState();
+      if (state.currentScreen === 'TABLE' && state.gameState) {
+        safeSaveSession({
+          gameState: state.gameState,
+          handCards: state.handCards,
+          pendingRules: state.pendingRules,
+          roundHistory: state.roundHistory,
+          tablePot: state.tablePot,
+          tableBuyIn: state.tableBuyIn,
+          consecutiveMissedTurns: state.consecutiveMissedTurns,
+          turnStartedAt: state.turnStartedAt,
+          savedAt: Date.now(),
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleLifecycleFlush);
+    window.addEventListener('pagehide', handleLifecycleFlush);
+    return () => {
+      document.removeEventListener('visibilitychange', handleLifecycleFlush);
+      window.removeEventListener('pagehide', handleLifecycleFlush);
+    };
+  }, []);
+
   // Auto-clear away turn toast notification after 4.5 seconds
   useEffect(() => {
     if (awayToastMessage) {
@@ -93,6 +121,15 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [actionError, clearError]);
+
+  // Lyria Background Music synchronization across game screens
+  useEffect(() => {
+    if (currentScreen === 'TABLE') {
+      MusicManager.playTrack('table');
+    } else if (currentScreen !== 'LAUNCH') {
+      MusicManager.playTrack('lobby');
+    }
+  }, [currentScreen]);
 
   // Check for app updates on launch (debounced / 4h cooldown managed)
   useEffect(() => {

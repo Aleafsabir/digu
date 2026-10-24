@@ -1,0 +1,25 @@
+<svg viewBox="0 0 432 432" width="432" height="432" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg-felt" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#2d120d" />
+      <stop offset="60%" stop-color="#140705" />
+      <stop offset="100%" stop-color="#080202" />
+    </radialGradient>
+    <linearGradient id="bg-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8d6" />
+      <stop offset="40%" stop-color="#e5c378" />
+      <stop offset="100%" stop-color="#9a7021" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full 108dp Canvas Fill -->
+  <rect width="432" height="432" fill="url(#bg-felt)" />
+
+  <!-- Corner Flourishes in Inset Table Felt -->
+  <g opacity="0.3" stroke="url(#bg-gold)" stroke-width="1.8" fill="none">
+    <path d="M40 40 L88 40 M40 40 L40 88 M48 48 L72 48 M48 48 L48 72" />
+    <path d="M392 40 L344 40 M392 40 L392 88 M384 48 L360 48 M384 48 L384 72" />
+    <path d="M40 392 L88 392 M40 392 L40 344 M48 384 L72 384 M48 384 L48 360" />
+    <path d="M392 392 L344 392 M392 392 L392 344 M384 384 L360 384 M384 384 L384 360" />
+  </g>
+</svg>

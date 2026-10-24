@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digu (ޑިގު) - App Icon Design Proposals & Adaptive Master Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+Thaana:wght@700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ground: '#0d0605',
+            surface: '#170b09',
+            border: '#301a14',
+            cinnabar: '#c84b31',
+            vermilion: '#a82b18',
+            gold: '#e5c378',
+            brightGold: '#fcedb3',
+            deepGold: '#b48d36',
+          },
+          fontFamily: {
+            serif: ['Cinzel', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            thaana: ['"Noto Sans Thaana"', 'Faruma', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #080303;
+      color: #f7f0ea;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .mask-squircle {
+      border-radius: 22%;
+    }
+    .mask-circle {
+      border-radius: 50%;
+    }
+    .mask-rounded {
+      border-radius: 18%;
+    }
+    .mask-teardrop {
+      border-radius: 50% 50% 50% 10%;
+    }
+    .mask-none {
+      border-radius: 0;
+    }
+    .gold-foil {
+      background: linear-gradient(135deg, #fcedb3 0%, #e5c378 45%, #b48d36 85%, #d8ad50 100%);
+    }
+    .cinnabar-lacquer {
+      background: linear-gradient(145deg, #8a1d12 0%, #c84b31 50%, #4a0c06 100%);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 sm:p-8 max-w-7xl mx-auto selection:bg-cinnabar selection:text-white">
+
+  <!-- Header -->
+  <header class="border-b border-border/80 pb-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cinnabar/20 border border-cinnabar/40 text-gold text-xs font-mono font-bold uppercase tracking-wider mb-2">
+        <span>⚡ Pre-Release Milestone</span>
+        <span>•</span>
+        <span>Android & iOS App Icon System</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-black font-serif tracking-tight text-white flex items-center gap-3">
+        <span>DIGU</span>
+        <span class="font-thaana text-gold text-2xl sm:text-3xl">ޑިގު</span>
+        <span class="text-xs sm:text-sm font-sans font-semibold text-white/50 px-2 py-0.5 rounded bg-surface border border-border">v0.2.5 APK Review</span>
+      </h1>
+      <p class="text-sm text-white/60 mt-1 max-w-2xl">
+        Three distinct icon art directions grounded in authentic Maldivian lacquerwork (<span class="font-thaana text-gold">ލިޔެލާ ޖެހުން</span>), royal cinnabar red, and luxury physical playing card heraldry.
+      </p>
+    </div>
+
+    <!-- Live Status Pill -->
+    <div class="flex items-center gap-3 bg-surface p-3 rounded-2xl border border-border">
+      <div class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></div>
+      <div class="text-xs">
+        <div class="font-bold text-white">APK Status: On Hold for Icon Approval</div>
+        <div class="text-white/50 font-mono text-[11px]">Git tree clean & ready for capacitor sync</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Control Bar -->
+  <div class="bg-surface border border-border rounded-2xl p-4 mb-8 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+    <!-- Mask Selector -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-mono font-bold text-gold/80 uppercase tracking-wider mr-1">Adaptive Mask:</span>
+      <div class="inline-flex p-1 bg-ground rounded-xl border border-border" id="maskTabs">
+        <button onclick="setMask('squircle')" class="mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-cinnabar text-white shadow" data-mask="squircle">Squircle (Pixel/OneUI)</button>
+        <button onclick="setMask('circle')" class="mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white" data-mask="circle">Circle</button>
+        <button onclick="setMask('rounded')" class="mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white" data-mask="rounded">iOS / Squircle Low</button>
+        <button onclick="setMask('none')" class="mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white" data-mask="none">512px Play Store</button>
+      </div>
+    </div>
+
+    <!-- Wallpaper Toggle for Context -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-mono font-bold text-gold/80 uppercase tracking-wider mr-1">Phone Wallpaper:</span>
+      <div class="inline-flex p-1 bg-ground rounded-xl border border-border">
+        <button onclick="setWallpaper('dark')" id="wpDark" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-surface border border-border text-white">Midnight Ocean</button>
+        <button onclick="setWallpaper('sand')" id="wpSand" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white">Island Sunset</button>
+        <button onclick="setWallpaper('light')" id="wpLight" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white">Minimal Light</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE THREE DESIGN PROPOSALS -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+
+    <!-- ================= PROPOSAL 1 ================= -->
+    <div class="bg-surface rounded-3xl border-2 border-border p-6 flex flex-col justify-between relative group hover:border-gold/50 transition-all shadow-2xl">
+      <!-- Badge -->
+      <div class="flex items-center justify-between mb-4">
+        <span class="px-2.5 py-1 rounded-full bg-gold/15 border border-gold/40 text-gold text-[10px] font-mono font-bold uppercase tracking-wider">
+          Proposal 1 • Cultural Sovereign
+        </span>
+        <span class="text-xs font-bold text-white/40 font-mono">#ROYAL_CREST</span>
+      </div>
+
+      <!-- Icon Display Frame -->
+      <div class="py-6 flex flex-col items-center justify-center">
+        <div class="relative w-48 h-48 sm:w-56 sm:h-56 transition-all duration-300 drop-shadow-[0_20px_35px_rgba(0,0,0,0.8)] icon-container mask-squircle overflow-hidden border border-gold/20" id="icon1">
+          <!-- MASTER SVG 1: The Royal Lacquer Medallion -->
+          <svg viewBox="0 0 512 512" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Lacquer obsidian background radial -->
+              <radialGradient id="p1-bg" cx="50%" cy="45%" r="65%">
+                <stop offset="0%" stop-color="#24100c" />
+                <stop offset="55%" stop-color="#120605" />
+                <stop offset="100%" stop-color="#070202" />
+              </radialGradient>
+
+              <!-- Heavy Metallic Gold Inlay Gradient -->
+              <linearGradient id="p1-gold" x1="15%" y1="10%" x2="85%" y2="90%">
+                <stop offset="0%" stop-color="#fff5cf" />
+                <stop offset="25%" stop-color="#f2d385" />
+                <stop offset="50%" stop-color="#d4a342" />
+                <stop offset="75%" stop-color="#fbeeae" />
+                <stop offset="100%" stop-color="#996e1e" />
+              </linearGradient>
+
+              <!-- Cinnabar vermilion deep lacquer glow -->
+              <linearGradient id="p1-cinnabar" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#e2573a" />
+                <stop offset="50%" stop-color="#ab2c17" />
+                <stop offset="100%" stop-color="#5a0f05" />
+              </linearGradient>
+
+              <!-- Subtle drop shadows -->
+              <filter id="p1-shadow" x="-10%" y="-10%" width="130%" height="130%">
+                <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.9" />
+              </filter>
+              <filter id="p1-emboss" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#fff5cf" flood-opacity="0.6" />
+                <feDropShadow dx="0" dy="-4" stdDeviation="4" flood-color="#000000" flood-opacity="0.9" />
+              </filter>
+            </defs>
+
+            <!-- Background Ground -->
+            <rect width="512" height="512" fill="url(#p1-bg)" />
+
+            <!-- Concentric Lathe-turned Wood grooves (Thulhaadhoo Lacquerwork) -->
+            <circle cx="256" cy="256" r="236" fill="none" stroke="#e5c378" stroke-width="1.5" opacity="0.25" stroke-dasharray="4 8" />
+            <circle cx="256" cy="256" r="224" fill="none" stroke="url(#p1-cinnabar)" stroke-width="12" opacity="0.9" />
+            <circle cx="256" cy="256" r="212" fill="none" stroke="url(#p1-gold)" stroke-width="3" opacity="0.8" />
+            <circle cx="256" cy="256" r="198" fill="#140705" stroke="#301a14" stroke-width="2" />
+
+            <!-- Filigree Bead Ring (Traditional Kuni motif: 32 beads) -->
+            <g opacity="0.85">
+              <!-- Radial beads generated symmetrically -->
+              <circle cx="256" cy="68" r="5" fill="url(#p1-gold)" />
+              <circle cx="256" cy="444" r="5" fill="url(#p1-gold)" />
+              <circle cx="68" cy="256" r="5" fill="url(#p1-gold)" />
+              <circle cx="444" cy="256" r="5" fill="url(#p1-gold)" />
+              <circle cx="123" cy="123" r="4" fill="url(#p1-gold)" />
+              <circle cx="389" cy="123" r="4" fill="url(#p1-gold)" />
+              <circle cx="123" cy="389" r="4" fill="url(#p1-gold)" />
+              <circle cx="389" cy="389" r="4" fill="url(#p1-gold)" />
+              <circle cx="187" cy="84" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="325" cy="84" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="187" cy="428" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="325" cy="428" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="84" cy="187" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="84" cy="325" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="428" cy="187" r="3.5" fill="url(#p1-cinnabar)" />
+              <circle cx="428" cy="325" r="3.5" fill="url(#p1-cinnabar)" />
+            </g>
+
+            <!-- Cardinal Playing Card Suits Embossed in Gold -->
+            <!-- North: Spade -->
+            <path d="M256 100 C252 105 244 112 244 118 C244 122 247 125 251 125 C253 125 255 124 256 122 C257 124 259 125 261 125 C265 125 268 122 268 118 C268 112 260 105 256 100 Z" fill="url(#p1-gold)" />
+            <path d="M255 122 L253 128 L259 128 L257 122 Z" fill="url(#p1-gold)" />
+
+            <!-- South: Heart -->
+            <path d="M256 388 C256 388 244 399 244 406 C244 411 248 414 252 414 C255 414 256 412 256 412 C256 412 257 414 260 414 C264 414 268 411 268 406 C268 399 256 388 256 388 Z" fill="url(#p1-cinnabar)" />
+
+            <!-- West: Club -->
+            <g transform="translate(108, 256) scale(0.8) translate(-256, -256)">
+              <circle cx="256" cy="250" r="6" fill="url(#p1-gold)" />
+              <circle cx="250" cy="259" r="6" fill="url(#p1-gold)" />
+              <circle cx="262" cy="259" r="6" fill="url(#p1-gold)" />
+              <path d="M255 258 L253 268 L259 268 L257 258 Z" fill="url(#p1-gold)" />
+            </g>
+
+            <!-- East: Diamond -->
+            <path d="M404 256 L410 248 L416 256 L410 264 Z" fill="url(#p1-cinnabar)" />
+
+            <!-- Inner Medallion Plate -->
+            <circle cx="256" cy="256" r="156" fill="url(#p1-cinnabar)" filter="url(#p1-shadow)" />
+            <circle cx="256" cy="256" r="148" fill="#180705" stroke="url(#p1-gold)" stroke-width="4" />
+            <circle cx="256" cy="256" r="140" fill="url(#p1-bg)" />
+
+            <!-- MONUMENTAL DHIVEHI LETTER: ޑ (Daa for DIGU) in Sculpted Royal Gold -->
+            <g filter="url(#p1-shadow)">
+              <!-- Heavy 3D Stroke underlayer for tactile depth -->
+              <text x="256" y="324" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="208" fill="#583c0f" opacity="0.8">ޑ</text>
+              <text x="256" y="320" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="208" fill="url(#p1-gold)">ޑ</text>
+            </g>
+
+            <!-- Bottom Arc Inscription: DIGU -->
+            <text x="256" y="356" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="26" fill="url(#p1-gold)" letter-spacing="9" opacity="0.95">DIGU</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Spec & Rationale -->
+      <div class="mt-4 border-t border-border/80 pt-4 space-y-2">
+        <h3 class="font-serif font-black text-white text-base">Proposal 1: "The Royal Lacquer Crest"</h3>
+        <p class="text-xs text-white/70 leading-relaxed">
+          Inspired by Thulhaadhoo royal turned lacquer containers (<span class="font-thaana text-gold">ލިޔެލާ ކަންވާރު</span>). Features a sculpted 24K gold Dhivehi letter <strong class="text-gold font-thaana text-sm">ޑ</strong> surrounded by 32 hand-turned beads and cardinal card suits.
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-[11px] font-mono pt-2">
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Aesthetic:</span>
+            <span class="text-white/80 font-bold">Heirloom / Sovereign</span>
+          </div>
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Small-Scale Legibility:</span>
+            <span class="text-emerald-400 font-bold">10/10 (Bold Central 'ޑ')</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PROPOSAL 2 ================= -->
+    <div class="bg-surface rounded-3xl border-2 border-border p-6 flex flex-col justify-between relative group hover:border-gold/50 transition-all shadow-2xl">
+      <!-- Badge -->
+      <div class="flex items-center justify-between mb-4">
+        <span class="px-2.5 py-1 rounded-full bg-cinnabar/20 border border-cinnabar/40 text-cinnabar text-[10px] font-mono font-bold uppercase tracking-wider">
+          Proposal 2 • Gaming Heritage
+        </span>
+        <span class="text-xs font-bold text-white/40 font-mono">#SUITED_FAN</span>
+      </div>
+
+      <!-- Icon Display Frame -->
+      <div class="py-6 flex flex-col items-center justify-center">
+        <div class="relative w-48 h-48 sm:w-56 sm:h-56 transition-all duration-300 drop-shadow-[0_20px_35px_rgba(0,0,0,0.8)] icon-container mask-squircle overflow-hidden border border-gold/20" id="icon2">
+          <!-- MASTER SVG 2: The 1,000-Point Suited Fan -->
+          <svg viewBox="0 0 512 512" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="p2-felt" cx="50%" cy="40%" r="75%">
+                <stop offset="0%" stop-color="#2d120d" />
+                <stop offset="60%" stop-color="#140705" />
+                <stop offset="100%" stop-color="#080202" />
+              </radialGradient>
+
+              <linearGradient id="p2-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff8d6" />
+                <stop offset="40%" stop-color="#e5c378" />
+                <stop offset="100%" stop-color="#9a7021" />
+              </linearGradient>
+
+              <linearGradient id="p2-cardback" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7a1811" />
+                <stop offset="50%" stop-color="#3b0805" />
+                <stop offset="100%" stop-color="#140302" />
+              </linearGradient>
+
+              <filter id="p2-cardshadow" x="-20%" y="-20%" width="150%" height="150%">
+                <feDropShadow dx="-4" dy="16" stdDeviation="16" flood-color="#000000" flood-opacity="0.95" />
+              </filter>
+            </defs>
+
+            <!-- Table Felt Surface Ground -->
+            <rect width="512" height="512" fill="url(#p2-felt)" />
+
+            <!-- Corner Filigree Flourish (Casino Felt Table Inlay) -->
+            <path d="M28 28 L90 28 M28 28 L28 90 M36 36 L70 36 M36 36 L36 70" stroke="#e5c378" stroke-width="2" opacity="0.3" fill="none" />
+            <path d="M484 28 L422 28 M484 28 L484 90 M476 36 L442 36 M476 36 L476 70" stroke="#e5c378" stroke-width="2" opacity="0.3" fill="none" />
+            <path d="M28 484 L90 484 M28 484 L28 422 M36 476 L70 476 M36 476 L36 442" stroke="#e5c378" stroke-width="2" opacity="0.3" fill="none" />
+            <path d="M484 484 L422 484 M484 484 L484 422 M476 476 L442 476 M476 476 L476 442" stroke="#e5c378" stroke-width="2" opacity="0.3" fill="none" />
+
+            <!-- Dynamic Background Card (Angled -16 degrees, Royal Lacquer Back) -->
+            <g transform="translate(230, 260) rotate(-16) translate(-140, -200)" filter="url(#p2-cardshadow)">
+              <rect width="260" height="390" rx="22" fill="#ffffff" />
+              <rect x="10" y="10" width="240" height="370" rx="16" fill="url(#p2-cardback)" />
+              <rect x="16" y="16" width="228" height="358" rx="12" fill="none" stroke="url(#p2-gold)" stroke-width="2.5" />
+              <!-- Diamond lattice filigree back motif -->
+              <g stroke="#e5c378" stroke-width="1.5" opacity="0.4" fill="none">
+                <path d="M130 50 L220 195 L130 340 L40 195 Z" />
+                <circle cx="130" cy="195" r="42" stroke="url(#p2-gold)" stroke-width="3" />
+                <text x="130" y="210" text-anchor="middle" font-family="'Noto Sans Thaana', sans-serif" font-weight="900" font-size="44" fill="#e5c378">ޑ</text>
+              </g>
+            </g>
+
+            <!-- Foreground Card (Angled +8 degrees: The Gilded Maldivian Ace of Spades) -->
+            <g transform="translate(265, 275) rotate(8) translate(-140, -200)" filter="url(#p2-cardshadow)">
+              <!-- Card Body (Crisp Physical Ivory Stock with rounded bevel) -->
+              <rect width="270" height="400" rx="24" fill="#fcfbfa" />
+              <rect x="8" y="8" width="254" height="384" rx="18" fill="none" stroke="#d5cebe" stroke-width="1" />
+
+              <!-- Top Left Corner Index: Stacked A over Spade -->
+              <text x="32" y="58" font-family="'Cinzel', serif" font-weight="900" font-size="42" fill="#120605">A</text>
+              <!-- Corner Spade Pip -->
+              <path d="M32 72 C28 77 22 83 22 88 C22 92 25 94 28 94 C30 94 31 93 32 91 C33 93 34 94 36 94 C39 94 42 92 42 88 C42 83 36 77 32 72 Z" fill="#120605" />
+              <path d="M31 91 L29 97 L35 97 L33 91 Z" fill="#120605" />
+
+              <!-- Bottom Right Corner Index (Inverted) -->
+              <g transform="translate(238, 342) rotate(180)">
+                <text x="0" y="0" font-family="'Cinzel', serif" font-weight="900" font-size="42" fill="#120605">A</text>
+                <path d="M0 14 C-4 19 -10 25 -10 30 C-10 34 -7 36 -4 36 C-2 36 -1 35 0 33 C1 35 2 36 4 36 C7 36 10 34 10 30 C10 25 4 19 0 14 Z" fill="#120605" />
+                <path d="-1 33 L-3 39 L3 39 L1 33 Z" fill="#120605" />
+              </g>
+
+              <!-- CENTER FILIGREE ACE OF SPADES CREST -->
+              <g transform="translate(135, 195)">
+                <!-- Main Spade Silhouette -->
+                <path d="M0 -90 C-45 -25 -82 12 -82 48 C-82 78 -58 92 -28 92 C-14 92 -2 84 0 72 C2 84 14 92 28 92 C58 92 82 78 82 48 C82 12 45 -25 0 -90 Z" fill="#170908" />
+                <path d="-10 65 L-24 106 L24 106 L10 65 Z" fill="#170908" />
+
+                <!-- Inner Gold Filigree Acanthus Vines within Spade -->
+                <path d="M0 -70 C-32 -18 -60 12 -60 42 C-60 62 -42 74 -22 74 C-10 74 -2 68 0 58 C2 68 10 74 22 74 C42 74 60 62 60 42 C60 12 32 -18 0 -70 Z" fill="none" stroke="url(#p2-gold)" stroke-width="3" />
+                
+                <!-- Central Cinnabar Rose & Dhivehi Inscription -->
+                <circle cx="0" cy="22" r="28" fill="#a82b18" stroke="url(#p2-gold)" stroke-width="2.5" />
+                <text x="0" y="32" text-anchor="middle" font-family="'Noto Sans Thaana', sans-serif" font-weight="900" font-size="30" fill="#fff5cf">ޑ</text>
+
+                <!-- Small Brand Subtitle inside Spade Base -->
+                <text x="0" y="-12" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="12" fill="url(#p2-gold)" letter-spacing="4">MALDIVES</text>
+              </g>
+            </g>
+
+            <!-- Golden Light Glint / Particle Sparkle on top corner -->
+            <g transform="translate(370, 110)">
+              <polygon points="0,-18 4,-4 18,0 4,4 0,18 -4,4 -18,0 -4,-4" fill="url(#p2-gold)" opacity="0.9" />
+              <circle cx="0" cy="0" r="3" fill="#ffffff" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Spec & Rationale -->
+      <div class="mt-4 border-t border-border/80 pt-4 space-y-2">
+        <h3 class="font-serif font-black text-white text-base">Proposal 2: "The 1,000-Point Suited Fan"</h3>
+        <p class="text-xs text-white/70 leading-relaxed">
+          Dynamic fanning cards featuring an artisanal physical Ace of Spades and royal lacquer cardback. Unmistakable gaming appeal that tells the user immediately that this is a premier card game.
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-[11px] font-mono pt-2">
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Aesthetic:</span>
+            <span class="text-white/80 font-bold">Physical Card Craft</span>
+          </div>
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Store Clickability:</span>
+            <span class="text-emerald-400 font-bold">Highest Game Affordance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PROPOSAL 3 ================= -->
+    <div class="bg-surface rounded-3xl border-2 border-border p-6 flex flex-col justify-between relative group hover:border-gold/50 transition-all shadow-2xl">
+      <!-- Badge -->
+      <div class="flex items-center justify-between mb-4">
+        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono font-bold uppercase tracking-wider">
+          Proposal 3 • Modern Luxury Heraldry
+        </span>
+        <span class="text-xs font-bold text-white/40 font-mono">#HERALDIC_CROWN</span>
+      </div>
+
+      <!-- Icon Display Frame -->
+      <div class="py-6 flex flex-col items-center justify-center">
+        <div class="relative w-48 h-48 sm:w-56 sm:h-56 transition-all duration-300 drop-shadow-[0_20px_35px_rgba(0,0,0,0.8)] icon-container mask-squircle overflow-hidden border border-gold/20" id="icon3">
+          <!-- MASTER SVG 3: The Holhuashi Spade-Crown Hybrid -->
+          <svg viewBox="0 0 512 512" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Deep Obsidian Carbon Weave Radial -->
+              <radialGradient id="p3-bg" cx="50%" cy="38%" r="65%">
+                <stop offset="0%" stop-color="#1f0a07" />
+                <stop offset="60%" stop-color="#0c0403" />
+                <stop offset="100%" stop-color="#050101" />
+              </radialGradient>
+
+              <!-- Pure Polished Gold Bar Ingot Gradient -->
+              <linearGradient id="p3-gold" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#9a6c1e" />
+                <stop offset="25%" stop-color="#eecb77" />
+                <stop offset="50%" stop-color="#fff8db" />
+                <stop offset="75%" stop-color="#dca53b" />
+                <stop offset="100%" stop-color="#8a5a12" />
+              </linearGradient>
+
+              <linearGradient id="p3-cinnabar" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c84b31" />
+                <stop offset="100%" stop-color="#551007" />
+              </linearGradient>
+
+              <filter id="p3-shieldshadow" x="-15%" y="-15%" width="130%" height="130%">
+                <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.9" />
+              </filter>
+            </defs>
+
+            <!-- Background Ground -->
+            <rect width="512" height="512" fill="url(#p3-bg)" />
+
+            <!-- Geometric Diamond Carbon Pinstripes in Background -->
+            <g opacity="0.08" stroke="#ffffff" stroke-width="1.5">
+              <path d="M-100 256 L256 -100 L612 256 L256 612 Z" fill="none" />
+              <path d="M-50 256 L256 -50 L562 256 L256 562 Z" fill="none" />
+              <path d="M0 256 L256 0 L512 256 L256 512 Z" fill="none" />
+              <path d="M50 256 L256 50 L462 256 L256 462 Z" fill="none" />
+              <path d="M100 256 L256 100 L412 256 L256 412 Z" fill="none" />
+            </g>
+
+            <!-- Outer Shield Contour (Royal Lacquer Crest Frame) -->
+            <g filter="url(#p3-shieldshadow)">
+              <!-- Shield Outer Border -->
+              <path d="M256 42 L414 88 C414 260 348 380 256 448 C164 380 98 260 98 88 Z" fill="#140604" stroke="url(#p3-cinnabar)" stroke-width="10" />
+              <path d="M256 58 L398 98 C398 250 338 362 256 428 C174 362 114 250 114 98 Z" fill="url(#p3-bg)" stroke="url(#p3-gold)" stroke-width="3" />
+            </g>
+
+            <!-- Sultanate Crown Crest at Crest Head -->
+            <g transform="translate(256, 126)" filter="url(#p3-shieldshadow)">
+              <path d="M-64 12 L-44 -22 L-16 0 L0 -30 L16 0 L44 -22 L64 12 Z" fill="url(#p3-gold)" />
+              <circle cx="-44" cy="-24" r="4.5" fill="#ffffff" />
+              <circle cx="0" cy="-32" r="6" fill="#c84b31" stroke="#ffffff" stroke-width="1.5" />
+              <circle cx="44" cy="-24" r="4.5" fill="#ffffff" />
+            </g>
+
+            <!-- Monolithic Spade-Crown Hybrid with Negative Space Daa 'ޑ' -->
+            <g transform="translate(256, 268)" filter="url(#p3-shieldshadow)">
+              <!-- Sculpted Heavy Spade -->
+              <path d="M0 -105 C-56 -30 -100 15 -100 58 C-100 95 -70 112 -34 112 C-16 112 -4 102 0 88 C4 102 16 112 34 112 C70 112 100 95 100 58 C100 15 56 -30 0 -105 Z" fill="url(#p3-gold)" />
+              <!-- Spade Stem -->
+              <path d="M-14 82 L-28 128 L28 128 L14 82 Z" fill="url(#p3-gold)" />
+
+              <!-- Negative Space Carve-Out: Dhivehi letter 'ޑ' in Cinnabar Red -->
+              <text x="0" y="80" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="142" fill="#0c0403">ޑ</text>
+            </g>
+
+            <!-- Bottom Typographic Banner: DIGU RUMMY -->
+            <text x="256" y="442" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="20" fill="url(#p3-gold)" letter-spacing="8">DIGU</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Spec & Rationale -->
+      <div class="mt-4 border-t border-border/80 pt-4 space-y-2">
+        <h3 class="font-serif font-black text-white text-base">Proposal 3: "The Holhuashi Crown Shield"</h3>
+        <p class="text-xs text-white/70 leading-relaxed">
+          Modern luxury esports aesthetic. Combines a three-point Maldivian sultanate crown with an ingot gold Ace of Spades featuring a negative-space carved Dhivehi <span class="font-thaana text-gold">ޑ</span>.
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-[11px] font-mono pt-2">
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Aesthetic:</span>
+            <span class="text-white/80 font-bold">Modern Luxury Heraldry</span>
+          </div>
+          <div class="bg-ground p-2 rounded-xl border border-border">
+            <span class="text-gold block">Contrast & Power:</span>
+            <span class="text-emerald-400 font-bold">10/10 Peak Contrast</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEXT SIMULATION: ANDROID PHONE HOME SCREEN -->
+  <section class="bg-surface rounded-3xl border border-border p-6 sm:p-8 mb-12 shadow-2xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-border/80">
+      <div>
+        <h2 class="text-xl font-bold font-serif text-white flex items-center gap-2">
+          <span>Real-World Device Simulator</span>
+          <span class="text-xs font-mono font-normal text-gold px-2 py-0.5 rounded bg-ground border border-border">Android 15 / Pixel 9 Pro</span>
+        </h2>
+        <p class="text-xs text-white/60 mt-0.5">Test how the proposals stand out next to standard Android apps on high-density home screen grids.</p>
+      </div>
+
+      <!-- Active Comparison Picker -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-mono font-bold text-gold">Compare Proposal in Phone:</span>
+        <select id="phoneIconSelect" onchange="updatePhonePreview(this.value)" class="bg-ground border border-border rounded-xl px-3 py-1.5 text-xs font-bold text-white outline-none cursor-pointer">
+          <option value="1">Proposal 1 (Royal Lacquer Crest)</option>
+          <option value="2">Proposal 2 (1,000-Point Suited Fan)</option>
+          <option value="3">Proposal 3 (Holhuashi Crown Shield)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Phone Screen Shell -->
+    <div id="phoneScreen" class="max-w-md mx-auto rounded-[42px] border-[6px] border-[#22100d] p-5 shadow-[0_25px_60px_rgba(0,0,0,0.9)] transition-colors duration-500 relative overflow-hidden bg-gradient-to-b from-[#0b101d] via-[#10192e] to-[#080d17]">
+      <!-- Status Bar -->
+      <div class="flex items-center justify-between text-[11px] font-mono font-bold text-white/80 px-4 mb-8">
+        <span>12:45</span>
+        <div class="flex items-center gap-1.5">
+          <span>5G</span>
+          <span>●</span>
+          <span>98%</span>
+        </div>
+      </div>
+
+      <!-- Search Widget Mockup -->
+      <div class="bg-white/10 backdrop-blur-md rounded-full px-4 py-2.5 flex items-center justify-between mb-10 border border-white/10 text-white/60 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-white font-bold">G</span>
+          <span>Search games & apps...</span>
+        </div>
+        <span>🎙️</span>
+      </div>
+
+      <!-- App Grid (4 Columns) -->
+      <div class="grid grid-cols-4 gap-y-7 gap-x-3 mb-10 text-center">
+        <!-- Neighbor 1: WhatsApp -->
+        <div class="flex flex-col items-center gap-1.5">
+          <div class="w-14 h-14 rounded-2xl bg-[#25D366] flex items-center justify-center text-white shadow-lg text-2xl">
+            💬
+          </div>
+          <span class="text-[11px] text-white/80 font-medium truncate w-full">WhatsApp</span>
+        </div>
+
+        <!-- HERO APP: DIGU (Interactive Slot) -->
+        <div class="flex flex-col items-center gap-1.5 relative group cursor-pointer" onclick="cyclePhoneProposal()">
+          <div class="relative w-14 h-14 phone-icon-target mask-squircle overflow-hidden border border-gold/40 shadow-[0_8px_20px_rgba(200,75,49,0.5)] transition-transform group-hover:scale-105" id="phoneIconHolder">
+            <!-- Injected via JS -->
+          </div>
+          <!-- Notification Dot -->
+          <span class="absolute -top-1 -right-0.5 w-4 h-4 rounded-full bg-cinnabar text-white font-mono text-[9px] font-black flex items-center justify-center border-2 border-[#10192e]">
+            1
+          </span>
+          <span class="text-[11px] text-gold font-bold tracking-tight flex items-center gap-1">
+            <span>Digu</span>
+            <span class="font-thaana text-[10px]">ޑިގު</span>
+          </span>
+        </div>
+
+        <!-- Neighbor 3: Spotify -->
+        <div class="flex flex-col items-center gap-1.5">
+          <div class="w-14 h-14 rounded-2xl bg-[#1DB954] flex items-center justify-center text-black shadow-lg text-2xl font-bold">
+            🎧
+          </div>
+          <span class="text-[11px] text-white/80 font-medium truncate w-full">Spotify</span>
+        </div>
+
+        <!-- Neighbor 4: Chrome -->
+        <div class="flex flex-col items-center gap-1.5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 via-amber-400 to-emerald-500 flex items-center justify-center text-white shadow-lg text-xl font-bold">
+            🌐
+          </div>
+          <span class="text-[11px] text-white/80 font-medium truncate w-full">Chrome</span>
+        </div>
+      </div>
+
+      <!-- Dock Bar -->
+      <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-3 flex items-center justify-around border border-white/10">
+        <div class="w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center text-white text-xl">📞</div>
+        <div class="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white text-xl">✉️</div>
+        <div class="w-12 h-12 rounded-2xl bg-purple-600 flex items-center justify-center text-white text-xl">📷</div>
+        <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-white text-xl">⚙️</div>
+      </div>
+
+      <!-- Gesture Bar -->
+      <div class="w-32 h-1 bg-white/40 rounded-full mx-auto mt-5"></div>
+    </div>
+  </section>
+
+  <!-- MICRO-SCALE SCANNABILITY TEST -->
+  <section class="bg-surface rounded-3xl border border-border p-6 sm:p-8 mb-12 shadow-2xl">
+    <div class="mb-6 pb-4 border-b border-border/80">
+      <h2 class="text-xl font-bold font-serif text-white">Micro-Scale Scannability & Hierarchy Audit</h2>
+      <p class="text-xs text-white/60 mt-0.5">High-end icons must survive extreme downscaling without becoming a muddy blur. Tested from 192px down to 24px.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- P1 Micro Scaler -->
+      <div class="bg-ground p-4 rounded-2xl border border-border flex flex-col items-center">
+        <span class="text-xs font-mono font-bold text-gold mb-3">Proposal 1 (Royal Crest)</span>
+        <div class="flex items-end justify-center gap-4 py-2">
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-16 h-16 mask-squircle overflow-hidden micro-p1 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">64px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-12 h-12 mask-squircle overflow-hidden micro-p1 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">48px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-8 h-8 mask-squircle overflow-hidden micro-p1 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">32px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-6 h-6 mask-squircle overflow-hidden micro-p1 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">24px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P2 Micro Scaler -->
+      <div class="bg-ground p-4 rounded-2xl border border-border flex flex-col items-center">
+        <span class="text-xs font-mono font-bold text-cinnabar mb-3">Proposal 2 (Suited Fan)</span>
+        <div class="flex items-end justify-center gap-4 py-2">
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-16 h-16 mask-squircle overflow-hidden micro-p2 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">64px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-12 h-12 mask-squircle overflow-hidden micro-p2 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">48px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-8 h-8 mask-squircle overflow-hidden micro-p2 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">32px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-6 h-6 mask-squircle overflow-hidden micro-p2 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">24px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P3 Micro Scaler -->
+      <div class="bg-ground p-4 rounded-2xl border border-border flex flex-col items-center">
+        <span class="text-xs font-mono font-bold text-emerald-400 mb-3">Proposal 3 (Crown Shield)</span>
+        <div class="flex items-end justify-center gap-4 py-2">
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-16 h-16 mask-squircle overflow-hidden micro-p3 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">64px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-12 h-12 mask-squircle overflow-hidden micro-p3 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">48px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-8 h-8 mask-squircle overflow-hidden micro-p3 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">32px</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div class="w-6 h-6 mask-squircle overflow-hidden micro-p3 border border-gold/30"></div>
+            <span class="text-[9px] font-mono text-white/50">24px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNICAL ANDROID ADAPTIVE SPECIFICATION -->
+  <section class="bg-surface rounded-3xl border border-border p-6 sm:p-8 mb-12 shadow-2xl">
+    <div class="mb-6 pb-4 border-b border-border/80">
+      <h2 class="text-xl font-bold font-serif text-white">Android Adaptive Layer Pipeline (108dp System)</h2>
+      <p class="text-xs text-white/60 mt-0.5">How your chosen icon is exported into the production Android project without clipping or resolution loss.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+      <div class="bg-ground p-4 rounded-2xl border border-border space-y-2">
+        <div class="font-bold text-gold flex items-center gap-2">
+          <span>1. Vector Foreground</span>
+          <span class="font-mono text-[10px] text-white/50">(72dp safe circle)</span>
+        </div>
+        <p class="text-white/70 leading-relaxed">
+          The primary artwork (the Dhivehi <span class="font-thaana text-gold">ޑ</span>, spade crest, cards) sits strictly inside the 72dp center safe zone so no OEM squircle or circular mask clips any contour.
+        </p>
+      </div>
+
+      <div class="bg-ground p-4 rounded-2xl border border-border space-y-2">
+        <div class="font-bold text-gold flex items-center gap-2">
+          <span>2. Deep Lacquer Background</span>
+          <span class="font-mono text-[10px] text-white/50">(108dp canvas)</span>
+        </div>
+        <p class="text-white/70 leading-relaxed">
+          The 108dp background fills all edges with royal lacquer ground (<code class="text-cinnabar">#0d0605</code>) and radial warmth, supporting smooth parallax effects during Android launcher animations.
+        </p>
+      </div>
+
+      <div class="bg-ground p-4 rounded-2xl border border-border space-y-2">
+        <div class="font-bold text-gold flex items-center gap-2">
+          <span>3. Multi-Density Mipmap Export</span>
+          <span class="font-mono text-[10px] text-white/50">(hdpi to xxxhdpi)</span>
+        </div>
+        <p class="text-white/70 leading-relaxed">
+          Exports crisp PNGs for mdpi (48px), hdpi (72px), xhdpi (96px), xxhdpi (144px), xxxhdpi (192px), plus 512px Play Store master, replacing default Capacitor placeholders.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Selection Call-to-Action -->
+  <footer class="bg-gradient-to-r from-ground via-surface to-ground border-2 border-gold/40 rounded-3xl p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+    <h3 class="text-xl sm:text-2xl font-serif font-black text-white">Which Icon Proposal Do You Prefer?</h3>
+    <p class="text-sm text-white/70 max-w-xl mx-auto">
+      Select your preferred option below. Upon your explicit confirmation, I will compile the production Android adaptive mipmap drawables, update the Android manifest, and proceed to build and push the release APK.
+    </p>
+
+    <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+      <button onclick="selectProposal(1)" class="px-5 py-3 rounded-2xl bg-[#c84b31] hover:bg-[#a82b18] text-white font-black text-xs uppercase tracking-wider shadow-lg transition active:scale-95 cursor-pointer border border-gold/40 flex items-center gap-2">
+        <span>Option 1: Royal Lacquer Crest</span>
+        <span class="text-gold font-thaana text-sm">ޑ</span>
+      </button>
+      <button onclick="selectProposal(2)" class="px-5 py-3 rounded-2xl bg-surface hover:bg-border text-white font-black text-xs uppercase tracking-wider shadow-lg transition active:scale-95 cursor-pointer border border-border flex items-center gap-2">
+        <span>Option 2: Suited Fan</span>
+        <span>🎴</span>
+      </button>
+      <button onclick="selectProposal(3)" class="px-5 py-3 rounded-2xl bg-surface hover:bg-border text-white font-black text-xs uppercase tracking-wider shadow-lg transition active:scale-95 cursor-pointer border border-border flex items-center gap-2">
+        <span>Option 3: Holhuashi Crown Shield</span>
+        <span>👑</span>
+      </button>
+    </div>
+
+    <div id="selectionFeedback" class="hidden text-xs font-mono font-bold text-gold pt-2 animate-fade-in"></div>
+  </footer>
+
+  <!-- SCRIPT FOR INTERACTION -->
+  <script>
+    let currentProposal = 1;
+
+    // Synchronize Micro-views and Phone view on load
+    window.addEventListener('DOMContentLoaded', () => {
+      syncMicroPreviews();
+      updatePhonePreview('1');
+    });
+
+    function setMask(maskType) {
+      const containers = document.querySelectorAll('.icon-container, .phone-icon-target, .micro-p1, .micro-p2, .micro-p3');
+      const maskClass = 'mask-' + maskType;
+
+      containers.forEach(el => {
+        el.classList.remove('mask-squircle', 'mask-circle', 'mask-rounded', 'mask-teardrop', 'mask-none');
+        el.classList.add(maskClass);
+      });
+
+      // Update button active state
+      document.querySelectorAll('#maskTabs .mask-btn').forEach(btn => {
+        if (btn.dataset.mask === maskType) {
+          btn.className = 'mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-cinnabar text-white shadow';
+        } else {
+          btn.className = 'mask-btn px-3 py-1.5 rounded-lg text-xs font-bold transition text-white/60 hover:text-white';
+        }
+      });
+    }
+
+    function setWallpaper(type) {
+      const phone = document.getElementById('phoneScreen');
+      if (type === 'dark') {
+        phone.className = phone.className.replace(/from-\S+ via-\S+ to-\S+/g, 'from-[#0b101d] via-[#10192e] to-[#080d17]');
+      } else if (type === 'sand') {
+        phone.className = phone.className.replace(/from-\S+ via-\S+ to-\S+/g, 'from-[#3a1410] via-[#5c241c] to-[#1a0806]');
+      } else if (type === 'light') {
+        phone.className = phone.className.replace(/from-\S+ via-\S+ to-\S+/g, 'from-[#e0e7ff] via-[#cbd5e1] to-[#94a3b8]');
+      }
+    }
+
+    function updatePhonePreview(proposalId) {
+      currentProposal = parseInt(proposalId);
+      const target = document.getElementById('phoneIconHolder');
+      const source = document.getElementById('icon' + proposalId);
+      if (target && source) {
+        target.innerHTML = source.innerHTML;
+      }
+      document.getElementById('phoneIconSelect').value = proposalId;
+    }
+
+    function cyclePhoneProposal() {
+      currentProposal = (currentProposal % 3) + 1;
+      updatePhonePreview(currentProposal.toString());
+    }
+
+    function syncMicroPreviews() {
+      const s1 = document.getElementById('icon1')?.innerHTML || '';
+      const s2 = document.getElementById('icon2')?.innerHTML || '';
+      const s3 = document.getElementById('icon3')?.innerHTML || '';
+
+      document.querySelectorAll('.micro-p1').forEach(el => el.innerHTML = s1);
+      document.querySelectorAll('.micro-p2').forEach(el => el.innerHTML = s2);
+      document.querySelectorAll('.micro-p3').forEach(el => el.innerHTML = s3);
+    }
+
+    function selectProposal(id) {
+      const feedback = document.getElementById('selectionFeedback');
+      feedback.classList.remove('hidden');
+      const names = [
+        'Proposal 1: Royal Lacquer Crest (Artisanal Dhivehi Seal)',
+        'Proposal 2: The 1,000-Point Suited Fan (Physical Card Fanning)',
+        'Proposal 3: Holhuashi Crown Shield (Modern Luxury Heraldry)'
+      ];
+      feedback.innerHTML = `✓ You highlighted <strong>${names[id - 1]}</strong>! Reply in chat to confirm or request any adjustments.`;
+      updatePhonePreview(id.toString());
+    }
+  </script>
+</body>
+</html>

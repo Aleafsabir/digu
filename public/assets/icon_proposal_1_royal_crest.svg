@@ -1,0 +1,86 @@
+<svg viewBox="0 0 512 512" width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="p1-bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#24100c" />
+      <stop offset="55%" stop-color="#120605" />
+      <stop offset="100%" stop-color="#070202" />
+    </radialGradient>
+    <linearGradient id="p1-gold" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#fff5cf" />
+      <stop offset="25%" stop-color="#f2d385" />
+      <stop offset="50%" stop-color="#d4a342" />
+      <stop offset="75%" stop-color="#fbeeae" />
+      <stop offset="100%" stop-color="#996e1e" />
+    </linearGradient>
+    <linearGradient id="p1-cinnabar" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2573a" />
+      <stop offset="50%" stop-color="#ab2c17" />
+      <stop offset="100%" stop-color="#5a0f05" />
+    </linearGradient>
+    <filter id="p1-shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <!-- Background Ground -->
+  <rect width="512" height="512" rx="112" fill="url(#p1-bg)" />
+
+  <!-- Concentric Lathe-turned Wood grooves (Thulhaadhoo Lacquerwork) -->
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#e5c378" stroke-width="1.5" opacity="0.25" stroke-dasharray="4 8" />
+  <circle cx="256" cy="256" r="224" fill="none" stroke="url(#p1-cinnabar)" stroke-width="12" opacity="0.9" />
+  <circle cx="256" cy="256" r="212" fill="none" stroke="url(#p1-gold)" stroke-width="3" opacity="0.8" />
+  <circle cx="256" cy="256" r="198" fill="#140705" stroke="#301a14" stroke-width="2" />
+
+  <!-- Filigree Bead Ring (Traditional Kuni motif) -->
+  <g opacity="0.85">
+    <circle cx="256" cy="68" r="5" fill="url(#p1-gold)" />
+    <circle cx="256" cy="444" r="5" fill="url(#p1-gold)" />
+    <circle cx="68" cy="256" r="5" fill="url(#p1-gold)" />
+    <circle cx="444" cy="256" r="5" fill="url(#p1-gold)" />
+    <circle cx="123" cy="123" r="4" fill="url(#p1-gold)" />
+    <circle cx="389" cy="123" r="4" fill="url(#p1-gold)" />
+    <circle cx="123" cy="389" r="4" fill="url(#p1-gold)" />
+    <circle cx="389" cy="389" r="4" fill="url(#p1-gold)" />
+    <circle cx="187" cy="84" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="325" cy="84" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="187" cy="428" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="325" cy="428" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="84" cy="187" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="84" cy="325" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="428" cy="187" r="3.5" fill="url(#p1-cinnabar)" />
+    <circle cx="428" cy="325" r="3.5" fill="url(#p1-cinnabar)" />
+  </g>
+
+  <!-- Cardinal Playing Card Suits Embossed in Gold -->
+  <!-- North: Spade -->
+  <path d="M256 100 C252 105 244 112 244 118 C244 122 247 125 251 125 C253 125 255 124 256 122 C257 124 259 125 261 125 C265 125 268 122 268 118 C268 112 260 105 256 100 Z" fill="url(#p1-gold)" />
+  <path d="M255 122 L253 128 L259 128 L257 122 Z" fill="url(#p1-gold)" />
+
+  <!-- South: Heart -->
+  <path d="M256 388 C256 388 244 399 244 406 C244 411 248 414 252 414 C255 414 256 412 256 412 C256 412 257 414 260 414 C264 414 268 411 268 406 C268 399 256 388 256 388 Z" fill="url(#p1-cinnabar)" />
+
+  <!-- West: Club -->
+  <g transform="translate(108, 256) scale(0.8) translate(-256, -256)">
+    <circle cx="256" cy="250" r="6" fill="url(#p1-gold)" />
+    <circle cx="250" cy="259" r="6" fill="url(#p1-gold)" />
+    <circle cx="262" cy="259" r="6" fill="url(#p1-gold)" />
+    <path d="M255 258 L253 268 L259 268 L257 258 Z" fill="url(#p1-gold)" />
+  </g>
+
+  <!-- East: Diamond -->
+  <path d="M404 256 L410 248 L416 256 L410 264 Z" fill="url(#p1-cinnabar)" />
+
+  <!-- Inner Medallion Plate -->
+  <circle cx="256" cy="256" r="156" fill="url(#p1-cinnabar)" filter="url(#p1-shadow)" />
+  <circle cx="256" cy="256" r="148" fill="#180705" stroke="url(#p1-gold)" stroke-width="4" />
+  <circle cx="256" cy="256" r="140" fill="url(#p1-bg)" />
+
+  <!-- MONUMENTAL DHIVEHI LETTER: ޑ (Daa for DIGU) -->
+  <g filter="url(#p1-shadow)">
+    <text x="256" y="324" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="208" fill="#583c0f" opacity="0.8">ޑ</text>
+    <text x="256" y="320" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="208" fill="url(#p1-gold)">ޑ</text>
+  </g>
+
+  <!-- Bottom Brand Inscription -->
+  <text x="256" y="356" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="26" fill="url(#p1-gold)" letter-spacing="9" opacity="0.95">DIGU</text>
+</svg>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+Thaana:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 512px; height: 512px; overflow: hidden; background: transparent; }
+    svg { width: 512px; height: 512px; display: block; }
+  </style>
+</head>
+<body>
+  <div id="icon-target"></div>
+  <script>
+    fetch('/assets/icon_proposal_2_master_512.svg')
+      .then(res => res.text())
+      .then(svgText => {
+        document.getElementById('icon-target').innerHTML = svgText;
+      });
+  </script>
+</body>
+</html>

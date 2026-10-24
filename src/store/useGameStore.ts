@@ -7,6 +7,7 @@ import {
   DeckService,
   RummyValidator,
   TeamHandOptimizer,
+  FastMeldParser,
   RoundResolver,
   Suit,
   AppScreen,
@@ -142,47 +143,22 @@ const DEFAULT_RULES: TableRules = {
 };
 
 function analyzeHand(cards: Card[]): HandAnalysis {
-  // Check 1000-point run on any 10-card subset or full hand
-  let isThousandRunReady = false;
-  if (cards.length === 10) {
-    isThousandRunReady = RummyValidator.checkThousandPointRun(cards);
-  } else if (cards.length === 11) {
-    // Check if dropping any single card gives a 1000-point run
-    for (let i = 0; i < cards.length; i++) {
-      const sub = cards.filter((_, idx) => idx !== i);
-      if (RummyValidator.checkThousandPointRun(sub)) {
-        isThousandRunReady = true;
-        break;
-      }
-    }
-  }
+  const result = FastMeldParser.analyzeHandFast(cards);
 
-  // Run solver optimizer to find best meld partition
-  const optimization = TeamHandOptimizer.optimizeMergedHand(cards);
-
-  const melds: HandMeldGroup[] = optimization.melds.map((meld, idx) => {
-    const isSet = RummyValidator.isValidSet(meld);
-    return {
-      id: `meld-${idx}`,
-      type: isSet ? 'SET' : 'RUN',
-      cards: meld,
-      points: RummyValidator.sumPoints(meld),
-    };
-  });
-
-  // Find all cards in hand that, if discarded, yield a 100% legal Gin (0 deadwood)
-  const validGinFinishCardIds = TeamHandOptimizer.getValidGinFinishCardIds(cards);
-
-  // Check Gin condition: either 11-card hand has a valid finish card, or 10-card hand has 4+3+3 melds
-  const isGinReady = validGinFinishCardIds.length > 0 || (cards.length === 10 && RummyValidator.validateGin(optimization.melds));
+  const melds: HandMeldGroup[] = result.melds.map((meld, idx) => ({
+    id: `meld-${idx}`,
+    type: meld.type,
+    cards: meld.cards,
+    points: meld.points,
+  }));
 
   return {
     melds,
-    deadwood: optimization.deadwood,
-    deadwoodPoints: optimization.debtScore,
-    isGinReady,
-    isThousandRunReady,
-    validGinFinishCardIds,
+    deadwood: result.unmeldedCards,
+    deadwoodPoints: result.deadwoodPoints,
+    isGinReady: result.isGinReady,
+    isThousandRunReady: result.isThousandRunReady,
+    validGinFinishCardIds: result.validGinFinishCardIds,
   };
 }
 
@@ -313,14 +289,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     tablePot: 4000,
     tableBuyIn: 1000,
     visualTheme: (() => {
-      if (typeof localStorage === 'undefined') return 'tournoi';
+      if (typeof localStorage === 'undefined') return 'royal_lacquer';
       const saved = localStorage.getItem('thaasbai_visual_theme');
-      // Enforce the unified Digu Emerald visual language across the whole game
-      if (!saved || saved === 'sultan' || saved === 'holhuashi' || saved === 'risograph' || saved === 'nocturne' || saved === 'swiss') {
-        localStorage.setItem('thaasbai_visual_theme', 'tournoi');
-        return 'tournoi';
+      if (!saved) {
+        localStorage.setItem('thaasbai_visual_theme', 'royal_lacquer');
+        return 'royal_lacquer';
       }
-      return (saved as VisualTheme) || 'tournoi';
+      return (saved as VisualTheme) || 'royal_lacquer';
     })(),
 
     setVisualTheme: (theme: VisualTheme) => {
@@ -582,6 +557,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     drawFromStock: (targetIndex?: number) => {
       const { gameState, handCards } = get();
 
+      if (handCards.length >= 11) {
+        return;
+      }
+
       if (gameState.activePlayerIndex !== 0) {
         set({ actionError: 'Please wait for your turn.' });
         return;
@@ -632,6 +611,10 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
     drawFromDiscard: (targetIndex?: number) => {
       const { gameState, handCards } = get();
+
+      if (handCards.length >= 11) {
+        return;
+      }
 
       if (gameState.activePlayerIndex !== 0) {
         set({ actionError: 'Please wait for your turn.' });

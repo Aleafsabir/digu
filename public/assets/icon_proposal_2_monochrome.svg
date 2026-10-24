@@ -1,0 +1,17 @@
+<svg viewBox="0 0 432 432" width="432" height="432" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(216, 222) scale(0.68) translate(-256, -260)" fill="#ffffff" stroke="#ffffff">
+    <!-- Back Card Outline -->
+    <rect x="90" y="60" width="270" height="400" rx="22" transform="rotate(-16 225 265)" fill="none" stroke-width="12" />
+    <!-- Front Card Body -->
+    <g transform="translate(270, 275) rotate(8) translate(-140, -205)">
+      <rect width="275" height="405" rx="24" fill="#000000" stroke="#ffffff" stroke-width="12" />
+      <text x="32" y="60" font-family="'Cinzel', Georgia, serif" font-weight="900" font-size="44" fill="#ffffff" stroke="none">A</text>
+      <!-- Center Spade -->
+      <g transform="translate(137, 200)" fill="#ffffff" stroke="none">
+        <path d="M0 -92 C-46 -26 -84 12 -84 50 C-84 80 -60 94 -30 94 C-15 94 -2 86 0 74 C2 86 15 94 30 94 C60 94 84 80 84 50 C84 12 46 -26 0 -92 Z" />
+        <path d="M-11 68 L-25 108 L25 108 L11 68 Z" />
+        <text x="0" y="34" text-anchor="middle" font-family="'Noto Sans Thaana', 'Faruma', sans-serif" font-weight="900" font-size="32" fill="#000000">ޑ</text>
+      </g>
+    </g>
+  </g>
+</svg>

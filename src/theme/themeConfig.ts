@@ -1,4 +1,4 @@
-export type VisualTheme = 'tournoi' | 'sultan' | 'holhuashi' | 'risograph' | 'nocturne' | 'swiss';
+export type VisualTheme = 'royal_lacquer' | 'tournoi' | 'sultan' | 'holhuashi' | 'risograph' | 'nocturne' | 'swiss';
 
 export interface MeldHighlightMeta {
   ringClass: string;
@@ -54,6 +54,60 @@ export interface ThemeConfig {
 }
 
 export const THEME_CONFIGS: Record<VisualTheme, ThemeConfig> = {
+  // ROYAL LACQUER: LIYELAA JEHUN, BAA ATOLL SULTANATE FELT
+  royal_lacquer: {
+    id: 'royal_lacquer',
+    name: 'Royal Lacquer',
+    subtitle: 'Liyelaa Jehun • ލިޔެލާ ޖެހުން',
+    badge: 'DEFAULT',
+
+    tableWrapperClass:
+      'bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-4 border-[#301a14] shadow-[0_25px_70px_rgba(0,0,0,0.98)]',
+    tableBevelClass:
+      'bg-[#170b09] border border-[#301a14] shadow-inner',
+    tableFeltClass:
+      'bg-radial from-[#26120e] via-[#160a08] to-[#0d0605] shadow-[inset_0_0_140px_rgba(0,0,0,0.95)] border border-[#301a14]',
+    feltTextureClass: 'texture-velvet',
+    watermarkText: 'ޑ',
+    watermarkClass:
+      'font-thaana text-[#e5c378]/15 text-7xl sm:text-9xl font-black drop-shadow-[0_0_25px_rgba(200,75,49,0.3)]',
+
+    fontHeader: 'font-serif-luxury',
+    fontBody: 'font-sans',
+    fontCard: 'font-card-index',
+    fontNumber: 'font-mono',
+
+    placardClass:
+      'bg-[#170b09]/95 border border-[#301a14] text-[#f7f0ea] shadow-xl',
+    placardHeaderBorder: 'border-b border-[#301a14]',
+
+    hudPillClass: 'bg-[#170b09]/95 border border-[#301a14] text-[#f7f0ea] shadow-md',
+    menuButtonClass:
+      'bg-[#170b09] hover:bg-[#301a14] border border-[#301a14] text-[#e5c378] shadow-md',
+    actionButtonClass:
+      'bg-gradient-to-r from-[#c84b31] to-[#e5c378] text-[#0d0605] font-black shadow-lg',
+
+    cardFaceClass:
+      'bg-[#FCFCFA] border-2 border-[#301a14]/30 shadow-2xl text-[#0d0605]',
+    cardBackClass:
+      'bg-gradient-to-br from-[#881313] via-[#3b0707] to-[#170b09] border-2 border-[#e5c378] shadow-2xl',
+    cardBackInnerClass:
+      'border border-[#e5c378]/40 bg-[#170b09]',
+    cardBackLabelClass: 'text-[#e5c378] font-thaana font-black tracking-widest text-xl',
+    redSuitClass: 'text-[#b91c1c]',
+    blackSuitClass: 'text-[#0f172a]',
+    selectedCardRing: 'ring-4 ring-[#e5c378] shadow-[0_0_25px_rgba(229,195,120,0.6)]',
+
+    getMeldHighlight: (_colorKey: string, _meldIndex: number, _meldType?: 'SET' | 'RUN') => {
+      return {
+        ringClass: 'ring-3 ring-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.5)]',
+        badgeClass: 'bg-[#301a14] text-[#e5c378] border border-[#e5c378]',
+        containerClass: 'bg-[#e5c378]/10 rounded-2xl',
+        pipClass: 'bg-[#e5c378]',
+      };
+    },
+  },
+
   // MASTER: DIGU EMERALD, STADIUM FELT & ISLAND GOLD
   tournoi: {
     id: 'tournoi',

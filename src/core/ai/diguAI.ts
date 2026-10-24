@@ -1,6 +1,8 @@
 import { Card, TableRules } from '../models/types';
 import { RummyValidator } from '../engine/validator';
-import { TeamHandOptimizer } from '../engine/solver';
+import { FastMeldParser } from '../engine/fastMeldParser';
+
+export type AITier = 'casual' | 'regular' | 'master';
 
 export interface AIDecisionResult {
   action: 'DISCARD' | 'GIN_SLAM';
@@ -17,14 +19,14 @@ export class DiguAI {
   static shouldDrawDiscard(
     botHand: Card[],
     topDiscard: Card | null,
-    _rules?: TableRules
+    _rules?: TableRules,
+    tier: AITier = 'master'
   ): boolean {
     if (!topDiscard) return false;
 
-    // 1. Strict Ace Rule Defense:
-    // If the top discard is an Ace (rank 1), NEVER draw it unless the bot already has
-    // at least two Aces (to form a 3-Ace or 4-Ace set).
-    // Because unmelded Aces carry a devastating -15 debt penalty!
+    // 1. Strict Ace Rule Defense (Regular & Master):
+    // Never draw an Ace unless holding at least 2 Aces to form a set,
+    // because unmelded Aces carry a devastating -15 debt penalty!
     if (topDiscard.rank === 1) {
       const existingAces = botHand.filter(c => c.rank === 1).length;
       if (existingAces < 2) {
@@ -33,7 +35,6 @@ export class DiguAI {
     }
 
     // 2. 1,000-Point Run Check:
-    // If topDiscard directly extends a suited sequence toward a 10-card suited run
     const sameSuitCards = botHand.filter(c => c.suit === topDiscard.suit);
     if (sameSuitCards.length >= 7) {
       const candidateRun = [...sameSuitCards, topDiscard];
@@ -42,33 +43,54 @@ export class DiguAI {
       }
     }
 
-    // 3. Hand Deadwood Optimization Comparison:
-    const currentOpt = TeamHandOptimizer.optimizeMergedHand(botHand);
-    const currentDebt = currentOpt.debtScore;
-    const currentMeldPoints = currentOpt.melds.reduce((sum, m) => sum + RummyValidator.sumPoints(m), 0);
+    // Casual Tier: Only draws if it immediately completes a 3-card meld
+    if (tier === 'casual') {
+      const testHand = [...botHand, topDiscard];
+      const baseResult = FastMeldParser.analyzeHandFast(botHand);
+      const testResult = FastMeldParser.analyzeHandFast(testHand);
+      return testResult.melds.length > baseResult.melds.length;
+    }
 
-    // Hand with top discard added (11 cards)
+    // Regular & Master Tier:
+    const currentAnalysis = FastMeldParser.analyzeHandFast(botHand);
+    const currentDebt = currentAnalysis.deadwoodPoints;
+
     const testHand = [...botHand, topDiscard];
-
-    // Find the best 10-card subset from the 11 cards if we took the discard
     let bestDebtWithDiscard = Infinity;
-    let bestMeldPointsWithDiscard = 0;
+    let formsNewMeld = false;
 
     for (let i = 0; i < testHand.length; i++) {
       const subset10 = testHand.filter((_, idx) => idx !== i);
-      const opt = TeamHandOptimizer.optimizeMergedHand(subset10);
-      if (opt.debtScore < bestDebtWithDiscard) {
-        bestDebtWithDiscard = opt.debtScore;
-        bestMeldPointsWithDiscard = opt.melds.reduce((sum, m) => sum + RummyValidator.sumPoints(m), 0);
+      const res = FastMeldParser.analyzeHandFast(subset10);
+      if (res.deadwoodPoints < bestDebtWithDiscard) {
+        bestDebtWithDiscard = res.deadwoodPoints;
+        if (res.melds.length > currentAnalysis.melds.length) {
+          formsNewMeld = true;
+        }
       }
     }
 
-    // Bot wants the discard if it strictly improves debt or increases melds by >= 10 points
+    // If taking discard directly reduces deadwood or creates a new meld
     if (bestDebtWithDiscard < currentDebt) {
       return true;
     }
-    if (bestDebtWithDiscard === currentDebt && bestMeldPointsWithDiscard > currentMeldPoints) {
+    if (formsNewMeld && bestDebtWithDiscard <= currentDebt) {
       return true;
+    }
+
+    // Master Tier: Also check for strong near-meld building (pairs / 2-card consecutive runs)
+    if (tier === 'master') {
+      const matchingRank = botHand.filter(c => c.rank === topDiscard.rank).length;
+      if (matchingRank === 2) return true; // Forms a 3-card set
+
+      if (topDiscard.rank !== 1) {
+        const hasAdjacentRunCard = botHand.some(
+          c => c.suit === topDiscard.suit && c.rank !== 1 && Math.abs(c.rank - topDiscard.rank) === 1
+        );
+        if (hasAdjacentRunCard && bestDebtWithDiscard <= currentDebt + 4) {
+          return true;
+        }
+      }
     }
 
     return false;
@@ -79,7 +101,11 @@ export class DiguAI {
    * From an 11-card hand, determine which card to discard,
    * and check if the bot can declare GIN SLAM!
    */
-  static chooseBestAction(botHand11: Card[]): AIDecisionResult {
+  static chooseBestAction(
+    botHand11: Card[],
+    tier: AITier = 'master',
+    downstreamPickups: Card[] = []
+  ): AIDecisionResult {
     if (botHand11.length !== 11) {
       throw new Error(`AI requires an 11-card hand to evaluate discard, received ${botHand11.length}`);
     }
@@ -97,13 +123,13 @@ export class DiguAI {
       }
     }
 
-    // 2. Check for Standard Gin (exactly 4+3+3 with 0 deadwood points):
+    // 2. Check for Standard Gin (0 deadwood):
     for (let i = 0; i < botHand11.length; i++) {
       const finishCandidate = botHand11[i];
       const subset10 = botHand11.filter((_, idx) => idx !== i);
-      const opt = TeamHandOptimizer.optimizeMergedHand(subset10);
+      const res = FastMeldParser.analyzeHandFast(subset10);
 
-      if (opt.debtScore === 0 && RummyValidator.validateGin(opt.melds)) {
+      if (res.deadwoodPoints === 0 && RummyValidator.validateGin(res.melds.map(m => m.cards))) {
         return {
           action: 'GIN_SLAM',
           cardId: finishCandidate.id,
@@ -112,38 +138,55 @@ export class DiguAI {
       }
     }
 
-    // 3. General Discard Evaluation:
-    // Test all 11 candidate cards and score the remaining 10 cards.
-    // Lower score is better!
-    let bestCardId = botHand11[botHand11.length - 1].id;
-    let minEvaluationScore = Infinity;
+    // 3. Discard Evaluation based on Tier:
+    const candidateScores: { card: Card; score: number }[] = [];
 
     for (let i = 0; i < botHand11.length; i++) {
       const candidateToDiscard = botHand11[i];
       const remaining10 = botHand11.filter((_, idx) => idx !== i);
-      const opt = TeamHandOptimizer.optimizeMergedHand(remaining10);
+      const res = FastMeldParser.analyzeHandFast(remaining10);
 
-      let evaluationScore = opt.debtScore;
+      let evaluationScore = res.deadwoodPoints;
 
-      // Penalty logic: If candidate card is an isolated Ace, discarding it eliminates the -15 debt!
+      // Unmelded Ace Danger: If candidate is an isolated Ace, discarding it eliminates the -15 debt penalty!
       if (candidateToDiscard.rank === 1) {
-        evaluationScore -= 5; // Preference to discard dangerous unmelded Ace
+        evaluationScore -= 12;
       }
 
       // Reward higher meld points
-      const meldPoints = opt.melds.reduce((sum, m) => sum + RummyValidator.sumPoints(m), 0);
-      evaluationScore -= meldPoints * 0.1;
+      const meldPoints = res.melds.reduce((sum, m) => sum + m.points, 0);
+      evaluationScore -= meldPoints * 0.15;
 
-      if (evaluationScore < minEvaluationScore) {
-        minEvaluationScore = evaluationScore;
-        bestCardId = candidateToDiscard.id;
+      // Master Tier: Downstream Feeder Defense (Avoid feeding downstream opponent!)
+      if (tier === 'master' && downstreamPickups.length > 0) {
+        const feedsDownstreamRank = downstreamPickups.some(c => c.rank === candidateToDiscard.rank);
+        const feedsDownstreamSuit = downstreamPickups.some(
+          c => c.suit === candidateToDiscard.suit && Math.abs(c.rank - candidateToDiscard.rank) <= 1
+        );
+        if (feedsDownstreamRank || feedsDownstreamSuit) {
+          evaluationScore += 25; // Heavily disincentivize discarding cards that feed downstream!
+        }
       }
+
+      candidateScores.push({ card: candidateToDiscard, score: evaluationScore });
+    }
+
+    candidateScores.sort((a, b) => a.score - b.score);
+
+    // Casual Tier: 25% chance to pick a random non-melded card to simulate human sub-optimal play
+    if (tier === 'casual' && Math.random() < 0.25 && candidateScores.length > 2) {
+      const randomIdx = 1 + Math.floor(Math.random() * (candidateScores.length - 1));
+      return {
+        action: 'DISCARD',
+        cardId: candidateScores[randomIdx].card.id,
+        reason: 'Casual play variance',
+      };
     }
 
     return {
       action: 'DISCARD',
-      cardId: bestCardId,
-      reason: 'Optimized minimum deadwood debt',
+      cardId: candidateScores[0].card.id,
+      reason: tier === 'master' ? 'Master tactical discard' : 'Optimized minimum deadwood debt',
     };
   }
 }

@@ -6,6 +6,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { AVATAR_PRESETS } from '../../types/auth';
 import { useGameStore } from '../../store/useGameStore';
 import { useSocialStore } from '../../store/useSocialStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 
 interface ModeSelectionScreenProps {
   onSelectMode: (mode: TableRules['mode']) => void;
@@ -57,6 +58,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
   const { profile, setProfileModalOpen, setAuthModalOpen } = useAuthStore();
   const { activeGame, setActiveGame } = useGameStore();
   const { friends, pendingRequests, setFriendsModalOpen } = useSocialStore();
+  const { aiTier, setAiTier } = useSettingsStore();
   const hasOnlineFriends = friends.some(f => f.presenceStatus !== 'OFFLINE');
   const [showDhihaehInfo, setShowDhihaehInfo] = useState(false);
   const [selectedModeInfo, setSelectedModeInfo] = useState<{
@@ -294,9 +296,37 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
         {/* Content depending on Active Game */}
         {activeGame === 'DIGU' ? (
-          <div className="w-full max-w-6xl mx-auto">
+          <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
+            {/* Bot Difficulty Tier Selector */}
+            <div className="flex items-center justify-center gap-1.5 mb-2.5 shrink-0 px-2">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-[#E5C378]/70 mr-1 flex items-center gap-1 font-mono">
+                <span>🤖 AI BOT:</span>
+              </span>
+              {(
+                [
+                  { id: 'casual', label: 'Casual', desc: 'Friendly Practice' },
+                  { id: 'regular', label: 'Regular', desc: 'Holhuashi Regular' },
+                  { id: 'master', label: 'Master', desc: 'Thulhaadhoo Master (Brutal -100pt Penalty Defense)' },
+                ] as const
+              ).map(tier => (
+                <button
+                  key={tier.id}
+                  onClick={() => setAiTier(tier.id)}
+                  className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                    aiTier === tier.id
+                      ? 'bg-[#c84b31] text-white border-[#e5c378]/60 shadow-[0_0_12px_rgba(200,75,49,0.5)] scale-105'
+                      : 'bg-[#170b09]/80 text-[#e5c378]/60 border-[#301a14] hover:bg-[#301a14]/60'
+                  }`}
+                  title={tier.desc}
+                >
+                  <span>{tier.label}</span>
+                  {aiTier === tier.id && <span className="text-[9px] text-[#e5c378]">●</span>}
+                </button>
+              ))}
+            </div>
+
             {/* Digu Mode Cards Row (Clean, Icon-Driven, Single-Row in Landscape) */}
-            <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-2 sm:gap-4 overflow-y-auto max-h-[72vh] sm:max-h-none py-1">
+            <div className="grid grid-cols-2 landscape:grid-cols-4 md:grid-cols-4 gap-2 sm:gap-4 overflow-y-auto max-h-[72vh] sm:max-h-none py-1 w-full">
               {diguModes.map((mode, index) => {
                 return (
                   <motion.div

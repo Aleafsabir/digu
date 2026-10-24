@@ -1,7 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Faruma';
+  src: local('Faruma'), url('/fonts/Faruma.woff2') format('woff2'), url('/fonts/Faruma.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MV Waheed';
+  src: local('MV Waheed'), local('MV_Waheed'), url('/fonts/MVWaheed.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
 @theme {
+  --color-ground: #0d0605;
+  --color-surface: #170b09;
+  --color-control: #301a14;
+  --color-felt: #160a08;
+  --color-inlay: #f7f0ea;
+  --color-cinnabar: #c84b31;
+  --color-royal-gold: #e5c378;
+
   --color-teak-rim: #2C1B10;
   --color-lagoon-mat: #0F3838;
   --color-brass-gold: #D4AF37;
@@ -24,10 +46,31 @@
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
+  --ground: #0d0605;
+  --surface: #170b09;
+  --control: #301a14;
+  --felt: #160a08;
+  --inlay: #f7f0ea;
+  --cinnabar: #c84b31;
+  --royal-gold: #e5c378;
   --sat: env(safe-area-inset-top, 0px);
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
+}
+
+.font-serif-luxury {
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.font-card-index {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .font-craft {
@@ -51,7 +94,7 @@
 }
 
 .font-thaana {
-  font-family: 'Faruma', 'MV Faseyha', 'MV Boli', 'Noto Sans Thaana', sans-serif;
+  font-family: 'Faruma', 'MV Waheed', 'Noto Sans Thaana', sans-serif;
 }
 
 /* Tactile Surface Textures */

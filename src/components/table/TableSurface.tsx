@@ -7,16 +7,24 @@ import { StockDiscardArea } from './StockDiscardArea';
 import { GinRummyHand } from '../player/GinRummyHand';
 import { RoundScoreModal } from '../shared/RoundScoreModal';
 import { MatchScoreHistoryModal } from '../shared/MatchScoreHistoryModal';
+import { InGameSettingsModal } from '../shared/InGameSettingsModal';
 import { CardFlightOverlay } from '../shared/CardFlightOverlay';
 import { useAnimationStore } from '../../store/useAnimationStore';
-import { Trophy, Target, Menu, LogOut, RotateCcw, HelpCircle, X, MessageSquare, Smile, Maximize2, Minimize2 } from 'lucide-react';
+import { Trophy, Menu, MessageSquare, Smile, Maximize2, Minimize2 } from 'lucide-react';
 import { THEME_CONFIGS } from '../../theme/themeConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
 import { RulesModal } from '../shared/RulesModal';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
-import { playCardFlickSound, playGinSlamImpactSound, primeAudioContext } from '../../utils/audioEffects';
+import {
+  playCardFlickSound,
+  playGinSlamImpactSound,
+  playCardDrawSound,
+  playDiscardPickupSound,
+  playCardDiscardThud,
+  primeAudioContext,
+} from '../../utils/audioEffects';
 import { Card } from '../../core/models/types';
 import { TeamHandOptimizer } from '../../core/engine/solver';
 
@@ -77,6 +85,7 @@ export const TableSurface: React.FC = () => {
     const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
     return isIOS && !isStandalone;
   });
+  const isDrawingRef = useRef(false);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -238,35 +247,43 @@ export const TableSurface: React.FC = () => {
       useGameStore.setState({ actionError: "Please wait for your opponent's turn." });
       return;
     }
-    if (gameState.phase !== 'AWAIT_DRAW' || gameState.stockPile.length === 0) return;
-    const topCard = gameState.stockPile[gameState.stockPile.length - 1];
+    if (gameState.phase !== 'AWAIT_DRAW' || gameState.stockPile.length === 0 || handCards.length >= 11) return;
+    if (isDrawingRef.current) return;
+    isDrawingRef.current = true;
 
-    const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;
-    let toPoint: { x: number; y: number } | undefined;
-    let toAnchor = 'anchor-seat-0-draw-slot';
+    try {
+      const topCard = gameState.stockPile[gameState.stockPile.length - 1];
 
-    if (dropPoint && targetIndex < handCards.length) {
-      const targetCard = handCards[targetIndex];
-      const targetEl = document.getElementById(`card-anchor-${targetCard.id}`);
-      if (targetEl) {
-        const rect = targetEl.getBoundingClientRect();
-        toPoint = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;
+      let toPoint: { x: number; y: number } | undefined;
+      let toAnchor = 'anchor-seat-0-draw-slot';
+
+      if (dropPoint && targetIndex < handCards.length) {
+        const targetCard = handCards[targetIndex];
+        const targetEl = document.getElementById(`card-anchor-${targetCard.id}`);
+        if (targetEl) {
+          const rect = targetEl.getBoundingClientRect();
+          toPoint = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
       }
+
+      setDragHoverPoint(null);
+      playCardDrawSound();
+
+      await startFlight({
+        card: topCard,
+        fromPoint: dropPoint,
+        fromAnchor: dropPoint ? undefined : 'anchor-stock-pile',
+        toPoint,
+        toAnchor,
+        isFaceDown: true,
+        flipToFaceUp: true,
+        durationMs: dropPoint ? 280 : 540,
+      });
+      drawFromStock(targetIndex);
+    } finally {
+      isDrawingRef.current = false;
     }
-
-    setDragHoverPoint(null);
-
-    await startFlight({
-      card: topCard,
-      fromPoint: dropPoint,
-      fromAnchor: dropPoint ? undefined : 'anchor-stock-pile',
-      toPoint,
-      toAnchor,
-      isFaceDown: true,
-      flipToFaceUp: true,
-      durationMs: dropPoint ? 280 : 540,
-    });
-    drawFromStock(targetIndex);
   };
 
   const handleHumanDrawDiscard = async (dropPoint?: { x: number; y: number }) => {
@@ -274,35 +291,43 @@ export const TableSurface: React.FC = () => {
       useGameStore.setState({ actionError: "Please wait for your opponent's turn." });
       return;
     }
-    if (gameState.phase !== 'AWAIT_DRAW' || gameState.discardPile.length === 0) return;
-    const topCard = gameState.discardPile[gameState.discardPile.length - 1];
+    if (gameState.phase !== 'AWAIT_DRAW' || gameState.discardPile.length === 0 || handCards.length >= 11) return;
+    if (isDrawingRef.current) return;
+    isDrawingRef.current = true;
 
-    const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;
-    let toPoint: { x: number; y: number } | undefined;
-    let toAnchor = 'anchor-seat-0-draw-slot';
+    try {
+      const topCard = gameState.discardPile[gameState.discardPile.length - 1];
 
-    if (dropPoint && targetIndex < handCards.length) {
-      const targetCard = handCards[targetIndex];
-      const targetEl = document.getElementById(`card-anchor-${targetCard.id}`);
-      if (targetEl) {
-        const rect = targetEl.getBoundingClientRect();
-        toPoint = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      const targetIndex = dropPoint ? calculateHandTargetIndex(dropPoint.x) : handCards.length;
+      let toPoint: { x: number; y: number } | undefined;
+      let toAnchor = 'anchor-seat-0-draw-slot';
+
+      if (dropPoint && targetIndex < handCards.length) {
+        const targetCard = handCards[targetIndex];
+        const targetEl = document.getElementById(`card-anchor-${targetCard.id}`);
+        if (targetEl) {
+          const rect = targetEl.getBoundingClientRect();
+          toPoint = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
       }
+
+      setDragHoverPoint(null);
+      playDiscardPickupSound();
+
+      await startFlight({
+        card: topCard,
+        fromPoint: dropPoint,
+        fromAnchor: dropPoint ? undefined : 'anchor-discard-pile',
+        toPoint,
+        toAnchor,
+        isFaceDown: false,
+        flipToFaceUp: false,
+        durationMs: dropPoint ? 260 : 500,
+      });
+      drawFromDiscard(targetIndex);
+    } finally {
+      isDrawingRef.current = false;
     }
-
-    setDragHoverPoint(null);
-
-    await startFlight({
-      card: topCard,
-      fromPoint: dropPoint,
-      fromAnchor: dropPoint ? undefined : 'anchor-discard-pile',
-      toPoint,
-      toAnchor,
-      isFaceDown: false,
-      flipToFaceUp: false,
-      durationMs: dropPoint ? 260 : 500,
-    });
-    drawFromDiscard(targetIndex);
   };
 
   const handleInitiateReshuffle = async () => {
@@ -356,6 +381,7 @@ export const TableSurface: React.FC = () => {
       durationMs: fromPoint ? 440 : 480,
     });
     discardCard(cardId);
+    playCardDiscardThud();
     setPendingDiscardCardId(null);
   };
 
@@ -772,88 +798,15 @@ export const TableSurface: React.FC = () => {
         />
       )}
 
-      {/* 5. In-Game Match Pause Menu */}
-      {showInGameMenu && (
-        <div
-          onClick={() => setShowInGameMenu(false)}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-none overflow-y-auto font-sans-clean"
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs sm:max-w-sm w-full my-auto animate-in zoom-in-95 text-center"
-          >
-            {/* Header */}
-            <div className="flex justify-between items-center border-b border-emerald-950 pb-2.5 mb-3.5">
-              <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Menu className="w-4 h-4 text-emerald-400" /> Match Menu
-              </span>
-              <button
-                onClick={() => setShowInGameMenu(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
-                aria-label="Close match menu"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Primary Action */}
-            <button
-              onClick={() => setShowInGameMenu(false)}
-              className="btn-emerald-glow w-full py-2.5 rounded-xl uppercase tracking-wider text-xs font-black cursor-pointer shadow-md mb-2.5"
-            >
-              Resume
-            </button>
-
-            {/* 4-Action Secondary Grid */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                onClick={() => {
-                  setShowInGameMenu(false);
-                  setShowRules(true);
-                }}
-                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
-              >
-                <HelpCircle className="w-4 h-4 text-slate-300 shrink-0" />
-                <span>Rules</span>
-              </button>
-              <button
-                onClick={() => {
-                  setShowInGameMenu(false);
-                  setShowScoreHistory(true);
-                }}
-                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
-              >
-                <Target className="w-4 h-4 text-slate-300 shrink-0" />
-                <span>Scorecard</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm('Restart this match from the beginning?')) {
-                    resetMatch();
-                    setShowInGameMenu(false);
-                  }
-                }}
-                className="py-2.5 px-3 rounded-xl bg-[#010D08] hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
-              >
-                <RotateCcw className="w-4 h-4 text-slate-300 shrink-0" />
-                <span>Restart</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm('Exit match and return to the main lobby?')) {
-                    exitToLobby();
-                    setShowInGameMenu(false);
-                  }
-                }}
-                className="py-2.5 px-3 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 text-rose-200 border border-rose-800/60 font-bold flex items-center justify-center gap-2 transition cursor-pointer text-xs"
-              >
-                <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>Exit</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. In-Game Match Settings HUD Modal */}
+      <InGameSettingsModal
+        isOpen={showInGameMenu}
+        onClose={() => setShowInGameMenu(false)}
+        onOpenRules={() => setShowRules(true)}
+        onOpenScorecard={() => setShowScoreHistory(true)}
+        onRestartMatch={resetMatch}
+        onExitMatch={exitToLobby}
+      />
 
       {/* 6. In-Game Rules Cheat Sheet Modal (Graphic Formulas, Zero Paragraphs) */}
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />

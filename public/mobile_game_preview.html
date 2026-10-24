@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Holhuashi — Landscape Mobile Game Simulator &amp; Color Variations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thaana:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* THEME SYSTEM TOKENS */
+    :root {
+      --bg-ground: #040d09;
+      --bg-surface: #0a1913;
+      --bg-raised: #11261e;
+      --bg-control: #183529;
+      --rule: #183328;
+      --table-felt: #061811;
+      --text-ink: #eef2ef;
+      --text-secondary: #b4c2ba;
+      --text-muted: #84968c;
+      --accent-gold: #e5c378;
+      --data-emerald: #2cc990;
+      --data-primary: #2cc990;
+      --danger-coral: #e05a47;
+      --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+      --font-thaana: "Noto Sans Thaana", "Inter", sans-serif;
+    }
+
+    body.theme-lacquer {
+      --bg-ground: #0d0605;
+      --bg-surface: #170b09;
+      --bg-raised: #22120e;
+      --bg-control: #301a14;
+      --rule: #2a1510;
+      --table-felt: #160a08;
+      --text-ink: #f7f0ea;
+      --text-secondary: #cbbab2;
+      --text-muted: #8e7a72;
+      --accent-gold: #e5c378;
+      --data-emerald: #c84b31;
+      --data-primary: #c84b31;
+      --danger-coral: #e05a47;
+    }
+
+    body.theme-ocean {
+      --bg-ground: #03080e;
+      --bg-surface: #07131e;
+      --bg-raised: #0d1e2e;
+      --bg-control: #152c42;
+      --rule: #142738;
+      --table-felt: #05101a;
+      --text-ink: #eef4f8;
+      --text-secondary: #a8bccb;
+      --text-muted: #6b8294;
+      --accent-gold: #e5c378;
+      --data-emerald: #38bdf8;
+      --data-primary: #38bdf8;
+      --danger-coral: #f43f5e;
+    }
+
+    body.theme-timber {
+      --bg-ground: #0a0908;
+      --bg-surface: #151310;
+      --bg-raised: #201c17;
+      --bg-control: #2d2720;
+      --rule: #27211a;
+      --table-felt: #12100d;
+      --text-ink: #f5f0e6;
+      --text-secondary: #c7bcab;
+      --text-muted: #8a7f70;
+      --accent-gold: #d4a359;
+      --data-emerald: #c4823f;
+      --data-primary: #c4823f;
+      --danger-coral: #d9534f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+      color: var(--text-ink);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .thaana {
+      font-family: var(--font-thaana);
+      direction: rtl;
+      display: inline-block;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* DESKTOP SIMULATOR SHELL */
+    .desktop-wrapper {
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #060908;
+      padding: 16px;
+      position: relative;
+    }
+
+    .simulator-topbar {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .simulator-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .simulator-badge {
+      background: var(--bg-control);
+      color: var(--accent-gold);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .theme-pills {
+      display: inline-flex;
+      background: #111a15;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 3px;
+    }
+
+    .pill-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #92a39a;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-btn:hover {
+      background: #1a2921;
+      color: #ffffff;
+    }
+
+    .pill-btn.active {
+      background: #23382d;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* PHONE DEVICE FRAME */
+    .phone-bezel {
+      width: 890px;
+      height: 420px;
+      background: #141716;
+      border-radius: 44px;
+      padding: 14px;
+      outline: 4px solid #262c29;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 32px;
+      overflow: hidden;
+      background: var(--bg-ground);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Island / Camera Cutout in Landscape (Left Edge) */
+    .landscape-island {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 72px;
+      background: #000000;
+      border-radius: 12px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* Thumb Reach Zone Overlays (Toggleable) */
+    .thumb-zone-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      display: none;
+    }
+
+    .thumb-zone-overlay.active {
+      display: block;
+    }
+
+    .thumb-zone-left {
+      position: absolute;
+      bottom: -60px;
+      left: -60px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 2px dashed rgba(44, 201, 144, 0.7);
+      background: rgba(44, 201, 144, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--data-emerald);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 20px 0 0 30px;
+    }
+
+    .thumb-zone-right {
+      position: absolute;
+      bottom: -60px;
+      right: -60px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 2px dashed rgba(229, 195, 120, 0.7);
+      background: rgba(229, 195, 120, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-gold);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 20px 30px 0 0;
+    }
+
+    /* MOBILE GAME CONTAINER (True 100% viewport on mobile hardware) */
+    .game-viewport {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg-ground);
+      padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* SCREEN 1: MOBILE IN-GAME TABLE */
+    .table-screen {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 40px 1fr 108px;
+      position: relative;
+      background: var(--table-felt);
+    }
+
+    /* Top HUD: Partnership & Turn Tracker */
+    .table-top-hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 34px 0 34px;
+      background: var(--bg-ground);
+      border-bottom: 1px solid var(--rule);
+      z-index: 10;
+    }
+
+    .team-score-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .team-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: var(--bg-control);
+      color: var(--text-ink);
+    }
+
+    .turn-clock {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-gold);
+    }
+
+    .turn-clock-ring {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+    }
+
+    /* Center Felt: Opponents & Stock/Discard Piles */
+    .table-center-felt {
+      display: grid;
+      grid-template-columns: 100px 1fr 100px;
+      align-items: center;
+      padding: 4px 20px;
+      position: relative;
+    }
+
+    .opponent-seat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .seat-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--bg-control);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-ink);
+      position: relative;
+    }
+
+    .seat-tag {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .card-count-badge {
+      font-size: 10px;
+      background: var(--bg-raised);
+      color: var(--accent-gold);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Center Card Deck / Discard Area */
+    .piles-center-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .deck-card-slot {
+      width: 58px;
+      height: 82px;
+      border-radius: 6px;
+      background: var(--bg-control);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      border: 1px solid var(--rule);
+      transition: transform 0.1s ease;
+    }
+
+    .deck-card-slot:active {
+      transform: scale(0.96);
+    }
+
+    .deck-back-pattern {
+      width: 50px;
+      height: 74px;
+      border-radius: 4px;
+      background: var(--bg-raised);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-gold);
+      font-family: var(--font-thaana);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .discard-card-face {
+      width: 58px;
+      height: 82px;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #141413;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      border: 1px solid var(--rule);
+    }
+
+    .discard-card-face.red {
+      color: #b83227;
+    }
+
+    .discard-rank {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .discard-suit {
+      font-size: 13px;
+    }
+
+    .pile-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* Bottom HUD: Player Hand + Two-Thumb Controls */
+    .table-player-tray {
+      background: var(--bg-ground);
+      border-top: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 104px 1fr 104px;
+      align-items: center;
+      padding: 6px 18px 8px 18px;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    /* Left Thumb Actions */
+    .thumb-action-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .touch-btn-secondary {
+      appearance: none;
+      border: none;
+      background: var(--bg-control);
+      color: var(--text-ink);
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 0 6px;
+    }
+
+    .touch-btn-secondary:active {
+      background: var(--bg-raised);
+    }
+
+    /* Center: Player Hand Cards Fan */
+    .hand-cards-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 94px;
+      padding-bottom: 2px;
+      overflow: visible;
+    }
+
+    .mobile-card {
+      width: 48px;
+      height: 74px;
+      background: #fbfbf9;
+      color: #141413;
+      border-radius: 6px;
+      margin-left: -16px;
+      padding: 4px 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      border: 1px solid var(--rule);
+      transition: transform 0.12s ease, background 0.12s ease;
+      position: relative;
+    }
+
+    .mobile-card:first-child {
+      margin-left: 0;
+    }
+
+    .mobile-card.red {
+      color: #b83227;
+    }
+
+    .mobile-card.selected {
+      transform: translateY(-16px);
+      background: #ffffff;
+      outline: 2px solid var(--accent-gold);
+    }
+
+    .mobile-card-corner {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .mobile-meld-tag {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--data-primary);
+      color: #040d09;
+      white-space: nowrap;
+    }
+
+    /* Right Thumb Actions */
+    .thumb-action-right {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .touch-btn-primary {
+      appearance: none;
+      border: none;
+      background: var(--text-ink);
+      color: var(--bg-ground);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      height: 44px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 8px;
+      line-height: 1.2;
+    }
+
+    .touch-btn-primary:active {
+      opacity: 0.9;
+    }
+
+    .touch-btn-primary.knock {
+      background: var(--accent-gold);
+      color: #040d09;
+    }
+
+    /* SCREEN 2: MOBILE LOBBY */
+    .lobby-screen {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 44px 1fr 52px;
+      background: var(--bg-ground);
+    }
+
+    .lobby-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .lobby-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lobby-brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .lobby-balance-strip {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .lobby-modes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+      padding: 16px 24px;
+      align-items: stretch;
+    }
+
+    .lobby-mode-card {
+      background: var(--bg-surface);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .lobby-mode-card.selected {
+      background: var(--bg-control);
+      outline: 2px solid var(--accent-gold);
+    }
+
+    .mode-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .mode-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-ink);
+    }
+
+    .mode-card-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .mode-card-meta {
+      font-size: 11px;
+      color: var(--accent-gold);
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .lobby-bottom-bar {
+      border-top: 1px solid var(--rule);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    /* SCREEN 3: MOBILE GIN ROUND SCORE OVERLAY */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 580px;
+      background: var(--bg-surface);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 8px;
+    }
+
+    .modal-sheet-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .score-breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* MOBILE NATIVE MEDIA QUERY (When opened on phone directly) */
+    @media (max-width: 900px) {
+      .desktop-wrapper {
+        padding: 0;
+        background: var(--bg-ground);
+      }
+      .simulator-topbar {
+        display: none;
+      }
+      .phone-bezel {
+        width: 100vw;
+        height: 100dvh;
+        border-radius: 0;
+        padding: 0;
+        outline: none;
+        background: transparent;
+      }
+      .phone-screen {
+        border-radius: 0;
+      }
+      .landscape-island {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="">
+  <div class="desktop-wrapper">
+    <!-- Desktop Simulator Controls -->
+    <header class="simulator-topbar">
+      <div class="simulator-title-group">
+        <span class="simulator-badge">Mobile Game Mode</span>
+        <span style="font-weight:600; font-size:14px;">Holhuashi Landscape Phone Simulator</span>
+      </div>
+
+      <!-- Quick Screen Switcher -->
+      <div class="theme-pills">
+        <button class="pill-btn active" id="btn-scr-table" onclick="switchScreen('table')">1. In-Game Table</button>
+        <button class="pill-btn" id="btn-scr-lobby" onclick="switchScreen('lobby')">2. Mobile Lobby</button>
+        <button class="pill-btn" id="btn-scr-modal" onclick="switchScreen('modal')">3. Score Sheet</button>
+      </div>
+
+      <!-- Palette Switcher -->
+      <div class="theme-pills">
+        <button class="pill-btn active" id="btn-th-lagoon" onclick="applyTheme('lagoon')">
+          <span class="pill-dot" style="background:#2cc990;"></span>
+          <span>Lagoon</span>
+        </button>
+        <button class="pill-btn" id="btn-th-lacquer" onclick="applyTheme('lacquer')">
+          <span class="pill-dot" style="background:#c84b31;"></span>
+          <span>Royal Lacquer</span>
+        </button>
+        <button class="pill-btn" id="btn-th-ocean" onclick="applyTheme('ocean')">
+          <span class="pill-dot" style="background:#38bdf8;"></span>
+          <span>Ocean Trench</span>
+        </button>
+        <button class="pill-btn" id="btn-th-timber" onclick="applyTheme('timber')">
+          <span class="pill-dot" style="background:#d4a359;"></span>
+          <span>Timber</span>
+        </button>
+      </div>
+
+      <button class="pill-btn" id="btn-toggle-thumbs" onclick="toggleThumbZones()" style="background:#1b2520; color:var(--accent-gold);">
+        Show Thumb Reach Zones
+      </button>
+    </header>
+
+    <!-- Landscape Phone Frame (iPhone 15 Pro 890x420 Mockup) -->
+    <div class="phone-bezel">
+      <div class="landscape-island"></div>
+
+      <div class="phone-screen">
+        <!-- Interactive Thumb Reach Zones Overlay -->
+        <div class="thumb-zone-overlay" id="thumb-overlay">
+          <div class="thumb-zone-left">Left Thumb Zone</div>
+          <div class="thumb-zone-right">Right Thumb Zone</div>
+        </div>
+
+        <main class="game-viewport">
+          <!-- SCREEN 1: ACTIVE GAME TABLE -->
+          <div id="screen-table" class="table-screen">
+            <!-- Top HUD -->
+            <div class="table-top-hud">
+              <div class="team-score-chip">
+                <span class="team-badge">TEAM A</span>
+                <span>Us: <b class="num" style="color:var(--accent-gold);">140 Ran</b></span>
+              </div>
+
+              <!-- Opponent Partner (North) -->
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="seat-avatar" style="width:28px; height:28px; font-size:11px;">P2</div>
+                <span style="font-size:11px; color:var(--text-secondary);">Partner (North) · 10 Cards</span>
+              </div>
+
+              <div class="turn-clock">
+                <span class="turn-clock-ring"></span>
+                <span>Your Turn (14s)</span>
+              </div>
+
+              <div class="team-score-chip">
+                <span class="team-badge" style="background:#281816; color:#e05a47;">TEAM B</span>
+                <span>Rivals: <b class="num" style="color:#e05a47;">80 Ran</b></span>
+              </div>
+            </div>
+
+            <!-- Center Table Felt -->
+            <div class="table-center-felt">
+              <!-- East Rival -->
+              <div class="opponent-seat">
+                <div class="seat-avatar">E3</div>
+                <span class="seat-tag">Ibrahim (East)</span>
+                <span class="card-count-badge">10 cards</span>
+              </div>
+
+              <!-- Center Stock & Discard Piles -->
+              <div class="piles-center-stage">
+                <!-- Stock Pile -->
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <div class="deck-card-slot" onclick="handleDrawStock()">
+                    <div class="deck-back-pattern">ހ</div>
+                  </div>
+                  <span class="pile-label">Draw (31)</span>
+                </div>
+
+                <!-- Discard Pile -->
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <div class="discard-card-face red" onclick="handleDrawDiscard()">
+                    <div class="discard-rank">7</div>
+                    <div class="discard-suit">D</div>
+                  </div>
+                  <span class="pile-label" style="color:var(--accent-gold);">Take 7-D</span>
+                </div>
+              </div>
+
+              <!-- West Rival -->
+              <div class="opponent-seat">
+                <div class="seat-avatar">W4</div>
+                <span class="seat-tag">Ahmed (West)</span>
+                <span class="card-count-badge">10 cards</span>
+              </div>
+            </div>
+
+            <!-- Bottom Tray: Player Hand + Thumb Reach Buttons -->
+            <div class="table-player-tray">
+              <!-- Left Thumb Zone: Sort & Menu -->
+              <div class="thumb-action-left">
+                <button class="touch-btn-secondary" onclick="toggleSort()">
+                  <span>Sort Hand</span>
+                </button>
+                <button class="touch-btn-secondary" onclick="switchScreen('lobby')">
+                  <span>Exit Lobby</span>
+                </button>
+              </div>
+
+              <!-- Center Hand Cards -->
+              <div class="hand-cards-container" id="player-hand-strip">
+                <!-- 10 Playable Cards (Generous Touch Targets) -->
+                <div class="mobile-card" onclick="selectCard(this, '4-S')">
+                  <span class="mobile-meld-tag">Run</span>
+                  <div class="mobile-card-corner">4<br>S</div>
+                </div>
+                <div class="mobile-card" onclick="selectCard(this, '5-S')">
+                  <span class="mobile-meld-tag">Run</span>
+                  <div class="mobile-card-corner">5<br>S</div>
+                </div>
+                <div class="mobile-card" onclick="selectCard(this, '6-S')">
+                  <span class="mobile-meld-tag">Run</span>
+                  <div class="mobile-card-corner">6<br>S</div>
+                </div>
+                <div class="mobile-card red" onclick="selectCard(this, '10-H')">
+                  <span class="mobile-meld-tag">Set</span>
+                  <div class="mobile-card-corner">10<br>H</div>
+                </div>
+                <div class="mobile-card red" onclick="selectCard(this, '10-D')">
+                  <span class="mobile-meld-tag">Set</span>
+                  <div class="mobile-card-corner">10<br>D</div>
+                </div>
+                <div class="mobile-card" onclick="selectCard(this, '10-C')">
+                  <span class="mobile-meld-tag">Set</span>
+                  <div class="mobile-card-corner">10<br>C</div>
+                </div>
+                <div class="mobile-card red" onclick="selectCard(this, 'K-H')">
+                  <div class="mobile-card-corner">K<br>H</div>
+                </div>
+                <div class="mobile-card" onclick="selectCard(this, 'Q-C')">
+                  <div class="mobile-card-corner">Q<br>C</div>
+                </div>
+                <div class="mobile-card red" onclick="selectCard(this, '8-D')">
+                  <div class="mobile-card-corner">8<br>D</div>
+                </div>
+                <div class="mobile-card selected red" id="active-card-demo" onclick="selectCard(this, 'J-D')">
+                  <div class="mobile-card-corner">J<br>D</div>
+                </div>
+              </div>
+
+              <!-- Right Thumb Zone: Discard & Declare Gin Knock -->
+              <div class="thumb-action-right">
+                <button class="touch-btn-primary" id="btn-discard" onclick="handleDiscard()">
+                  Discard<br><span style="font-size:10px; font-weight:500;">J-D Selected</span>
+                </button>
+                <button class="touch-btn-primary knock" onclick="switchScreen('modal')">
+                  Gin Slam!<br><span style="font-size:10px; font-weight:600;">0 Deadwood</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCREEN 2: MOBILE LOBBY -->
+          <div id="screen-lobby" class="lobby-screen hidden">
+            <div class="lobby-topbar">
+              <div class="lobby-brand">
+                <div class="lobby-brand-title">
+                  <span>Holhuashi</span>
+                  <span class="thaana" style="color:var(--accent-gold);">ހޮޅުއަށި</span>
+                </div>
+              </div>
+
+              <div class="lobby-balance-strip">
+                <div>Ran: <b class="num" style="color:var(--accent-gold);">10,000</b></div>
+                <div>Gems: <b class="num" style="color:var(--data-emerald);">250</b></div>
+                <button class="touch-btn-secondary" style="height:30px; font-size:11px;" onclick="switchScreen('table')">Resume Table</button>
+              </div>
+            </div>
+
+            <div class="lobby-modes-grid">
+              <!-- Mode 1: Classic 4-Player -->
+              <div class="lobby-mode-card selected" onclick="selectLobbyCard(this)">
+                <div class="mode-card-header">
+                  <div class="mode-card-title">Classic 4-Player</div>
+                  <span class="thaana" style="color:var(--accent-gold); font-weight:700;">ދިގު</span>
+                </div>
+                <div class="mode-card-desc">Traditional partnership Digu. Cooperate with AI partner against two rivals to reach 100 Ran.</div>
+                <div class="mode-card-meta">Stake: 100 Ran · Reward: 500 Ran</div>
+              </div>
+
+              <!-- Mode 2: Quick Match -->
+              <div class="lobby-mode-card" onclick="selectLobbyCard(this)">
+                <div class="mode-card-header">
+                  <div class="mode-card-title">Quick Solo Digu</div>
+                  <span style="font-size:11px; color:var(--text-muted);">Fast Play</span>
+                </div>
+                <div class="mode-card-desc">Single round blitz match. Perfect for rapid play during island breaks.</div>
+                <div class="mode-card-meta">Stake: 50 Ran · 1 Round Finish</div>
+              </div>
+
+              <!-- Mode 3: Private Table -->
+              <div class="lobby-mode-card" onclick="selectLobbyCard(this)">
+                <div class="mode-card-header">
+                  <div class="mode-card-title">Private Holhuashi</div>
+                  <span style="font-size:11px; color:var(--accent-gold);">Friends</span>
+                </div>
+                <div class="mode-card-desc">Host private room code. Play with island friends via online multiplayer sync.</div>
+                <div class="mode-card-meta">Code: HLH-49201 · 4 Slots</div>
+              </div>
+            </div>
+
+            <div class="lobby-bottom-bar">
+              <div style="font-size:12px; color:var(--text-muted);">
+                Landscape Mobile Experience · Two-Thumb Ergonomics
+              </div>
+              <button class="touch-btn-primary" style="height:36px; padding:0 24px;" onclick="switchScreen('table')">
+                Deal Hands Now
+              </button>
+            </div>
+          </div>
+
+          <!-- SCREEN 3: MOBILE ROUND SCORE / GIN SLAM MODAL -->
+          <div id="screen-modal" class="modal-overlay hidden">
+            <div class="modal-sheet">
+              <div class="modal-sheet-header">
+                <div class="modal-sheet-title">
+                  <span>Round Won · Digu Gin Slam!</span>
+                  <span class="thaana" style="color:var(--accent-gold);">ދިގު ޖެހުން</span>
+                </div>
+                <button class="touch-btn-secondary" style="height:28px; width:28px; border-radius:50%; font-size:12px;" onclick="switchScreen('table')">X</button>
+              </div>
+
+              <div>
+                <div class="score-breakdown-row">
+                  <span>Human Player Melds (Run 4-5-6-S + Set 10-10-10)</span>
+                  <span style="color:var(--data-primary); font-weight:700;">0 Deadwood</span>
+                </div>
+                <div class="score-breakdown-row">
+                  <span>Rival West Ahmed Deadwood</span>
+                  <span class="num" style="color:var(--danger-coral);">42 Points</span>
+                </div>
+                <div class="score-breakdown-row">
+                  <span>Gin Slam Bonus</span>
+                  <span class="num" style="color:var(--accent-gold);">+25 Ran</span>
+                </div>
+                <div class="score-breakdown-row" style="font-weight:700;">
+                  <span>Team A Total Round Gain</span>
+                  <span class="num" style="color:var(--accent-gold); font-size:14px;">+67 Ran Dhadhu</span>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button class="touch-btn-secondary" style="height:38px; padding:0 16px;" onclick="switchScreen('lobby')">Return to Lobby</button>
+                <button class="touch-btn-primary" style="height:38px; padding:0 20px;" onclick="switchScreen('table')">Next Round Deal</button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const themeClasses = {
+      lagoon: '',
+      lacquer: 'theme-lacquer',
+      ocean: 'theme-ocean',
+      timber: 'theme-timber'
+    };
+
+    function applyTheme(themeKey) {
+      document.body.className = themeClasses[themeKey];
+      document.querySelectorAll('.theme-pills .pill-btn').forEach(b => {
+        if (b.id && b.id.startsWith('btn-th-')) b.classList.remove('active');
+      });
+      const activeBtn = document.getElementById('btn-th-' + themeKey);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      try {
+        localStorage.setItem('holhuashi_mobile_theme', themeKey);
+      } catch (e) {}
+    }
+
+    function switchScreen(screenKey) {
+      document.getElementById('screen-table').classList.add('hidden');
+      document.getElementById('screen-lobby').classList.add('hidden');
+      document.getElementById('screen-modal').classList.add('hidden');
+
+      if (screenKey === 'table') {
+        document.getElementById('screen-table').classList.remove('hidden');
+      } else if (screenKey === 'lobby') {
+        document.getElementById('screen-lobby').classList.remove('hidden');
+      } else if (screenKey === 'modal') {
+        document.getElementById('screen-table').classList.remove('hidden');
+        document.getElementById('screen-modal').classList.remove('hidden');
+      }
+
+      document.querySelectorAll('#btn-scr-table, #btn-scr-lobby, #btn-scr-modal').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('btn-scr-' + screenKey);
+      if (btn) btn.classList.add('active');
+    }
+
+    let thumbsVisible = false;
+    function toggleThumbZones() {
+      thumbsVisible = !thumbsVisible;
+      const overlay = document.getElementById('thumb-overlay');
+      const btn = document.getElementById('btn-toggle-thumbs');
+      if (thumbsVisible) {
+        overlay.classList.add('active');
+        btn.textContent = 'Hide Thumb Zones';
+        btn.style.background = 'var(--accent-gold)';
+        btn.style.color = '#040d09';
+      } else {
+        overlay.classList.remove('active');
+        btn.textContent = 'Show Thumb Reach Zones';
+        btn.style.background = '#1b2520';
+        btn.style.color = 'var(--accent-gold)';
+      }
+    }
+
+    function selectCard(cardEl, cardName) {
+      document.querySelectorAll('#player-hand-strip .mobile-card').forEach(c => c.classList.remove('selected'));
+      cardEl.classList.add('selected');
+      const discardBtn = document.getElementById('btn-discard');
+      discardBtn.innerHTML = `Discard<br><span style="font-size:10px; font-weight:500;">${cardName} Selected</span>`;
+    }
+
+    function handleDiscard() {
+      const selected = document.querySelector('#player-hand-strip .mobile-card.selected');
+      if (selected) {
+        selected.style.transform = 'translateY(-40px) scale(0.8)';
+        selected.style.opacity = '0';
+        setTimeout(() => {
+          selected.style.transform = '';
+          selected.style.opacity = '1';
+        }, 1200);
+      }
+    }
+
+    function handleDrawStock() {
+      alert('Drew 1 card from Stock deck (thumb action simulated)');
+    }
+
+    function handleDrawDiscard() {
+      alert('Drew top card (7-D) from Discard pile');
+    }
+
+    function toggleSort() {
+      const container = document.getElementById('player-hand-strip');
+      const cards = Array.from(container.children);
+      cards.reverse().forEach(c => container.appendChild(c));
+    }
+
+    function selectLobbyCard(cardEl) {
+      document.querySelectorAll('.lobby-mode-card').forEach(c => c.classList.remove('selected'));
+      cardEl.classList.add('selected');
+    }
+
+    // Auto-restore theme
+    try {
+      const saved = localStorage.getItem('holhuashi_mobile_theme');
+      if (saved && themeClasses[saved] !== undefined) {
+        applyTheme(saved);
+      }
+    } catch (e) {}
+  </script>
+</body>
+</html>
