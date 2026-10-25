@@ -1,16 +1,13 @@
 {
-  "versionName": "0.2.8",
-  "versionCode": 10,
-  "releaseDate": "2026-10-24",
+  "versionName": "0.2.9",
+  "versionCode": 11,
+  "releaseDate": "2026-10-25",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Permanent Signing Keystore: Configured persistent debug keystore across CI/CD builds so all future APK updates install seamlessly without 'App not installed' signature conflict",
-    "Fix Gin Recognition: Correctly validates composite runs >= 6 cards (e.g. 7-card single-suit runs decomposing into 4+3+3)",
-    "New Game Icon: 'The 1,000-Point Suited Fan' with Maldivian Ace of Spades & Royal Lacquer back",
-    "Royal Lacquer Aesthetic: Cinnabar vermilion felt, burnished gold accents & 4-font hierarchy",
-    "Physical Brand Vector Deck: Stacked corner indices, double-headed courts & filigree card backs",
-    "3-Tier Bot AI Intelligence: Casual, Holhuashi Regular, and Thulhaadhoo Master with -100pt defense",
-    "Lyria Stereo Audio: Dynamic table & lobby soundtracks with live volume sliders and tactile card SFX"
+    "Google Cloud Data Restoration: Sign into Google to restore your existing coins, gems, level progress, and career stats across devices",
+    "Smart Chip Merge: Resolve account conflicts with an interactive Royal Lacquer modal to intelligently combine local guest chips with cloud saves",
+    "Unified Royal Lacquer Design System: Harmonized all 20+ screens, scorecards, matchmaking radars, and modals in luxury Baa Atoll lacquerware aesthetics",
+    "Offline Sync Queue: Automatic background sync with offline transaction queue flushed on launch"
   ]
 }
