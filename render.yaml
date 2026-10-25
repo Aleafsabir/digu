@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: thaasbai-digu-server
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: server
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        fromDatabase:
+          name: thaasbai-digu-db
+          property: connectionString
+
+databases:
+  - name: thaasbai-digu-db
+    plan: free
+    region: singapore
+    databaseName: thaasbai_digu
+    user: thaasbai_user

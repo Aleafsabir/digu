@@ -736,12 +736,12 @@ export const TableSurface: React.FC = () => {
               </div>
             )}
 
-            {/* Floating Quick Chat & Emoji Triggers (Bottom Corners with Safe Areas) */}
+            {/* Mid-Table Ergonomic Thumb Rails: Quick Chat (West Rail) & Reaction Emojis (East Rail) */}
             <div
               className="absolute z-30 pointer-events-auto"
               style={{
                 left: 'max(12px, env(safe-area-inset-left))',
-                bottom: 'max(18px, calc(env(safe-area-inset-bottom) + 8px))',
+                bottom: 'clamp(90px, 34%, 150px)',
               }}
             >
               <button
@@ -750,7 +750,7 @@ export const TableSurface: React.FC = () => {
                   setShowQuickChat(true);
                 }}
                 title="Quick Chat"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#170b09]/90 hover:bg-[#301a14] backdrop-blur-md border border-[#301a14] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#170b09]/95 hover:bg-[#301a14] backdrop-blur-md border-1.5 border-[#301a14] hover:border-[#e5c378] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
               >
                 <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </button>
@@ -760,7 +760,7 @@ export const TableSurface: React.FC = () => {
               className="absolute z-30 pointer-events-auto"
               style={{
                 right: 'max(12px, env(safe-area-inset-right))',
-                bottom: 'max(18px, calc(env(safe-area-inset-bottom) + 8px))',
+                bottom: 'clamp(90px, 34%, 150px)',
               }}
             >
               <button
@@ -769,7 +769,7 @@ export const TableSurface: React.FC = () => {
                   setShowQuickChat(true);
                 }}
                 title="Emojis"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#170b09]/90 hover:bg-[#301a14] backdrop-blur-md border border-[#301a14] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#170b09]/95 hover:bg-[#301a14] backdrop-blur-md border-1.5 border-[#301a14] hover:border-[#e5c378] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
               >
                 <Smile className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </button>

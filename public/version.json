@@ -1,13 +1,14 @@
 {
-  "versionName": "0.2.9",
-  "versionCode": 11,
+  "versionName": "0.3.0",
+  "versionCode": 12,
   "releaseDate": "2026-10-25",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Google Cloud Data Restoration: Sign into Google to restore your existing coins, gems, level progress, and career stats across devices",
-    "Smart Chip Merge: Resolve account conflicts with an interactive Royal Lacquer modal to intelligently combine local guest chips with cloud saves",
-    "Unified Royal Lacquer Design System: Harmonized all 20+ screens, scorecards, matchmaking radars, and modals in luxury Baa Atoll lacquerware aesthetics",
-    "Offline Sync Queue: Automatic background sync with offline transaction queue flushed on launch"
+    "Universal Screen & DPI Scaling: Height-governed fluid layout for 16:9, 19.5:9, 21:9 ultra-wides (Galaxy S25 Ultra), and tablets",
+    "Authoritative Cloud Multiplayer & Private Tables: Cross-device room creation, code joining, and bot filling",
+    "Live Friend Requests & Presence: Instant real-time invitations and status sync",
+    "Samsung Keyboard LTR Input Isolation: Fixed backwards typing on friend and room code fields",
+    "Ergonomic Mid-Table Thumb Rails: Relocated Quick Chat & Emoji triggers to eliminate hand card overlap"
   ]
 }

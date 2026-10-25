@@ -236,15 +236,15 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
         )}
       </div>
 
-      {/* Main Fanned Hand with Overlapping Jumbo Cards */}
+      {/* Main Fanned Hand with Fluid Responsive Scaling */}
       <div
         id="anchor-seat-0"
-        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[110px] sm:min-h-[128px] md:min-h-[148px] touch-none -mb-3 sm:-mb-5 md:-mb-6 transition-all duration-300"
+        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[clamp(90px,26dvh,130px)] touch-none mb-0 pb-[max(14px,calc(env(safe-area-inset-bottom)+6px))] transition-all duration-300"
       >
         {/* Dedicated landing anchor for the 11th drawn card slot on the far right */}
         <div
           id="anchor-seat-0-draw-slot"
-          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[84px] sm:w-[96px] md:w-[108px] h-[126px] sm:h-[144px] md:h-[162px] pointer-events-none"
+          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[clamp(58px,17.4dvh,82px)] h-[clamp(88px,26dvh,124px)] pointer-events-none"
         />
 
         {/* Release to Discard Floating Indicator */}
@@ -259,7 +259,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           axis="x"
           values={handCards}
           onReorder={onReorderHand}
-          className="flex items-end -space-x-5.5 sm:-space-x-7 md:-space-x-9 px-3 sm:px-6 pb-0"
+          className="flex items-end -space-x-5 sm:-space-x-6 md:-space-x-7 px-2 sm:px-4 pb-0"
         >
           {handCards.map((card, index) => {
             const isSelected = selectedCardId === card.id;

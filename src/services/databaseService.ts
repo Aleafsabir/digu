@@ -9,9 +9,9 @@ import {
   MatchRecord,
 } from '../types/database';
 import { UserProfile } from '../types/auth';
+import { getApiBaseUrl } from '../config/networkConfig';
 
 const LEDGER_STORAGE_KEY = 'thaasbai_currency_ledger_v1';
-const ROOMS_STORAGE_KEY = 'thaasbai_active_rooms_v1';
 
 // In-memory fallback for headless/test environments
 let memoryLedger: CurrencyTransaction[] = [];
@@ -83,9 +83,9 @@ export class DatabaseService {
   }
 
   /**
-   * Create a new Game Room (Private or Public).
+   * Synchronously creates a local GameRoom object (used by local simulation and fallback).
    */
-  static createRoom(
+  static createLocalRoom(
     hostProfile: UserProfile,
     mode: 'TEAM_4P' | 'SOLO_4P' | 'SOLO_2P',
     stakeBuyIn: number,
@@ -141,59 +141,90 @@ export class DatabaseService {
       updatedAt: new Date().toISOString(),
     };
 
-    this.saveRoom(room);
+    memoryRooms[roomCode] = room;
     return room;
   }
 
   /**
-   * Save room state to storage.
+   * Create a new Game Room (Private or Public) via Authoritative Server.
    */
-  static saveRoom(room: GameRoom): void {
+  static async createRoom(
+    hostProfile: UserProfile,
+    mode: 'TEAM_4P' | 'SOLO_4P' | 'SOLO_2P',
+    stakeBuyIn: number,
+    targetScore: number,
+    isPrivate = false
+  ): Promise<GameRoom> {
     try {
-      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem(ROOMS_STORAGE_KEY);
-        const rooms: Record<string, GameRoom> = raw ? JSON.parse(raw) : {};
-        rooms[room.roomCode] = room;
-        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(rooms));
-      } else {
-        memoryRooms[room.roomCode] = room;
+      const res = await fetch(`${getApiBaseUrl()}/api/rooms/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hostProfile, mode, stakeBuyIn, targetScore, isPrivate }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.room) {
+          memoryRooms[data.room.roomCode] = data.room;
+          return data.room;
+        }
       }
-    } catch {
-      memoryRooms[room.roomCode] = room;
+    } catch (_err) {
+      // Graceful offline fallback
     }
+
+    return this.createLocalRoom(hostProfile, mode, stakeBuyIn, targetScore, isPrivate);
   }
 
   /**
-   * Find a room by its 6-digit code.
+   * Find a room by its 6-digit code via Authoritative Server.
    */
-  static getRoomByCode(roomCode: string): GameRoom | null {
+  static async getRoomByCode(roomCode: string): Promise<GameRoom | null> {
+    const cleanCode = roomCode.trim().toUpperCase();
     try {
-      const cleanCode = roomCode.trim().toUpperCase();
-      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem(ROOMS_STORAGE_KEY);
-        if (raw) {
-          const rooms: Record<string, GameRoom> = JSON.parse(raw);
-          if (rooms[cleanCode]) return rooms[cleanCode];
+      const res = await fetch(`${getApiBaseUrl()}/api/rooms/${cleanCode}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.room) {
+          memoryRooms[cleanCode] = data.room;
+          return data.room;
         }
-      } else {
-        if (memoryRooms[cleanCode]) return memoryRooms[cleanCode];
       }
-    } catch {
+    } catch (_err) {
       // Fallback
     }
-    return null;
+    return memoryRooms[cleanCode] || null;
   }
 
   /**
-   * Join an existing room with code validation.
+   * Join an existing room with code validation via Authoritative Server.
    */
-  static joinRoom(
+  static async joinRoom(
     roomCode: string,
     profile: UserProfile
-  ): { success: boolean; room?: GameRoom; error?: string } {
-    const room = this.getRoomByCode(roomCode);
+  ): Promise<{ success: boolean; room?: GameRoom; error?: string }> {
+    const cleanCode = roomCode.trim().toUpperCase();
+
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/rooms/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode: cleanCode, profile }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.room) {
+        memoryRooms[cleanCode] = data.room;
+        return { success: true, room: data.room };
+      }
+      return { success: false, error: data.error || 'Failed to join room' };
+    } catch (_err) {
+      // Local fallback for offline simulation
+    }
+
+    const room = memoryRooms[cleanCode];
     if (!room) {
-      return { success: false, error: `Room ${roomCode} not found` };
+      return { success: false, error: `Room ${cleanCode} not found` };
     }
 
     if (room.status !== 'WAITING') {
@@ -207,7 +238,6 @@ export class DatabaseService {
       };
     }
 
-    // Find first unoccupied seat
     const seatIndex = room.seats.findIndex(s => !s.isConnected);
     if (seatIndex === -1) {
       return { success: false, error: 'Table is full' };
@@ -232,8 +262,28 @@ export class DatabaseService {
       room.status = 'STARTING';
     }
 
-    this.saveRoom(room);
+    memoryRooms[cleanCode] = room;
     return { success: true, room };
+  }
+
+  /**
+   * Fill an empty seat in a room with a Bot via Authoritative Server.
+   */
+  static async fillSeatWithBot(
+    roomId: string,
+    roomCode: string,
+    seatIndex: number
+  ): Promise<boolean> {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/rooms/seat/bot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId, roomCode, seatIndex }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -249,7 +299,7 @@ export class DatabaseService {
     onComplete: (room: GameRoom) => void
   ): { cancel: () => void } {
     let isCancelled = false;
-    const room = this.createRoom(hostProfile, mode, stakeBuyIn, targetScore, false);
+    const room = this.createLocalRoom(hostProfile, mode, stakeBuyIn, targetScore, false);
 
     // Initial seat (Host)
     onSeatJoined(room.seats[0], 1, room.maxPlayers);
@@ -288,7 +338,7 @@ export class DatabaseService {
 
         if (room.currentPlayerCount === room.maxPlayers) {
           room.status = 'STARTING';
-          this.saveRoom(room);
+          memoryRooms[room.roomCode] = room;
           const launchTimer = setTimeout(() => {
             if (!isCancelled) {
               onComplete(room);

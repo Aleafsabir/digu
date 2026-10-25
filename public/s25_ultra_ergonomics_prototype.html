@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Digu — Samsung Galaxy S25 Ultra Ergonomics Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), url('/fonts/Faruma.woff2') format('woff2'), url('/fonts/Faruma.ttf') format('truetype');
+      font-weight: 400 700;
+      font-display: swap;
+    }
+
+    :root {
+      --ground: #0d0605;
+      --surface: #170b09;
+      --control: #301a14;
+      --cinnabar: #c84b31;
+      --royal-gold: #e5c378;
+      --inlay: #f7f0ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: #050302;
+      color: #f7f0ea;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px 10px;
+      overflow-x: hidden;
+    }
+
+    /* Top Control Bar for Simulator */
+    .sim-header {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    .sim-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sim-title h1 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #f7f0ea;
+      letter-spacing: -0.01em;
+    }
+
+    .sim-tag {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      background: #301a14;
+      color: #e5c378;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #e5c37844;
+    }
+
+    .sim-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-toggle {
+      background: #0d0605;
+      border: 1px solid #301a14;
+      color: #f7f0ea;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-toggle:hover {
+      border-color: #e5c378;
+    }
+
+    .btn-toggle.active {
+      background: #c84b31;
+      border-color: #e5c378;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(200, 75, 49, 0.5);
+    }
+
+    .mode-switch-wrapper {
+      display: flex;
+      background: #0d0605;
+      padding: 3px;
+      border-radius: 12px;
+      border: 1px solid #301a14;
+    }
+
+    .mode-switch-btn {
+      padding: 6px 12px;
+      border-radius: 9px;
+      font-size: 11px;
+      font-weight: 800;
+      background: transparent;
+      border: none;
+      color: #f7f0ea88;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-switch-btn.active {
+      background: #301a14;
+      color: #e5c378;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* Device Chassis: Samsung Galaxy S25 Ultra Landscape (19.5:9) */
+    .device-chassis {
+      position: relative;
+      width: 930px;
+      height: 425px;
+      background: #111113;
+      border-radius: 36px;
+      padding: 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 0 2px #333338, 0 0 0 4px #1b1b1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .device-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #0d0605;
+      border-radius: 26px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    /* Samsung Camera Cutout (Centered on edge in landscape) */
+    .device-camera-cutout {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 13px;
+      height: 13px;
+      background: #000000;
+      border-radius: 50%;
+      z-index: 999;
+      box-shadow: inset 0 0 3px #1a1a1a, 0 0 1px rgba(255,255,255,0.1);
+      pointer-events: none;
+    }
+
+    /* Android System Status Bar */
+    .android-status-bar {
+      width: 100%;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 0 32px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #f7f0eacc;
+      z-index: 100;
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+
+    .status-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Android Home Gesture Navigation Bar Pill */
+    .android-gesture-pill {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 4px;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    /* Table View Container */
+    .table-view {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 45%, #24110d 0%, #170b09 45%, #0d0605 100%);
+    }
+
+    /* Liyelaa Jehun Watermark Medallion */
+    .watermark-medallion {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      transform: translate(-50%, -50%);
+      width: 250px;
+      height: 250px;
+      opacity: 0.16;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .watermark-letter {
+      position: absolute;
+      font-family: 'Faruma', sans-serif;
+      font-size: 80px;
+      font-weight: 900;
+      color: #e5c378;
+    }
+
+    /* Top HUD Rim */
+    .table-top-rim {
+      width: 100%;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px 0 36px;
+      z-index: 20;
+    }
+
+    .top-rim-left, .top-rim-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      background: #170b09cc;
+      border: 1px solid #301a14;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f7f0ea;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .icon-btn:hover {
+      border-color: #e5c378;
+    }
+
+    .hud-pill {
+      background: #170b09ee;
+      border: 1px solid #301a14;
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #f7f0ea;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Center Opponent Seat */
+    .opponent-seat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #170b09cc;
+      border: 1px solid #301a14;
+      border-radius: 24px;
+      padding: 3px 12px 3px 4px;
+    }
+
+    .opponent-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c84b31, #8f2d1b);
+      border: 1px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .opponent-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #f7f0ea;
+    }
+
+    .opponent-cards-badge {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #e5c378;
+      background: #0d0605;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    /* Center Playfield (Stock & Discard) */
+    .center-playfield {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      z-index: 10;
+      margin: auto 0;
+    }
+
+    .pile-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pile-label {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #e5c378aa;
+      text-transform: uppercase;
+    }
+
+    .table-card {
+      position: relative;
+      width: 72px;
+      height: 104px;
+      background: #faf7f2;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.5);
+      border: 1px solid #d1c7b7;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .table-card.back {
+      background: linear-gradient(135deg, #301a14 0%, #170b09 50%, #0d0605 100%);
+      border: 1.5px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .table-card.back::after {
+      content: 'ޑ';
+      font-family: 'Faruma', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #e5c378;
+      text-shadow: 0 0 10px rgba(229, 195, 120, 0.4);
+    }
+
+    /* Dynamic Gin Slam Button in Center */
+    .gin-slam-orb {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 30%, #e56040 0%, #c84b31 55%, #7a1d0d 100%);
+      border: 2.5px solid #e5c378;
+      box-shadow: 0 0 25px rgba(200, 75, 49, 0.8), 0 4px 15px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      animation: pulseGlow 1.8s infinite ease-in-out;
+      transform: scale(0.9);
+      transition: transform 0.15s;
+    }
+
+    .gin-slam-orb:active {
+      transform: scale(0.85);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 18px rgba(200, 75, 49, 0.7); }
+      50% { box-shadow: 0 0 35px rgba(229, 195, 120, 0.9); }
+    }
+
+    /* Hand Sanctuary Area */
+    .hand-sanctuary {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 30;
+      transition: all 0.3s ease;
+    }
+
+    /* Over-Hand Action HUD Bar */
+    .overhand-hud {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      z-index: 40;
+    }
+
+    .deadwood-meter {
+      background: #170b09ee;
+      border: 1px solid #301a14;
+      border-radius: 20px;
+      padding: 3px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .deadwood-badge {
+      background: #0d0605;
+      color: #f7f0ea;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid #301a14;
+    }
+
+    .turn-timer {
+      background: #170b09ee;
+      border: 1px solid #301a14;
+      border-radius: 20px;
+      padding: 3px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+    }
+
+    .timer-circle-svg {
+      width: 18px;
+      height: 18px;
+      transform: rotate(-90deg);
+    }
+
+    /* Card Fanning Strip */
+    .cards-fan-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    /* Playing Card Styling in Hand */
+    .player-card {
+      position: relative;
+      background: #faf7f2;
+      border-radius: 8px;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.6);
+      border: 1px solid #c9beae;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px 6px;
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.16s ease;
+    }
+
+    .player-card:hover {
+      transform: translateY(-14px) scale(1.05) !important;
+      z-index: 99 !important;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.8), 0 0 16px rgba(229, 195, 120, 0.5);
+    }
+
+    .player-card.selected {
+      transform: translateY(-22px) scale(1.08) !important;
+      border: 2px solid #e5c378;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.9), 0 0 20px rgba(229, 195, 120, 0.8) !important;
+      z-index: 100 !important;
+    }
+
+    .card-top-idx {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .card-rank {
+      font-size: 15px;
+      font-weight: 900;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .card-suit {
+      font-size: 12px;
+      margin-top: 1px;
+    }
+
+    .card-center-watermark {
+      align-self: center;
+      font-size: 20px;
+      opacity: 0.18;
+      margin: auto 0;
+    }
+
+    .meld-tag {
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 9px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #fff;
+      color: #000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .meld-cyan { background: #06b6d4; }
+    .meld-emerald { background: #10b981; }
+
+    /* Thumb Rails (Ergonomic Chat & Emoji Placement) */
+    .thumb-rail-btn {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #170b09ee;
+      border: 1.5px solid #301a14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #f7f0ea;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+      z-index: 50;
+    }
+
+    .thumb-rail-btn:hover {
+      border-color: #e5c378;
+      transform: scale(1.08);
+      box-shadow: 0 8px 22px rgba(229, 195, 120, 0.4);
+    }
+
+    .thumb-rail-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ------------------------------------------------------------------------- */
+    /* BEFORE vs AFTER STATE ADJUSTMENTS                                         */
+    /* ------------------------------------------------------------------------- */
+    
+    /* [STATE: BEFORE] - Reproducing Buggy Screenshot on S25 Ultra */
+    .state-before .cards-fan-container {
+      margin-bottom: -32px; /* Pulls cards down into abyss */
+    }
+
+    .state-before .player-card {
+      width: 90px;
+      height: 136px;
+      margin-left: -28px;
+    }
+
+    .state-before .table-card {
+      width: 86px;
+      height: 126px;
+    }
+
+    .state-before .hand-sanctuary {
+      padding-bottom: 0px;
+    }
+
+    /* In BEFORE state, chat & emoji buttons sit at bottom corners colliding with outer cards */
+    .state-before #btn-quick-chat {
+      left: 36px;
+      bottom: 14px;
+    }
+
+    .state-before #btn-emoji {
+      right: 28px;
+      bottom: 14px;
+    }
+
+    .state-before .card-clipped-indicator {
+      display: block;
+    }
+
+    /* [STATE: AFTER] - Optimized Ergonomics on S25 Ultra */
+    .state-after .cards-fan-container {
+      margin-bottom: 0px; /* Fully elevated */
+    }
+
+    .state-after .player-card {
+      width: 72px;
+      height: 110px;
+      margin-left: -20px;
+    }
+
+    .state-after .table-card {
+      width: 70px;
+      height: 102px;
+    }
+
+    .state-after .hand-sanctuary {
+      padding-bottom: 18px; /* Elevated well above gesture navigation pill */
+    }
+
+    /* In AFTER state, chat & emoji buttons are relocated to Mid-Table Thumb Rails */
+    .state-after #btn-quick-chat {
+      left: 38px;
+      bottom: 34%;
+    }
+
+    .state-after #btn-emoji {
+      right: 32px;
+      bottom: 34%;
+    }
+
+    .state-after .card-clipped-indicator {
+      display: none;
+    }
+
+    /* ------------------------------------------------------------------------- */
+    /* MAIN LOBBY SCREEN (Tab 2)                                                 */
+    /* ------------------------------------------------------------------------- */
+    .lobby-view {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0 32px 8px 38px;
+      background: radial-gradient(circle at 50% 50%, #24110d 0%, #170b09 60%, #0d0605 100%);
+    }
+
+    .lobby-header {
+      width: 100%;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #301a14;
+      padding: 0 0 4px 0;
+    }
+
+    .state-before .lobby-header {
+      padding-top: 0px; /* Collides with Android status bar! */
+    }
+
+    .state-after .lobby-header {
+      padding-top: 6px; /* Clean safe-area clearance */
+    }
+
+    .lobby-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      padding: 3px 12px 3px 4px;
+      border-radius: 20px;
+    }
+
+    .lobby-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #c84b31;
+      border: 1px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .lobby-brand-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      padding: 4px 14px;
+      border-radius: 12px;
+    }
+
+    .lobby-carousel {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: auto 0;
+    }
+
+    /* Game Card inside Lobby Carousel */
+    .game-card {
+      position: relative;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #24110d 0%, #170b09 60%, #0d0605 100%);
+      border: 2px solid #301a14;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      overflow: hidden;
+    }
+
+    .state-before .game-card {
+      width: 240px;
+      height: 295px; /* Overflows 425px screen height! */
+      padding: 16px;
+    }
+
+    .state-after .game-card {
+      width: 250px;
+      height: 232px; /* Fits comfortably inside 425px screen height! */
+      padding: 12px 14px;
+    }
+
+    .game-card.active {
+      border-color: #c84b31;
+      box-shadow: 0 0 24px rgba(200, 75, 49, 0.4);
+    }
+
+    .game-card.active:hover {
+      border-color: #e5c378;
+      transform: translateY(-4px);
+    }
+
+    .game-shield {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #170b09;
+      border: 2px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 4px auto;
+      box-shadow: 0 0 16px rgba(229, 195, 120, 0.3);
+    }
+
+    .shield-thaana {
+      font-family: 'Faruma', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #e5c378;
+    }
+
+    .game-title {
+      font-size: 15px;
+      font-weight: 800;
+      text-align: center;
+      color: #ffffff;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.05em;
+    }
+
+    .game-thaana-title {
+      font-family: 'Faruma', sans-serif;
+      font-size: 14px;
+      color: #e5c378;
+      margin-left: 6px;
+    }
+
+    .game-desc {
+      font-size: 10px;
+      color: #f7f0eaaa;
+      text-align: center;
+      line-height: 1.35;
+      margin-top: 3px;
+    }
+
+    .btn-enter-game {
+      width: 100%;
+      background: linear-gradient(90deg, #c84b31, #e56040, #c84b31);
+      border: none;
+      color: white;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(200, 75, 49, 0.4);
+      margin-top: 6px;
+    }
+
+    .lobby-footer {
+      width: 100%;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #301a14;
+      padding: 0;
+    }
+
+    .state-before .lobby-footer {
+      padding-bottom: 0px; /* Gesture pill overlaps buttons! */
+    }
+
+    .state-after .lobby-footer {
+      padding-bottom: 8px; /* Elevated safely above gesture pill */
+    }
+
+    /* Annotation Banner */
+    .annotation-box {
+      width: 100%;
+      max-width: 930px;
+      margin-top: 16px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .anno-item h4 {
+      font-size: 12px;
+      font-weight: 800;
+      color: #e5c378;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .anno-item p {
+      color: #f7f0eabb;
+      font-size: 11px;
+    }
+
+    /* Bug Highlights */
+    .bug-badge {
+      display: inline-block;
+      background: #c84b31;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+
+    .fix-badge {
+      display: inline-block;
+      background: #059669;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Simulator Top Controls -->
+  <div class="sim-header">
+    <div class="sim-title">
+      <h1>Samsung Galaxy S25 Ultra Ergonomics Prototype</h1>
+      <span class="sim-tag">19.5:9 • 3120×1440 • LANDSCAPE</span>
+    </div>
+
+    <div class="sim-controls">
+      <!-- Screen View Selector -->
+      <button class="btn-toggle active" id="tab-table" onclick="switchTab('TABLE')">
+        <span>🃏 Match Table</span>
+      </button>
+      <button class="btn-toggle" id="tab-lobby" onclick="switchTab('LOBBY')">
+        <span>🏛️ Main Lobby</span>
+      </button>
+
+      <!-- Before vs After Mode Switch -->
+      <div class="mode-switch-wrapper">
+        <button class="mode-switch-btn" id="btn-mode-before" onclick="setMode('BEFORE')">
+          ⚠️ Current Bugs (Before)
+        </button>
+        <button class="mode-switch-btn active" id="btn-mode-after" onclick="setMode('AFTER')">
+          ✨ Optimized (After)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device Frame (Samsung Galaxy S25 Ultra Landscape) -->
+  <div class="device-chassis state-after" id="device-container">
+    
+    <!-- Samsung Screen Bezel -->
+    <div class="device-screen">
+      
+      <!-- Camera Punch-Hole on Left Edge -->
+      <div class="device-camera-cutout"></div>
+
+      <!-- Android System Status Bar -->
+      <div class="android-status-bar">
+        <div class="status-bar-left">
+          <span>22:20</span>
+          <span style="opacity: 0.7; font-size: 9px;">• 5G</span>
+        </div>
+        <div class="status-bar-right">
+          <span>📶</span>
+          <span>⚡ 75%</span>
+        </div>
+      </div>
+
+      <!-- TAB 1: MATCH TABLE VIEW -->
+      <div class="table-view" id="view-table">
+        
+        <!-- Watermark Medallion -->
+        <div class="watermark-medallion">
+          <svg viewBox="0 0 200 200" fill="none" style="width: 100%; height: 100%; stroke: #e5c378; stroke-width: 1.5;">
+            <circle cx="100" cy="100" r="90" stroke-dasharray="3 3"/>
+            <circle cx="100" cy="100" r="76" stroke="#c84b31" stroke-width="2"/>
+            <circle cx="100" cy="100" r="62"/>
+          </svg>
+          <div class="watermark-letter">ޑ</div>
+        </div>
+
+        <!-- Top Table Rim HUD -->
+        <div class="table-top-rim">
+          <div class="top-rim-left">
+            <button class="icon-btn" title="Match Menu">☰</button>
+            <button class="icon-btn" title="Fullscreen">⛶</button>
+          </div>
+
+          <!-- Opponent Seat (North) -->
+          <div class="opponent-seat">
+            <div class="opponent-avatar">DI</div>
+            <div class="opponent-name">Digu Bot</div>
+            <span class="opponent-cards-badge">10 cards</span>
+          </div>
+
+          <div class="top-rim-right">
+            <div class="hud-pill">
+              <span>🪙</span>
+              <span style="color: #e5c378;">500</span>
+            </div>
+            <div class="hud-pill">
+              <span>🏆</span>
+              <span>500p</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Playfield (Stock, Discard, and Dynamic Gin Orb) -->
+        <div class="center-playfield">
+          <!-- Stock Pile -->
+          <div class="pile-box">
+            <span class="pile-label">STOCK (31)</span>
+            <div class="table-card back" onclick="drawStockCard()" title="Draw from Stock"></div>
+          </div>
+
+          <!-- Dynamic Face-Down GIN Slam Orb -->
+          <div class="gin-slam-orb" id="slam-orb" onclick="slamGinTrigger()" title="Click to Slam Gin!">
+            <span style="font-family: 'Faruma'; font-size: 13px; font-weight: 900; color: #0d0605; line-height: 1;">ޑިގު</span>
+            <span style="font-family: 'Cinzel'; font-size: 15px; font-weight: 900; color: #fff; margin: 1px 0;">GIN</span>
+            <span style="font-size: 7px; font-family: 'JetBrains Mono'; font-weight: 900; background: #e5c378; color: #0d0605; padding: 1px 5px; border-radius: 6px;">SLAM</span>
+          </div>
+
+          <!-- Discard Pile -->
+          <div class="pile-box">
+            <span class="pile-label" style="color: #c84b31;">DISCARD</span>
+            <div class="table-card" onclick="drawDiscardCard()" title="Draw Top Discard">
+              <div class="card-top-idx" style="color: #c84b31;">
+                <span class="card-rank">4</span>
+                <span class="card-suit">♥</span>
+              </div>
+              <div class="card-center-watermark" style="color: #c84b31;">♥</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #c84b31;">
+                <span class="card-rank">4</span>
+                <span class="card-suit">♥</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player Sanctuary Hand Area -->
+        <div class="hand-sanctuary">
+          
+          <!-- Over-Hand HUD (Deadwood & Timer) -->
+          <div class="overhand-hud">
+            <div class="deadwood-meter">
+              <span style="color: #f7f0ea88;">DEADWOOD</span>
+              <span class="deadwood-badge" id="dw-val" style="color: #e5c378;">-15 DEBT</span>
+            </div>
+
+            <div class="turn-timer">
+              <svg class="timer-circle-svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" stroke="#301a14" stroke-width="2.5" fill="none"/>
+                <circle cx="12" cy="12" r="9" stroke="#e5c378" stroke-width="2.5" fill="none" stroke-dasharray="56.5" stroke-dashoffset="12"/>
+              </svg>
+              <span style="color: #f7f0ea;">27s</span>
+              <span style="color: #f7f0ea77; font-size: 8px;">TURN</span>
+            </div>
+          </div>
+
+          <!-- Player Cards Fan -->
+          <div class="cards-fan-container" id="cards-fan">
+            <!-- 10 Real Hand Cards from User Screenshot -->
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(-7deg);">
+              <span class="meld-tag meld-cyan">R1</span>
+              <div class="card-top-idx" style="color: #c84b31;">
+                <span class="card-rank">6</span>
+                <span class="card-suit">♥</span>
+              </div>
+              <div class="card-center-watermark" style="color: #c84b31;">♥</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #c84b31;">
+                <span class="card-rank">6</span>
+                <span class="card-suit">♥</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(-5.5deg);">
+              <span class="meld-tag meld-cyan">R1</span>
+              <div class="card-top-idx" style="color: #c84b31;">
+                <span class="card-rank">7</span>
+                <span class="card-suit">♦</span>
+              </div>
+              <div class="card-center-watermark" style="color: #c84b31;">♦</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #c84b31;">
+                <span class="card-rank">7</span>
+                <span class="card-suit">♦</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(-4deg);">
+              <span class="meld-tag meld-cyan">R1</span>
+              <div class="card-top-idx" style="color: #c84b31;">
+                <span class="card-rank">8</span>
+                <span class="card-suit">♦</span>
+              </div>
+              <div class="card-center-watermark" style="color: #c84b31;">♦</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #c84b31;">
+                <span class="card-rank">8</span>
+                <span class="card-suit">♦</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(-2.5deg);">
+              <span class="meld-tag meld-cyan">R1</span>
+              <div class="card-top-idx" style="color: #c84b31;">
+                <span class="card-rank">9</span>
+                <span class="card-suit">♦</span>
+              </div>
+              <div class="card-center-watermark" style="color: #c84b31;">♦</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #c84b31;">
+                <span class="card-rank">9</span>
+                <span class="card-suit">♦</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(-1deg);">
+              <span class="meld-tag meld-emerald">R2</span>
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">8</span>
+                <span class="card-suit">♠</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♠</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">8</span>
+                <span class="card-suit">♠</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(0.5deg);">
+              <span class="meld-tag meld-emerald">R2</span>
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">9</span>
+                <span class="card-suit">♠</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♠</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">9</span>
+                <span class="card-suit">♠</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(2deg);">
+              <span class="meld-tag meld-emerald">R2</span>
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">10</span>
+                <span class="card-suit">♠</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♠</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">10</span>
+                <span class="card-suit">♠</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(3.5deg);">
+              <span class="meld-tag meld-emerald">R2</span>
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">J</span>
+                <span class="card-suit">♠</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♠</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">J</span>
+                <span class="card-suit">♠</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(5deg);">
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">5</span>
+                <span class="card-suit">♣</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♣</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">5</span>
+                <span class="card-suit">♣</span>
+              </div>
+            </div>
+
+            <div class="player-card" onclick="selectCard(this)" style="transform: rotate(6.5deg);">
+              <div class="card-top-idx" style="color: #111;">
+                <span class="card-rank">7</span>
+                <span class="card-suit">♣</span>
+              </div>
+              <div class="card-center-watermark" style="color: #111;">♣</div>
+              <div class="card-top-idx" style="transform: rotate(180deg); color: #111;">
+                <span class="card-rank">7</span>
+                <span class="card-suit">♣</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Quick Chat Button -->
+        <button class="thumb-rail-btn" id="btn-quick-chat" title="Quick Chat" onclick="toggleDemoModal('💬 Quick Chat')">
+          💬
+        </button>
+
+        <!-- Floating Emoji Reaction Button -->
+        <button class="thumb-rail-btn" id="btn-emoji" title="Send Reaction" onclick="toggleDemoModal('😊 Reaction Emotes')">
+          😊
+        </button>
+
+      </div>
+
+      <!-- TAB 2: MAIN LOBBY VIEW -->
+      <div class="lobby-view" id="view-lobby">
+        
+        <!-- Lobby Top Header -->
+        <div class="lobby-header">
+          <!-- Profile Chip -->
+          <div class="lobby-profile">
+            <div class="lobby-avatar">A</div>
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-size: 11px; font-weight: 800; color: #fff;">Aleef</span>
+              <span style="font-size: 8px; font-family: 'JetBrains Mono'; color: #e5c378;">LVL 1 • GOOGLE</span>
+            </div>
+          </div>
+
+          <!-- Holhuashi Brand Header -->
+          <div class="lobby-brand-center">
+            <span style="font-family: 'Faruma'; font-size: 14px; font-weight: 800; color: #e5c378;">ހޮޅުއަށި</span>
+            <span style="font-family: 'Cinzel'; font-size: 11px; font-weight: 800; border-left: 1px solid #301a14; padding-left: 6px;">HOLHUASHI</span>
+          </div>
+
+          <!-- Currency Chips & Actions -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="hud-pill">
+              <span>🪙</span>
+              <span style="color: #e5c378;">5,000</span>
+            </div>
+            <div class="hud-pill">
+              <span>💎</span>
+              <span style="color: #c84b31;">180</span>
+            </div>
+            <button class="icon-btn" title="Social">👥</button>
+            <button class="icon-btn" title="Settings">⚙️</button>
+          </div>
+        </div>
+
+        <!-- 3-Game Carousel -->
+        <div class="lobby-carousel">
+          
+          <!-- Card 1: DIGU (Active) -->
+          <div class="game-card active">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 8.5px; font-weight: 800; background: #c84b3133; border: 1px solid #e5c37866; color: #e5c378; padding: 2px 6px; border-radius: 10px;">
+                ● LIVE NOW
+              </span>
+              <span style="font-size: 9px; font-family: 'JetBrains Mono'; color: #f7f0ea88;">4P & 1v1</span>
+            </div>
+
+            <div>
+              <div class="game-shield">
+                <span class="shield-thaana">ޑ</span>
+              </div>
+              <div class="game-title">
+                DIGU <span class="game-thaana-title">ޑިގު</span>
+              </div>
+              <p class="game-desc">
+                Classic 10-card Maldivian Gin Rummy. Form runs, build sets, and slam Gin face-down!
+              </p>
+            </div>
+
+            <div>
+              <button class="btn-enter-game" onclick="switchTab('TABLE')">
+                Enter Digu Lobby ➔
+              </button>
+              <div style="font-size: 8px; font-family: 'JetBrains Mono'; color: #e5c378aa; text-align: center; margin-top: 4px;">
+                🟡 1,420 Players Online
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: DHIHAEH (Coming Soon) -->
+          <div class="game-card" style="opacity: 0.85;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 8.5px; font-weight: 800; background: #3b0764; border: 1px solid #a855f7; color: #d8b4fe; padding: 2px 6px; border-radius: 10px;">
+                🔒 COMING SOON
+              </span>
+              <span style="font-size: 9px; font-family: 'JetBrains Mono'; color: #f7f0ea88;">4-Player</span>
+            </div>
+
+            <div>
+              <div class="game-shield" style="border-color: #a855f7;">
+                <span class="shield-thaana" style="color: #d8b4fe;">ދި</span>
+              </div>
+              <div class="game-title">
+                DHIHAEH <span class="game-thaana-title" style="color: #d8b4fe;">ދިހައެއް</span>
+              </div>
+              <p class="game-desc">
+                Fast-paced 10s counting and trick collection. Sweep the table with tactical plays.
+              </p>
+            </div>
+
+            <div>
+              <button class="btn-enter-game" style="background: #1e1328; border: 1px solid #a855f7; color: #d8b4fe;" onclick="alert('Dhihaeh rules are in development!')">
+                Preview Teaser
+              </button>
+              <div style="font-size: 8px; font-family: 'JetBrains Mono'; color: #a855f7aa; text-align: center; margin-top: 4px;">
+                Rules Drafting Phase
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: BONDI (Coming Soon) -->
+          <div class="game-card" style="opacity: 0.85;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 8.5px; font-weight: 800; background: #1e3a8a; border: 1px solid #38bdf8; color: #bae6fd; padding: 2px 6px; border-radius: 10px;">
+                🔒 COMING SOON
+              </span>
+              <span style="font-size: 9px; font-family: 'JetBrains Mono'; color: #f7f0ea88;">2-6 Players</span>
+            </div>
+
+            <div>
+              <div class="game-shield" style="border-color: #38bdf8;">
+                <span class="shield-thaana" style="color: #bae6fd;">ބ</span>
+              </div>
+              <div class="game-title">
+                BONDI <span class="game-thaana-title" style="color: #bae6fd;">ބޮނޑި</span>
+              </div>
+              <p class="game-desc">
+                Strategic card clustering and bluffing. Build bundles to dominate the match.
+              </p>
+            </div>
+
+            <div>
+              <button class="btn-enter-game" style="background: #0f1f38; border: 1px solid #38bdf8; color: #bae6fd;" onclick="alert('Bondi rules are in development!')">
+                Preview Teaser
+              </button>
+              <div style="font-size: 8px; font-family: 'JetBrains Mono'; color: #38bdf8aa; text-align: center; margin-top: 4px;">
+                Concept Balancing Phase
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Lobby Footer -->
+        <div class="lobby-footer">
+          <button style="display: flex; align-items: center; gap: 6px; background: #301a14; border: 1px solid #e5c37866; color: #e5c378; padding: 4px 12px; border-radius: 10px; font-size: 10px; font-weight: 800; cursor: pointer;" onclick="alert('🎁 Claimed +500 Coins!')">
+            <span>🎁</span>
+            <span>Daily Free Bonus</span>
+          </button>
+          <span style="font-size: 9px; font-family: 'JetBrains Mono'; color: #f7f0ea66;">
+            Holhuashi Games Platform • v0.2.9
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Android Home Gesture Navigation Bar Pill -->
+      <div class="android-gesture-pill"></div>
+
+    </div>
+  </div>
+
+  <!-- Detailed Ergonomic Comparison & Design Notes -->
+  <div class="annotation-box">
+    <div class="anno-item">
+      <h4>
+        <span>1. Hand Card Elevation & Sizing</span>
+        <span class="fix-badge">Fixed</span>
+      </h4>
+      <p>
+        <strong>Flaw in Before:</strong> Cards were pulled down with <code>-mb-6</code>, chopping them in half vertically under the screen bezel and gesture pill.<br>
+        <strong>Optimized Fix:</strong> Hand is anchored with <code>padding-bottom: 18px</code>, completely clear of the Android navigation pill. Cards use responsive <code>72px × 110px</code> proportions so 100% of ranks and meld chips are visible.
+      </p>
+    </div>
+
+    <div class="anno-item">
+      <h4>
+        <span>2. Thumb-Zone Triggers</span>
+        <span class="fix-badge">Fixed</span>
+      </h4>
+      <p>
+        <strong>Flaw in Before:</strong> Quick Chat (💬) overlapped Card #1 (6♥) and Emoji (😊) overlapped Card #10 (7♣), causing accidental clicks.<br>
+        <strong>Optimized Fix:</strong> Relocated to Mid-Table Thumb Rails (Y = 34%), perfectly aligned with natural thumb reach and 100% clear of the cards.
+      </p>
+    </div>
+
+    <div class="anno-item">
+      <h4>
+        <span>3. Main Lobby Height Budget</span>
+        <span class="fix-badge">Fixed</span>
+      </h4>
+      <p>
+        <strong>Flaw in Before:</strong> 360px cards + header + footer totaled 510px, causing severe vertical overflow and status bar collision on S25 Ultra's 412dp screen.<br>
+        <strong>Optimized Fix:</strong> Dynamic card height scaled to 232px with top safe area padding, allowing all 3 games and footer to fit comfortably with zero vertical scroll.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      const tableTabBtn = document.getElementById('tab-table');
+      const lobbyTabBtn = document.getElementById('tab-lobby');
+      const tableView = document.getElementById('view-table');
+      const lobbyView = document.getElementById('view-lobby');
+
+      if (tab === 'TABLE') {
+        tableTabBtn.classList.add('active');
+        lobbyTabBtn.classList.remove('active');
+        tableView.style.display = 'flex';
+        lobbyView.style.display = 'none';
+      } else {
+        lobbyTabBtn.classList.add('active');
+        tableTabBtn.classList.remove('active');
+        tableView.style.display = 'none';
+        lobbyView.style.display = 'flex';
+      }
+    }
+
+    function setMode(mode) {
+      const container = document.getElementById('device-container');
+      const btnBefore = document.getElementById('btn-mode-before');
+      const btnAfter = document.getElementById('btn-mode-after');
+
+      if (mode === 'BEFORE') {
+        container.classList.remove('state-after');
+        container.classList.add('state-before');
+        btnBefore.classList.add('active');
+        btnAfter.classList.remove('active');
+      } else {
+        container.classList.remove('state-before');
+        container.classList.add('state-after');
+        btnAfter.classList.add('active');
+        btnBefore.classList.remove('active');
+      }
+    }
+
+    function selectCard(el) {
+      const isSelected = el.classList.contains('selected');
+      document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
+      if (!isSelected) {
+        el.classList.add('selected');
+      }
+    }
+
+    function drawStockCard() {
+      alert('Drew 1 card from Stock Pile into hand!');
+    }
+
+    function drawDiscardCard() {
+      alert('Drew top Discard (4 of Hearts) into hand!');
+    }
+
+    function slamGinTrigger() {
+      alert('⚡ MALDIVIAN GIN SLAM! Round declared with face-down finish!');
+    }
+
+    function toggleDemoModal(title) {
+      alert(title + ' modal opened! Notice how this trigger is safely docked on the mid-table rail, away from your hand cards.');
+    }
+  </script>
+</body>
+</html>

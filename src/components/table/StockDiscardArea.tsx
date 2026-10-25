@@ -83,7 +83,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
           DISCARD
         </div>
 
-        <div className="relative w-[78px] sm:w-[90px] md:w-[100px] h-[114px] sm:h-[132px] md:h-[148px]">
+        <div className="relative w-[clamp(52px,15dvh,76px)] h-[clamp(76px,22dvh,110px)]">
           {topDiscard ? (
             <>
               {discardPile.length > 2 && (
@@ -168,7 +168,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
           DRAW PILE
         </div>
 
-        <div className="relative w-[78px] sm:w-[90px] md:w-[100px] h-[114px] sm:h-[132px] md:h-[148px]">
+        <div className="relative w-[clamp(52px,15dvh,76px)] h-[clamp(76px,22dvh,110px)]">
           {/* 3D Stack Depth Shadows */}
           <div className="absolute -top-1.5 -right-1.5 w-full h-full rounded-[10px] bg-black/70 pointer-events-none" />
           <div className="absolute -top-0.5 -right-0.5 w-full h-full rounded-[10px] bg-black/40 pointer-events-none" />

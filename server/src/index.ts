@@ -3,7 +3,7 @@ import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { WebSocketServer } from 'ws';
-import { checkDatabaseHealth } from './db.js';
+import { checkDatabaseHealth, initDatabase } from './db.js';
 import { setupWebSocket } from './ws/socketHandler.js';
 import { friendsRouter } from './routes/friends.js';
 import { roomsRouter } from './routes/rooms.js';
@@ -48,7 +48,8 @@ const wss = new WebSocketServer({ server });
 
 setupWebSocket(wss);
 
-server.listen(port, () => {
+server.listen(port, async () => {
   console.log(`[Thaasbai Game Server] Running on http://localhost:${port}`);
   console.log(`[Thaasbai Game Server] WebSocket mounted at ws://localhost:${port}`);
+  await initDatabase();
 });

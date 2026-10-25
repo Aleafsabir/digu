@@ -178,27 +178,10 @@ export class SocialService {
       }
       return { success: true, message: data.message };
     } catch {
-      // Offline fallback: simulated local friend add
-      const existing = this.loadLocalFriends();
-      if (existing.some(f => f.friendCode.toUpperCase() === cleanCode)) {
-        return { success: false, message: 'Player is already on your Friends list.' };
-      }
-
-      const newFriend: Friend = {
-        friendshipId: `local-f-${Date.now()}`,
-        friendId: `user_${Math.random().toString(36).substring(2, 8)}`,
-        displayName: `Friend (${cleanCode})`,
-        avatarId: 'holhuashi',
-        level: 5,
-        friendCode: cleanCode,
-        presenceStatus: 'IN_LOBBY',
-        friendsSince: new Date().toISOString(),
-        lastActiveAt: new Date().toISOString(),
+      return {
+        success: false,
+        message: 'Unable to reach game server. Please check your internet connection.',
       };
-
-      existing.unshift(newFriend);
-      this.saveLocalFriends(existing);
-      return { success: true, message: `Connected with ${cleanCode}!`, friend: newFriend };
     }
   }
 

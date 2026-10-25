@@ -324,11 +324,17 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                       <Search className="w-4 h-4 text-[#e5c378]/50 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
+                        dir="ltr"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                        autoComplete="off"
+                        spellCheck={false}
+                        inputMode="text"
                         maxLength={12}
                         value={friendCodeInput}
                         onChange={e => setFriendCodeInput(e.target.value.toUpperCase())}
                         placeholder="e.g. DIGU-1104"
-                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#170b09] border border-[#301a14] focus:border-[#e5c378] text-xs font-mono font-bold text-[#f7f0ea] outline-none"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#170b09] border border-[#301a14] focus:border-[#e5c378] text-xs font-mono font-bold text-[#f7f0ea] outline-none text-left tracking-wider"
                       />
                     </div>
                     <button

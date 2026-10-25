@@ -550,10 +550,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div className="flex gap-1.5">
                       <input
                         type="text"
+                        dir="ltr"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        autoComplete="off"
+                        spellCheck={false}
+                        inputMode="url"
                         value={serverUrlInput}
                         onChange={e => setServerUrlInput(e.target.value)}
                         placeholder="https://your-server.com or http://192.168.1.x:8080"
-                        className="flex-1 bg-[#170b09] border border-[#301a14] focus:border-[#e5c378] rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-[#f7f0ea] outline-none transition"
+                        className="flex-1 bg-[#170b09] border border-[#301a14] focus:border-[#e5c378] rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-[#f7f0ea] outline-none transition text-left"
                       />
                       <button
                         type="button"

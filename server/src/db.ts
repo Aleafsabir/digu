@@ -40,3 +40,32 @@ export async function checkDatabaseHealth(): Promise<{ connected: boolean; laten
     return { connected: false, error: err.message };
   }
 }
+
+/**
+ * Initializes database tables automatically from schema.sql on startup.
+ */
+export async function initDatabase(): Promise<void> {
+  try {
+    const health = await checkDatabaseHealth();
+    if (!health.connected) {
+      console.warn('[Database] PostgreSQL not connected. Server running in standalone memory mode.');
+      return;
+    }
+
+    const { default: fs } = await import('fs');
+    const { default: path } = await import('path');
+    const { fileURLToPath } = await import('url');
+
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const schemaPath = path.resolve(__dirname, '../db/schema.sql');
+
+    if (fs.existsSync(schemaPath)) {
+      const sql = fs.readFileSync(schemaPath, 'utf8');
+      await pool.query(sql);
+      console.log('[Database] Schema verified & auto-migrated successfully.');
+    }
+  } catch (err: any) {
+    console.warn('[Database] Auto-migration notice:', err.message);
+  }
+}

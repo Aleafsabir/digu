@@ -8,7 +8,7 @@ const STORAGE_KEY = 'digu_custom_backend_url';
  */
 export const DEFAULT_MOBILE_BACKEND_URL =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  'https://encounter-share-counters-honolulu.trycloudflare.com';
+  'https://dash-owners-prescription-cite.trycloudflare.com';
 
 /**
  * Returns whether the app is running as a native mobile shell (Android/iOS) via Capacitor.

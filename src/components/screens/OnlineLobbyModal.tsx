@@ -127,24 +127,34 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
   useEffect(() => {
     if (activeTab !== 'CREATE_ROOM') return;
 
-    // Register this room in database
+    let isMounted = true;
+
     DatabaseService.createRoom(
       profile,
       pendingRules.mode,
       selectedStake,
       selectedTarget,
       true
-    );
+    ).then(room => {
+      if (!isMounted || !room) return;
+      if (room.roomCode && room.roomCode !== privateRoomCode) {
+        setPrivateRoomCode(room.roomCode);
+      }
+    });
 
-    const pollInterval = setInterval(() => {
-      const room = DatabaseService.getRoomByCode(privateRoomCode);
-      if (room) {
-        const nextJoined: Record<number, { playerName: string; avatarId: string }> = {};
+    const pollInterval = setInterval(async () => {
+      const room = await DatabaseService.getRoomByCode(privateRoomCode);
+      if (room && isMounted) {
+        const nextJoined: Record<number, { playerName: string; avatarId: string; isBot?: boolean }> = {};
         room.seats.forEach(s => {
-          if (s.seatIndex !== 0 && s.isConnected && !s.isBot) {
-            nextJoined[s.seatIndex] = {
-              playerName: s.playerName,
-              avatarId: s.avatarId,
+          const seatIdx = s.seatIndex ?? (s as any).seat_index;
+          const isConnected = s.isConnected ?? (s as any).is_connected;
+          const isBot = s.isBot ?? (s as any).is_bot;
+          if (seatIdx !== 0 && isConnected) {
+            nextJoined[seatIdx] = {
+              playerName: s.playerName || (s as any).player_name,
+              avatarId: s.avatarId || (s as any).avatar_id || 'sultan',
+              isBot,
             };
           }
         });
@@ -152,7 +162,10 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
       }
     }, 1500);
 
-    return () => clearInterval(pollInterval);
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, [activeTab, privateRoomCode, profile, pendingRules.mode, selectedStake, selectedTarget]);
 
   const handleCopyCode = () => {
@@ -181,7 +194,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
     confirmAndStartMatch();
   };
 
-  const handleJoinWithCode = () => {
+  const handleJoinWithCode = async () => {
     setJoinError(null);
     const clean = joinInputCode.trim().toUpperCase();
     if (!clean) {
@@ -195,7 +208,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
       return;
     }
 
-    const joinResult = DatabaseService.joinRoom(formattedCode, profile);
+    const joinResult = await DatabaseService.joinRoom(formattedCode, profile);
     if (!joinResult.success) {
       setJoinError(joinResult.error || 'Could not find or join room');
       return;
@@ -571,13 +584,28 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => setFriendPickerSeatIndex(seatIdx)}
-                        className="w-full py-1 rounded-lg bg-[#301a14] hover:bg-[#4a2820] border border-[#e5c378]/30 text-[#e5c378] text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
-                      >
-                        <UserPlus className="w-2.5 h-2.5" />
-                        <span>Invite</span>
-                      </button>
+                      <div className="w-full flex items-center gap-1">
+                        <button
+                          onClick={() => setFriendPickerSeatIndex(seatIdx)}
+                          className="flex-1 py-1 rounded-lg bg-[#301a14] hover:bg-[#4a2820] border border-[#e5c378]/30 text-[#e5c378] text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
+                        >
+                          <UserPlus className="w-2.5 h-2.5" />
+                          <span>Invite</span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await DatabaseService.fillSeatWithBot('', privateRoomCode, seatIdx);
+                            setJoinedSeats(prev => ({
+                              ...prev,
+                              [seatIdx]: { playerName: `Bot ${seatIdx + 1}`, avatarId: 'fisher', isBot: true },
+                            }));
+                          }}
+                          title="Fill with AI Bot"
+                          className="px-2 py-1 rounded-lg bg-[#0d0605] hover:bg-[#301a14] border border-[#301a14] text-[#f7f0ea]/70 hover:text-[#e5c378] text-[9px] font-bold transition cursor-pointer"
+                        >
+                          +Bot
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -703,10 +731,16 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               <div className="flex items-center gap-2">
                 <input
                   type="text"
+                  dir="ltr"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
+                  inputMode="text"
                   placeholder="e.g. 8842 or THAAS-8842"
                   value={joinInputCode}
                   onChange={e => setJoinInputCode(e.target.value.toUpperCase())}
-                  className="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-3.5 py-2.5 font-mono font-black text-sm sm:text-base text-[#f7f0ea] uppercase tracking-widest placeholder:text-[#f7f0ea]/30 outline-none focus:ring-2 focus:ring-[#e5c378]"
+                  className="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-3.5 py-2.5 font-mono font-black text-sm sm:text-base text-[#f7f0ea] uppercase tracking-widest placeholder:text-[#f7f0ea]/30 outline-none focus:ring-2 focus:ring-[#e5c378] text-left"
                 />
               </div>
 
