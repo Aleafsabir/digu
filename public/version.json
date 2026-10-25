@@ -1,13 +1,13 @@
 {
-  "versionName": "0.3.1",
-  "versionCode": 13,
-  "releaseDate": "2026-10-25",
+  "versionName": "0.4.0",
+  "versionCode": 14,
+  "releaseDate": "2026-10-26",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Consolidated Right-Thumb Chat & Emoji: Unified single-button rail trigger eliminating duplicate menus and clutter",
-    "High-Visibility Reaction Bubbles: Directional speech tails, 32px animated emojis, bold contrast typography, and gold lacquer styling",
-    "Explicit Sender Attribution: Unmistakable speaker badges (YOU, HASSAN, AISHATH, etc.) on every reaction",
-    "Extended 6.0s Reaction Display: Smooth linear countdown timer bar for comfortable match reading"
+    "New Game Mode: Dhihaeh (ދިހައެއް) - 4-player 2v2 trick taking, Ace-high hierarchy, Dynamic Cut & Blind Reserve trump modes, 10s Trophy Bar, and Haasbagga (1,000 pts) glory!",
+    "New Game Mode: Bondi (ބޮނޑި) - 2-6 player cutthroat shedding, Standard single-card penalty & Suit Bondi mass dump, at-risk tracking, and 'You Lose!' showdown",
+    "Card Aesthetic Uniformity: Authentic Digu physical card faces, sizing, royal portraits, and fanning across all game modes",
+    "Performance & Lag Elimination: Completely removed expensive CSS backdrop-filter blurs in gameplay HUDs; isolated turn countdown clock to prevent 1-second hand re-renders; added React.memo and GPU hardware acceleration (translateZ) on cards"
   ]
 }
