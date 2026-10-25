@@ -495,9 +495,9 @@ export const TableSurface: React.FC = () => {
               <div className="relative flex items-center justify-center opacity-18 w-72 h-72 sm:w-96 sm:h-96">
                 <svg className="w-full h-full text-[#E5C378]" viewBox="0 0 200 200" fill="none">
                   <circle cx="100" cy="100" r="92" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
-                  <circle cx="100" cy="100" r="82" stroke="#05D59A" strokeWidth="2" opacity="0.6" />
+                  <circle cx="100" cy="100" r="82" stroke="#c84b31" strokeWidth="2" opacity="0.6" />
                   <circle cx="100" cy="100" r="72" stroke="currentColor" strokeWidth="1" />
-                  <circle cx="100" cy="100" r="58" stroke="#05D59A" strokeWidth="1.5" strokeDasharray="6 3" />
+                  <circle cx="100" cy="100" r="58" stroke="#c84b31" strokeWidth="1.5" strokeDasharray="6 3" />
                   <circle cx="100" cy="100" r="44" stroke="currentColor" strokeWidth="1" />
                   <g stroke="currentColor" strokeWidth="0.75" opacity="0.5">
                     <line x1="100" y1="8" x2="100" y2="35" />
@@ -514,7 +514,7 @@ export const TableSurface: React.FC = () => {
                   <span className="font-thaana text-6xl sm:text-8xl font-black text-[#E5C378] drop-shadow-[0_2px_12px_rgba(229,195,120,0.5)]">
                     ޑ
                   </span>
-                  <span className="font-sans-clean text-[10px] sm:text-xs font-black tracking-[0.3em] text-[#05D59A] uppercase -mt-2">
+                  <span className="font-sans-clean text-[10px] sm:text-xs font-black tracking-[0.3em] text-[#e5c378] uppercase -mt-2">
                     DIGU
                   </span>
                 </div>
@@ -524,12 +524,12 @@ export const TableSurface: React.FC = () => {
             {/* Gin Slam Table Felt Shockwave Ripple Animation & Cinematic Splash */}
             {isSlammingFinish && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30 overflow-hidden">
-                {/* Expanding Fire / Emerald Shockwaves */}
+                {/* Expanding Fire / Gold Shockwaves */}
                 <motion.div
                   initial={{ scale: 0.2, opacity: 1 }}
                   animate={{ scale: [0.2, 3.2], opacity: [1, 0] }}
                   transition={{ duration: 0.85, ease: 'easeOut' }}
-                  className="w-52 h-52 rounded-full border-4 border-[#05D59A] shadow-[0_0_80px_rgba(5,213,154,1)]"
+                  className="w-52 h-52 rounded-full border-4 border-[#c84b31] shadow-[0_0_80px_rgba(200,75,49,1)]"
                 />
                 <motion.div
                   initial={{ scale: 0.15, opacity: 0.95 }}
@@ -551,13 +551,13 @@ export const TableSurface: React.FC = () => {
                   transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                   className="flex flex-col items-center select-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.95)]"
                 >
-                  <div className="bg-gradient-to-r from-[#042618] via-[#05D59A] to-[#042618] px-6 sm:px-8 py-2 sm:py-2.5 rounded-2xl border-2 border-[#E5C378] shadow-[0_0_60px_rgba(5,213,154,0.9)] flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-[#170b09] via-[#c84b31] to-[#170b09] px-6 sm:px-8 py-2 sm:py-2.5 rounded-2xl border-2 border-[#E5C378] shadow-[0_0_60px_rgba(200,75,49,0.9)] flex items-center gap-3">
                     <span className="text-2xl sm:text-3xl animate-bounce">⚡</span>
                     <div className="flex items-center gap-2">
                       <span className="font-thaana text-3xl sm:text-4xl font-black text-[#E5C378] drop-shadow-[0_2px_10px_rgba(229,195,120,0.8)]">
                         ޑިގު!
                       </span>
-                      <span className="text-xl sm:text-3xl font-black text-slate-950 tracking-widest drop-shadow-[0_1px_4px_rgba(255,255,255,0.4)] font-sans-clean whitespace-nowrap">
+                      <span className="text-xl sm:text-3xl font-black text-[#f7f0ea] tracking-widest drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] font-sans-clean whitespace-nowrap">
                         GIN SLAM!
                       </span>
                     </div>
@@ -600,7 +600,7 @@ export const TableSurface: React.FC = () => {
                 {showFullscreenHint && (
                   <div
                     onClick={toggleFullscreen}
-                    className="absolute left-0 top-full mt-1.5 z-40 bg-[#02140D]/95 border border-[#05D59A]/60 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap cursor-pointer animate-bounce"
+                    className="absolute left-0 top-full mt-1.5 z-40 bg-[#170b09]/95 border border-[#e5c378]/60 text-[#f7f0ea] text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap cursor-pointer animate-bounce"
                   >
                     <span>Tap ⛶ for Fullscreen</span>
                     <button
@@ -608,7 +608,7 @@ export const TableSurface: React.FC = () => {
                         e.stopPropagation();
                         setShowFullscreenHint(false);
                       }}
-                      className="text-slate-400 hover:text-white ml-0.5"
+                      className="text-[#e5c378]/60 hover:text-white ml-0.5"
                     >
                       ✕
                     </button>
@@ -668,10 +668,10 @@ export const TableSurface: React.FC = () => {
               {openingPhase === 'dealing' && (
                 <button
                   onClick={() => { skipDealRef.current = true; }}
-                  className="absolute -top-7 z-40 bg-black/85 hover:bg-black text-slate-300 hover:text-white border border-slate-700/80 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer font-sans-clean animate-in fade-in duration-300"
+                  className="absolute -top-7 z-40 bg-[#0d0605]/90 hover:bg-[#170b09] text-[#f7f0ea]/80 hover:text-white border border-[#301a14] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer font-sans-clean animate-in fade-in duration-300"
                 >
                   <span>Dealing...</span>
-                  <span className="text-[#05D59A]">Skip ⏩</span>
+                  <span className="text-[#e5c378]">Skip ⏩</span>
                 </button>
               )}
               {openingPhase === 'shuffle' ? (
@@ -750,7 +750,7 @@ export const TableSurface: React.FC = () => {
                   setShowQuickChat(true);
                 }}
                 title="Quick Chat"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#02140D]/90 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#170b09]/90 hover:bg-[#301a14] backdrop-blur-md border border-[#301a14] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
               >
                 <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </button>
@@ -769,7 +769,7 @@ export const TableSurface: React.FC = () => {
                   setShowQuickChat(true);
                 }}
                 title="Emojis"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#02140D]/90 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#170b09]/90 hover:bg-[#301a14] backdrop-blur-md border border-[#301a14] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
               >
                 <Smile className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </button>

@@ -71,18 +71,18 @@ export const MeldDropzone: React.FC<MeldDropzoneProps> = ({
               onClick={() => onSlotClick(index)}
               className={`min-h-[120px] rounded-2xl p-3 border-2 transition-all cursor-pointer flex flex-col justify-between ${
                 validation?.isValid
-                  ? 'bg-emerald-950/40 border-emerald-400 ring-2 ring-emerald-500/30 shadow-emerald-950/40 shadow-lg'
+                  ? 'bg-[#170b09] border-[#e5c378] ring-2 ring-[#e5c378]/30 shadow-lg'
                   : validation && !validation.isValid
                   ? 'bg-rose-950/40 border-rose-500 ring-2 ring-rose-500/30 shadow-rose-950/40 shadow-lg'
                   : selectedCardId
-                  ? 'bg-[#2C1B10]/80 border-dashed border-[#D4AF37] hover:bg-[#2C1B10] shadow-md ring-2 ring-[#D4AF37]/30'
-                  : 'bg-[#2C1B10]/60 border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37]'
+                  ? 'bg-[#170b09]/90 border-dashed border-[#e5c378] hover:bg-[#170b09] shadow-md ring-2 ring-[#e5c378]/30'
+                  : 'bg-[#0d0605] border-dashed border-[#301a14] hover:border-[#e5c378]/50'
               }`}
             >
               {/* Slot Header */}
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-slate-100">{label}</span>
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="font-bold text-[#f7f0ea]">{label}</span>
+                <span className="text-[10px] font-mono text-[#e5c378]/70">
                   {cardsInSlot.length} / {max} Cards
                 </span>
               </div>
@@ -107,7 +107,7 @@ export const MeldDropzone: React.FC<MeldDropzoneProps> = ({
                 ))}
 
                 {cardsInSlot.length === 0 && (
-                  <span className="text-xs text-slate-400 italic">
+                  <span className="text-xs text-[#f7f0ea]/40 italic">
                     {selectedCardId ? 'Click to place selected card here' : 'Dropzone empty'}
                   </span>
                 )}
@@ -116,13 +116,13 @@ export const MeldDropzone: React.FC<MeldDropzoneProps> = ({
               {/* Real-Time Meld Diagnostics */}
               {validation && (
                 <div
-                  className={`text-[10px] font-bold flex items-center gap-1.5 pt-1 border-t border-slate-700/50 ${
-                    validation.isValid ? 'text-emerald-300' : 'text-rose-300'
+                  className={`text-[10px] font-bold flex items-center gap-1.5 pt-1 border-t border-[#301a14] ${
+                    validation.isValid ? 'text-[#e5c378]' : 'text-rose-300'
                   }`}
                 >
                   {validation.isValid ? (
                     <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c378] shrink-0" />
                       <span>
                         Valid {validation.type} (+{validation.points} pts)
                       </span>

@@ -306,13 +306,13 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     },
 
     activeDeck: (() => {
-      if (typeof localStorage === 'undefined') return 'digu_emerald';
+      if (typeof localStorage === 'undefined') return 'royal_lacquer';
       const saved = localStorage.getItem('thaasbai_active_deck');
-      if (!saved || saved === 'burgundy_gold') {
-        localStorage.setItem('thaasbai_active_deck', 'digu_emerald');
-        return 'digu_emerald';
+      if (!saved || saved === 'burgundy_gold' || saved === 'digu_emerald') {
+        localStorage.setItem('thaasbai_active_deck', 'royal_lacquer');
+        return 'royal_lacquer';
       }
-      return (saved as DeckDesignId) || 'digu_emerald';
+      return (saved as DeckDesignId) || 'royal_lacquer';
     })(),
 
     setActiveDeck: (deck: DeckDesignId) => {

@@ -89,38 +89,38 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between bg-radial from-[#063824] via-[#02140D] to-[#010A06] p-3 sm:p-5 select-none overflow-hidden font-sans-clean">
+    <div className="relative w-full h-full flex flex-col justify-between bg-radial from-[#24110d] via-[#170b09] to-[#0d0605] p-3 sm:p-5 select-none overflow-hidden font-sans-clean text-[#f7f0ea]">
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between w-full pb-3 border-b border-slate-800/80 shrink-0">
+      <header className="flex items-center justify-between w-full pb-3 border-b border-[#301a14] shrink-0">
         {/* Left: Profile Pill */}
         <div
           onClick={() => setProfileModalOpen(true)}
-          className="flex items-center gap-2.5 bg-[#02140D]/90 border border-[#05D59A]/30 px-2 py-1 rounded-full cursor-pointer hover:border-[#05D59A] transition shadow-md"
+          className="flex items-center gap-2.5 bg-[#170b09]/90 border border-[#301a14] px-2 py-1 rounded-full cursor-pointer hover:border-[#e5c378] transition shadow-md"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#05D59A] to-[#047857] flex items-center justify-center font-black text-xs text-slate-950 border border-slate-200">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#c84b31] to-[#8f2d1b] flex items-center justify-center font-black text-xs text-white border border-[#e5c378]/60">
             {currentAvatar.icon || profile.displayName.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col text-left pr-2">
-            <span className="text-xs font-black text-white flex items-center gap-1 leading-tight">
+            <span className="text-xs font-black text-[#f7f0ea] flex items-center gap-1 leading-tight font-serif-luxury">
               {profile.displayName}
-              <small className="text-[10px] text-slate-400">▼</small>
+              <small className="text-[10px] text-[#e5c378]/70">▼</small>
             </span>
-            <span className="text-[9px] font-black text-[#05D59A] tracking-wider">
+            <span className="text-[9px] font-black text-[#e5c378] tracking-wider font-mono">
               LVL {profile.level} • {profile.loginProvider.toUpperCase()}
             </span>
           </div>
         </div>
 
         {/* Center: Holhuashi Brand Header */}
-        <div className="hidden sm:flex items-center gap-2.5 bg-[#02140D]/80 border border-slate-800 px-3 py-1 rounded-2xl shadow">
+        <div className="hidden sm:flex items-center gap-2.5 bg-[#170b09]/90 border border-[#301a14] px-3 py-1 rounded-2xl shadow">
           <img
             src="/brand_assets/holhuashi_app_icon_v3.jpg"
             alt="Holhuashi Crest"
-            className="w-6 h-6 rounded-lg object-cover border border-[#E5C378]/60 shadow-sm"
+            className="w-6 h-6 rounded-lg object-cover border border-[#e5c378]/60 shadow-sm"
           />
           <div className="flex items-center gap-1.5">
-            <span className="font-thaana text-base font-black text-[#E5C378]">ހޮޅުއަށި</span>
-            <span className="font-sans-clean font-black text-xs text-[#05D59A] tracking-wider border-l border-slate-700 pl-1.5">
+            <span className="font-thaana text-base font-black text-[#e5c378]">ހޮޅުއަށި</span>
+            <span className="font-serif-luxury font-black text-xs text-[#f7f0ea] tracking-wider border-l border-[#301a14] pl-1.5">
               HOLHUASHI
             </span>
           </div>
@@ -129,31 +129,31 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
         {/* Right: Currency Chips & Actions */}
         <div className="flex items-center gap-2">
           {/* Currency Chips */}
-          <div className="flex items-center gap-1.5 bg-[#02140D]/90 border border-slate-700/80 px-2.5 py-1 rounded-full text-xs font-black text-slate-200 shadow">
+          <div className="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#e5c378] shadow">
             <RanDhadhuCoinIcon className="w-3.5 h-3.5" />
             <span className="font-mono text-xs">{profile.coins.toLocaleString()}</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#02140D]/90 border border-slate-700/80 px-2.5 py-1 rounded-full text-xs font-black text-slate-200 shadow">
+          <div className="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#c84b31] shadow">
             <LagoonGemIcon className="w-3.5 h-3.5" />
-            <span className="font-mono text-xs text-cyan-300">180</span>
+            <span className="font-mono text-xs text-[#c84b31]">180</span>
           </div>
 
           {/* Social */}
           <button
             onClick={() => setFriendsModalOpen(true)}
-            className="w-9 h-9 rounded-xl bg-[#02140D]/90 border border-slate-700 text-slate-300 hover:text-white hover:border-[#05D59A] flex items-center justify-center relative cursor-pointer transition shadow"
+            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center relative cursor-pointer transition shadow"
             title="Friends & Social"
           >
             <Users className="w-4 h-4" />
             {onlineFriendsCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#05D59A]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#e5c378]" />
             )}
           </button>
 
           {/* Settings */}
           <button
             onClick={onOpenSettings}
-            className="w-9 h-9 rounded-xl bg-[#02140D]/90 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 flex items-center justify-center cursor-pointer transition shadow"
+            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center cursor-pointer transition shadow"
             title="Settings"
           >
             <Settings className="w-4 h-4" />
@@ -162,7 +162,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           {/* Switch Account */}
           <button
             onClick={onSwitchAccount}
-            className="w-9 h-9 rounded-xl bg-[#02140D]/90 border border-slate-700 text-slate-300 hover:text-white hover:border-rose-500/50 flex items-center justify-center cursor-pointer transition shadow"
+            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#c84b31] flex items-center justify-center cursor-pointer transition shadow"
             title="Switch Account / Sign Out"
           >
             <LogOut className="w-4 h-4" />
@@ -176,7 +176,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-[#0E2A1E] border border-[#05D59A] text-[#05D59A] px-4 py-1.5 rounded-full text-xs font-black shadow-lg"
+          className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-[#24110d] border border-[#e5c378] text-[#e5c378] px-4 py-1.5 rounded-full text-xs font-black shadow-lg"
         >
           {dailyBonusClaimedMsg}
         </motion.div>
@@ -185,7 +185,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
       {/* Main Carousel Arena */}
       <main className="flex-1 flex flex-col items-center justify-center my-2 max-w-5xl w-full mx-auto">
         <div className="text-center mb-3">
-          <span className="text-[11px] font-black tracking-widest text-[#05D59A] uppercase flex items-center justify-center gap-1.5">
+          <span className="text-[11px] font-black tracking-widest text-[#e5c378] uppercase flex items-center justify-center gap-1.5 font-mono">
             <span>🇲🇻</span>
             <span>Select Traditional Maldivian Game</span>
           </span>
@@ -198,44 +198,44 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
             whileHover={{ y: -6, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={() => onSelectGame('DIGU')}
-            className="relative h-[320px] sm:h-[360px] rounded-3xl bg-gradient-to-b from-[#063824] via-[#031B11] to-[#010D08] border-2 border-[#05D59A] p-5 flex flex-col justify-between shadow-[0_0_35px_rgba(5,213,154,0.35)] cursor-pointer overflow-hidden group"
+            className="relative h-[320px] sm:h-[360px] rounded-3xl bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#c84b31] p-5 flex flex-col justify-between shadow-[0_0_35px_rgba(200,75,49,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
           >
             {/* Subtle background vector caustics */}
-            <div className="absolute inset-0 bg-radial from-[#05D59A]/10 via-transparent to-black/60 pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-[#c84b31]/10 via-transparent to-black/60 pointer-events-none" />
 
             <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#05D59A]/20 border border-[#05D59A] text-[10px] font-black text-[#05D59A] tracking-wider uppercase">
-                <span className="w-2 h-2 rounded-full bg-[#05D59A] animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#c84b31]/30 border border-[#e5c378]/60 text-[10px] font-black text-[#e5c378] tracking-wider uppercase font-mono">
+                <span className="w-2 h-2 rounded-full bg-[#e5c378] animate-pulse" />
                 LIVE • PLAY NOW
               </span>
-              <span className="text-[11px] font-bold text-slate-400">4P & 1v1</span>
+              <span className="text-[11px] font-bold text-[#f7f0ea]/60 font-mono">4P & 1v1</span>
             </div>
 
             {/* Center Emblem: Ornate Lacquer Medallion with Daviyani (ޑ) */}
             <div className="relative my-auto flex flex-col items-center z-10">
               <div className="relative w-24 h-24 sm:w-26 sm:h-26 flex items-center justify-center mb-2">
-                {/* Backing fanned cards with glowing emerald aura */}
-                <div className="absolute -left-3 top-2 w-10 h-15 rounded-lg bg-[#042618] border border-[#05D59A]/50 -rotate-12 shadow-md flex items-center justify-center opacity-70">
-                  <span className="text-[10px] text-[#05D59A]">♠</span>
+                {/* Backing fanned cards with glowing lacquer aura */}
+                <div className="absolute -left-3 top-2 w-10 h-15 rounded-lg bg-[#301a14] border border-[#c84b31]/50 -rotate-12 shadow-md flex items-center justify-center opacity-70">
+                  <span className="text-[10px] text-[#f7f0ea]">♠</span>
                 </div>
-                <div className="absolute -right-3 top-2 w-10 h-15 rounded-lg bg-[#042618] border border-[#E5C378]/50 rotate-12 shadow-md flex items-center justify-center opacity-70">
-                  <span className="text-[10px] text-[#E5C378]">♥</span>
+                <div className="absolute -right-3 top-2 w-10 h-15 rounded-lg bg-[#301a14] border border-[#e5c378]/50 rotate-12 shadow-md flex items-center justify-center opacity-70">
+                  <span className="text-[10px] text-[#e5c378]">♥</span>
                 </div>
                 {/* Center Lacquer Shield */}
-                <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#064e3b] via-[#042618] to-[#010A06] border-2 border-[#E5C378] flex items-center justify-center shadow-[0_0_25px_rgba(5,213,154,0.4)] relative z-10 group-hover:scale-105 transition-transform duration-300">
-                  <div className="w-16 h-16 rounded-xl border border-[#05D59A]/60 flex items-center justify-center bg-[#02140D]/85">
-                    <span className="font-thaana text-4xl sm:text-5xl font-black text-[#E5C378] drop-shadow-[0_2px_12px_rgba(229,195,120,0.8)]">
+                <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#3d2019] via-[#24110d] to-[#0d0605] border-2 border-[#e5c378] flex items-center justify-center shadow-[0_0_25px_rgba(200,75,49,0.4)] relative z-10 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-16 h-16 rounded-xl border border-[#c84b31]/60 flex items-center justify-center bg-[#170b09]/90">
+                    <span className="font-thaana text-4xl sm:text-5xl font-black text-[#e5c378] drop-shadow-[0_2px_12px_rgba(229,195,120,0.8)]">
                       ޑ
                     </span>
                   </div>
                 </div>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2 font-serif-luxury">
                 DIGU
-                <span className="font-thaana text-2xl text-[#E5C378]">ޑިގު</span>
+                <span className="font-thaana text-2xl text-[#e5c378]">ޑިގު</span>
               </h3>
-              <p className="text-xs text-slate-300 mt-1 line-clamp-2 leading-relaxed text-center">
+              <p className="text-xs text-[#f7f0ea]/70 mt-1 line-clamp-2 leading-relaxed text-center">
                 Classic Maldivian 10-card Gin Rummy. Form melds, build runs, and slam Gin to claim the pot!
               </p>
             </div>
@@ -246,13 +246,13 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
                   e.stopPropagation();
                   onSelectGame('DIGU');
                 }}
-                className="w-full py-3 rounded-xl bg-[#05D59A] hover:bg-[#00F5AE] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_18px_rgba(5,213,154,0.45)] transition active:scale-95 cursor-pointer border-0"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_4px_18px_rgba(200,75,49,0.45)] transition active:scale-95 cursor-pointer border-0"
               >
                 <span>Enter Digu Lobby</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <div className="text-[10px] font-bold text-[#05D59A]/80 text-center">
-                🟢 1,420 Active Players at Tables
+              <div className="text-[10px] font-bold text-[#e5c378]/80 text-center font-mono">
+                🟡 1,420 Active Players at Tables
               </div>
             </div>
           </motion.div>
@@ -282,7 +282,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
 
             {/* Center Emblem: Crimson & Amethyst Medallion with Dhaalu (ދި) */}
             <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#581c87] via-[#2e1065] to-[#02140D] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_25px_rgba(168,85,247,0.3)] mb-2 relative group-hover:scale-105 transition-transform duration-300">
+              <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#581c87] via-[#2e1065] to-[#0d0605] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_25px_rgba(168,85,247,0.3)] mb-2 relative group-hover:scale-105 transition-transform duration-300">
                 <div className="w-16 h-16 rounded-xl border border-purple-400/50 flex flex-col items-center justify-center bg-[#170524]/90">
                   <span className="font-thaana text-3xl sm:text-4xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.6)]">
                     ދި
@@ -323,7 +323,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
                 phase: 'Rules Drafting & Concept Phase',
               })
             }
-            className="relative h-[320px] sm:h-[360px] rounded-3xl bg-gradient-to-b from-[#0a1b2e] via-[#0a1410] to-[#010A06] border-2 border-blue-900/60 p-5 flex flex-col justify-between shadow-lg cursor-pointer overflow-hidden group opacity-90 hover:opacity-100 hover:border-blue-400 transition"
+            className="relative h-[320px] sm:h-[360px] rounded-3xl bg-gradient-to-b from-[#121c2b] via-[#100b0a] to-[#0d0605] border-2 border-blue-900/60 p-5 flex flex-col justify-between shadow-lg cursor-pointer overflow-hidden group opacity-90 hover:opacity-100 hover:border-blue-400 transition"
           >
             <div className="absolute inset-0 bg-radial from-blue-900/10 via-transparent to-black/60 pointer-events-none" />
 
@@ -332,12 +332,12 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
                 <Lock className="w-3 h-3 text-blue-400" />
                 COMING SOON
               </span>
-              <span className="text-[11px] font-bold text-slate-400">2-6 Players</span>
+              <span className="text-[11px] font-bold text-[#f7f0ea]/70">2-6 Players</span>
             </div>
 
             {/* Center Emblem: Sapphire & Cyan Medallion with Baa (ބ) */}
             <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#1e3a8a] via-[#0c2e4e] to-[#02140D] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.3)] mb-2 relative group-hover:scale-105 transition-transform duration-300">
+              <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-gradient-to-br from-[#1e3a8a] via-[#0c2e4e] to-[#0d0605] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.3)] mb-2 relative group-hover:scale-105 transition-transform duration-300">
                 <div className="w-16 h-16 rounded-xl border border-cyan-400/50 flex flex-col items-center justify-center bg-[#07192b]/90">
                   <span className="font-thaana text-3xl sm:text-4xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.6)]">
                     ބ
@@ -374,41 +374,41 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handleDailyBonus}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-[#05D59A] text-slate-200 text-xs font-bold transition shadow cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#301a14] border border-[#e5c378]/40 hover:border-[#e5c378] text-[#e5c378] text-xs font-bold transition shadow cursor-pointer font-mono"
           >
-            <Gift className="w-4 h-4 text-[#E5C378]" />
+            <Gift className="w-4 h-4 text-[#e5c378]" />
             <span>Daily Free Bonus</span>
           </button>
 
           <button
             onClick={onOpenRules}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-slate-500 text-slate-200 text-xs font-bold transition shadow cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#170b09] border border-[#301a14] hover:border-[#e5c378] text-[#f7f0ea]/80 text-xs font-bold transition shadow cursor-pointer"
           >
-            <HelpCircle className="w-4 h-4 text-sky-400" />
+            <HelpCircle className="w-4 h-4 text-[#e5c378]" />
             <span>Game Guide</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
-          <Wifi className="w-3.5 h-3.5 text-[#05D59A]" />
+        <div className="flex items-center gap-2 text-[11px] font-bold text-[#f7f0ea]/60 font-mono">
+          <Wifi className="w-3.5 h-3.5 text-[#e5c378]" />
           <span>Maldives Central (14ms)</span>
-          <span className="w-2 h-2 rounded-full bg-[#05D59A]" />
+          <span className="w-2 h-2 rounded-full bg-[#e5c378]" />
         </div>
       </footer>
 
       {/* Teaser Rules Modal */}
       <AnimatePresence>
         {teaserGame && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-gradient-to-b from-[#031B11] to-[#02140D] border-2 border-slate-700 rounded-3xl p-6 max-w-sm w-full text-slate-100 shadow-2xl relative text-left"
+              className="bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#301a14] rounded-3xl p-6 max-w-sm w-full text-[#f7f0ea] shadow-2xl relative text-left"
             >
               <button
                 onClick={() => setTeaserGame(null)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
+                className="absolute top-4 right-4 text-[#e5c378]/60 hover:text-white p-1 rounded-full hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -416,29 +416,29 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl">🎴</span>
                 <div>
-                  <h3 className="text-lg font-black text-white">{teaserGame.title}</h3>
-                  <span className="font-thaana text-sm text-[#E5C378]">
+                  <h3 className="text-lg font-black text-white font-serif-luxury">{teaserGame.title}</h3>
+                  <span className="font-thaana text-sm text-[#e5c378]">
                     {teaserGame.thaana}
                   </span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              <p className="text-xs text-[#f7f0ea]/70 leading-relaxed mb-4">
                 {teaserGame.desc}
               </p>
 
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 mb-4">
-                <div className="text-[10px] font-black text-slate-400 uppercase">
+              <div className="bg-[#0d0605] border border-[#301a14] rounded-xl p-3 mb-4">
+                <div className="text-[10px] font-black text-[#f7f0ea]/50 uppercase font-mono">
                   Development Status:
                 </div>
-                <div className="text-xs font-bold text-[#05D59A] mt-0.5">
+                <div className="text-xs font-bold text-[#e5c378] mt-0.5 font-mono">
                   {teaserGame.phase}
                 </div>
               </div>
 
               <button
                 onClick={() => setTeaserGame(null)}
-                className="w-full py-2.5 rounded-xl bg-[#05D59A] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md border-0 cursor-pointer"
               >
                 <Bell className="w-4 h-4" />
                 <span>Notify Me When Playable</span>

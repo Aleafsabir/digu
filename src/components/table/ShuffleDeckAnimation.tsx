@@ -134,7 +134,7 @@ export const ShuffleDeckAnimation: React.FC<ShuffleDeckAnimationProps> = ({ onCo
             className="absolute w-13.5 sm:w-16 md:w-17 h-19.5 sm:h-22 md:h-24 rounded-2xl shadow-2xl z-30"
           >
             <CardBackVisual deckId={activeDeck} />
-            <div className="absolute inset-0 rounded-2xl border-2 border-[#05D59A]/60 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl border-2 border-[#E5C378]/60 pointer-events-none" />
           </motion.div>
         )}
       </AnimatePresence>

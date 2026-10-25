@@ -45,13 +45,13 @@ export const UpdatePromptModal: React.FC<UpdatePromptModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="glass-panel-emerald-elevated rounded-3xl p-5 sm:p-6 max-w-sm w-full text-center relative border-2 border-[#05D59A]/50 shadow-[0_25px_60px_rgba(0,0,0,0.95)]"
+          className="bg-gradient-to-b from-[#170b09] via-[#0d0605] to-[#0d0605] rounded-3xl p-5 sm:p-6 max-w-sm w-full text-center relative border-2 border-[#301a14] shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(200,75,49,0.2)]"
         >
           {/* Close button (Hidden if mandatory) */}
           {!updateInfo.isMandatory && (
             <button
               onClick={handleDismiss}
-              className="absolute top-3.5 right-3.5 text-slate-400 hover:text-white p-1 rounded-full cursor-pointer transition border-0"
+              className="absolute top-3.5 right-3.5 text-[#e5c378]/60 hover:text-white p-1 rounded-full cursor-pointer transition border-0"
               aria-label="Dismiss update"
             >
               <X className="w-5 h-5" />
@@ -60,27 +60,27 @@ export const UpdatePromptModal: React.FC<UpdatePromptModalProps> = ({
 
           {/* Centerpiece Icon Crest */}
           <div className="relative w-16 h-16 mx-auto mb-3">
-            <div className="absolute inset-0 rounded-2xl bg-[#05D59A]/20 blur-md animate-pulse" />
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378] flex items-center justify-center text-3xl font-black font-thaana text-[#E5C378] shadow-lg relative z-10">
+            <div className="absolute inset-0 rounded-2xl bg-[#c84b31]/20 blur-md animate-pulse" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c84b31] via-[#170b09] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center text-3xl font-black font-thaana text-[#E5C378] shadow-lg relative z-10">
               ޑ
             </div>
-            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-[#05D59A] text-[#02140D] font-mono text-[9px] font-black shadow-md z-20">
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#e5c378] to-[#b48d36] text-[#0d0605] font-mono text-[9px] font-black shadow-md z-20">
               NEW
             </span>
           </div>
 
           {/* Header Title */}
-          <h2 className="text-lg sm:text-xl font-black text-[#F1F5F9] tracking-tight mb-1">
+          <h2 className="text-lg sm:text-xl font-serif font-black text-[#f7f0ea] tracking-tight mb-1">
             New Update Available!
           </h2>
 
           {/* Version Transition Pills */}
           <div className="flex items-center justify-center gap-2 mb-3 text-xs">
-            <span className="px-2 py-0.5 rounded-md bg-white/10 text-slate-300 font-mono text-[10px]">
+            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[#f7f0ea]/70 font-mono text-[10px]">
               v{APP_VERSION_CONFIG.versionName}
             </span>
-            <span className="text-[#05D59A] font-bold">➔</span>
-            <span className="px-2 py-0.5 rounded-md bg-[#05D59A]/20 border border-[#05D59A]/50 text-[#05D59A] font-mono font-bold text-[10px]">
+            <span className="text-[#e5c378] font-bold">➔</span>
+            <span className="px-2 py-0.5 rounded-md bg-[#e5c378]/15 border border-[#e5c378]/40 text-[#e5c378] font-mono font-bold text-[10px]">
               v{updateInfo.versionName} (Build {updateInfo.versionCode})
             </span>
           </div>
@@ -94,15 +94,15 @@ export const UpdatePromptModal: React.FC<UpdatePromptModalProps> = ({
           )}
 
           {/* Release Notes List */}
-          <div className="bg-[#010D08]/90 border border-slate-800 rounded-2xl p-3 text-left mb-4 space-y-1.5 text-xs">
+          <div className="bg-[#0d0605] border border-[#301a14] rounded-2xl p-3 text-left mb-4 space-y-1.5 text-xs">
             <div className="text-[10px] uppercase font-black text-[#E5C378] tracking-wider mb-1 flex items-center justify-between">
               <span>What's New in v{updateInfo.versionName}:</span>
-              <span className="text-slate-400 font-mono text-[9px]">{updateInfo.releaseDate}</span>
+              <span className="text-[#f7f0ea]/50 font-mono text-[9px]">{updateInfo.releaseDate}</span>
             </div>
-            <ul className="space-y-1 text-slate-300 text-[11px] leading-relaxed max-h-36 overflow-y-auto pr-1">
+            <ul className="space-y-1 text-[#f7f0ea]/80 text-[11px] leading-relaxed max-h-36 overflow-y-auto pr-1">
               {updateInfo.releaseNotes.map((note, idx) => (
                 <li key={idx} className="flex items-start gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#05D59A] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c378] shrink-0 mt-0.5" />
                   <span>{note}</span>
                 </li>
               ))}
@@ -112,7 +112,7 @@ export const UpdatePromptModal: React.FC<UpdatePromptModalProps> = ({
           {/* Action Buttons */}
           <div className="space-y-2">
             <JuicyButton
-              variant="emerald"
+              variant="gold"
               size="md"
               onClick={handleDownload}
               disabled={isDownloading}
@@ -125,14 +125,14 @@ export const UpdatePromptModal: React.FC<UpdatePromptModalProps> = ({
             {!updateInfo.isMandatory && (
               <button
                 onClick={handleDismiss}
-                className="w-full py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer border-0"
+                className="w-full py-2 rounded-xl text-xs font-bold text-[#e5c378]/60 hover:text-white transition cursor-pointer border-0"
               >
                 Remind Me Later
               </button>
             )}
           </div>
 
-          <div className="text-[9.5px] text-slate-500 font-mono mt-2.5">
+          <div className="text-[9.5px] text-[#f7f0ea]/40 font-mono mt-2.5">
             Direct from GitHub Releases • Safe & Verified APK
           </div>
         </motion.div>

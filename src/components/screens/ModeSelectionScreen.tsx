@@ -77,8 +77,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       title: '4-Player Team Mode',
       subtitle: '2v2 Partnership',
       badge: '2v2 TEAM',
-      badgeColor: 'bg-[#05D59A] text-slate-950 font-black shadow-[0_0_10px_rgba(5,213,154,0.4)]',
-      icon: <Shield className="w-9 h-9 text-[#05D59A]" />,
+      badgeColor: 'bg-[#c84b31] text-white font-black shadow-[0_0_10px_rgba(200,75,49,0.4)]',
+      icon: <Shield className="w-9 h-9 text-[#e5c378]" />,
       target: '1,000p',
       featured: true,
       specs: [
@@ -93,8 +93,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       title: '4-Player Cutthroat',
       subtitle: 'Solo Free-For-All',
       badge: 'SOLO 4P',
-      badgeColor: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold',
-      icon: <Users className="w-9 h-9 text-cyan-300" />,
+      badgeColor: 'bg-[#301a14] text-[#e5c378] border border-[#e5c378]/40 font-bold',
+      icon: <Users className="w-9 h-9 text-[#e5c378]" />,
       target: '1,000p',
       featured: false,
       specs: [
@@ -109,8 +109,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       title: '2-Player Head-to-Head',
       subtitle: '1v1 Duel',
       badge: 'DUEL 1v1',
-      badgeColor: 'bg-emerald-500/20 text-[#05D59A] border border-emerald-500/40 font-bold',
-      icon: <User className="w-9 h-9 text-[#05D59A]" />,
+      badgeColor: 'bg-[#c84b31]/20 text-[#e5c378] border border-[#e5c378]/40 font-bold',
+      icon: <User className="w-9 h-9 text-[#e5c378]" />,
       target: '500p',
       featured: false,
       specs: [
@@ -125,8 +125,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       title: 'Private Table',
       subtitle: 'Room Code',
       badge: 'MULTIPLAYER',
-      badgeColor: 'bg-slate-800 text-slate-300 border border-slate-700 font-bold',
-      icon: <Globe className="w-9 h-9 text-slate-300" />,
+      badgeColor: 'bg-[#170b09] text-[#f7f0ea]/70 border border-[#301a14] font-bold',
+      icon: <Globe className="w-9 h-9 text-[#f7f0ea]/70" />,
       target: 'Custom',
       featured: false,
       disabled: false,
@@ -139,7 +139,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
   ];
 
   return (
-    <div className="w-screen h-screen h-[100dvh] max-h-screen bg-gradient-to-b from-[#042618] via-[#021A10] to-[#010D08] text-[#FAF7F2] flex flex-col select-none overflow-hidden p-1.5 sm:p-3 font-sans-clean">
+    <div className="w-screen h-screen h-[100dvh] max-h-screen bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] text-[#f7f0ea] flex flex-col select-none overflow-hidden p-1.5 sm:p-3 font-sans-clean">
       {/* Top Lobby Header Bar (Safe Area Padding for Camera Cutout) */}
       <header
         className="w-full flex items-center justify-between gap-2 px-2 sm:px-4 py-1.5 shrink-0"
@@ -154,30 +154,30 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           {onBackToMainLobby && (
             <button
               onClick={onBackToMainLobby}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#02140D]/90 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs shadow transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea] border border-[#301a14] font-bold text-xs shadow transition active:scale-95 cursor-pointer"
               title="Return to Main Lobby (Hub)"
             >
               <span>◀</span>
-              <span className="hidden xs:inline">Hub</span>
+              <span className="hidden xs:inline font-serif-luxury">Hub</span>
             </button>
           )}
 
           <button
             onClick={() => setProfileModalOpen(true)}
-            className="flex items-center gap-2 bg-[#02140D]/90 hover:bg-slate-800/80 rounded-2xl px-2.5 sm:px-3 py-1 shadow-md border border-slate-700/80 backdrop-blur-xs transition active:scale-95 cursor-pointer text-left group"
+            className="flex items-center gap-2 bg-[#170b09] hover:bg-[#301a14] rounded-2xl px-2.5 sm:px-3 py-1 shadow-md border border-[#301a14] backdrop-blur-xs transition active:scale-95 cursor-pointer text-left group"
             title="Profile & Avatars"
           >
             <div
-              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br ${currentAvatar.gradient} flex items-center justify-center text-xs sm:text-sm shadow group-hover:scale-105 transition-transform`}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br ${currentAvatar.gradient} flex items-center justify-center text-xs sm:text-sm shadow group-hover:scale-105 transition-transform border border-[#301a14]`}
             >
               {currentAvatar.icon}
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-xs font-bold text-white group-hover:text-slate-200 transition-colors">
+              <span className="text-xs font-bold text-[#f7f0ea] group-hover:text-[#e5c378] transition-colors font-serif-luxury">
                 {profile.displayName}
               </span>
-              <span className="text-[10px] text-[#F1F5F9] font-bold flex items-center gap-1 font-mono">
-                <Award className="w-3 h-3 text-slate-300" /> LVL {profile.level}
+              <span className="text-[10px] text-[#e5c378] font-bold flex items-center gap-1 font-mono">
+                <Award className="w-3 h-3 text-[#e5c378]" /> LVL {profile.level}
               </span>
             </div>
           </button>
@@ -185,29 +185,29 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
         {/* Center: Brand Crest */}
         <div className="hidden sm:flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#05D59A] to-[#047857] text-slate-950 font-black text-sm flex items-center justify-center shadow font-thaana">
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#c84b31] to-[#8f2d1b] text-white font-black text-sm flex items-center justify-center shadow font-thaana border border-[#e5c378]/50">
             ޑ
           </div>
-          <span className="font-sans-clean font-black text-base tracking-tight text-[#FAF7F2] flex items-center gap-1.5">
-            <span className="text-[#05D59A]">DIGU</span>
-            <span className="font-thaana text-[#E5C378]">ޑިގު</span>
+          <span className="font-serif-luxury font-black text-base tracking-tight text-[#f7f0ea] flex items-center gap-1.5">
+            <span className="text-[#e5c378]">DIGU</span>
+            <span className="font-thaana text-[#e5c378]">ޑިގު</span>
           </span>
         </div>
 
         {/* Right: Wallet Balance & Pure Icon Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Coins Wallet Pill */}
-          <div className="flex items-center gap-1 bg-[#02140D]/90 border border-slate-700/80 rounded-xl px-2.5 py-1 shadow">
+          <div className="flex items-center gap-1 bg-[#0d0605] border border-[#301a14] rounded-xl px-2.5 py-1 shadow">
             <RanDhadhuCoinIcon />
-            <span className="font-mono text-xs font-black text-[#F1F5F9]">
+            <span className="font-mono text-xs font-black text-[#e5c378]">
               {profile.coins.toLocaleString()}
             </span>
           </div>
 
           {/* Gems Wallet Pill */}
-          <div className="hidden xs:flex items-center gap-1 bg-[#02140D]/90 border border-slate-700/80 rounded-xl px-2 py-1 shadow">
+          <div className="hidden xs:flex items-center gap-1 bg-[#0d0605] border border-[#301a14] rounded-xl px-2.5 py-1 shadow">
             <LagoonGemIcon />
-            <span className="font-mono text-xs font-black text-cyan-300">
+            <span className="font-mono text-xs font-black text-[#c84b31]">
               {profile.gems}
             </span>
           </div>
@@ -217,8 +217,8 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
             onClick={() => setAuthModalOpen(true)}
             className={`p-1.5 rounded-xl text-[10px] font-bold transition shadow cursor-pointer border ${
               profile.cloudSyncStatus === 'SYNCED'
-                ? 'bg-emerald-950/80 text-[#05D59A] border-emerald-800'
-                : 'bg-slate-800 text-slate-300 border-slate-700 animate-pulse'
+                ? 'bg-[#170b09] text-[#e5c378] border-[#e5c378]/50'
+                : 'bg-[#301a14] text-[#e5c378] border-[#c84b31] animate-pulse'
             }`}
             title={profile.cloudSyncStatus === 'SYNCED' ? 'Cloud Synced' : 'Tap to Backup Account'}
           >
@@ -228,7 +228,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           {/* Quick Rules (Pure Icon) */}
           <button
             onClick={onOpenRules}
-            className="p-1.5 rounded-xl bg-[#02140D]/90 hover:bg-slate-800 text-slate-300 transition shadow active:scale-95 cursor-pointer border border-slate-700"
+            className="p-1.5 rounded-xl bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea]/80 transition shadow active:scale-95 cursor-pointer border border-[#301a14]"
             title="Rules Handbook"
           >
             <HelpCircle className="w-4 h-4" />
@@ -237,15 +237,15 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           {/* Friends & Social (Pure Icon with Online Indicator & Badge) */}
           <button
             onClick={() => setFriendsModalOpen(true)}
-            className="p-1.5 rounded-xl bg-[#02140D]/90 hover:bg-slate-800 text-slate-300 transition shadow active:scale-95 cursor-pointer border border-slate-700 relative"
+            className="p-1.5 rounded-xl bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea]/80 transition shadow active:scale-95 cursor-pointer border border-[#301a14] relative"
             title="Friends & Social"
           >
-            <Users className="w-4 h-4 text-slate-300" />
+            <Users className="w-4 h-4 text-[#f7f0ea]/80" />
             {hasOnlineFriends && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#02140D]" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#e5c378] ring-2 ring-[#0d0605]" />
             )}
             {pendingRequests.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#c84b31] text-white text-[8px] font-black flex items-center justify-center">
                 {pendingRequests.length}
               </span>
             )}
@@ -254,10 +254,10 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           {/* Settings (Pure Icon) */}
           <button
             onClick={onOpenSettings}
-            className="p-1.5 rounded-xl bg-[#02140D]/90 hover:bg-slate-800 text-slate-300 transition shadow active:scale-95 cursor-pointer border border-slate-700"
+            className="p-1.5 rounded-xl bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea]/80 transition shadow active:scale-95 cursor-pointer border border-[#301a14]"
             title="Settings"
           >
-            <Settings className="w-4 h-4 text-slate-300" />
+            <Settings className="w-4 h-4 text-[#f7f0ea]/80" />
           </button>
         </div>
       </header>
@@ -270,12 +270,12 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
             onClick={() => setActiveGame('DIGU')}
             className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer border ${
               activeGame === 'DIGU'
-                ? 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-slate-950 border-[#00F5AE] shadow-[0_0_20px_rgba(5,213,154,0.4)] scale-102'
-                : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-700'
+                ? 'bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] text-white border-[#e5c378] shadow-[0_0_20px_rgba(200,75,49,0.4)] scale-102'
+                : 'bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea]/70 border border-[#301a14]'
             }`}
           >
             <span className="text-base">🎴</span>
-            <span>DIGU (ޑިގު)</span>
+            <span className="font-serif-luxury">DIGU (ޑިގު)</span>
           </button>
 
           <button
@@ -283,12 +283,12 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
             className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer border ${
               activeGame === 'DHIHAEH'
                 ? 'bg-gradient-to-r from-purple-500 to-purple-800 text-white border-purple-400 shadow-xl scale-102'
-                : 'bg-[#02140D]/90 hover:bg-slate-800 text-slate-400 border-slate-700'
+                : 'bg-[#170b09] hover:bg-[#301a14] text-[#f7f0ea]/70 border border-[#301a14]'
             }`}
           >
             <span className="text-base">🔟</span>
-            <span>DHIHAEH (ދިހައެއް)</span>
-            <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 uppercase">
+            <span className="font-serif-luxury">DHIHAEH (ދިހައެއް)</span>
+            <span className="text-[8px] font-bold px-1.5 py-0.2 rounded bg-[#301a14] text-[#e5c378] uppercase font-mono">
               Soon
             </span>
           </button>
@@ -343,10 +343,10 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                     }}
                     className={`relative rounded-2xl sm:rounded-3xl p-3 sm:p-5 landscape:p-2.5 flex flex-col justify-between transition-all select-none ${
                       mode.disabled
-                        ? 'bg-[#02100A] opacity-50 cursor-not-allowed border border-slate-800'
+                        ? 'bg-[#0d0605] opacity-50 cursor-not-allowed border border-[#301a14]'
                         : mode.featured
-                        ? 'bg-gradient-to-b from-[#063824] via-[#031B11] to-[#010D08] border-2 border-[#05D59A] shadow-[0_0_25px_rgba(5,213,154,0.3)] hover:scale-[1.02] cursor-pointer'
-                        : 'bg-[#02140D] hover:bg-[#031E15] border border-slate-800 shadow-xl hover:scale-[1.02] cursor-pointer'
+                        ? 'bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#c84b31] shadow-[0_0_25px_rgba(200,75,49,0.3)] hover:border-[#e5c378] hover:scale-[1.02] cursor-pointer'
+                        : 'bg-[#170b09] hover:bg-[#24110d] border border-[#301a14] shadow-xl hover:border-[#e5c378]/60 hover:scale-[1.02] cursor-pointer'
                     }`}
                   >
                     {/* Top Row: Badge & Target Chip & Info Button */}
@@ -357,7 +357,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                         {mode.badge}
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono font-bold text-slate-200">
+                        <span className="text-[10px] font-mono font-bold text-[#e5c378]">
                           {mode.target}
                         </span>
                         <button
@@ -380,13 +380,13 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
                     {/* Center Icon & Title */}
                     <div className="flex flex-col items-center text-center my-1.5 sm:my-3 landscape:my-1">
-                      <div className="w-11 h-11 sm:w-14 sm:h-14 landscape:w-10 landscape:h-10 rounded-2xl bg-[#02140D] border border-slate-700/60 flex items-center justify-center shadow-inner mb-2 sm:mb-2.5 landscape:mb-1">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 landscape:w-10 landscape:h-10 rounded-2xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center shadow-inner mb-2 sm:mb-2.5 landscape:mb-1">
                         {mode.icon}
                       </div>
-                      <h3 className="font-black text-xs sm:text-base landscape:text-xs text-white leading-tight font-sans-clean">
+                      <h3 className="font-black text-xs sm:text-base landscape:text-xs text-[#f7f0ea] leading-tight font-serif-luxury">
                         {mode.title}
                       </h3>
-                      <span className="text-[9px] sm:text-[10px] text-slate-300 font-bold mt-0.5">
+                      <span className="text-[9px] sm:text-[10px] text-[#e5c378]/70 font-bold mt-0.5 font-mono">
                         {mode.subtitle}
                       </span>
                     </div>
@@ -394,12 +394,12 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                     {/* Select Play Button */}
                     <button
                       disabled={mode.disabled}
-                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow ${
+                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow border-0 cursor-pointer ${
                         mode.disabled
-                          ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                          ? 'bg-[#301a14] text-[#f7f0ea]/40 cursor-not-allowed'
                           : mode.featured
-                          ? 'btn-emerald-glow text-slate-950 font-black active:scale-95'
-                          : 'btn-3d-dark hover:border-[#05D59A]/40 text-[#F1F5F9] active:scale-95'
+                          ? 'bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black shadow-[0_0_15px_rgba(200,75,49,0.4)] active:scale-95'
+                          : 'bg-[#301a14] hover:bg-[#42241c] text-[#f7f0ea] border border-[#e5c378]/30 active:scale-95'
                       }`}
                     >
                       {mode.disabled ? 'Coming Soon' : 'Play'}
@@ -446,7 +446,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
               <button
                 onClick={() => setActiveGame('DIGU')}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black text-xs shadow-lg transition active:scale-95 cursor-pointer uppercase tracking-wider border-0"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-[#0d0605] font-black text-xs shadow-lg transition active:scale-95 cursor-pointer uppercase tracking-wider border-0"
               >
                 Play Digu
               </button>
@@ -458,22 +458,22 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       {/* Tap-to-View Mode Detail Info Modal (Borderless Minimal) */}
       {selectedModeInfo && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-none">
-          <div className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs sm:max-w-sm w-full text-center relative">
+          <div className="bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#301a14] rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(200,75,49,0.15)] max-w-xs sm:max-w-sm w-full text-center relative text-[#f7f0ea]">
             <button
               onClick={() => setSelectedModeInfo(null)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-full cursor-pointer"
+              className="absolute top-3 right-3 text-[#e5c378]/60 hover:text-white p-1 rounded-full cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="w-12 h-12 mx-auto rounded-2xl bg-[#02140D] border border-slate-800 flex items-center justify-center mb-2 shadow">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center mb-2 shadow">
               {selectedModeInfo.icon}
             </div>
 
-            <h3 className="text-sm font-black text-[#E5C378] uppercase tracking-wider mb-1 font-sans-clean">
+            <h3 className="text-sm font-black text-[#e5c378] uppercase tracking-wider mb-1 font-serif-luxury">
               {selectedModeInfo.title}
             </h3>
-            <span className="text-[10px] font-mono text-[#05D59A] font-bold mb-3 block">
+            <span className="text-[10px] font-mono text-[#e5c378] font-bold mb-3 block">
               🎯 Match Target: {selectedModeInfo.target}
             </span>
 
@@ -482,7 +482,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
               {selectedModeInfo.specs.map((spec, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 bg-[#02140D] rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 border border-slate-800 shadow-sm"
+                  className="flex items-center gap-2 bg-[#0d0605] rounded-xl px-2.5 py-1.5 text-xs text-[#f7f0ea] border border-[#301a14] shadow-sm"
                 >
                   <span className="text-sm shrink-0">{spec.icon}</span>
                   <span className="font-semibold text-[11px]">{spec.label}</span>
@@ -492,7 +492,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
             <button
               onClick={() => setSelectedModeInfo(null)}
-              className="w-full py-2.5 rounded-xl btn-emerald-glow text-[#02140D] font-black text-xs cursor-pointer uppercase tracking-wider active:scale-95 shadow-md border-0"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs cursor-pointer uppercase tracking-wider active:scale-95 shadow-md border-0"
             >
               Close
             </button>
@@ -503,33 +503,33 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       {/* Dhihaeh Info Modal (Borderless Minimal) */}
       {showDhihaehInfo && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 select-none">
-          <div className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-xs sm:max-w-sm w-full text-center relative">
+          <div className="bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#301a14] rounded-3xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(200,75,49,0.15)] max-w-xs sm:max-w-sm w-full text-center relative text-[#f7f0ea]">
             <button
               onClick={() => setShowDhihaehInfo(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-full cursor-pointer"
+              className="absolute top-3 right-3 text-[#e5c378]/60 hover:text-white p-1 rounded-full cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-[#851e1e] to-[#3b0b0b] text-[#E5C378] flex items-center justify-center mb-2 shadow text-xl font-thaana font-black border-0">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-[#851e1e] to-[#3b0b0b] text-[#e5c378] flex items-center justify-center mb-2 shadow text-xl font-thaana font-black border border-[#e5c378]/40">
               ދި
             </div>
 
-            <h3 className="text-sm font-black text-[#E5C378] uppercase tracking-wider mb-3 font-sans-clean">
+            <h3 className="text-sm font-black text-[#e5c378] uppercase tracking-wider mb-3 font-serif-luxury">
               Holhuashi: Dhihaeh
             </h3>
 
             {/* Visual Spec Rows */}
             <div className="space-y-1.5 mb-4 text-left">
-              <div className="flex items-center gap-2 bg-[#02140D] rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 border border-slate-800 shadow-sm">
+              <div className="flex items-center gap-2 bg-[#0d0605] rounded-xl px-2.5 py-1.5 text-xs text-[#f7f0ea] border border-[#301a14] shadow-sm">
                 <span className="text-sm shrink-0">🔟</span>
                 <span className="font-semibold text-[11px]">Traditional Maldivian Trick-Taking</span>
               </div>
-              <div className="flex items-center gap-2 bg-[#02140D] rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 border border-slate-800 shadow-sm">
+              <div className="flex items-center gap-2 bg-[#0d0605] rounded-xl px-2.5 py-1.5 text-xs text-[#f7f0ea] border border-[#301a14] shadow-sm">
                 <span className="text-sm shrink-0">⏳</span>
                 <span className="font-semibold text-[11px]">Rules & AI Solver in Development</span>
               </div>
-              <div className="flex items-center gap-2 bg-[#02140D] rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 border border-slate-800 shadow-sm">
+              <div className="flex items-center gap-2 bg-[#0d0605] rounded-xl px-2.5 py-1.5 text-xs text-[#f7f0ea] border border-[#301a14] shadow-sm">
                 <span className="text-sm shrink-0">🎴</span>
                 <span className="font-semibold text-[11px]">Available Soon</span>
               </div>
@@ -537,7 +537,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
             <button
               onClick={() => setShowDhihaehInfo(false)}
-              className="w-full py-2.5 rounded-xl btn-emerald-glow text-[#02140D] font-black text-xs cursor-pointer uppercase tracking-wider active:scale-95 shadow-md border-0"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs cursor-pointer uppercase tracking-wider active:scale-95 shadow-md border-0"
             >
               Got it
             </button>

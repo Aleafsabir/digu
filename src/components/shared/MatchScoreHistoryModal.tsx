@@ -30,25 +30,25 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-        className="bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] border-2 border-slate-700 rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-gradient-to-b from-[#170b09] via-[#0d0605] to-[#0d0605] border-2 border-[#301a14] rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Header Bar */}
-        <div className="flex justify-between items-center border-b border-emerald-950 pb-3 mb-3 shrink-0">
+        <div className="flex justify-between items-center border-b border-[#301a14] pb-3 mb-3 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] flex items-center justify-center font-black text-base shadow-md">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-[#0d0605] flex items-center justify-center font-black text-base shadow-md">
               <Trophy className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-black text-base sm:text-lg text-[#F1F5F9] tracking-tight">
+              <h3 className="font-serif font-black text-base sm:text-lg text-[#f7f0ea] tracking-tight">
                 Match Scorecard & Round History
               </h3>
-              <div className="flex items-center gap-2 text-xs text-slate-300">
-                <span className="text-[#05D59A] font-bold">
+              <div className="flex items-center gap-2 text-xs text-[#f7f0ea]/70">
+                <span className="text-[#e5c378] font-bold">
                   {isTeamMode ? '4-Player Team Mode (2v2)' : 'Solo Mode'}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1 font-mono">
-                  <Target className="w-3 h-3 text-[#05D59A]" /> Target: {gameState.rules.targetScore}p
+                  <Target className="w-3 h-3 text-[#e5c378]" /> Target: {gameState.rules.targetScore}p
                 </span>
               </div>
             </div>
@@ -56,27 +56,27 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer border-0"
+            className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-[#e5c378]/70 hover:text-white transition cursor-pointer border-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Match Leaderboard Summary Bar */}
-        <div className="bg-[#02140D] border border-slate-800 rounded-2xl p-3 mb-3 shrink-0 shadow-md">
+        <div className="bg-[#0d0605] border border-[#301a14] rounded-2xl p-3 mb-3 shrink-0 shadow-md">
           {isTeamMode ? (
             <div className="grid grid-cols-2 gap-3">
               {/* Team A */}
-              <div className="bg-[#818CF8]/10 border border-[#818CF8]/30 rounded-xl p-2.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-black text-[#818CF8]">
+              <div className="bg-[#e5c378]/10 border border-[#e5c378]/30 rounded-xl p-2.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs font-black text-[#e5c378]">
                   <span className="flex items-center gap-1">
-                    <Shield className="w-3 h-3" /> Team A
+                    <Shield className="w-3 h-3" /> Team A (You)
                   </span>
-                  <span className="text-base font-black font-mono text-slate-100">{teamAScore}p</span>
+                  <span className="text-base font-black font-mono text-[#f7f0ea]">{teamAScore}p</span>
                 </div>
-                <div className="w-full bg-slate-900 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-[#170b09] rounded-full h-1.5 mt-2 overflow-hidden border border-[#301a14]">
                   <div
-                    className="bg-[#818CF8] h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-[#e5c378] to-[#b48d36] h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${Math.min(100, Math.max(0, (teamAScore / gameState.rules.targetScore) * 100))}%`,
                     }}
@@ -85,16 +85,16 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
               </div>
 
               {/* Team B */}
-              <div className="bg-[#05D59A]/10 border border-[#05D59A]/30 rounded-xl p-2.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-xs font-black text-[#05D59A]">
+              <div className="bg-[#c84b31]/10 border border-[#c84b31]/30 rounded-xl p-2.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs font-black text-[#c84b31]">
                   <span className="flex items-center gap-1">
                     <Shield className="w-3 h-3" /> Team B
                   </span>
-                  <span className="text-base font-black font-mono text-slate-100">{teamBScore}p</span>
+                  <span className="text-base font-black font-mono text-[#f7f0ea]">{teamBScore}p</span>
                 </div>
-                <div className="w-full bg-slate-900 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-[#170b09] rounded-full h-1.5 mt-2 overflow-hidden border border-[#301a14]">
                   <div
-                    className="bg-[#05D59A] h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-[#c84b31] to-[#8f2d1b] h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${Math.min(100, Math.max(0, (teamBScore / gameState.rules.targetScore) * 100))}%`,
                     }}
@@ -108,10 +108,10 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
               {gameState.players.map(p => (
                 <div
                   key={p.id}
-                  className="bg-[#031B11] border border-slate-700 rounded-xl p-2 flex flex-col items-center"
+                  className="bg-[#170b09] border border-[#301a14] rounded-xl p-2 flex flex-col items-center"
                 >
-                  <span className="font-bold text-slate-200 truncate w-full">{p.name}</span>
-                  <span className="text-sm font-black font-mono text-[#05D59A] mt-0.5">
+                  <span className="font-bold text-[#f7f0ea] truncate w-full">{p.name}</span>
+                  <span className="text-sm font-black font-mono text-[#e5c378] mt-0.5">
                     {p.cumulativeScore}p
                   </span>
                 </div>
@@ -123,10 +123,10 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
         {/* Scrollable Round-by-Round Score Ledger */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {roundHistory.length === 0 ? (
-            <div className="text-center py-8 px-4 bg-[#02140D] border border-slate-800 rounded-2xl">
-              <Award className="w-10 h-10 text-[#05D59A]/40 mx-auto mb-2" />
-              <h4 className="font-black text-sm text-slate-200">Round 1 in Progress</h4>
-              <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+            <div className="text-center py-8 px-4 bg-[#0d0605] border border-[#301a14] rounded-2xl">
+              <Award className="w-10 h-10 text-[#e5c378]/40 mx-auto mb-2" />
+              <h4 className="font-serif font-black text-sm text-[#f7f0ea]">Round 1 in Progress</h4>
+              <p className="text-xs text-[#f7f0ea]/60 mt-1 max-w-md mx-auto">
                 No rounds have concluded yet. When a player declares Gin with a face-down slam, the full itemized score ledger for that round will be recorded here.
               </p>
             </div>
@@ -134,25 +134,25 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
             roundHistory.map((round, idx) => (
               <div
                 key={idx}
-                className="bg-[#02140D] border border-slate-800 rounded-2xl p-3.5 shadow-md flex flex-col gap-2.5"
+                className="bg-[#0d0605] border border-[#301a14] rounded-2xl p-3.5 shadow-md flex flex-col gap-2.5"
               >
                 {/* Round Header */}
-                <div className="flex justify-between items-center border-b border-emerald-950 pb-2">
+                <div className="flex justify-between items-center border-b border-[#301a14] pb-2">
                   <div className="flex items-center gap-2">
-                    <span className="bg-[#05D59A]/20 text-[#05D59A] border border-[#05D59A]/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="bg-[#e5c378]/20 text-[#e5c378] border border-[#e5c378]/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">
                       Round {idx + 1}
                     </span>
-                    <span className="text-xs font-black text-slate-200 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#05D59A]" />
+                    <span className="text-xs font-black text-[#f7f0ea] flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c378]" />
                       Winner:{' '}
-                      <strong className="text-[#05D59A]">
+                      <strong className="text-[#e5c378]">
                         {round.winningTeamId || round.winnerPlayerId}
                       </strong>
                     </span>
                   </div>
 
                   {round.isThousandPointRun && (
-                    <span className="text-[10px] font-black bg-[#05D59A]/20 text-[#05D59A] px-2 py-0.5 rounded-full border border-[#05D59A]/30 animate-pulse">
+                    <span className="text-[10px] font-black bg-[#c84b31]/20 text-[#e5c378] px-2 py-0.5 rounded-full border border-[#e5c378]/40 animate-pulse font-mono">
                       ★ 1,000-Point Run
                     </span>
                   )}
@@ -166,29 +166,29 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
                         key={t.teamId}
                         className={`p-2.5 rounded-xl border ${
                           t.isWinner
-                            ? 'bg-[#031B11] border-[#05D59A]/40 text-slate-200'
-                            : 'bg-[#010D08] border-slate-800 text-slate-300'
+                            ? 'bg-[#170b09] border-[#e5c378]/50 text-[#f7f0ea]'
+                            : 'bg-[#0d0605] border-[#301a14] text-[#f7f0ea]/70'
                         }`}
                       >
                         <div className="flex justify-between items-center font-bold mb-1">
-                          <span className={t.teamId === 'TEAM_A' ? 'text-[#818CF8]' : 'text-[#05D59A]'}>
+                          <span className={t.teamId === 'TEAM_A' ? 'text-[#e5c378]' : 'text-[#c84b31]'}>
                             {t.teamId}
                           </span>
-                          <span className="font-black font-mono text-sm">
+                          <span className="font-black font-mono text-sm text-[#f7f0ea]">
                             {t.netRoundScore > 0 ? `+${t.netRoundScore}` : t.netRoundScore}p
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-400 space-y-0.5 font-mono">
+                        <div className="text-[10px] text-[#f7f0ea]/60 space-y-0.5 font-mono">
                           <div className="flex justify-between">
                             <span className="font-sans-clean">Melds Score:</span>
-                            <span className="text-slate-200 font-medium">+{t.meldScore}p</span>
+                            <span className="text-[#e5c378] font-medium">+{t.meldScore}p</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-sans-clean">Deadwood Debt:</span>
                             <span className="text-rose-400 font-medium">-{t.debtScore}p</span>
                           </div>
                           {t.ginBonus > 0 && (
-                            <div className="flex justify-between text-[#05D59A] font-bold">
+                            <div className="flex justify-between text-[#e5c378] font-bold">
                               <span className="font-sans-clean">Gin Bonus:</span>
                               <span>+{t.ginBonus}p</span>
                             </div>
@@ -199,9 +199,9 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
                               <span>{t.zeroMeldPenalty}p</span>
                             </div>
                           )}
-                          <div className="flex justify-between pt-1 border-t border-slate-800 font-bold text-slate-200">
+                          <div className="flex justify-between pt-1 border-t border-[#301a14] font-bold text-[#f7f0ea]">
                             <span className="font-sans-clean">Total After Round:</span>
-                            <span className="text-[#F1F5F9]">{t.newCumulativeScore}p</span>
+                            <span className="text-[#e5c378] font-black">{t.newCumulativeScore}p</span>
                           </div>
                         </div>
                       </div>
@@ -215,15 +215,15 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
                         key={p.playerId}
                         className={`p-2 rounded-xl border ${
                           p.isWinner
-                            ? 'bg-[#031B11] border-[#05D59A]/40 text-slate-200'
-                            : 'bg-[#010D08] border-slate-800 text-slate-300'
+                            ? 'bg-[#170b09] border-[#e5c378]/50 text-[#f7f0ea]'
+                            : 'bg-[#0d0605] border-[#301a14] text-[#f7f0ea]/70'
                         }`}
                       >
-                        <div className="font-bold text-slate-200 truncate">{p.name}</div>
-                        <div className="text-xs font-black font-mono text-[#05D59A] mt-0.5">
+                        <div className="font-bold text-[#f7f0ea] truncate">{p.name}</div>
+                        <div className="text-xs font-black font-mono text-[#e5c378] mt-0.5">
                           {p.netRoundScore > 0 ? `+${p.netRoundScore}` : p.netRoundScore}p
                         </div>
-                        <div className="text-[9px] text-slate-400 mt-0.5 font-mono">
+                        <div className="text-[9px] text-[#f7f0ea]/50 mt-0.5 font-mono">
                           Total: {p.newCumulativeScore}p
                         </div>
                       </div>
@@ -236,9 +236,9 @@ export const MatchScoreHistoryModal: React.FC<MatchScoreHistoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-3 mt-3 border-t border-emerald-950 flex justify-end shrink-0">
+        <div className="pt-3 mt-3 border-t border-[#301a14] flex justify-end shrink-0">
           <JuicyButton
-            variant="emerald"
+            variant="gold"
             size="md"
             onClick={onClose}
           >

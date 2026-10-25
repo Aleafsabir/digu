@@ -7,6 +7,7 @@ import { checkDatabaseHealth } from './db.js';
 import { setupWebSocket } from './ws/socketHandler.js';
 import { friendsRouter } from './routes/friends.js';
 import { roomsRouter } from './routes/rooms.js';
+import { profileRouter } from './routes/profile.js';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.get('/api/health', async (_req, res) => {
 // Mount Routes
 app.use('/api/friends', friendsRouter);
 app.use('/api/rooms', roomsRouter);
+app.use('/api/profile', profileRouter);
 
 // Create HTTP and WebSocket server
 const server = http.createServer(app);

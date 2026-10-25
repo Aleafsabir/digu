@@ -20,7 +20,7 @@ export const InactivityForfeitModal: React.FC<InactivityForfeitModalProps> = ({
         initial={{ scale: 0.9, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', damping: 24, stiffness: 300 }}
-        className="bg-[#0B1512] border border-rose-500/30 rounded-3xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-w-sm w-full text-center relative overflow-hidden"
+        className="bg-[#170b09] border-2 border-[#301a14] rounded-3xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(200,75,49,0.25)] max-w-sm w-full text-center relative overflow-hidden text-[#f7f0ea]"
       >
         {/* Subtle top crimson glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-rose-500/10 blur-2xl pointer-events-none" />
@@ -31,32 +31,32 @@ export const InactivityForfeitModal: React.FC<InactivityForfeitModalProps> = ({
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-black text-rose-300 uppercase tracking-wider mb-2">
+        <h2 className="text-xl font-serif font-black text-rose-300 uppercase tracking-wider mb-2">
           Match Forfeited
         </h2>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-950/60 border border-rose-500/20 text-[11px] font-bold text-rose-300 mb-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-950/60 border border-rose-500/20 text-[11px] font-bold text-rose-300 mb-4 font-mono">
           <Clock className="w-3.5 h-3.5" />
           <span>Inactivity Timeout (3/2 Away Turns)</span>
         </div>
 
         {/* Description */}
-        <p className="text-xs text-neutral-300 leading-relaxed mb-5">
+        <p className="text-xs text-[#f7f0ea]/70 leading-relaxed mb-5">
           You were away for 3 consecutive turns. As per tournament rules, 2 away turns are auto-played before the match is automatically forfeited to the opposing side.
         </p>
 
         {/* Summary Details */}
-        <div className="bg-[#121F1B] rounded-2xl p-3.5 mb-6 text-xs space-y-2 border border-white/[0.04]">
+        <div className="bg-[#0d0605] rounded-2xl p-3.5 mb-6 text-xs space-y-2 border border-[#301a14]">
           <div className="flex justify-between items-center">
-            <span className="text-neutral-400">Match Outcome</span>
+            <span className="text-[#f7f0ea]/60">Match Outcome</span>
             <span className="font-bold text-rose-400 uppercase tracking-wider">Opponent Victory</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-neutral-400">Table Buy-In</span>
-            <span className="font-mono font-bold text-neutral-300">{tableBuyIn} Coins</span>
+            <span className="text-[#f7f0ea]/60">Table Buy-In</span>
+            <span className="font-mono font-bold text-[#f7f0ea]">{tableBuyIn} Coins</span>
           </div>
-          <div className="flex justify-between items-center border-t border-white/[0.05] pt-2">
-            <span className="text-neutral-400">Awarded Table Pot</span>
-            <span className="font-mono font-bold text-amber-400">{tablePot} Coins</span>
+          <div className="flex justify-between items-center border-t border-[#301a14] pt-2">
+            <span className="text-[#f7f0ea]/60">Awarded Table Pot</span>
+            <span className="font-mono font-bold text-[#e5c378]">{tablePot} Coins</span>
           </div>
         </div>
 

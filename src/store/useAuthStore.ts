@@ -11,11 +11,14 @@ interface AuthStoreState {
   transactions: CurrencyTransaction[];
   isAuthModalOpen: boolean;
   isProfileModalOpen: boolean;
+  conflictData: { cloud: UserProfile; local: UserProfile } | null;
   isSyncing: boolean;
 
   // Modals
   setAuthModalOpen: (open: boolean) => void;
   setProfileModalOpen: (open: boolean) => void;
+  setConflictData: (data: { cloud: UserProfile; local: UserProfile } | null) => void;
+  resolveConflict: (choice: 'cloud' | 'local', mergeChips: boolean) => Promise<void>;
 
   // Profile modifications
   setDisplayName: (name: string) => void;
@@ -52,10 +55,36 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   transactions: DatabaseService.getTransactions(),
   isAuthModalOpen: false,
   isProfileModalOpen: false,
+  conflictData: null,
   isSyncing: false,
 
   setAuthModalOpen: (open: boolean) => set({ isAuthModalOpen: open }),
   setProfileModalOpen: (open: boolean) => set({ isProfileModalOpen: open }),
+  setConflictData: (data: { cloud: UserProfile; local: UserProfile } | null) => set({ conflictData: data }),
+
+  resolveConflict: async (choice: 'cloud' | 'local', mergeChips: boolean) => {
+    const { conflictData } = get();
+    if (!conflictData) return;
+    set({ isSyncing: true });
+    try {
+      const resolved = await CloudSyncService.resolveConflict(
+        choice,
+        mergeChips,
+        conflictData.cloud,
+        conflictData.local
+      );
+      set({ profile: resolved, conflictData: null, isAuthModalOpen: false });
+      SocialService.send('AUTH_INIT', {
+        profileId: resolved.id,
+        displayName: resolved.displayName,
+        avatarId: resolved.avatarId,
+        friendCode: resolved.friendCode,
+        level: resolved.level,
+      });
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
 
   setDisplayName: (name: string) => {
     const trimmed = name.trim();
@@ -63,12 +92,14 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const updated = { ...get().profile, displayName: trimmed };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 
   setAvatar: (avatarId: string) => {
     const updated = { ...get().profile, avatarId };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 
   regenerateFriendCode: () => {
@@ -76,6 +107,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const updated = { ...get().profile, friendCode: newCode };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
     SocialService.send('AUTH_INIT', {
       profileId: updated.id,
       displayName: updated.displayName,
@@ -96,6 +128,8 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       let resolvedEmail = email;
       let resolvedName = name;
       let photoUrl: string | undefined;
+      let googleId: string | undefined;
+      let idToken: string | undefined;
 
       // On native mobile (Android / iOS), invoke Google Play Services One-Tap sign-in
       if (Capacitor.isNativePlatform()) {
@@ -106,6 +140,8 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
             resolvedEmail = res.user.email || resolvedEmail;
             resolvedName = res.user.displayName || resolvedName;
             photoUrl = res.user.photoUrl || undefined;
+            googleId = res.user.uid;
+            idToken = (res as any).credential?.idToken;
           }
         } catch (nativeErr: any) {
           console.warn('[Auth] Native Google Sign-In error:', nativeErr);
@@ -120,22 +156,61 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         }
       }
 
-      const updated = await CloudSyncService.linkCloudAccount(
-        get().profile,
-        'GOOGLE',
+      const currentLocal = get().profile;
+      const authRes = await CloudSyncService.googleAuth(
         {
+          idToken,
+          googleId,
           email: resolvedEmail || 'player@gmail.com',
-          displayName: resolvedName || get().profile.displayName,
+          displayName: resolvedName,
           avatarUrl: photoUrl,
-        }
+        },
+        currentLocal
       );
-      set({ profile: updated, isAuthModalOpen: false });
+
+      if (authRes.exists) {
+        // Check if there is an active local guest session with progress to compare
+        const isFreshGuest =
+          currentLocal.loginProvider === 'GUEST' &&
+          (currentLocal.stats?.gamesPlayed || 0) === 0 &&
+          currentLocal.coins === 10000;
+
+        if (
+          !isFreshGuest &&
+          (authRes.profile.coins !== currentLocal.coins ||
+            authRes.profile.level !== currentLocal.level ||
+            (authRes.profile.stats?.gamesPlayed || 0) !== (currentLocal.stats?.gamesPlayed || 0))
+        ) {
+          // Significant conflict: present interactive choice modal
+          set({
+            conflictData: { cloud: authRes.profile, local: currentLocal },
+            isAuthModalOpen: false,
+          });
+          return;
+        }
+
+        // Direct restore: restore cloud profile immediately
+        CloudSyncService.saveProfileLocally(authRes.profile);
+        set({ profile: authRes.profile, isAuthModalOpen: false });
+        SocialService.send('AUTH_INIT', {
+          profileId: authRes.profile.id,
+          displayName: authRes.profile.displayName,
+          avatarId: authRes.profile.avatarId,
+          friendCode: authRes.profile.friendCode,
+          level: authRes.profile.level,
+        });
+        return;
+      }
+
+      // New cloud profile registered
+      CloudSyncService.saveProfileLocally(authRes.profile);
+      set({ profile: authRes.profile, isAuthModalOpen: false });
       SocialService.send('AUTH_INIT', {
-        profileId: updated.id,
-        displayName: updated.displayName,
-        avatarId: updated.avatarId,
-        friendCode: updated.friendCode,
-        level: updated.level,
+        profileId: authRes.profile.id,
+        displayName: authRes.profile.displayName,
+        avatarId: authRes.profile.avatarId,
+        friendCode: authRes.profile.friendCode,
+        level: authRes.profile.level,
       });
     } finally {
       set({ isSyncing: false });
@@ -207,6 +282,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       description: `Added ${amount.toLocaleString()} coins`,
     });
     set({ profile: updated, transactions: DatabaseService.getTransactions() });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 
   spendCoins: (amount: number) => {
@@ -218,6 +294,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const updated = { ...p, coins: balanceAfter };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
     return true;
   },
 
@@ -242,6 +319,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     });
 
     set({ profile: updated, transactions: DatabaseService.getTransactions() });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
     return true;
   },
 
@@ -265,6 +343,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     });
 
     set({ profile: updated, transactions: DatabaseService.getTransactions() });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 
   claimDailyBonus: (): { success: boolean; bonusAmount?: number; message?: string } => {
@@ -305,6 +384,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     });
 
     set({ profile: updated, transactions: DatabaseService.getTransactions() });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
     return { success: true, bonusAmount, message: `Received +${bonusAmount} free coins!` };
   },
 
@@ -324,6 +404,7 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
     const updated = { ...get().profile, level, xp, xpNextLevel };
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 
   recordMatchResult: ({ isWin, isGin, isThousandRun, points, coinsWon, referenceId }) => {
@@ -382,5 +463,6 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
 
     CloudSyncService.saveProfileLocally(updated);
     set({ profile: updated, transactions: DatabaseService.getTransactions() });
+    CloudSyncService.syncToCloud(updated).catch(() => {});
   },
 }));

@@ -98,6 +98,7 @@ export interface UserProfile {
   avatarId: string;
   avatarUrl?: string;
   loginProvider: LoginProvider;
+  googleId?: string;
   phone?: string;
   email?: string;
   coins: number;

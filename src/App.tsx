@@ -11,6 +11,7 @@ import { OnlineLobbyModal } from './components/screens/OnlineLobbyModal';
 import { RulesConfirmationModal } from './components/screens/RulesConfirmationModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { ProfileEditModal } from './components/auth/ProfileEditModal';
+import { CloudConflictModal } from './components/auth/CloudConflictModal';
 import { RulesModal } from './components/shared/RulesModal';
 import { SettingsModal } from './components/shared/SettingsModal';
 import { FriendsModal } from './components/social/FriendsModal';
@@ -18,6 +19,7 @@ import { MatchInviteToast } from './components/social/MatchInviteToast';
 import { InactivityForfeitModal } from './components/shared/InactivityForfeitModal';
 import { UpdatePromptModal } from './components/shared/UpdatePromptModal';
 import { checkForAppUpdate } from './services/updateService';
+import { CloudSyncService } from './services/cloudSyncService';
 import { AlertCircle, Clock } from 'lucide-react';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { useWakeLock } from './hooks/useWakeLock';
@@ -57,8 +59,18 @@ export default function App() {
   const [showRules, setShowRules] = useState(false);
   const [lobbyInitialTab, setLobbyInitialTab] = useState<'CREATE_ROOM' | 'JOIN_ROOM' | 'QUICK_MATCH'>('CREATE_ROOM');
 
-  const profile = useAuthStore(state => state.profile);
+  const {
+    profile,
+    conflictData,
+    resolveConflict,
+    setConflictData,
+  } = useAuthStore();
   const { isFriendsModalOpen, setFriendsModalOpen, initPresence } = useSocialStore();
+
+  // Flush any pending offline progression changes to cloud server
+  useEffect(() => {
+    CloudSyncService.flushPendingSync();
+  }, []);
 
   // Connect to Real-Time Presence & Invitation WebSocket
   useEffect(() => {
@@ -143,7 +155,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="w-screen h-screen h-[100dvh] max-h-screen bg-[#041710] text-[#FAF7F2] flex flex-col font-sans select-none overflow-hidden">
+      <div className="w-screen h-screen h-[100dvh] max-h-screen bg-[#0d0605] text-[#f7f0ea] flex flex-col font-sans select-none overflow-hidden">
         {/* Landscape Orientation Enforcement & Rotate Modal */}
         <OrientationGuard />
 
@@ -283,10 +295,21 @@ export default function App() {
       <AuthModal />
       <ProfileEditModal />
 
+      {/* Cloud Account Conflict Resolution Modal */}
+      {conflictData && (
+        <CloudConflictModal
+          isOpen={!!conflictData}
+          cloudProfile={conflictData.cloud}
+          localProfile={conflictData.local}
+          onResolve={resolveConflict}
+          onCancel={() => setConflictData(null)}
+        />
+      )}
+
       {/* Away Turn Toast Notification */}
       {awayToastMessage && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#0E1B17]/95 border border-amber-500/60 text-amber-200 text-xs px-4 py-2 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.8)] animate-in slide-in-from-top duration-300">
-          <Clock className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#170b09]/95 border border-[#e5c378]/60 text-[#e5c378] text-xs px-4 py-2 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(0,0,0,0.8)] animate-in slide-in-from-top duration-300">
+          <Clock className="w-4 h-4 text-[#e5c378] shrink-0 animate-pulse" />
           <span>{awayToastMessage}</span>
         </div>
       )}

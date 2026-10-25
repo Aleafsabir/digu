@@ -25,7 +25,7 @@ const SIZE_CLASSES: Record<NonNullable<JuicyButtonProps['size']>, string> = {
 };
 
 export const JuicyButton: React.FC<JuicyButtonProps> = ({
-  variant = 'emerald',
+  variant = 'gold',
   size = 'md',
   hapticStyle = ImpactStyle.Medium,
   onClick,

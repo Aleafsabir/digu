@@ -249,7 +249,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
 
         {/* Release to Discard Floating Indicator */}
         {isDraggingUp && isActionPhase && (
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 bg-[#02140D]/95 border-2 border-[#05D59A] text-[#05D59A] px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(5,213,154,0.45)] flex items-center gap-1.5 pointer-events-none animate-bounce">
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 bg-[#170b09]/95 border-2 border-[#e5c378] text-[#e5c378] px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(229,195,120,0.45)] flex items-center gap-1.5 pointer-events-none animate-bounce">
             <ArrowDownToLine className="w-3.5 h-3.5 rotate-180" />
             <span>Release to Discard</span>
           </div>
@@ -337,12 +337,12 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
               >
                 {/* Drag insertion guide beacon on left edge of target slot */}
                 {draggedDrawIndex === index && (
-                  <div className="absolute -left-2 top-1 bottom-1 w-2 bg-[#05D59A] rounded-full shadow-[0_0_18px_#05D59A] z-50 border border-white/60 animate-pulse pointer-events-none" />
+                  <div className="absolute -left-2 top-1 bottom-1 w-2 bg-[#e5c378] rounded-full shadow-[0_0_18px_#e5c378] z-50 border border-white/60 animate-pulse pointer-events-none" />
                 )}
 
                 {/* Drag insertion guide beacon on right edge if inserting at the very end */}
                 {draggedDrawIndex === handCards.length && index === handCards.length - 1 && (
-                  <div className="absolute -right-2 top-1 bottom-1 w-2 bg-[#05D59A] rounded-full shadow-[0_0_18px_#05D59A] z-50 border border-white/60 animate-pulse pointer-events-none" />
+                  <div className="absolute -right-2 top-1 bottom-1 w-2 bg-[#e5c378] rounded-full shadow-[0_0_18px_#e5c378] z-50 border border-white/60 animate-pulse pointer-events-none" />
                 )}
 
                 {/* Golden Gin Finish Card Badge */}
@@ -360,7 +360,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
                       meldHighlight.color === 'cyan'
                         ? 'bg-cyan-400'
                         : meldHighlight.color === 'emerald'
-                        ? 'bg-[#05D59A]'
+                        ? 'bg-[#e5c378]'
                         : meldHighlight.color === 'amber'
                         ? 'bg-amber-400'
                         : 'bg-purple-400'

@@ -75,10 +75,10 @@ export const OrientationGuard: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-gradient-to-b from-[#02140D] via-[#031B11] to-[#010D08] flex flex-col items-center justify-center p-6 text-center select-none font-sans-clean"
+          className="fixed inset-0 z-50 bg-gradient-to-b from-[#170b09] via-[#0d0605] to-[#0d0605] flex flex-col items-center justify-center p-6 text-center select-none font-sans-clean"
         >
           {/* Glowing Maldivian Crest Badge */}
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#063824] via-[#02140D] to-[#010A06] border-2 border-[#E5C378] flex items-center justify-center font-black font-thaana text-[#E5C378] text-4xl shadow-[0_0_25px_rgba(5,213,154,0.35)] mb-6">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#c84b31] via-[#170b09] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center font-black font-thaana text-[#E5C378] text-4xl shadow-[0_0_25px_rgba(229,195,120,0.35)] mb-6">
             ޑ
           </div>
 
@@ -95,28 +95,28 @@ export const OrientationGuard: React.FC = () => {
                 ease: 'easeInOut',
                 times: [0, 0.2, 0.5, 0.8, 1],
               }}
-              className="w-16 h-28 rounded-2xl bg-[#02140D] border border-slate-700 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex flex-col items-center justify-between p-2"
+              className="w-16 h-28 rounded-2xl bg-[#0d0605] border border-[#301a14] shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex flex-col items-center justify-between p-2"
             >
-              <div className="w-5 h-1 bg-white/20 rounded-full" />
-              <RotateCw className="w-6 h-6 text-[#05D59A] animate-spin opacity-80" />
-              <div className="w-6 h-1 bg-white/10 rounded-full" />
+              <div className="w-5 h-1 bg-[#e5c378]/20 rounded-full" />
+              <RotateCw className="w-6 h-6 text-[#e5c378] animate-spin opacity-80" />
+              <div className="w-6 h-1 bg-[#e5c378]/20 rounded-full" />
             </motion.div>
           </div>
 
           {/* Heading and Instructions */}
-          <h2 className="text-xl font-black text-[#F1F5F9] tracking-tight mt-2 mb-1">
+          <h2 className="text-xl font-serif font-black text-[#f7f0ea] tracking-tight mt-2 mb-1">
             Please Rotate Your Device
           </h2>
-          <p className="text-xs text-[#05D59A] font-bold mb-2">
+          <p className="text-xs text-[#e5c378] font-bold mb-2 font-thaana">
             ވަށައިގެން އަނބުރާލައްވާ
           </p>
-          <p className="text-xs text-slate-300 max-w-xs leading-relaxed mb-6 font-medium">
+          <p className="text-xs text-[#f7f0ea]/70 max-w-xs leading-relaxed mb-6 font-medium">
             <strong>Holhuashi: Digu</strong> is designed exclusively for widescreen landscape play. Turn your device horizontally for the full stadium table experience.
           </p>
 
           {/* Quick Action Button for Mobile Browsers */}
           <JuicyButton
-            variant="emerald"
+            variant="gold"
             size="md"
             onClick={handleRequestLandscape}
           >

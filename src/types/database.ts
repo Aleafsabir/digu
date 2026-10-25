@@ -106,8 +106,8 @@ export const BUY_IN_TIERS: BuyInTier[] = [
     buyIn: 1000,
     targetScore: 1000,
     badge: 'POPULAR',
-    badgeColor: 'bg-gradient-to-r from-[#05D59A] to-[#047857] text-[#02140D] font-black',
-    gradient: 'from-[#031B11] to-[#010D08]',
+    badgeColor: 'bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-[#0d0605] font-black',
+    gradient: 'from-[#170b09] to-[#0d0605]',
     icon: '🌴',
   },
   {

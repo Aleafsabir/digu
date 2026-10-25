@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     display_name VARCHAR(50) NOT NULL,
     avatar_id VARCHAR(50) NOT NULL DEFAULT 'sultan',
     login_provider VARCHAR(20) NOT NULL DEFAULT 'GUEST', -- 'GUEST', 'GOOGLE', 'APPLE', 'PHONE'
+    google_id VARCHAR(100) UNIQUE,
     phone VARCHAR(30),
     email VARCHAR(255),
     coins BIGINT NOT NULL DEFAULT 10000 CHECK (coins >= 0),

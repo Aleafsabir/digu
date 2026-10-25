@@ -125,8 +125,8 @@ export const PlayerHandTray: React.FC<PlayerHandTrayProps> = ({
               onClick={onSlamFinish}
               className={`flex items-center gap-1 text-xs font-black px-4 py-1.5 rounded-xl transition shadow-lg active:scale-95 ${
                 isGinReady
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 ring-4 ring-emerald-500/40 animate-pulse cursor-pointer'
-                  : 'bg-[#D4AF37] hover:bg-[#c49f2e] text-[#2C1B10] cursor-pointer'
+                  ? 'bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-[#0d0605] ring-4 ring-[#e5c378]/50 animate-pulse cursor-pointer shadow-[0_0_20px_rgba(229,195,120,0.6)]'
+                  : 'bg-[#e5c378] hover:bg-[#b48d36] text-[#0d0605] cursor-pointer'
               }`}
             >
               <Zap className="w-3.5 h-3.5" /> Slam Finish & Declare Gin
@@ -150,20 +150,20 @@ export const PlayerHandTray: React.FC<PlayerHandTrayProps> = ({
               onClick={() => onSlotClick(index)}
               className={`min-h-[140px] rounded-2xl p-2.5 sm:p-3 border-2 transition-all flex flex-col justify-between cursor-pointer ${
                 validation?.isValid
-                  ? 'bg-emerald-950/40 border-emerald-400 ring-2 ring-emerald-500/30 shadow-emerald-950/30 shadow-lg'
+                  ? 'bg-[#170b09] border-[#e5c378] ring-2 ring-[#e5c378]/30 shadow-lg'
                   : validation && !validation.isValid
                   ? 'bg-rose-950/40 border-rose-500 ring-2 ring-rose-500/30 shadow-rose-950/30 shadow-lg'
                   : selectedCardId
-                  ? 'bg-[#124444]/60 border-dashed border-[#D4AF37] hover:border-[#D4AF37] shadow-md ring-2 ring-[#D4AF37]/30'
-                  : 'bg-[#124444]/40 border-dashed border-[#D4AF37]/40 hover:border-[#D4AF37]'
+                  ? 'bg-[#170b09]/90 border-dashed border-[#e5c378] hover:border-[#e5c378] shadow-md ring-2 ring-[#e5c378]/30'
+                  : 'bg-[#0d0605] border-dashed border-[#301a14] hover:border-[#e5c378]/50'
               }`}
             >
               {/* Slot Header */}
               <div className="flex justify-between items-center text-xs">
-                <span className="font-extrabold text-slate-200">{label}</span>
+                <span className="font-extrabold text-[#f7f0ea]">{label}</span>
                 <span
                   className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                    isSlotFull ? 'bg-emerald-900/60 text-emerald-300' : 'bg-[#0F3838] text-slate-400'
+                    isSlotFull ? 'bg-[#301a14] text-[#e5c378]' : 'bg-[#170b09] text-[#f7f0ea]/50'
                   }`}
                 >
                   {cardsInSlot.length} / {max}

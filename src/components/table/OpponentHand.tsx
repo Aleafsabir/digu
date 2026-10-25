@@ -20,8 +20,8 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
   phase,
   thoughtMessage,
 }) => {
-  const visualTheme = useGameStore(state => state.visualTheme) || 'tournoi';
-  const theme = THEME_CONFIGS[visualTheme] || THEME_CONFIGS.tournoi;
+  const visualTheme = useGameStore(state => state.visualTheme) || 'royal_lacquer';
+  const theme = THEME_CONFIGS[visualTheme] || THEME_CONFIGS.royal_lacquer;
 
   const playerReaction = useGameStore(state => state.playerReactions[player.seatIndex]);
 
@@ -49,7 +49,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
       <div className="relative">
         {/* Active Turn Breathing Halo */}
         {isActiveTurn && (
-          <div className="absolute -inset-1 rounded-full bg-[#05D59A]/30 blur-sm pointer-events-none animate-pulse" />
+          <div className="absolute -inset-1 rounded-full bg-[#e5c378]/30 blur-sm pointer-events-none animate-pulse" />
         )}
 
         {/* Dealer "D" Badge */}
@@ -67,7 +67,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
           id={`anchor-seat-${player.seatIndex}`}
           className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-slate-400/40 flex items-center justify-center shadow-md transition-all duration-300 ${
             isActiveTurn
-              ? 'bg-gradient-to-br from-[#05D59A] to-[#047857] text-[#02140D] shadow-[0_0_18px_rgba(5,213,154,0.6)] border-[#00F5AE]'
+              ? 'bg-gradient-to-br from-[#c84b31] to-[#8f2d1b] text-[#f7f0ea] shadow-[0_0_18px_rgba(200,75,49,0.6)] border-[#e5c378]'
               : 'bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-slate-200'
           }`}
         >
@@ -117,13 +117,13 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
       <div
         className={`mt-1 px-2.5 py-0.5 rounded-full border backdrop-blur-xs flex items-center shadow-sm transition-colors ${
           isActiveTurn
-            ? 'bg-[#02140D]/95 border-[#05D59A]/80 text-[#05D59A] font-black shadow-[0_0_10px_#05D59A40]'
-            : 'bg-[#02140D]/85 border-slate-700/80 text-slate-300'
+            ? 'bg-[#170b09]/95 border-[#e5c378]/80 text-[#e5c378] font-black shadow-[0_0_10px_rgba(229,195,120,0.4)]'
+            : 'bg-[#0d0605]/85 border-[#301a14] text-[#f7f0ea]/70'
         }`}
       >
         <span
           className={`text-[10px] sm:text-xs font-bold truncate max-w-[70px] sm:max-w-[90px] ${
-            isActiveTurn ? 'text-[#05D59A]' : 'text-slate-300'
+            isActiveTurn ? 'text-[#e5c378]' : 'text-[#f7f0ea]/70'
           }`}
         >
           {player.name.replace(/^Bot\s+/, '')}
@@ -135,7 +135,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
         <motion.div
           initial={{ opacity: 0, y: -3, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute -bottom-5 sm:-bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-full bg-emerald-950/95 border-0 text-[8px] sm:text-[9px] font-black text-emerald-200 shadow-xl z-30 pointer-events-none"
+          className="absolute -bottom-5 sm:-bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-full bg-[#170b09]/95 border border-[#301a14] text-[8px] sm:text-[9px] font-black text-[#e5c378] shadow-xl z-30 pointer-events-none"
         >
           {thoughtMessage || (player.isAI ? 'Thinking...' : 'Playing...')}
         </motion.div>
