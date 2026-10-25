@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Holhuashi: Bondi (ބޮނޑި)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), local('MV Boli');
+    }
+    .font-thaana { font-family: 'Faruma', 'MV Boli', 'Aakuru', sans-serif; }
+    .font-luxury { font-family: 'Cinzel', serif; }
+    .font-sans-clean { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+
+    /* Deep Maldivian Oceanic Sapphire Table Felt */
+    .table-surface {
+      background: radial-gradient(circle at 50% 48%, #101c2e 0%, #0a1322 50%, #03070f 100%);
+    }
+
+    /* Digu Card Sizing Invariants */
+    .card-hand-size {
+      width: clamp(58px, 17.4dvh, 82px);
+      height: clamp(88px, 26dvh, 124px);
+    }
+    .card-table-size {
+      width: clamp(52px, 15dvh, 76px);
+      height: clamp(76px, 22dvh, 110px);
+    }
+
+    .card-shadow {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    .card-playable {
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease;
+    }
+    .card-playable:hover {
+      transform: translateY(-16px) rotate(0deg) scale(1.05) !important;
+      box-shadow: 0 16px 28px rgba(0,0,0,0.7), 0 0 18px rgba(229,195,120,0.55);
+      z-index: 50 !important;
+    }
+
+    /* At-Risk Warning Glow on Avatar */
+    @keyframes risk-pulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.85), 0 0 16px rgba(245, 158, 11, 0.5); }
+      50% { box-shadow: 0 0 0 3px rgba(239, 68, 68, 1), 0 0 26px rgba(239, 68, 68, 0.8); }
+    }
+    .at-risk-pulse {
+      animation: risk-pulse 1.3s infinite ease-in-out;
+    }
+
+    /* Turn Glow */
+    @keyframes turn-glow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.85), 0 0 16px rgba(56, 189, 248, 0.4); }
+      50% { box-shadow: 0 0 0 3px rgba(56, 189, 248, 1), 0 0 24px rgba(56, 189, 248, 0.7); }
+    }
+    .active-turn-ring {
+      animation: turn-glow 1.8s infinite ease-in-out;
+    }
+
+    .drawer-transition {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="w-screen h-[100dvh] overflow-hidden bg-[#02050a] text-[#f7f0ea] font-sans-clean select-none">
+
+  <!-- FULL-SCREEN IMMERSIVE TABLE -->
+  <div class="relative w-full h-full table-surface flex flex-col justify-between overflow-hidden p-2 sm:p-3">
+
+    <!-- SUBTLE BACKGROUND WATERMARK -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04]">
+      <div class="w-96 h-96 rounded-full border border-blue-400 flex items-center justify-center">
+        <span class="font-thaana text-9xl text-blue-300">ބ</span>
+      </div>
+    </div>
+
+    <!-- 1. TOP BAR: MODE INFO & REAL-TIME TRICK HUD PILL -->
+    <header class="relative z-30 w-full flex items-center justify-between px-2 sm:px-6 pt-1 shrink-0">
+      
+      <!-- Left: Mode Badge -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 border border-blue-400/25 backdrop-blur-md">
+          <span class="font-thaana text-xs text-blue-400 font-bold">ބޮނޑި</span>
+          <span class="font-luxury font-bold text-xs tracking-wider text-white">BONDI</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-blue-950 text-blue-200 font-mono-code font-bold uppercase" id="variantBadge">
+            Standard Bondi
+          </span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 font-mono-code font-bold" id="playerCountBadge">
+            4 Players
+          </span>
+        </div>
+      </div>
+
+      <!-- Center: Floating Trick Status & Led Suit Pill -->
+      <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md shadow-xl">
+        <div class="flex items-center gap-1.5 text-xs font-mono-code">
+          <span class="text-zinc-400 text-[10px]">LED:</span>
+          <div id="ledSuitDisplay" class="flex items-center gap-1 font-bold text-amber-300">
+            <span>None</span>
+          </div>
+        </div>
+
+        <div class="w-[1px] h-3.5 bg-white/20"></div>
+
+        <!-- Center Pile Count -->
+        <div class="flex items-center gap-1.5 text-xs font-mono-code">
+          <span class="text-zinc-400 text-[10px]">PILE:</span>
+          <span class="font-black text-white" id="pileCountDisplay">0 Cards</span>
+        </div>
+
+        <div class="w-[1px] h-3.5 bg-white/20"></div>
+
+        <!-- At-Risk Player Indicator -->
+        <div class="flex items-center gap-1.5 text-xs font-mono-code" id="atRiskDisplay">
+          <span class="text-rose-400 font-bold text-[10px]">AT-RISK:</span>
+          <span class="font-black text-rose-300" id="atRiskPlayerName">—</span>
+        </div>
+      </div>
+
+      <!-- Right: Rules & Settings Action -->
+      <div class="flex items-center gap-1.5">
+        <button id="openRulesBtn" class="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/10 flex items-center justify-center text-xs text-blue-300 transition" title="View Rules">
+          📜
+        </button>
+        <button id="openDrawerBtn" class="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/10 flex items-center justify-center text-xs text-zinc-300 hover:text-white transition" title="Settings & Scenarios">
+          ⚙️
+        </button>
+      </div>
+
+    </header>
+
+    <!-- 2. TOP PERIMETER: NORTH / TOP-CENTER / TOP-FLANK OPPONENTS -->
+    <div id="topOpponentsRow" class="relative z-20 w-full flex items-center justify-center gap-6 sm:gap-12 pt-1 shrink-0">
+      <!-- Injected dynamically: Top-Left, Top-Center, Top-Right -->
+    </div>
+
+    <!-- 3. MIDDLE ZONE: WEST OPPONENT (LEFT) | OPEN CENTER FELT | EAST OPPONENT (RIGHT) -->
+    <div class="relative flex-1 w-full flex items-center justify-between px-2 sm:px-6 my-auto z-10 min-h-0">
+
+      <!-- WEST SEAT (LEFT FLANK) -->
+      <div id="westSeatSlot" class="w-24 flex items-center justify-start shrink-0">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- CENTER TRICK ARENA (SPACIOUS, 100% UNCLUTTERED FELT) -->
+      <div class="relative flex-1 h-full max-h-[230px] flex items-center justify-center px-4">
+        
+        <!-- Trick Lead Notice Badge (Floating above cards) -->
+        <div id="trickLeadInfoBadge" class="absolute top-1 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/50 border border-white/10 text-[10px] font-mono-code text-[#e5c378] z-20 pointer-events-none">
+          <span id="trickInfoText">Trick 1 • Waiting for lead</span>
+        </div>
+
+        <!-- Center Trick Pile: Generous horizontal fan with Digu-proportioned cards -->
+        <div id="centerTrickPile" class="relative w-full h-full flex items-center justify-center">
+          <!-- Cards rendered with clear visibility -->
+        </div>
+
+        <!-- Dramatic Clean Round Animation Banner -->
+        <div id="cleanRoundBanner" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 z-30">
+          <div class="px-5 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black text-xs uppercase tracking-wider font-luxury shadow-2xl">
+            ✨ Clean Round • Cards Burned!
+          </div>
+        </div>
+
+        <!-- Dramatic BONDI! Penalty Banner -->
+        <div id="bondiPenaltyBanner" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-all duration-300 z-30 transform scale-90">
+          <div class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white font-black text-sm uppercase tracking-widest font-luxury shadow-[0_0_40px_rgba(239,68,68,0.85)] border border-amber-300" id="bondiBannerText">
+            💥 BONDI! Ibrahim Takes 6 Cards!
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EAST SEAT (RIGHT FLANK) -->
+      <div id="eastSeatSlot" class="w-24 flex items-center justify-end shrink-0">
+        <!-- Injected dynamically -->
+      </div>
+
+    </div>
+
+    <!-- 4. SOUTH SANCTUARY: PLAYER HAND (YOU) -->
+    <div class="relative w-full flex flex-col items-center z-20 pb-1 shrink-0">
+      
+      <!-- Contextual Dump Suit Action Button (When giving Suit Bondi) -->
+      <div id="suitDumpActionBar" class="hidden mb-1.5 flex items-center gap-2">
+        <button id="confirmSuitDumpBtn" class="px-4 py-1.5 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white font-black text-xs uppercase tracking-wider font-mono-code shadow-lg animate-pulse hover:brightness-110 transition">
+          🔥 DUMP ALL HEARTS (3 CARDS)
+        </button>
+        <button id="cancelSuitDumpBtn" class="px-2.5 py-1 rounded-full bg-black/60 border border-white/20 text-[10px] text-zinc-300 hover:text-white">
+          Cancel
+        </button>
+      </div>
+
+      <!-- Turn Notice -->
+      <div id="myTurnNotice" class="hidden mb-1 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/60 text-blue-300 text-[10px] font-bold uppercase tracking-wider animate-pulse font-mono-code">
+        ★ Your Turn • Play Legal Card
+      </div>
+
+      <!-- Player Hand Fanned Cards Container (Digu Radial Arc Layout) -->
+      <div class="relative w-full max-w-5xl h-[clamp(90px,26dvh,130px)] flex items-end justify-center px-4 overflow-visible" id="handContainer">
+        <!-- Rendered via JS with exact Digu card dimensions -->
+      </div>
+
+      <!-- Bottom Utilities -->
+      <div class="absolute bottom-1 right-3 flex items-center gap-2">
+        <button id="sortHandBtn" class="px-2 py-0.5 rounded-md bg-black/40 hover:bg-black/70 border border-white/10 text-[10px] font-mono-code text-zinc-400 hover:text-white transition">
+          Sort
+        </button>
+        <button id="stepAiBtn" class="px-2.5 py-0.5 rounded-md bg-blue-900/40 hover:bg-blue-800/60 border border-blue-500/40 text-[10px] font-mono-code text-blue-200 transition">
+          ▶ Step AI
+        </button>
+      </div>
+
+      <!-- Ace of Spades Opening Lead Badge -->
+      <div id="leadBadge" class="hidden absolute bottom-1 left-3 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/50 text-[10px] font-mono-code text-amber-300 font-bold">
+        ♠ Has A♠ (Opening Lead)
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SLIDE-OVER DRAWER: SETTINGS, SCENARIOS & ENGINE OPTIONS -->
+  <!-- ========================================================================= -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+  <aside id="drawerPanel" class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-[#0c1320] border-l border-[#1d2d48] z-50 p-5 shadow-2xl flex flex-col justify-between transform translate-x-full drawer-transition overflow-y-auto">
+    <div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#1d2d48] mb-4">
+        <h3 class="font-luxury font-black text-sm text-blue-300">BONDI ENGINE & RULES</h3>
+        <button id="closeDrawerBtn" class="w-6 h-6 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <!-- Engine Controls -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-mono-code text-zinc-400 mb-1">Player Count (2 to 6 Players)</label>
+          <select id="playerCountSelect" class="w-full bg-[#131f33] border border-[#263c61] rounded-xl p-2 text-xs text-blue-200 font-bold">
+            <option value="2">2 Players (26 cards each)</option>
+            <option value="3">3 Players (17, 17, 18 cards)</option>
+            <option value="4" selected>4 Players (13 cards each - Standard)</option>
+            <option value="5">5 Players (11, 11, 10, 10, 10 cards)</option>
+            <option value="6">6 Players (9, 9, 9, 9, 8, 8 cards)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-code text-zinc-400 mb-1">Bondi Penalty Variant</label>
+          <select id="variantSelect" class="w-full bg-[#131f33] border border-[#263c61] rounded-xl p-2 text-xs text-amber-300 font-bold">
+            <option value="STANDARD">Variant 1: Standard Bondi (Single Card)</option>
+            <option value="SUIT_BONDI">Variant 2: Suit Bondi (Full Suit Mass Dump)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-code text-zinc-400 mb-1">AI Difficulty</label>
+          <select id="aiTierSelect" class="w-full bg-[#131f33] border border-[#263c61] rounded-xl p-2 text-xs text-cyan-200 font-bold">
+            <option value="HARD">Hard (Ducks high cards & sabotages exit)</option>
+            <option value="MEDIUM" selected>Medium (Tactical play & suit dumping)</option>
+            <option value="EASY">Easy (Casual legal follow)</option>
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-[#1d2d48]">
+          <span class="text-[10px] font-mono-code text-zinc-400 uppercase tracking-wider block mb-2">Simulate Scenarios</span>
+          <div class="space-y-1.5">
+            <button id="scenCleanRound" class="w-full p-2 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-700/40 text-left text-xs font-bold text-emerald-300 flex justify-between items-center">
+              <span>Clean Round (All Follow Suit)</span>
+              <span>✨</span>
+            </button>
+            <button id="scenStandardBondi" class="w-full p-2 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-700/40 text-left text-xs font-bold text-rose-300 flex justify-between items-center">
+              <span>Standard Bondi Penalty</span>
+              <span>💥</span>
+            </button>
+            <button id="scenSuitBondiDump" class="w-full p-2 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-700/40 text-left text-xs font-bold text-amber-300 flex justify-between items-center">
+              <span>Suit Bondi Mass Dump</span>
+              <span>🔥</span>
+            </button>
+            <button id="scenPlayerEscape" class="w-full p-2 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-700/40 text-left text-xs font-bold text-cyan-300 flex justify-between items-center">
+              <span>Player Clears / Escapes Hand</span>
+              <span>🏁</span>
+            </button>
+            <button id="scenBondiLoserYou" class="w-full p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/70 border border-rose-700/50 text-left text-xs font-bold text-rose-300 flex justify-between items-center">
+              <span>Endgame: You Lose! (Bondi)</span>
+              <span>💀</span>
+            </button>
+            <button id="scenBondiLoserBot" class="w-full p-2 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/70 border border-emerald-700/50 text-left text-xs font-bold text-emerald-300 flex justify-between items-center">
+              <span>Endgame: You Win! (Bot Loses)</span>
+              <span>🏆</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-[#1d2d48]">
+      <button id="drawerNewDealBtn" class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-600 text-xs font-bold text-white shadow">
+        🔄 Deal New Match
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: BONDI MATCH RESOLUTION / CONCESSION MODAL -->
+  <!-- ========================================================================= -->
+  <div id="endgameModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="max-w-sm w-full bg-[#0d1626] border border-blue-400/60 rounded-3xl p-6 text-center shadow-2xl">
+      <div class="w-14 h-14 rounded-3xl mx-auto flex items-center justify-center text-3xl mb-3" id="endgameIconWrap">
+        <span id="endgameIcon">💀</span>
+      </div>
+      <h2 class="font-luxury font-black text-2xl mb-1 tracking-wide" id="endgameTitle">
+        YOU LOSE!
+      </h2>
+      <p class="text-xs mb-4" id="endgameSubtitle">
+        You were left holding the cards and became The Bondi!
+      </p>
+
+      <div class="bg-black/50 rounded-2xl p-3 border border-white/10 mb-4 text-xs font-mono-code text-left space-y-1.5" id="exitRankingList">
+        <!-- Rendered rankings -->
+      </div>
+
+      <div class="p-2 rounded-xl bg-blue-950/60 border border-blue-500/30 text-[11px] text-blue-200 font-mono-code mb-5" id="penaltyAceNotice">
+        Penalty: Ace of Spades (A♠) recorded.
+      </div>
+
+      <button id="closeEndgameModalBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 text-zinc-950 font-black text-xs uppercase tracking-wider shadow">
+        Start New Match
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: BONDI QUICK RULES -->
+  <!-- ========================================================================= -->
+  <div id="rulesModal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="max-w-md w-full max-h-[80vh] bg-[#0c1524] border border-blue-400/40 rounded-3xl p-5 shadow-2xl flex flex-col text-left overflow-hidden">
+      <div class="flex justify-between items-center pb-2 border-b border-white/10 shrink-0">
+        <h3 class="font-luxury font-bold text-sm text-blue-300">BONDI OFFICIAL RULES</h3>
+        <button id="closeRulesModalBtn" class="text-zinc-400 hover:text-white text-xs">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto py-3 space-y-3 text-xs text-zinc-300 leading-relaxed pr-1">
+        <p><strong class="text-white">Core Objective:</strong> Shed all your cards. The last player left holding cards is <span class="text-rose-400 font-bold">The Bondi</span> (the loser).</p>
+        <p><strong class="text-white">Player Count:</strong> 2 to 6 players, free-for-all cutthroat (no partnerships). Anti-clockwise play.</p>
+        <p><strong class="text-white">Opening Trick:</strong> Player holding the Ace of Spades (A♠) leads Trick 1 (with any card).</p>
+        <p><strong class="text-white">Must Follow Suit:</strong> You must follow the led suit if you hold at least one card of that suit.</p>
+        <p><strong class="text-white">Clean Round:</strong> If all active players follow suit cleanly, the entire pile is <span class="text-emerald-400 font-bold">burned</span>, and the highest card player leads next.</p>
+        <p><strong class="text-white">Giving Bondi:</strong> If you hold no cards in the led suit, you must give Bondi!</p>
+        <ul class="list-disc pl-4 space-y-1 text-zinc-300 text-[11px]">
+          <li><strong>Standard Bondi:</strong> Play 1 off-suit card. The player with the highest card of the led suit takes the entire pile into their hand!</li>
+          <li><strong>Suit Bondi (Mass Dump):</strong> Select an off-suit and dump <span class="text-amber-300 font-bold">every card</span> of that suit. The highest card player absorbs the entire massive pile!</li>
+        </ul>
+        <p class="text-zinc-400">The player who <strong class="text-amber-300">receives the Bondi</strong> (the player who held the highest card and absorbed the pile) leads the next trick.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT GAME ENGINE WITH EXACT DIGU VECTOR CARD ARTWORK -->
+  <!-- ========================================================================= -->
+  <script>
+    // Audio Synthesizer
+    const Sound = {
+      ctx: null,
+      play(type) {
+        try {
+          if (!this.ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) this.ctx = new AC();
+          }
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+
+          if (type === 'play') {
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(340, t);
+            o.frequency.exponentialRampToValueAtTime(160, t + 0.07);
+            g.gain.setValueAtTime(0.2, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.07);
+            o.start(t);
+            o.stop(t + 0.07);
+          } else if (type === 'clean') {
+            o.type = 'sine';
+            o.frequency.setValueAtTime(520, t);
+            o.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+            g.gain.setValueAtTime(0.25, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            o.start(t);
+            o.stop(t + 0.2);
+          } else if (type === 'bondi') {
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(220, t);
+            o.frequency.exponentialRampToValueAtTime(90, t + 0.25);
+            g.gain.setValueAtTime(0.35, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            o.start(t);
+            o.stop(t + 0.3);
+          }
+        } catch(e) {}
+      }
+    };
+
+    const SUITS = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
+    const SUIT_SYMBOLS = { SPADES: '♠', HEARTS: '♥', DIAMONDS: '♦', CLUBS: '♣' };
+
+    // Exact Digu Physical SVG Vector Suit Paths
+    function getSuitSVGPath(suit, cx, cy, scale = 1, fill = '#0f172a') {
+      if (suit === 'SPADES') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -11 C-5 -5 -10 -1 -10 4 C-10 7.5 -7 9.5 -4 9.5 C-2 9.5 -0.8 8.5 0 7 C0.8 8.5 2 9.5 4 9.5 C7 9.5 10 7.5 10 4 C10 -1 5 -5 0 -11 Z" fill="${fill}" /><path d="M-1.2 5.5 L-3.5 11.5 L3.5 11.5 L1.2 5.5 Z" fill="${fill}" /></g>`;
+      }
+      if (suit === 'HEARTS') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -5.5 C-2 -9.5 -6.5 -10.5 -9 -7.5 C-11.5 -4.5 -11 0.5 -7 4.5 L0 11.5 L7 4.5 C11 0.5 11.5 -4.5 9 -7.5 C6.5 -10.5 2 -9.5 0 -5.5 Z" fill="${fill}" /></g>`;
+      }
+      if (suit === 'DIAMONDS') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -11.5 C2.5 -6 6 -2.5 10 0 C6 2.5 2.5 6 0 11.5 C-2.5 6 -6 2.5 -10 0 C-6 -2.5 -2.5 -6 0 -11.5 Z" fill="${fill}" /></g>`;
+      }
+      // CLUBS
+      return `<g transform="translate(${cx},${cy}) scale(${scale})"><circle cx="0" cy="-5.2" r="4.5" fill="${fill}" /><circle cx="-5" cy="2" r="4.5" fill="${fill}" /><circle cx="5" cy="2" r="4.5" fill="${fill}" /><path d="M-1.3 3.5 L-3.5 11 L3.5 11 L1.3 3.5 Z" fill="${fill}" /></g>`;
+    }
+
+    // Exact Digu PlayingCard SVG Markup Generator
+    function renderDiguCardSVG(card, isTable = false) {
+      const isRed = card.suit === 'HEARTS' || card.suit === 'DIAMONDS';
+      const ink = isRed ? '#b91c1c' : '#0f172a';
+      const gold = '#d4af37';
+      const navy = '#1e293b';
+      const crimson = '#b91c1c';
+      const rankText = card.label;
+      const fontSize = rankText === '10' ? '16' : '18';
+      const letterSpacing = rankText === '10' ? '-1.5' : '0';
+
+      let centerArt = '';
+      if (rankText === 'A' && card.suit === 'SPADES') {
+        // Digu Signature Ornate Ace of Spades Medallion
+        centerArt = `
+          <g>
+            <rect x="20" y="14" width="60" height="120" rx="4" stroke="${gold}" stroke-width="0.9" stroke-opacity="0.7" fill="none" />
+            <g transform="translate(50, 72)">
+              <circle cx="0" cy="0" r="27" stroke="${gold}" stroke-width="1.2" stroke-dasharray="2 1.5" fill="#faf6ee" />
+              <circle cx="0" cy="0" r="23" stroke="${ink}" stroke-width="0.8" stroke-opacity="0.4" fill="none" />
+              <path d="M0 -24 C-11 -11 -21 -2 -21 9 C-21 16 -15 20 -8.5 20 C-4.5 20 -1.5 17.5 0 14.5 C1.5 17.5 4.5 20 8.5 20 C15 20 21 16 21 9 C21 -2 11 -11 0 -24 Z" fill="${ink}" />
+              <path d="M-2.8 12 L-8 25 L8 25 L2.8 12 Z" fill="${ink}" />
+              <path d="M0 -17 C-7 -7 -14 0 -14 8 C-14 12.5 -10 15 -5.5 15 C-2.5 15 0 12.5 0 10 C0 12.5 2.5 15 5.5 15 C10 15 14 12.5 14 8 C14 0 7 -7 0 -17 Z" stroke="${gold}" stroke-width="1.2" fill="none" />
+              <path d="M-7 4 L-5 -3 L0 1 L5 -3 L7 4 Z" fill="${gold}" />
+              <circle cx="0" cy="7" r="2.2" fill="#faf6ee" />
+            </g>
+          </g>
+        `;
+      } else if (['J', 'Q', 'K'].includes(rankText)) {
+        // Digu Royal Court Card Portrait
+        centerArt = `
+          <g>
+            <rect x="20" y="14" width="60" height="120" rx="3.5" stroke="${gold}" stroke-width="1.2" fill="#fdfaf3" />
+            <g transform="translate(50, 72)">
+              ${getSuitSVGPath(card.suit, -18, -18, 0.58, ink)}
+              <path d="M-24 -4 C-23 -24 -14 -30 0 -30 C14 -30 23 -24 24 -4 Z" fill="${isRed ? crimson : navy}" stroke="${ink}" stroke-width="1.3" />
+              <path d="M-14 -29 L0 -9 L14 -29" fill="none" stroke="${gold}" stroke-width="3.5" />
+              <circle cx="0" cy="-21" r="2.5" fill="${gold}" />
+              <text x="0" y="8" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="20" fill="${gold}">${rankText}</text>
+              <line x1="-28" y1="18" x2="28" y2="10" stroke="${gold}" stroke-width="2.4" />
+            </g>
+          </g>
+        `;
+      } else {
+        // Number Cards (2 - 10): Authentic physical border + jumbo center pip
+        centerArt = `
+          <g>
+            <rect x="22" y="16" width="56" height="116" rx="4" stroke="${ink}" stroke-width="0.6" stroke-opacity="0.18" fill="none" />
+            ${getSuitSVGPath(card.suit, 31, 28, 0.48, ink)}
+            <g transform="rotate(180 69 120)">
+              ${getSuitSVGPath(card.suit, 69, 120, 0.48, ink)}
+            </g>
+            ${getSuitSVGPath(card.suit, 50, 74, 1.55, ink)}
+          </g>
+        `;
+      }
+
+      return `
+        <svg class="w-full h-full select-none pointer-events-none" viewBox="0 0 100 148" fill="none">
+          <!-- TOP-LEFT INDEX -->
+          <g>
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">
+              ${rankText}
+            </text>
+            ${getSuitSVGPath(card.suit, 11, 32, 0.62, ink)}
+          </g>
+
+          <!-- CENTER ART -->
+          ${centerArt}
+
+          <!-- BOTTOM-RIGHT INVERTED INDEX -->
+          <g transform="rotate(180 50 74)">
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">
+              ${rankText}
+            </text>
+            ${getSuitSVGPath(card.suit, 11, 32, 0.62, ink)}
+          </g>
+        </svg>
+      `;
+    }
+
+    function createDeck() {
+      const d = [];
+      SUITS.forEach(s => {
+        for (let str = 2; str <= 14; str++) {
+          let lbl = str.toString();
+          if (str === 11) lbl = 'J';
+          else if (str === 12) lbl = 'Q';
+          else if (str === 13) lbl = 'K';
+          else if (str === 14) lbl = 'A';
+          d.push({ id: `${s[0]}-${str}`, suit: s, strength: str, label: lbl });
+        }
+      });
+      return d;
+    }
+
+    function shuffle(a) {
+      const arr = [...a];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const BondiGame = {
+      playerCount: 4,
+      variant: 'STANDARD',
+      aiTier: 'MEDIUM',
+      players: [],
+      currentTrick: [], // { playerIndex, playerName, card }
+      ledSuit: null,
+      highestLedPlay: null, // { playerIndex, card }
+      turnIndex: 0,
+      clearedPlayers: [],
+      matchOver: false,
+      selectedDumpSuit: null
+    };
+
+    const BOT_NAMES = ['You', 'Ibrahim', 'Ahmed', 'Hassan', 'Mariyam', 'Ali'];
+
+    function initPlayers(count) {
+      BondiGame.players = [];
+      for (let i = 0; i < count; i++) {
+        BondiGame.players.push({
+          index: i,
+          name: i === 0 ? 'You' : BOT_NAMES[i],
+          isHuman: i === 0,
+          hand: [],
+          hasEscaped: false,
+          escapeRank: null
+        });
+      }
+      BondiGame.clearedPlayers = [];
+      BondiGame.matchOver = false;
+    }
+
+    function dealBondi() {
+      initPlayers(BondiGame.playerCount);
+      const deck = shuffle(createDeck());
+      BondiGame.currentTrick = [];
+      BondiGame.ledSuit = null;
+      BondiGame.highestLedPlay = null;
+
+      // Anti-clockwise distribution until all 52 cards dealt
+      let p = 0;
+      while (deck.length > 0) {
+        BondiGame.players[p].hand.push(deck.pop());
+        p = (p + 1) % BondiGame.playerCount;
+      }
+
+      // Hand 1 Lead: player holding Ace of Spades (A♠)
+      let spadeAcePlayer = 0;
+      BondiGame.players.forEach(pl => {
+        if (pl.hand.some(c => c.suit === 'SPADES' && c.strength === 14)) {
+          spadeAcePlayer = pl.index;
+        }
+      });
+      BondiGame.turnIndex = spadeAcePlayer;
+
+      sortHand();
+      renderAll();
+    }
+
+    function sortHand() {
+      const h = BondiGame.players[0].hand;
+      h.sort((a, b) => a.suit === b.suit ? b.strength - a.strength : SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit));
+      renderPlayerHand();
+    }
+
+    function isLegal(card, hand, ledSuit) {
+      if (!ledSuit) return true;
+      const hasSuit = hand.some(c => c.suit === ledSuit);
+      return hasSuit ? card.suit === ledSuit : true;
+    }
+
+    // Play Card
+    function playCard(pIdx, card) {
+      const player = BondiGame.players[pIdx];
+      const cIdx = player.hand.findIndex(c => c.id === card.id);
+      if (cIdx !== -1) player.hand.splice(cIdx, 1);
+
+      // Check if opening card of trick
+      if (BondiGame.currentTrick.length === 0) {
+        BondiGame.ledSuit = card.suit;
+        BondiGame.highestLedPlay = { playerIndex: pIdx, card };
+        BondiGame.currentTrick.push({ playerIndex: pIdx, playerName: player.name, card });
+      } else {
+        const isOffSuit = card.suit !== BondiGame.ledSuit;
+
+        if (isOffSuit) {
+          // GIVING BONDI!
+          BondiGame.currentTrick.push({ playerIndex: pIdx, playerName: player.name, card });
+          executeBondiPenalty();
+          return;
+        } else {
+          // Following Suit: check if higher
+          if (card.strength > BondiGame.highestLedPlay.card.strength) {
+            BondiGame.highestLedPlay = { playerIndex: pIdx, card };
+          }
+          BondiGame.currentTrick.push({ playerIndex: pIdx, playerName: player.name, card });
+        }
+      }
+
+      Sound.play('play');
+      checkPlayerExits();
+      renderAll();
+
+      // Check if all active players have played
+      const activePlayers = BondiGame.players.filter(p => !p.hasEscaped);
+      if (BondiGame.currentTrick.length >= activePlayers.length) {
+        setTimeout(resolveCleanRound, 700);
+      } else {
+        advanceTurn();
+      }
+    }
+
+    // Suit Bondi Mass Dump Action
+    function dumpFullSuit(pIdx, suit) {
+      const player = BondiGame.players[pIdx];
+      const suitCards = player.hand.filter(c => c.suit === suit);
+      player.hand = player.hand.filter(c => c.suit !== suit);
+
+      suitCards.forEach(c => {
+        BondiGame.currentTrick.push({ playerIndex: pIdx, playerName: player.name, card: c });
+      });
+
+      document.getElementById('suitDumpActionBar').classList.add('hidden');
+      BondiGame.selectedDumpSuit = null;
+      executeBondiPenalty();
+    }
+
+    // Execute Bondi Penalty (Target takes all cards & leads next)
+    function executeBondiPenalty() {
+      const target = BondiGame.highestLedPlay;
+      const targetPlayer = BondiGame.players[target.playerIndex];
+
+      Sound.play('bondi');
+
+      BondiGame.currentTrick.forEach(p => {
+        targetPlayer.hand.push(p.card);
+      });
+
+      const banner = document.getElementById('bondiPenaltyBanner');
+      const text = document.getElementById('bondiBannerText');
+      text.innerText = `💥 BONDI! ${targetPlayer.name} Takes ${BondiGame.currentTrick.length} Cards!`;
+      banner.classList.remove('opacity-0', 'scale-90');
+      banner.classList.add('opacity-100', 'scale-100');
+
+      setTimeout(() => {
+        banner.classList.remove('opacity-100', 'scale-100');
+        banner.classList.add('opacity-0', 'scale-90');
+        BondiGame.currentTrick = [];
+        BondiGame.ledSuit = null;
+        BondiGame.highestLedPlay = null;
+
+        checkPlayerExits();
+
+        // The receiver of the Bondi leads the next trick!
+        const receiverIndex = target.playerIndex;
+        BondiGame.turnIndex = receiverIndex;
+        renderAll();
+        if (BondiGame.turnIndex !== 0) setTimeout(stepAi, 450);
+      }, 950);
+    }
+
+    // Resolve Clean Round
+    function resolveCleanRound() {
+      Sound.play('clean');
+
+      const banner = document.getElementById('cleanRoundBanner');
+      banner.classList.remove('opacity-0');
+      banner.classList.add('opacity-100');
+
+      setTimeout(() => {
+        banner.classList.remove('opacity-100');
+        banner.classList.add('opacity-0');
+
+        const nextLead = BondiGame.highestLedPlay.playerIndex;
+        BondiGame.currentTrick = [];
+        BondiGame.ledSuit = null;
+        BondiGame.highestLedPlay = null;
+
+        checkPlayerExits();
+
+        BondiGame.turnIndex = nextLead;
+        if (BondiGame.players[nextLead].hasEscaped) {
+          advanceTurn();
+        } else {
+          renderAll();
+          if (BondiGame.turnIndex !== 0) setTimeout(stepAi, 450);
+        }
+      }, 700);
+    }
+
+    function advanceTurn() {
+      let next = (BondiGame.turnIndex + 1) % BondiGame.playerCount;
+      let loops = 0;
+      while (BondiGame.players[next].hasEscaped && loops < BondiGame.playerCount) {
+        next = (next + 1) % BondiGame.playerCount;
+        loops++;
+      }
+      BondiGame.turnIndex = next;
+      renderAll();
+      if (BondiGame.turnIndex !== 0) setTimeout(stepAi, 450);
+    }
+
+    function checkPlayerExits() {
+      BondiGame.players.forEach(p => {
+        if (!p.hasEscaped && p.hand.length === 0) {
+          p.hasEscaped = true;
+          BondiGame.clearedPlayers.push(p);
+          p.escapeRank = BondiGame.clearedPlayers.length;
+        }
+      });
+
+      const remaining = BondiGame.players.filter(p => !p.hasEscaped);
+      if (remaining.length === 1 && !BondiGame.matchOver) {
+        BondiGame.matchOver = true;
+        setTimeout(() => showEndgame(remaining[0]), 400);
+      }
+    }
+
+    function showEndgame(loser) {
+      const isHumanLoser = loser.index === 0;
+      const titleEl = document.getElementById('endgameTitle');
+      const subEl = document.getElementById('endgameSubtitle');
+      const iconEl = document.getElementById('endgameIcon');
+      const iconWrap = document.getElementById('endgameIconWrap');
+
+      if (isHumanLoser) {
+        // Clean, direct user-requested phrasing
+        titleEl.innerText = 'YOU LOSE!';
+        titleEl.className = 'font-luxury font-black text-3xl mb-1 text-rose-500 tracking-wider';
+        subEl.innerText = 'You were left holding the cards and became The Bondi!';
+        subEl.className = 'text-xs text-rose-300 mb-4';
+        iconEl.innerText = '💀';
+        iconWrap.className = 'w-14 h-14 rounded-3xl bg-rose-600/20 border border-rose-500/50 mx-auto flex items-center justify-center text-3xl mb-3';
+      } else {
+        titleEl.innerText = 'YOU WIN!';
+        titleEl.className = 'font-luxury font-black text-3xl mb-1 text-emerald-400 tracking-wider';
+        subEl.innerText = `${loser.name} failed to shed their cards and is The Bondi!`;
+        subEl.className = 'text-xs text-emerald-300 mb-4';
+        iconEl.innerText = '🏆';
+        iconWrap.className = 'w-14 h-14 rounded-3xl bg-emerald-600/20 border border-emerald-500/50 mx-auto flex items-center justify-center text-3xl mb-3';
+      }
+
+      const list = document.getElementById('exitRankingList');
+      list.innerHTML = '<span class="text-zinc-400 font-bold block mb-1">Match Escape Order:</span>';
+      BondiGame.clearedPlayers.forEach(p => {
+        list.innerHTML += `<div class="flex justify-between text-[11px]"><span class="text-emerald-300">#${p.escapeRank} ${p.name}</span><span class="text-zinc-400">Escaped</span></div>`;
+      });
+      list.innerHTML += `<div class="flex justify-between text-[11px] pt-1 border-t border-white/10 font-bold"><span class="text-rose-400">#${BondiGame.playerCount} ${loser.name} (THE BONDI)</span><span class="text-rose-400">${loser.hand.length} cards</span></div>`;
+
+      document.getElementById('penaltyAceNotice').innerText = `Penalty: ${loser.name} receives the Ace of Spades (A♠) recorded on their record.`;
+      document.getElementById('endgameModal').classList.remove('hidden');
+    }
+
+    // AI Turn Controller
+    function stepAi() {
+      const idx = BondiGame.turnIndex;
+      if (idx === 0 || BondiGame.matchOver) return;
+      const p = BondiGame.players[idx];
+      if (p.hasEscaped) return;
+
+      const led = BondiGame.ledSuit;
+      const leg = p.hand.filter(c => isLegal(c, p.hand, led));
+      if (!leg.length) return;
+
+      let chosen = leg[0];
+
+      if (!led) {
+        leg.sort((a,b) => a.strength - b.strength);
+        chosen = leg[0];
+      } else {
+        const hasSuit = p.hand.some(c => c.suit === led);
+        if (hasSuit) {
+          const curHigh = BondiGame.highestLedPlay ? BondiGame.highestLedPlay.card.strength : 15;
+          const lower = leg.filter(c => c.strength < curHigh);
+          if (lower.length > 0) {
+            lower.sort((a,b) => b.strength - a.strength);
+            chosen = lower[0];
+          } else {
+            leg.sort((a,b) => a.strength - b.strength);
+            chosen = leg[0];
+          }
+        } else {
+          // Void in led suit -> Give Bondi
+          if (BondiGame.variant === 'SUIT_BONDI') {
+            const suitCounts = {};
+            p.hand.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+            let maxSuit = Object.keys(suitCounts)[0];
+            Object.keys(suitCounts).forEach(s => {
+              if (suitCounts[s] > suitCounts[maxSuit]) maxSuit = s;
+            });
+            dumpFullSuit(idx, maxSuit);
+            return;
+          } else {
+            leg.sort((a,b) => b.strength - a.strength);
+            chosen = leg[0];
+          }
+        }
+      }
+
+      playCard(idx, chosen);
+    }
+
+    // Render Helpers
+    function renderAll() {
+      renderTopBar();
+      renderPerimeterOpponents();
+      renderPlayerHand();
+      renderCenterTrickPile();
+      updateTurnIndicator();
+    }
+
+    function renderTopBar() {
+      const ledEl = document.getElementById('ledSuitDisplay');
+      if (BondiGame.ledSuit) {
+        const isRed = BondiGame.ledSuit === 'HEARTS' || BondiGame.ledSuit === 'DIAMONDS';
+        const color = isRed ? 'text-rose-500' : 'text-zinc-200';
+        ledEl.innerHTML = `<span class="text-sm ${color} font-black">${SUIT_SYMBOLS[BondiGame.ledSuit]}</span> <span>${BondiGame.ledSuit}</span>`;
+      } else {
+        ledEl.innerHTML = '<span class="text-zinc-500">None</span>';
+      }
+
+      document.getElementById('pileCountDisplay').innerText = `${BondiGame.currentTrick.length} Cards`;
+
+      const atRiskName = document.getElementById('atRiskPlayerName');
+      if (BondiGame.highestLedPlay) {
+        const p = BondiGame.players[BondiGame.highestLedPlay.playerIndex];
+        atRiskName.innerText = `${p.name} (${BondiGame.highestLedPlay.card.label}${SUIT_SYMBOLS[BondiGame.highestLedPlay.card.suit]})`;
+      } else {
+        atRiskName.innerText = '—';
+      }
+    }
+
+    // Perimeter Seating Generator (Strictly on edges - NEVER overlapping center!)
+    function renderPerimeterOpponents() {
+      const topRow = document.getElementById('topOpponentsRow');
+      const westSlot = document.getElementById('westSeatSlot');
+      const eastSlot = document.getElementById('eastSeatSlot');
+
+      topRow.innerHTML = '';
+      westSlot.innerHTML = '';
+      eastSlot.innerHTML = '';
+
+      const count = BondiGame.playerCount;
+      const players = BondiGame.players;
+
+      function createAvatarChip(op) {
+        const isTurn = BondiGame.turnIndex === op.index;
+        const isAtRisk = BondiGame.highestLedPlay && BondiGame.highestLedPlay.playerIndex === op.index;
+        const el = document.createElement('div');
+
+        el.className = `flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-2xl bg-black/50 border ${
+          isAtRisk ? 'border-amber-400 at-risk-pulse' : (isTurn ? 'border-blue-400 active-turn-ring' : 'border-white/10')
+        } backdrop-blur-md transition-all duration-300 min-w-[75px] shadow-lg`;
+
+        el.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <div class="w-6 h-6 rounded-full ${
+              op.hasEscaped ? 'bg-emerald-700 border-emerald-400' : 'bg-blue-800 border-blue-400'
+            } border flex items-center justify-center text-[10px] font-black">
+              ${op.hasEscaped ? '🏁' : `P${op.index + 1}`}
+            </div>
+            <span class="text-xs font-bold ${op.hasEscaped ? 'text-emerald-300' : 'text-zinc-200'}">${op.name}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] font-mono-code ${op.hasEscaped ? 'text-emerald-400 font-bold' : 'text-blue-300'}">
+              ${op.hasEscaped ? 'CLEARED' : `${op.hand.length} cards`}
+            </span>
+            ${isAtRisk ? '<span class="text-[8px] px-1 py-0.2 rounded bg-amber-500 text-zinc-950 font-black font-mono-code">RISK</span>' : ''}
+          </div>
+        `;
+        return el;
+      }
+
+      if (count === 2) {
+        topRow.appendChild(createAvatarChip(players[1]));
+      } else if (count === 3) {
+        westSlot.appendChild(createAvatarChip(players[1]));
+        eastSlot.appendChild(createAvatarChip(players[2]));
+      } else if (count === 4) {
+        westSlot.appendChild(createAvatarChip(players[1]));
+        topRow.appendChild(createAvatarChip(players[2]));
+        eastSlot.appendChild(createAvatarChip(players[3]));
+      } else if (count === 5) {
+        westSlot.appendChild(createAvatarChip(players[1]));
+        topRow.appendChild(createAvatarChip(players[2]));
+        topRow.appendChild(createAvatarChip(players[3]));
+        eastSlot.appendChild(createAvatarChip(players[4]));
+      } else if (count === 6) {
+        westSlot.appendChild(createAvatarChip(players[1]));
+        topRow.appendChild(createAvatarChip(players[2]));
+        topRow.appendChild(createAvatarChip(players[3]));
+        topRow.appendChild(createAvatarChip(players[4]));
+        eastSlot.appendChild(createAvatarChip(players[5]));
+      }
+    }
+
+    // Exact Digu Table Sizing for Center Trick Cards
+    function renderCenterTrickPile() {
+      const pile = document.getElementById('centerTrickPile');
+      pile.innerHTML = '';
+
+      const trick = BondiGame.currentTrick;
+      const count = trick.length;
+
+      const infoText = document.getElementById('trickInfoText');
+      if (count === 0) {
+        const leadPlayer = BondiGame.players[BondiGame.turnIndex];
+        infoText.innerText = `${leadPlayer.name} to Lead`;
+      } else {
+        infoText.innerText = `Led: ${BondiGame.ledSuit} (${count}/${BondiGame.players.filter(p => !p.hasEscaped).length} played)`;
+      }
+
+      trick.forEach((play, i) => {
+        const isHighCard = BondiGame.highestLedPlay && BondiGame.highestLedPlay.card.id === play.card.id;
+        const el = document.createElement('div');
+
+        const offsetPx = (i - (count - 1) / 2) * 44;
+        const rotDeg = (i - (count - 1) / 2) * 4.5;
+
+        el.className = `card-table-size rounded-[8px] sm:rounded-[10px] bg-gradient-to-br from-[#ffffff] via-[#fcfaf5] to-[#f4efe4] border ${
+          isHighCard ? 'border-amber-400 ring-3 ring-amber-400/90 shadow-[0_0_25px_rgba(245,158,11,0.65)] z-30' : 'border-[#301a14]/30 z-10'
+        } card-shadow absolute transition-all duration-300 overflow-hidden`;
+        el.style.transform = `translateX(${offsetPx}px) rotate(${rotDeg}deg)`;
+
+        // Injected Digu SVG card face
+        el.innerHTML = renderDiguCardSVG(play.card, true);
+
+        // Player Tag overlay on table card
+        const tag = document.createElement('div');
+        tag.className = 'absolute bottom-0 inset-x-0 bg-black/70 text-[8px] font-mono-code font-bold text-white text-center py-0.5 truncate border-t border-black/40';
+        tag.innerText = play.playerName;
+        el.appendChild(tag);
+
+        pile.appendChild(el);
+      });
+    }
+
+    // Exact Digu Hand Radial Fanning Arrangement
+    function renderPlayerHand() {
+      const container = document.getElementById('handContainer');
+      container.innerHTML = '';
+      const player = BondiGame.players[0];
+      const hand = player.hand;
+      const count = hand.length;
+      const isMyTurn = BondiGame.turnIndex === 0;
+
+      const midIndex = (count - 1) / 2;
+      // Digu responsive negative overlap
+      const spacingPx = count > 14 ? -26 : count > 10 ? -22 : -18;
+
+      hand.forEach((card, i) => {
+        const legal = isLegal(card, hand, BondiGame.ledSuit);
+        const el = document.createElement('div');
+        const isSelectedForDump = BondiGame.selectedDumpSuit === card.suit;
+
+        // Digu natural radial fan angle (-7deg to +8deg)
+        const fanAngle = (i - midIndex) * 1.4;
+
+        el.className = `card-hand-size rounded-[9px] sm:rounded-[11px] bg-gradient-to-br from-[#ffffff] via-[#fcfaf5] to-[#f4efe4] border ${
+          isSelectedForDump ? 'border-red-500 ring-3 ring-red-400 shadow-[0_0_20px_rgba(239,68,68,0.7)]' : 'border-[#301a14]/30'
+        } card-shadow relative select-none transition-all duration-200 overflow-hidden ${
+          isMyTurn && legal ? 'card-playable' : (!legal && isMyTurn ? 'opacity-40 cursor-not-allowed' : '')
+        }`;
+        
+        el.style.marginLeft = i === 0 ? '0' : `${spacingPx}px`;
+        el.style.transform = `rotate(${fanAngle}deg)`;
+        el.style.zIndex = i + 10;
+
+        // Injected Digu physical vector card face
+        el.innerHTML = renderDiguCardSVG(card, false);
+
+        el.onclick = () => {
+          if (isMyTurn && legal) {
+            const isVoid = BondiGame.ledSuit && !hand.some(c => c.suit === BondiGame.ledSuit);
+
+            if (isVoid && BondiGame.variant === 'SUIT_BONDI') {
+              BondiGame.selectedDumpSuit = card.suit;
+              const dumpCardsCount = hand.filter(c => c.suit === card.suit).length;
+              const dumpBtn = document.getElementById('confirmSuitDumpBtn');
+              dumpBtn.innerText = `🔥 DUMP ALL ${card.suit} (${dumpCardsCount} CARDS)`;
+              document.getElementById('suitDumpActionBar').classList.remove('hidden');
+              renderPlayerHand();
+            } else {
+              playCard(0, card);
+            }
+          }
+        };
+
+        container.appendChild(el);
+      });
+    }
+
+    function updateTurnIndicator() {
+      const isMyTurn = BondiGame.turnIndex === 0;
+      const turnPill = document.getElementById('myTurnNotice');
+      if (isMyTurn) turnPill.classList.remove('hidden');
+      else turnPill.classList.add('hidden');
+
+      const leadBadge = document.getElementById('leadBadge');
+      const hasSpadeAce = BondiGame.players[0].hand.some(c => c.suit === 'SPADES' && c.strength === 14);
+      if (hasSpadeAce && BondiGame.currentTrick.length === 0) leadBadge.classList.remove('hidden');
+      else leadBadge.classList.add('hidden');
+    }
+
+    // UI Drawer Handlers
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawerPanel = document.getElementById('drawerPanel');
+    const openDrawer = () => {
+      drawerOverlay.classList.remove('opacity-0', 'pointer-events-none');
+      drawerPanel.classList.remove('translate-x-full');
+    };
+    const closeDrawer = () => {
+      drawerOverlay.classList.add('opacity-0', 'pointer-events-none');
+      drawerPanel.classList.add('translate-x-full');
+    };
+    document.getElementById('openDrawerBtn').onclick = openDrawer;
+    document.getElementById('closeDrawerBtn').onclick = closeDrawer;
+    drawerOverlay.onclick = closeDrawer;
+
+    // Rules Modal
+    document.getElementById('openRulesBtn').onclick = () => document.getElementById('rulesModal').classList.remove('hidden');
+    document.getElementById('closeRulesModalBtn').onclick = () => document.getElementById('rulesModal').classList.add('hidden');
+
+    // Drawer Controls
+    document.getElementById('playerCountSelect').onchange = (e) => {
+      BondiGame.playerCount = parseInt(e.target.value, 10);
+      document.getElementById('playerCountBadge').innerText = `${BondiGame.playerCount} Players`;
+      closeDrawer();
+      dealBondi();
+    };
+
+    document.getElementById('variantSelect').onchange = (e) => {
+      BondiGame.variant = e.target.value;
+      document.getElementById('variantBadge').innerText = BondiGame.variant === 'STANDARD' ? 'Standard Bondi' : 'Suit Bondi';
+      closeDrawer();
+      dealBondi();
+    };
+
+    document.getElementById('aiTierSelect').onchange = (e) => {
+      BondiGame.aiTier = e.target.value;
+    };
+
+    document.getElementById('sortHandBtn').onclick = () => sortHand();
+    document.getElementById('stepAiBtn').onclick = () => {
+      if (BondiGame.turnIndex !== 0) stepAi();
+    };
+
+    document.getElementById('drawerNewDealBtn').onclick = () => {
+      closeDrawer();
+      dealBondi();
+    };
+
+    document.getElementById('closeEndgameModalBtn').onclick = () => {
+      document.getElementById('endgameModal').classList.add('hidden');
+      dealBondi();
+    };
+
+    // Suit Dump Bar Buttons
+    document.getElementById('confirmSuitDumpBtn').onclick = () => {
+      if (BondiGame.selectedDumpSuit) {
+        dumpFullSuit(0, BondiGame.selectedDumpSuit);
+      }
+    };
+    document.getElementById('cancelSuitDumpBtn').onclick = () => {
+      document.getElementById('suitDumpActionBar').classList.add('hidden');
+      BondiGame.selectedDumpSuit = null;
+      renderPlayerHand();
+    };
+
+    // Scenarios
+    document.getElementById('scenCleanRound').onclick = () => {
+      closeDrawer();
+      BondiGame.currentTrick = [
+        { playerIndex: 1, playerName: 'Ibrahim', card: { id: 'H-4', suit: 'HEARTS', strength: 4, label: '4' } },
+        { playerIndex: 2, playerName: 'Ahmed', card: { id: 'H-8', suit: 'HEARTS', strength: 8, label: '8' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'H-13', suit: 'HEARTS', strength: 13, label: 'K' } },
+        { playerIndex: 0, playerName: 'You', card: { id: 'H-10', suit: 'HEARTS', strength: 10, label: '10' } }
+      ];
+      BondiGame.highestLedPlay = { playerIndex: 3, card: { id: 'H-13', suit: 'HEARTS', strength: 13, label: 'K' } };
+      renderAll();
+      setTimeout(resolveCleanRound, 500);
+    };
+
+    document.getElementById('scenStandardBondi').onclick = () => {
+      closeDrawer();
+      BondiGame.currentTrick = [
+        { playerIndex: 1, playerName: 'Ibrahim', card: { id: 'S-13', suit: 'SPADES', strength: 13, label: 'K' } },
+        { playerIndex: 2, playerName: 'Ahmed', card: { id: 'S-7', suit: 'SPADES', strength: 7, label: '7' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'H-2', suit: 'HEARTS', strength: 2, label: '2' } }
+      ];
+      BondiGame.highestLedPlay = { playerIndex: 1, card: { id: 'S-13', suit: 'SPADES', strength: 13, label: 'K' } };
+      renderAll();
+      setTimeout(() => executeBondiPenalty(), 500);
+    };
+
+    document.getElementById('scenSuitBondiDump').onclick = () => {
+      closeDrawer();
+      BondiGame.currentTrick = [
+        { playerIndex: 1, playerName: 'Ibrahim', card: { id: 'D-14', suit: 'DIAMONDS', strength: 14, label: 'A' } },
+        { playerIndex: 2, playerName: 'Ahmed', card: { id: 'D-9', suit: 'DIAMONDS', strength: 9, label: '9' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'C-2', suit: 'CLUBS', strength: 2, label: '2' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'C-5', suit: 'CLUBS', strength: 5, label: '5' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'C-11', suit: 'CLUBS', strength: 11, label: 'J' } },
+        { playerIndex: 3, playerName: 'Hassan', card: { id: 'C-13', suit: 'CLUBS', strength: 13, label: 'K' } }
+      ];
+      BondiGame.highestLedPlay = { playerIndex: 1, card: { id: 'D-14', suit: 'DIAMONDS', strength: 14, label: 'A' } };
+      renderAll();
+      setTimeout(() => executeBondiPenalty(), 500);
+    };
+
+    document.getElementById('scenPlayerEscape').onclick = () => {
+      closeDrawer();
+      BondiGame.players[1].hand = [];
+      checkPlayerExits();
+      renderAll();
+    };
+
+    document.getElementById('scenBondiLoserYou').onclick = () => {
+      closeDrawer();
+      BondiGame.players[1].hasEscaped = true;
+      BondiGame.players[2].hasEscaped = true;
+      BondiGame.players[3].hasEscaped = true;
+      BondiGame.clearedPlayers = [BondiGame.players[1], BondiGame.players[2], BondiGame.players[3]];
+      BondiGame.players[0].hand = [
+        { id: 'S-2', suit: 'SPADES', strength: 2, label: '2' },
+        { id: 'H-5', suit: 'HEARTS', strength: 5, label: '5' }
+      ];
+      showEndgame(BondiGame.players[0]);
+    };
+
+    document.getElementById('scenBondiLoserBot').onclick = () => {
+      closeDrawer();
+      BondiGame.players[0].hasEscaped = true;
+      BondiGame.players[1].hasEscaped = true;
+      BondiGame.players[2].hasEscaped = true;
+      BondiGame.clearedPlayers = [BondiGame.players[0], BondiGame.players[1], BondiGame.players[2]];
+      BondiGame.players[3].hand = [
+        { id: 'S-2', suit: 'SPADES', strength: 2, label: '2' },
+        { id: 'H-5', suit: 'HEARTS', strength: 5, label: '5' }
+      ];
+      showEndgame(BondiGame.players[3]);
+    };
+
+    // Initialize
+    dealBondi();
+  </script>
+</body>
+</html>

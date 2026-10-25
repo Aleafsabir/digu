@@ -125,11 +125,7 @@ export const CardFlightOverlay: React.FC = () => {
                 }
                 flight.onComplete?.();
               }}
-              className={`absolute left-0 top-0 pointer-events-none z-50 ${
-                flight.isGinSlam
-                  ? 'drop-shadow-[0_30px_45px_rgba(220,38,38,0.9)]'
-                  : 'drop-shadow-[0_22px_35px_rgba(0,0,0,0.85)]'
-              }`}
+              className="absolute left-0 top-0 pointer-events-none z-50 will-change-transform [transform:translateZ(0)]"
             >
               {has3DFlip ? (
                 /* Hardware-accelerated 3D Mid-Air Card Flip */

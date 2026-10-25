@@ -8,7 +8,6 @@ import {
   Gift,
   Wifi,
   ChevronRight,
-  Lock,
   LogOut,
   HelpCircle,
   Bell,
@@ -264,106 +263,108 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
             </div>
           </motion.div>
 
-          {/* Card 2: DHIHAEH (ދިހައެއް) - COMING SOON */}
+          {/* Card 2: DHIHAEH (ދިހައެއް) - ACTIVE */}
           <motion.div
-            whileHover={{ y: -3 }}
-            onClick={() =>
-              setTeaserGame({
-                title: 'Dhihaeh',
-                thaana: 'ދިހައެއް',
-                desc: 'Fast-paced Maldivian 10s counting and trick collection. Players compete to capture 10-point target cards, sweep the table, and outwit opponents across rapid rounds.',
-                phase: 'Rules Drafting & Balancing Phase',
-              })
-            }
-            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1a0a14] via-[#0a1410] to-[#010A06] border-2 border-purple-900/60 p-3 sm:p-4 flex flex-col justify-between shadow-lg cursor-pointer overflow-hidden group opacity-90 hover:opacity-100 hover:border-purple-400 transition"
+            whileHover={{ y: -4, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            onClick={() => onSelectGame('DHIHAEH')}
+            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#2a1024] via-[#1a081a] to-[#0d040e] border-2 border-purple-700 p-3 sm:p-4 flex flex-col justify-between shadow-[0_0_35px_rgba(168,85,247,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
           >
-            <div className="absolute inset-0 bg-radial from-purple-900/10 via-transparent to-black/60 pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-purple-900/15 via-transparent to-black/60 pointer-events-none" />
 
             <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-700/60 text-[9px] font-bold text-purple-300 tracking-wider uppercase">
-                <Lock className="w-2.5 h-2.5 text-purple-400" />
-                COMING SOON
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-400 text-[9px] font-black text-purple-200 tracking-wider uppercase font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                LIVE • 2v2
               </span>
-              <span className="text-[10px] font-bold text-slate-400">4-Player</span>
+              <span className="text-[10px] font-bold text-slate-300 font-mono">4-Player</span>
             </div>
 
             {/* Center Emblem: Crimson & Amethyst Medallion with Dhaalu (ދި) */}
             <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#581c87] via-[#2e1065] to-[#0d0605] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.3)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#581c87] via-[#2e1065] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
                 <div className="w-10 h-10 rounded-lg border border-purple-400/50 flex flex-col items-center justify-center bg-[#170524]/90">
-                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.6)]">
+                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.8)]">
                     ދި
                   </span>
                 </div>
               </div>
 
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 font-serif-luxury">
                 DHIHAEH
                 <span className="font-thaana text-lg text-[#E5C378]">ދިހައެއް</span>
               </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 leading-snug text-center">
-                10s counting & trick collection. Secure target cards.
+              <p className="text-[10px] text-[#f7f0ea]/70 mt-0.5 line-clamp-1 leading-snug text-center">
+                10s capture & trick taking. Haasbagga & Bagga glory!
               </p>
             </div>
 
             <div className="z-10 flex flex-col gap-1">
-              <button className="w-full py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 font-bold text-[11px] flex items-center justify-center gap-1 border border-slate-700 transition cursor-pointer">
-                <span>Preview Rules</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectGame('DHIHAEH');
+                }}
+                className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 hover:brightness-110 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(168,85,247,0.45)] transition active:scale-95 cursor-pointer border-0"
+              >
+                <span>Enter Dhihaeh</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
-              <div className="text-[9px] font-bold text-purple-400/70 text-center">
-                Rules Drafting Phase
+              <div className="text-[9px] font-bold text-purple-300/80 text-center font-mono">
+                🟣 890 Active Players
               </div>
             </div>
           </motion.div>
 
-          {/* Card 3: BONDI (ބޮނޑި) - COMING SOON */}
+          {/* Card 3: BONDI (ބޮނޑި) - ACTIVE */}
           <motion.div
-            whileHover={{ y: -3 }}
-            onClick={() =>
-              setTeaserGame({
-                title: 'Bondi',
-                thaana: 'ބޮނޑި',
-                desc: 'Strategic Maldivian card clustering and bundle management. Players build powerful card combinations and bluff their hand strength to force table folds.',
-                phase: 'Rules Drafting & Concept Phase',
-              })
-            }
-            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#121c2b] via-[#100b0a] to-[#0d0605] border-2 border-blue-900/60 p-3 sm:p-4 flex flex-col justify-between shadow-lg cursor-pointer overflow-hidden group opacity-90 hover:opacity-100 hover:border-blue-400 transition"
+            whileHover={{ y: -4, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            onClick={() => onSelectGame('BONDI')}
+            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#121c2b] via-[#091522] to-[#040910] border-2 border-blue-600 p-3 sm:p-4 flex flex-col justify-between shadow-[0_0_35px_rgba(59,130,246,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
           >
-            <div className="absolute inset-0 bg-radial from-blue-900/10 via-transparent to-black/60 pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-blue-900/15 via-transparent to-black/60 pointer-events-none" />
 
             <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-950/60 border border-blue-700/60 text-[9px] font-bold text-blue-300 tracking-wider uppercase">
-                <Lock className="w-2.5 h-2.5 text-blue-400" />
-                COMING SOON
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-400 text-[9px] font-black text-blue-200 tracking-wider uppercase font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                LIVE • SHEDDING
               </span>
-              <span className="text-[10px] font-bold text-[#f7f0ea]/70">2-6 Players</span>
+              <span className="text-[10px] font-bold text-slate-300 font-mono">2-6 Players</span>
             </div>
 
             {/* Center Emblem: Sapphire & Cyan Medallion with Baa (ބ) */}
             <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#1e3a8a] via-[#0c2e4e] to-[#0d0605] border-2 border-[#E5C378]/80 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.3)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#1e3a8a] via-[#0c2e4e] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
                 <div className="w-10 h-10 rounded-lg border border-cyan-400/50 flex flex-col items-center justify-center bg-[#07192b]/90">
-                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.6)]">
+                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.8)]">
                     ބ
                   </span>
                 </div>
               </div>
 
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 font-serif-luxury">
                 BONDI
                 <span className="font-thaana text-lg text-[#E5C378]">ބޮނޑި</span>
               </h3>
-              <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 leading-snug text-center">
-                Strategic card clustering & bluffing tactics.
+              <p className="text-[10px] text-[#f7f0ea]/70 mt-0.5 line-clamp-1 leading-snug text-center">
+                Cutthroat card shedding. Avoid eating the pile!
               </p>
             </div>
 
             <div className="z-10 flex flex-col gap-1">
-              <button className="w-full py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 font-bold text-[11px] flex items-center justify-center gap-1 border border-slate-700 transition cursor-pointer">
-                <span>Preview Rules</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectGame('BONDI');
+                }}
+                className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:brightness-110 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(59,130,246,0.45)] transition active:scale-95 cursor-pointer border-0"
+              >
+                <span>Enter Bondi</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
-              <div className="text-[9px] font-bold text-blue-400/70 text-center">
-                Concept Balancing Phase
+              <div className="text-[9px] font-bold text-blue-300/80 text-center font-mono">
+                🔵 1,150 Active Players
               </div>
             </div>
           </motion.div>

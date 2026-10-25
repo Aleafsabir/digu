@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useGameStore, safeSaveSession } from './store/useGameStore';
 import { TableSurface } from './components/table/TableSurface';
+import { DhihaehTableSurface } from './components/dhihaeh/DhihaehTableSurface';
+import { BondiTableSurface } from './components/bondi/BondiTableSurface';
+import { DhihaehSetupModal } from './components/screens/DhihaehSetupModal';
+import { BondiSetupModal } from './components/screens/BondiSetupModal';
+import { useDhihaehStore } from './store/useDhihaehStore';
+import { useBondiStore } from './store/useBondiStore';
 import { OrientationGuard } from './components/shared/OrientationGuard';
 import { LaunchSplashScreen } from './components/screens/LaunchSplashScreen';
 import { AccountGatewayScreen } from './components/screens/AccountGatewayScreen';
@@ -33,6 +39,7 @@ export default function App() {
 
   const {
     currentScreen,
+    activeGame,
     pendingRules,
     actionError,
     awayToastMessage,
@@ -57,6 +64,8 @@ export default function App() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showDhihaehSetup, setShowDhihaehSetup] = useState(false);
+  const [showBondiSetup, setShowBondiSetup] = useState(false);
   const [lobbyInitialTab, setLobbyInitialTab] = useState<'CREATE_ROOM' | 'JOIN_ROOM' | 'QUICK_MATCH'>('CREATE_ROOM');
 
   const {
@@ -195,6 +204,10 @@ export default function App() {
             setActiveGame(game);
             if (game === 'DIGU') {
               setScreen('MODE_SELECT');
+            } else if (game === 'DHIHAEH') {
+              setShowDhihaehSetup(true);
+            } else if (game === 'BONDI') {
+              setShowBondiSetup(true);
             }
           }}
           onOpenSettings={() => setShowSettings(true)}
@@ -277,7 +290,37 @@ export default function App() {
       )}
 
       {/* Screen 4: Active Gameplay (Headerless Stadium Table) */}
-      {currentScreen === 'TABLE' && <TableSurface />}
+      {currentScreen === 'TABLE' && (
+        <>
+          {activeGame === 'DIGU' && <TableSurface />}
+          {activeGame === 'DHIHAEH' && <DhihaehTableSurface />}
+          {activeGame === 'BONDI' && <BondiTableSurface />}
+        </>
+      )}
+
+      {/* Dhihaeh Match Setup Modal */}
+      <DhihaehSetupModal
+        isOpen={showDhihaehSetup}
+        onClose={() => setShowDhihaehSetup(false)}
+        onStart={(variant, targetScore) => {
+          setShowDhihaehSetup(false);
+          setActiveGame('DHIHAEH');
+          useDhihaehStore.getState().startMatch(variant, targetScore);
+          setScreen('TABLE');
+        }}
+      />
+
+      {/* Bondi Match Setup Modal */}
+      <BondiSetupModal
+        isOpen={showBondiSetup}
+        onClose={() => setShowBondiSetup(false)}
+        onStart={(variant, playerCount) => {
+          setShowBondiSetup(false);
+          setActiveGame('BONDI');
+          useBondiStore.getState().startMatch(variant, playerCount);
+          setScreen('TABLE');
+        }}
+      />
 
       {/* Settings Modal (Appearance, System & Account) */}
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />

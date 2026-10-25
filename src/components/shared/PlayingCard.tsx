@@ -147,7 +147,7 @@ export const CardBackVisual: React.FC<{ deckId?: DeckDesignId; className?: strin
   );
 };
 
-export const PlayingCard: React.FC<PlayingCardProps> = ({
+export const PlayingCard: React.FC<PlayingCardProps> = React.memo(({
   card,
   isSelected = false,
   isFaceDown = card.isFaceDown || false,
@@ -386,4 +386,4 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
       </svg>
     </motion.div>
   );
-};
+});

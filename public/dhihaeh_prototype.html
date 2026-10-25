@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Holhuashi: Dhihaeh (ދިހައެއް)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), local('MV Boli');
+    }
+    .font-thaana { font-family: 'Faruma', 'MV Boli', 'Aakuru', sans-serif; }
+    .font-luxury { font-family: 'Cinzel', serif; }
+    .font-sans-clean { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+
+    /* Deep Maldivian Lacquer Table Felt */
+    .table-surface {
+      background: radial-gradient(circle at 50% 48%, #1f0d1a 0%, #130711 50%, #090308 100%);
+    }
+
+    /* Digu Card Sizing Invariants */
+    .card-hand-size {
+      width: clamp(58px, 17.4dvh, 82px);
+      height: clamp(88px, 26dvh, 124px);
+    }
+    .card-table-size {
+      width: clamp(52px, 15dvh, 76px);
+      height: clamp(76px, 22dvh, 110px);
+    }
+
+    .card-shadow {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    .card-playable {
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.16s ease;
+    }
+    .card-playable:hover {
+      transform: translateY(-16px) rotate(0deg) scale(1.05) !important;
+      box-shadow: 0 16px 28px rgba(0,0,0,0.7), 0 0 18px rgba(229,195,120,0.55);
+      z-index: 50 !important;
+    }
+
+    /* Pulse for active turn */
+    @keyframes turn-glow {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(229, 195, 120, 0.8), 0 0 18px rgba(229, 195, 120, 0.4); }
+      50% { box-shadow: 0 0 0 3px rgba(229, 195, 120, 1), 0 0 26px rgba(229, 195, 120, 0.7); }
+    }
+    .active-turn-ring {
+      animation: turn-glow 1.8s infinite ease-in-out;
+    }
+
+    /* Drawer smooth slide */
+    .drawer-transition {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="w-screen h-[100dvh] overflow-hidden bg-[#060205] text-[#f7f0ea] font-sans-clean select-none">
+
+  <!-- FULL-SCREEN IMMERSIVE TABLE -->
+  <div class="relative w-full h-full table-surface flex flex-col justify-between overflow-hidden p-2 sm:p-3">
+
+    <!-- SUBTLE BACKGROUND WATERMARK -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06]">
+      <div class="w-80 h-80 rounded-full border border-[#e5c378] flex items-center justify-center">
+        <span class="font-thaana text-9xl text-[#e5c378]">ދި</span>
+      </div>
+    </div>
+
+    <!-- 1. TOP RIM: MINIMAL FLOATING SCOREBOARD PILL & DISCREET CONTROLS -->
+    <header class="relative z-30 w-full flex items-center justify-between px-2 sm:px-6 pt-1">
+      
+      <!-- Left: Minimal Mode Badge -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 border border-[#e5c378]/25 backdrop-blur-md">
+          <span class="font-thaana text-xs text-[#e5c378]">ދިހައެއް</span>
+          <span class="font-luxury font-bold text-xs tracking-wider text-white">DHIHAEH</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-950 text-purple-200 font-mono-code font-bold uppercase" id="modeBadge">
+            Dynamic Cut
+          </span>
+        </div>
+      </div>
+
+      <!-- Center: Streamlined Floating 10s & Trick Tracker -->
+      <div class="flex items-center gap-3 px-4 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md shadow-xl">
+        <!-- Team 1 (You & Partner) -->
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-black text-cyan-400 font-mono-code">T1 (YOU)</span>
+          <div class="flex items-center gap-0.5" id="t1Tens">
+            <span class="text-[11px] opacity-25" data-s="SPADES">♠10</span>
+            <span class="text-[11px] opacity-25" data-s="HEARTS">♥10</span>
+            <span class="text-[11px] opacity-25" data-s="DIAMONDS">♦10</span>
+            <span class="text-[11px] opacity-25" data-s="CLUBS">♣10</span>
+          </div>
+          <span class="text-[11px] font-mono-code font-bold text-cyan-200" id="t1Tricks">0 Tr</span>
+        </div>
+
+        <!-- Center Divider & Trump Emblem -->
+        <div class="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10">
+          <span class="text-[9px] text-[#e5c378] font-bold font-mono-code" id="matchScoreDisplay">0 - 0</span>
+          <div class="w-[1px] h-3 bg-white/20"></div>
+          <div class="flex items-center gap-1 text-[11px] font-bold" id="trumpIndicator">
+            <span class="text-amber-400">❓</span>
+            <span class="text-[10px] text-zinc-400 font-mono-code">Trump</span>
+          </div>
+        </div>
+
+        <!-- Team 2 (Opponents) -->
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-mono-code font-bold text-rose-200" id="t2Tricks">0 Tr</span>
+          <div class="flex items-center gap-0.5" id="t2Tens">
+            <span class="text-[11px] opacity-25" data-s="SPADES">♠10</span>
+            <span class="text-[11px] opacity-25" data-s="HEARTS">♥10</span>
+            <span class="text-[11px] opacity-25" data-s="DIAMONDS">♦10</span>
+            <span class="text-[11px] opacity-25" data-s="CLUBS">♣10</span>
+          </div>
+          <span class="text-[10px] font-black text-rose-400 font-mono-code">T2</span>
+        </div>
+      </div>
+
+      <!-- Right: Discreet Settings & Rules Action -->
+      <div class="flex items-center gap-1.5">
+        <button id="openRulesBtn" class="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/10 flex items-center justify-center text-xs text-[#e5c378] transition" title="View Rules">
+          📜
+        </button>
+        <button id="openDrawerBtn" class="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/10 flex items-center justify-center text-xs text-zinc-300 hover:text-white transition" title="Settings & Scenarios">
+          ⚙️
+        </button>
+      </div>
+
+    </header>
+
+    <!-- 2. NORTH SEAT: PARTNER (Player 3) -->
+    <div class="w-full flex justify-center items-center z-20">
+      <div id="avatarNorth" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-cyan-500/30 backdrop-blur-sm transition-all duration-300">
+        <div class="w-6 h-6 rounded-full bg-cyan-700 border border-cyan-400 flex items-center justify-center text-[10px] font-black">
+          P3
+        </div>
+        <span class="text-xs font-bold text-cyan-200">Ahmed (Partner)</span>
+        <span class="text-[10px] text-zinc-400 font-mono-code" id="northCount">13</span>
+      </div>
+    </div>
+
+    <!-- 3. MIDDLE ZONE: WEST (P4) | CLEAN OPEN TRICK FELT | EAST (P2) -->
+    <div class="relative flex-1 w-full flex items-center justify-between px-2 sm:px-8 my-auto z-10">
+
+      <!-- WEST SEAT (Player 4 - Opponent) -->
+      <div id="avatarWest" class="flex flex-col items-center gap-1 p-2 rounded-2xl bg-black/30 border border-rose-500/20 backdrop-blur-sm transition-all duration-300">
+        <div class="w-7 h-7 rounded-full bg-rose-800 border border-rose-400 flex items-center justify-center text-[10px] font-black">
+          P4
+        </div>
+        <span class="text-[11px] font-bold text-rose-200">Hassan</span>
+        <span class="text-[9px] text-zinc-400 font-mono-code" id="westCount">13</span>
+      </div>
+
+      <!-- CENTER TRICK ARENA (Clean, Spacious Felt) -->
+      <div class="relative w-[360px] h-[210px] flex items-center justify-center">
+
+        <!-- Variant B: Blind Reserve Card (if enabled) -->
+        <div id="blindReserveIndicator" class="hidden absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
+          <div id="blindCardPill" class="w-9 h-14 rounded-lg bg-purple-950 border border-purple-400 flex items-center justify-center text-xs text-purple-200 shadow">
+            🔒
+          </div>
+          <span class="text-[8px] text-purple-300 font-mono-code mt-0.5">Blind</span>
+        </div>
+
+        <!-- 4 Played Trick Cards (Arranged in Diamond Orientation) -->
+        <!-- NORTH PLAYED CARD -->
+        <div id="trickNorth" class="absolute top-1 transition-all duration-300 opacity-0 scale-95 z-10">
+          <div class="trick-card-slot"></div>
+        </div>
+
+        <!-- WEST PLAYED CARD -->
+        <div id="trickWest" class="absolute left-6 transition-all duration-300 opacity-0 scale-95 z-20">
+          <div class="trick-card-slot"></div>
+        </div>
+
+        <!-- EAST PLAYED CARD -->
+        <div id="trickEast" class="absolute right-6 transition-all duration-300 opacity-0 scale-95 z-20">
+          <div class="trick-card-slot"></div>
+        </div>
+
+        <!-- SOUTH PLAYED CARD (YOU) -->
+        <div id="trickSouth" class="absolute bottom-1 transition-all duration-300 opacity-0 scale-95 z-30">
+          <div class="trick-card-slot"></div>
+        </div>
+
+        <!-- Center Trick Notice -->
+        <div id="trickLeadInfo" class="text-center pointer-events-none opacity-80">
+          <span class="text-xs font-mono-code text-[#e5c378]" id="trickInfoText">Trick 1</span>
+        </div>
+
+        <!-- Claim Trick Banner Overlay -->
+        <div id="trickWinnerBanner" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 z-30">
+          <div class="px-4 py-1.5 rounded-full bg-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider font-luxury shadow-2xl" id="trickWinnerText">
+            Ahmed Wins Trick!
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EAST SEAT (Player 2 - Opponent) -->
+      <div id="avatarEast" class="flex flex-col items-center gap-1 p-2 rounded-2xl bg-black/30 border border-rose-500/20 backdrop-blur-sm transition-all duration-300">
+        <div class="w-7 h-7 rounded-full bg-rose-800 border border-rose-400 flex items-center justify-center text-[10px] font-black">
+          P2
+        </div>
+        <span class="text-[11px] font-bold text-rose-200">Ibrahim</span>
+        <span class="text-[9px] text-zinc-400 font-mono-code" id="eastCount">13</span>
+      </div>
+
+    </div>
+
+    <!-- 4. SOUTH SANCTUARY: PLAYER HAND (YOU) -->
+    <div class="relative w-full flex flex-col items-center z-20 pb-1">
+      
+      <!-- Subtle Turn Status Pill (Only Visible on Player's Turn) -->
+      <div id="myTurnNotice" class="hidden mb-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/60 text-emerald-300 text-[10px] font-bold uppercase tracking-wider animate-pulse font-mono-code">
+        ★ Your Turn • Follow Led Suit
+      </div>
+
+      <!-- Fanned Hand Cards Container (Digu Radial Arc Layout) -->
+      <div class="relative w-full max-w-5xl h-[clamp(90px,26dvh,130px)] flex items-end justify-center px-4 overflow-visible" id="handContainer">
+        <!-- Cards rendered via JS -->
+      </div>
+
+      <!-- Discreet Bottom Right Utilities -->
+      <div class="absolute bottom-1 right-3 flex items-center gap-2">
+        <button id="sortHandBtn" class="px-2 py-0.5 rounded-md bg-black/40 hover:bg-black/70 border border-white/10 text-[10px] font-mono-code text-zinc-400 hover:text-white transition">
+          Sort
+        </button>
+        <button id="stepAiBtn" class="px-2.5 py-0.5 rounded-md bg-purple-900/40 hover:bg-purple-800/60 border border-purple-500/40 text-[10px] font-mono-code text-purple-200 transition">
+          ▶ Step AI
+        </button>
+      </div>
+
+      <!-- Discreet Dealer Chip -->
+      <div id="dealerPill" class="hidden absolute bottom-1 left-3 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/50 text-[10px] font-mono-code text-amber-300 font-bold">
+        Dealer
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SLIDE-OVER DRAWER: SETTINGS, SCENARIOS & ENGINE OPTIONS -->
+  <!-- ========================================================================= -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+  <aside id="drawerPanel" class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-[#140712] border-l border-[#3b192c] z-50 p-5 shadow-2xl flex flex-col justify-between transform translate-x-full drawer-transition overflow-y-auto">
+    <div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#3b192c] mb-4">
+        <h3 class="font-luxury font-black text-sm text-[#e5c378]">ENGINE & SCENARIOS</h3>
+        <button id="closeDrawerBtn" class="w-6 h-6 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <!-- Engine Controls -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-mono-code text-zinc-400 mb-1">Trump Declaration Variant</label>
+          <select id="variantSelector" class="w-full bg-[#1e0a1b] border border-[#4d1f40] rounded-xl p-2 text-xs text-[#e5c378] font-bold">
+            <option value="DYNAMIC_CUT">Variant A: Dynamic Cut (First Void)</option>
+            <option value="BLIND_RESERVE">Variant B: The Hidden Card</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-code text-zinc-400 mb-1">AI Difficulty Tier</label>
+          <select id="aiTierSelector" class="w-full bg-[#1e0a1b] border border-[#4d1f40] rounded-xl p-2 text-xs text-purple-200 font-bold">
+            <option value="HARD">Hard (Card Counting & Partner Aware)</option>
+            <option value="MEDIUM" selected>Medium (Tactical Cutting)</option>
+            <option value="EASY">Easy (Casual)</option>
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-[#3b192c]">
+          <span class="text-[10px] font-mono-code text-zinc-400 uppercase tracking-wider block mb-2">Simulate Scenarios</span>
+          <div class="space-y-1.5">
+            <button id="scenHaasbagga" class="w-full p-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 border border-purple-700/40 text-left text-xs font-bold text-amber-300 flex justify-between items-center">
+              <span>Haasbagga (1,000 Pts)</span>
+              <span>👑</span>
+            </button>
+            <button id="scenBagga" class="w-full p-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 border border-purple-700/40 text-left text-xs font-bold text-amber-300 flex justify-between items-center">
+              <span>Bagga (4 Pts)</span>
+              <span>🔟</span>
+            </button>
+            <button id="scenStandard" class="w-full p-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 border border-purple-700/40 text-left text-xs font-bold text-amber-300 flex justify-between items-center">
+              <span>Standard Win 3–1 (1 Pt)</span>
+              <span>⚔️</span>
+            </button>
+            <button id="scenTie" class="w-full p-2 rounded-xl bg-purple-950/40 hover:bg-purple-900/60 border border-purple-700/40 text-left text-xs font-bold text-amber-300 flex justify-between items-center">
+              <span>Tie-Breaker 2–2 (0 Pts)</span>
+              <span>⚖️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-[#3b192c] space-y-2">
+      <button id="drawerNewDealBtn" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-zinc-200">
+        🔄 Deal New Hand
+      </button>
+      <button id="drawerOpeningCutBtn" class="w-full py-2 rounded-xl bg-[#c84b31] hover:brightness-110 text-xs font-bold text-white">
+        ⚔️ Opening Cut Ceremony
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CLEAN MALDIVIAN ROUND SUMMARY -->
+  <!-- ========================================================================= -->
+  <div id="summaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="max-w-sm w-full bg-[#180715] border border-[#e5c378]/60 rounded-3xl p-6 text-center shadow-2xl">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 mx-auto flex items-center justify-center font-thaana text-2xl text-[#e5c378] mb-3">
+        ދި
+      </div>
+      <h2 class="font-luxury font-black text-xl text-white mb-1" id="sumTitle">HAASBAGGA!</h2>
+      <p class="text-xs text-[#e5c378]/90 mb-4" id="sumSubtitle">Team 1 swept all four 10s and all 13 tricks!</p>
+
+      <div class="bg-black/40 rounded-2xl p-3 border border-white/5 mb-4 text-xs font-mono-code">
+        <div class="flex justify-between py-1">
+          <span class="text-cyan-300">Team 1 (You):</span>
+          <span class="text-white font-bold" id="sumT1Score">4 Tens • 13 Tricks • +1,000 Pts</span>
+        </div>
+        <div class="flex justify-between py-1 border-t border-white/5">
+          <span class="text-rose-300">Team 2:</span>
+          <span class="text-white font-bold" id="sumT2Score">0 Tens • 0 Tricks • +0 Pts</span>
+        </div>
+        <div class="flex justify-between py-1.5 border-t border-white/10 mt-1 font-black text-[#e5c378]">
+          <span>Match Score:</span>
+          <span id="sumMatchScore">T1: 7 - T2: 0 (Match Won!)</span>
+        </div>
+      </div>
+
+      <p class="text-[10px] text-zinc-400 font-mono-code mb-4" id="sumDealer">
+        Dealer passes anti-clockwise to Ibrahim (P2).
+      </p>
+
+      <button id="closeSummaryModalBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-zinc-950 font-black text-xs uppercase tracking-wider shadow">
+        Next Hand
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CLEAN RULES SUMMARY -->
+  <!-- ========================================================================= -->
+  <div id="rulesModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="max-w-md w-full max-h-[80vh] bg-[#160613] border border-[#e5c378]/40 rounded-3xl p-5 shadow-2xl flex flex-col text-left overflow-hidden">
+      <div class="flex justify-between items-center pb-2 border-b border-white/10 shrink-0">
+        <h3 class="font-luxury font-bold text-sm text-[#e5c378]">DHIHAEH QUICK RULES</h3>
+        <button id="closeRulesModalBtn" class="text-zinc-400 hover:text-white text-xs">✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto py-3 space-y-3 text-xs text-zinc-300 leading-relaxed pr-1">
+        <p><strong class="text-white">Seating & Orbit:</strong> 4 players in 2 teams (You & North vs East & West). Play proceeds <span class="text-[#e5c378]">anti-clockwise</span>.</p>
+        <p><strong class="text-white">Dealing:</strong> 13 cards per player in 5 + 4 + 4 batches.</p>
+        <p><strong class="text-white">Trump Cut:</strong> In Variant A, the first player void in the led suit cuts with any card to establish Trump. In Variant B, a hidden card dealt to dealer's right is revealed on the first void.</p>
+        <p><strong class="text-white">Scoring Target (7 Pts):</strong></p>
+        <ul class="list-disc pl-4 space-y-1 text-zinc-300 text-[11px]">
+          <li><strong>Haasbagga (1,000 Pts):</strong> 4 tens + all 13 tricks (instant win).</li>
+          <li><strong>Bagga (4 Pts):</strong> 4 tens with fewer than 13 tricks.</li>
+          <li><strong>Standard Win (1 Pt):</strong> 3–1 split on 10s.</li>
+          <li><strong>Tie-Breaker (0 Pts):</strong> 2–2 split; team with 7+ tricks wins for dealer rotation.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT GAME ENGINE -->
+  <!-- ========================================================================= -->
+  <script>
+    // Audio Cues (Synthesizer)
+    const Sound = {
+      ctx: null,
+      play(type) {
+        try {
+          if (!this.ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) this.ctx = new AC();
+          }
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+
+          if (type === 'play') {
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(320, t);
+            o.frequency.exponentialRampToValueAtTime(140, t + 0.07);
+            g.gain.setValueAtTime(0.25, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.07);
+            o.start(t);
+            o.stop(t + 0.07);
+          } else if (type === 'win') {
+            o.type = 'sine';
+            o.frequency.setValueAtTime(440, t);
+            o.frequency.setValueAtTime(660, t + 0.08);
+            g.gain.setValueAtTime(0.25, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            o.start(t);
+            o.stop(t + 0.2);
+          }
+        } catch(e) {}
+      }
+    };
+
+    const SUITS = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
+    const SUIT_SYMBOLS = { SPADES: '♠', HEARTS: '♥', DIAMONDS: '♦', CLUBS: '♣' };
+    const SUIT_COLORS = { SPADES: 'text-zinc-950', HEARTS: 'text-rose-600', DIAMONDS: 'text-rose-600', CLUBS: 'text-zinc-950' };
+
+    // Exact Digu Physical SVG Vector Suit Paths
+    function getSuitSVGPath(suit, cx, cy, scale = 1, fill = '#0f172a') {
+      if (suit === 'SPADES') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -11 C-5 -5 -10 -1 -10 4 C-10 7.5 -7 9.5 -4 9.5 C-2 9.5 -0.8 8.5 0 7 C0.8 8.5 2 9.5 4 9.5 C7 9.5 10 7.5 10 4 C10 -1 5 -5 0 -11 Z" fill="${fill}" /><path d="M-1.2 5.5 L-3.5 11.5 L3.5 11.5 L1.2 5.5 Z" fill="${fill}" /></g>`;
+      }
+      if (suit === 'HEARTS') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -5.5 C-2 -9.5 -6.5 -10.5 -9 -7.5 C-11.5 -4.5 -11 0.5 -7 4.5 L0 11.5 L7 4.5 C11 0.5 11.5 -4.5 9 -7.5 C6.5 -10.5 2 -9.5 0 -5.5 Z" fill="${fill}" /></g>`;
+      }
+      if (suit === 'DIAMONDS') {
+        return `<g transform="translate(${cx},${cy}) scale(${scale})"><path d="M0 -11.5 C2.5 -6 6 -2.5 10 0 C6 2.5 2.5 6 0 11.5 C-2.5 6 -6 2.5 -10 0 C-6 -2.5 -2.5 -6 0 -11.5 Z" fill="${fill}" /></g>`;
+      }
+      // CLUBS
+      return `<g transform="translate(${cx},${cy}) scale(${scale})"><circle cx="0" cy="-5.2" r="4.5" fill="${fill}" /><circle cx="-5" cy="2" r="4.5" fill="${fill}" /><circle cx="5" cy="2" r="4.5" fill="${fill}" /><path d="M-1.3 3.5 L-3.5 11 L3.5 11 L1.3 3.5 Z" fill="${fill}" /></g>`;
+    }
+
+    // Exact Digu PlayingCard SVG Markup Generator
+    function renderDiguCardSVG(card, isTable = false) {
+      const isRed = card.suit === 'HEARTS' || card.suit === 'DIAMONDS';
+      const ink = isRed ? '#b91c1c' : '#0f172a';
+      const gold = '#d4af37';
+      const navy = '#1e293b';
+      const crimson = '#b91c1c';
+      const rankText = card.label;
+      const fontSize = rankText === '10' ? '16' : '18';
+      const letterSpacing = rankText === '10' ? '-1.5' : '0';
+
+      let centerArt = '';
+      if (rankText === 'A' && card.suit === 'SPADES') {
+        // Digu Signature Ornate Ace of Spades Medallion
+        centerArt = `
+          <g>
+            <rect x="20" y="14" width="60" height="120" rx="4" stroke="${gold}" stroke-width="0.9" stroke-opacity="0.7" fill="none" />
+            <g transform="translate(50, 72)">
+              <circle cx="0" cy="0" r="27" stroke="${gold}" stroke-width="1.2" stroke-dasharray="2 1.5" fill="#faf6ee" />
+              <circle cx="0" cy="0" r="23" stroke="${ink}" stroke-width="0.8" stroke-opacity="0.4" fill="none" />
+              <path d="M0 -24 C-11 -11 -21 -2 -21 9 C-21 16 -15 20 -8.5 20 C-4.5 20 -1.5 17.5 0 14.5 C1.5 17.5 4.5 20 8.5 20 C15 20 21 16 21 9 C21 -2 11 -11 0 -24 Z" fill="${ink}" />
+              <path d="M-2.8 12 L-8 25 L8 25 L2.8 12 Z" fill="${ink}" />
+              <path d="M0 -17 C-7 -7 -14 0 -14 8 C-14 12.5 -10 15 -5.5 15 C-2.5 15 0 12.5 0 10 C0 12.5 2.5 15 5.5 15 C10 15 14 12.5 14 8 C14 0 7 -7 0 -17 Z" stroke="${gold}" stroke-width="1.2" fill="none" />
+              <path d="M-7 4 L-5 -3 L0 1 L5 -3 L7 4 Z" fill="${gold}" />
+              <circle cx="0" cy="7" r="2.2" fill="#faf6ee" />
+            </g>
+          </g>
+        `;
+      } else if (['J', 'Q', 'K'].includes(rankText)) {
+        // Digu Royal Court Card Portrait
+        centerArt = `
+          <g>
+            <rect x="20" y="14" width="60" height="120" rx="3.5" stroke="${gold}" stroke-width="1.2" fill="#fdfaf3" />
+            <g transform="translate(50, 72)">
+              ${getSuitSVGPath(card.suit, -18, -18, 0.58, ink)}
+              <path d="M-24 -4 C-23 -24 -14 -30 0 -30 C14 -30 23 -24 24 -4 Z" fill="${isRed ? crimson : navy}" stroke="${ink}" stroke-width="1.3" />
+              <path d="M-14 -29 L0 -9 L14 -29" fill="none" stroke="${gold}" stroke-width="3.5" />
+              <circle cx="0" cy="-21" r="2.5" fill="${gold}" />
+              <text x="0" y="8" text-anchor="middle" font-family="'Cinzel', serif" font-weight="900" font-size="20" fill="${gold}">${rankText}</text>
+              <line x1="-28" y1="18" x2="28" y2="10" stroke="${gold}" stroke-width="2.4" />
+            </g>
+          </g>
+        `;
+      } else {
+        // Number Cards (2 - 10): Authentic physical border + center pip
+        centerArt = `
+          <g>
+            <rect x="22" y="16" width="56" height="116" rx="4" stroke="${ink}" stroke-width="0.6" stroke-opacity="0.18" fill="none" />
+            ${getSuitSVGPath(card.suit, 31, 28, 0.48, ink)}
+            <g transform="rotate(180 69 120)">
+              ${getSuitSVGPath(card.suit, 69, 120, 0.48, ink)}
+            </g>
+            ${getSuitSVGPath(card.suit, 50, 74, card.isTen ? 1.7 : 1.55, ink)}
+            ${card.isTen ? `<circle cx="50" cy="74" r="24" stroke="${gold}" stroke-width="1" stroke-dasharray="2 1.5" fill="none" />` : ''}
+          </g>
+        `;
+      }
+
+      return `
+        <svg class="w-full h-full select-none pointer-events-none" viewBox="0 0 100 148" fill="none">
+          <!-- TOP-LEFT INDEX -->
+          <g>
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">
+              ${rankText}
+            </text>
+            ${getSuitSVGPath(card.suit, 11, 32, 0.62, ink)}
+          </g>
+
+          <!-- CENTER ART -->
+          ${centerArt}
+
+          <!-- BOTTOM-RIGHT INVERTED INDEX -->
+          <g transform="rotate(180 50 74)">
+            <text x="11" y="21" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="${letterSpacing}" fill="${ink}">
+              ${rankText}
+            </text>
+            ${getSuitSVGPath(card.suit, 11, 32, 0.62, ink)}
+          </g>
+        </svg>
+      `;
+    }
+
+    function createDeck() {
+      const d = [];
+      SUITS.forEach(s => {
+        for (let str = 2; str <= 14; str++) {
+          let lbl = str.toString();
+          if (str === 11) lbl = 'J';
+          else if (str === 12) lbl = 'Q';
+          else if (str === 13) lbl = 'K';
+          else if (str === 14) lbl = 'A';
+          d.push({ id: `${s[0]}-${str}`, suit: s, strength: str, label: lbl, isTen: str === 10 });
+        }
+      });
+      return d;
+    }
+
+    function shuffle(a) {
+      const arr = [...a];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const Game = {
+      variant: 'DYNAMIC_CUT',
+      aiTier: 'MEDIUM',
+      matchScore: { t1: 0, t2: 0 },
+      targetScore: 7,
+      dealerIndex: 1, // 0: South, 1: East, 2: North, 3: West
+      turnIndex: 1,
+      trumpSuit: null,
+      blindCard: null,
+      blindOwner: 1,
+      players: [
+        { id: 'p0', name: 'You', team: 1, hand: [] },
+        { id: 'p1', name: 'Ibrahim (P2)', team: 2, hand: [] },
+        { id: 'p2', name: 'Ahmed (P3)', team: 1, hand: [] },
+        { id: 'p3', name: 'Hassan (P4)', team: 2, hand: [] }
+      ],
+      currentTrick: [],
+      tricksWon: { t1: 0, t2: 0 },
+      capturedTens: { t1: [], t2: [] },
+      trickCount: 1,
+      sortMode: 'SUIT'
+    };
+
+    function dealHand() {
+      const deck = shuffle(createDeck());
+      Game.players.forEach(p => p.hand = []);
+      Game.currentTrick = [];
+      Game.tricksWon = { t1: 0, t2: 0 };
+      Game.capturedTens = { t1: [], t2: [] };
+      Game.trumpSuit = null;
+      Game.blindCard = null;
+      Game.trickCount = 1;
+
+      // Dealer's right starts in anti-clockwise orbit
+      Game.blindOwner = (Game.dealerIndex + 1) % 4;
+      Game.turnIndex = Game.blindOwner;
+
+      // 5 + 4 + 4 batch deal
+      for (let i = 0; i < 4; i++) {
+        const p = (Game.blindOwner + i) % 4;
+        Game.players[p].hand.push(...deck.splice(0, 5));
+      }
+      if (Game.variant === 'BLIND_RESERVE') {
+        Game.blindCard = Game.players[Game.blindOwner].hand.pop();
+      }
+      for (let i = 0; i < 4; i++) {
+        const p = (Game.blindOwner + i) % 4;
+        Game.players[p].hand.push(...deck.splice(0, 4));
+      }
+      for (let i = 0; i < 4; i++) {
+        const p = (Game.blindOwner + i) % 4;
+        Game.players[p].hand.push(...deck.splice(0, 4));
+      }
+
+      sortHand(Game.sortMode);
+      renderAll();
+    }
+
+    function sortHand(mode = 'SUIT') {
+      Game.sortMode = mode;
+      const h = Game.players[0].hand;
+      if (mode === 'SUIT') {
+        h.sort((a, b) => a.suit === b.suit ? b.strength - a.strength : SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit));
+      } else {
+        h.sort((a, b) => b.strength - a.strength);
+      }
+      renderPlayerHand();
+    }
+
+    function isLegal(card, hand, trick) {
+      if (trick.length === 0) return true;
+      const ledSuit = trick[0].card.suit;
+      const hasSuit = hand.some(c => c.suit === ledSuit);
+      return hasSuit ? card.suit === ledSuit : true;
+    }
+
+    function resolveTrick(trick, trump) {
+      const led = trick[0].card;
+      let win = trick[0];
+      for (let i = 1; i < trick.length; i++) {
+        const c = trick[i].card;
+        const cur = win.card;
+        if (trump && c.suit === trump) {
+          if (cur.suit !== trump || c.strength > cur.strength) win = trick[i];
+        } else if (!trump || cur.suit !== trump) {
+          if (c.suit === led.suit && c.strength > cur.strength) win = trick[i];
+        }
+      }
+      return win;
+    }
+
+    function playCard(pIdx, card) {
+      const p = Game.players[pIdx];
+      const idx = p.hand.findIndex(c => c.id === card.id);
+      if (idx !== -1) p.hand.splice(idx, 1);
+
+      // Trump Cut Resolution
+      if (Game.currentTrick.length > 0 && !Game.trumpSuit) {
+        const ledSuit = Game.currentTrick[0].card.suit;
+        if (card.suit !== ledSuit) {
+          if (Game.variant === 'DYNAMIC_CUT') {
+            Game.trumpSuit = card.suit;
+          } else if (Game.variant === 'BLIND_RESERVE' && Game.blindCard) {
+            Game.trumpSuit = Game.blindCard.suit;
+            if (pIdx === Game.blindOwner) {
+              p.hand.push(card);
+              card = Game.blindCard;
+              Game.blindCard = null;
+            } else {
+              Game.players[Game.blindOwner].hand.push(Game.blindCard);
+              Game.blindCard = null;
+            }
+          }
+        }
+      }
+
+      Game.currentTrick.push({ playerIndex: pIdx, playerName: p.name, team: p.team, card });
+      Sound.play('play');
+
+      renderTrick();
+      renderAll();
+
+      if (Game.currentTrick.length === 4) {
+        setTimeout(finishTrick, 700);
+      } else {
+        Game.turnIndex = (Game.turnIndex + 1) % 4;
+        updateTurnRings();
+        if (Game.turnIndex !== 0) setTimeout(stepAi, 450);
+      }
+    }
+
+    function finishTrick() {
+      const win = resolveTrick(Game.currentTrick, Game.trumpSuit);
+      if (win.team === 1) Game.tricksWon.t1++;
+      else Game.tricksWon.t2++;
+
+      Game.currentTrick.forEach(play => {
+        if (play.card.isTen) {
+          if (win.team === 1) Game.capturedTens.t1.push(play.card);
+          else Game.capturedTens.t2.push(play.card);
+        }
+      });
+
+      Sound.play('win');
+
+      const banner = document.getElementById('trickWinnerBanner');
+      document.getElementById('trickWinnerText').innerText = `${win.playerName} Wins Trick!`;
+      banner.classList.remove('opacity-0');
+      banner.classList.add('opacity-100');
+
+      setTimeout(() => {
+        banner.classList.remove('opacity-100');
+        banner.classList.add('opacity-0');
+        Game.currentTrick = [];
+        renderTrick();
+        renderTopHUD();
+
+        if (Game.players[0].hand.length === 0) {
+          setTimeout(finishRound, 300);
+        } else {
+          Game.turnIndex = win.playerIndex;
+          Game.trickCount++;
+          updateTurnRings();
+          if (Game.turnIndex !== 0) setTimeout(stepAi, 450);
+        }
+      }, 650);
+    }
+
+    function finishRound() {
+      const t1Tens = Game.capturedTens.t1.length;
+      const t2Tens = Game.capturedTens.t2.length;
+      const t1Tr = Game.tricksWon.t1;
+      const t2Tr = Game.tricksWon.t2;
+
+      let title = '', sub = '', t1Pts = 0, t2Pts = 0, winTeam = null;
+
+      if (t1Tens === 4 && t1Tr === 13) {
+        title = 'HAASBAGGA! (1,000 PTS)';
+        sub = 'Team 1 captured all four 10s and swept every single trick!';
+        t1Pts = 1000; winTeam = 1;
+      } else if (t2Tens === 4 && t2Tr === 13) {
+        title = 'HAASBAGGA! (1,000 PTS)';
+        sub = 'Team 2 captured all four 10s and swept every single trick!';
+        t2Pts = 1000; winTeam = 2;
+      } else if (t1Tens === 4) {
+        title = 'BAGGA! (4 POINTS)';
+        sub = 'Team 1 captured all four 10s!';
+        t1Pts = 4; winTeam = 1;
+      } else if (t2Tens === 4) {
+        title = 'BAGGA! (4 POINTS)';
+        sub = 'Team 2 captured all four 10s!';
+        t2Pts = 4; winTeam = 2;
+      } else if (t1Tens === 3) {
+        title = 'STANDARD WIN (1 POINT)';
+        sub = 'Team 1 secured three 10s (3–1 Split)';
+        t1Pts = 1; winTeam = 1;
+      } else if (t2Tens === 3) {
+        title = 'STANDARD WIN (1 POINT)';
+        sub = 'Team 2 secured three 10s (3–1 Split)';
+        t2Pts = 1; winTeam = 2;
+      } else {
+        title = 'TIE-BREAKER (2–2 SPLIT)';
+        sub = t1Tr >= 7 ? `Team 1 won ${t1Tr} tricks to rotate dealer (0 pts)` : `Team 2 won ${t2Tr} tricks to rotate dealer (0 pts)`;
+        winTeam = t1Tr >= 7 ? 1 : 2;
+      }
+
+      Game.matchScore.t1 += t1Pts;
+      Game.matchScore.t2 += t2Pts;
+
+      const dealerTeam = Game.players[Game.dealerIndex].team;
+      let dealerMsg = '';
+      if (winTeam === dealerTeam) {
+        Game.dealerIndex = (Game.dealerIndex + 1) % 4;
+        dealerMsg = `Dealer's team won: Dealing privilege passes anti-clockwise to ${Game.players[Game.dealerIndex].name}.`;
+      } else {
+        dealerMsg = `Dealer's team lost: ${Game.players[Game.dealerIndex].name} deals again.`;
+      }
+
+      // Display Modal
+      document.getElementById('sumTitle').innerText = title;
+      document.getElementById('sumSubtitle').innerText = sub;
+      document.getElementById('sumT1Score').innerText = `${t1Tens} Tens • ${t1Tr} Tricks • +${t1Pts}`;
+      document.getElementById('sumT2Score').innerText = `${t2Tens} Tens • ${t2Tr} Tricks • +${t2Pts}`;
+      document.getElementById('sumDealer').innerText = dealerMsg;
+      const isWon = Game.matchScore.t1 >= Game.targetScore || Game.matchScore.t2 >= Game.targetScore;
+      document.getElementById('sumMatchScore').innerText = `T1: ${Game.matchScore.t1}  |  T2: ${Game.matchScore.t2} ${isWon ? '★ MATCH WON!' : ''}`;
+
+      document.getElementById('summaryModal').classList.remove('hidden');
+    }
+
+    function stepAi() {
+      const idx = Game.turnIndex;
+      if (idx === 0) return;
+      const p = Game.players[idx];
+      const leg = p.hand.filter(c => isLegal(c, p.hand, Game.currentTrick));
+      if (!leg.length) return;
+
+      let chosen = leg[0];
+      // Tactical AI
+      if (Game.aiTier !== 'EASY') {
+        if (!Game.currentTrick.length) {
+          const nonTen = leg.filter(c => !c.isTen);
+          chosen = nonTen.length ? nonTen[0] : leg[0];
+        } else {
+          const partnerIdx = (idx + 2) % 4;
+          const curWin = resolveTrick(Game.currentTrick, Game.trumpSuit);
+          if (curWin.playerIndex === partnerIdx && Game.currentTrick.length === 3) {
+            const ten = leg.find(c => c.isTen);
+            if (ten) chosen = ten;
+          }
+        }
+      }
+      playCard(idx, chosen);
+    }
+
+    // Render Helpers
+    function renderAll() {
+      renderTopHUD();
+      renderPlayerHand();
+      renderTrick();
+      updateTurnRings();
+      document.getElementById('northCount').innerText = Game.players[2].hand.length;
+      document.getElementById('eastCount').innerText = Game.players[1].hand.length;
+      document.getElementById('westCount').innerText = Game.players[3].hand.length;
+    }
+
+    function renderTopHUD() {
+      // Tens indicators
+      ['t1Tens', 't2Tens'].forEach((id, tIdx) => {
+        const teamCaptured = tIdx === 0 ? Game.capturedTens.t1 : Game.capturedTens.t2;
+        document.querySelectorAll(`#${id} span`).forEach(sp => {
+          const s = sp.getAttribute('data-s');
+          const cap = teamCaptured.some(c => c.suit === s);
+          sp.className = cap ? 'text-[11px] font-bold text-amber-300 opacity-100 drop-shadow' : 'text-[11px] text-zinc-600 opacity-30';
+        });
+      });
+
+      document.getElementById('t1Tricks').innerText = `${Game.tricksWon.t1} Tr`;
+      document.getElementById('t2Tricks').innerText = `${Game.tricksWon.t2} Tr`;
+      document.getElementById('matchScoreDisplay').innerText = `${Game.matchScore.t1} - ${Game.matchScore.t2}`;
+
+      const trumpEl = document.getElementById('trumpIndicator');
+      if (Game.trumpSuit) {
+        trumpEl.innerHTML = `<span class="text-sm ${SUIT_COLORS[Game.trumpSuit]} font-black">${SUIT_SYMBOLS[Game.trumpSuit]}</span> <span class="text-white font-mono-code text-[10px]">${Game.trumpSuit}</span>`;
+      } else {
+        trumpEl.innerHTML = `<span class="text-amber-400">❓</span> <span class="text-[10px] text-zinc-400 font-mono-code">Undeclared</span>`;
+      }
+
+      const blindInd = document.getElementById('blindReserveIndicator');
+      if (Game.variant === 'BLIND_RESERVE') blindInd.classList.remove('hidden');
+      else blindInd.classList.add('hidden');
+    }
+
+    function renderPlayerHand() {
+      const container = document.getElementById('handContainer');
+      container.innerHTML = '';
+      const hand = Game.players[0].hand;
+      const count = hand.length;
+      const isMyTurn = Game.turnIndex === 0;
+
+      const midIndex = (count - 1) / 2;
+      const spacingPx = count > 12 ? -24 : count > 9 ? -20 : -16;
+
+      hand.forEach((card, i) => {
+        const legal = isLegal(card, hand, Game.currentTrick);
+        const el = document.createElement('div');
+        const isTen = card.isTen;
+
+        const fanAngle = (i - midIndex) * 1.4;
+
+        el.className = `card-hand-size rounded-[9px] sm:rounded-[11px] bg-gradient-to-br from-[#ffffff] via-[#fcfaf5] to-[#f4efe4] border ${
+          isTen ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'border-[#301a14]/30'
+        } card-shadow relative select-none transition-all duration-200 overflow-hidden ${
+          isMyTurn && legal ? 'card-playable' : (!legal && isMyTurn ? 'opacity-40 cursor-not-allowed' : '')
+        }`;
+        
+        el.style.marginLeft = i === 0 ? '0' : `${spacingPx}px`;
+        el.style.transform = `rotate(${fanAngle}deg)`;
+        el.style.zIndex = i + 10;
+
+        el.innerHTML = renderDiguCardSVG(card, false);
+
+        el.onclick = () => {
+          if (Game.turnIndex === 0 && legal) playCard(0, card);
+        };
+
+        container.appendChild(el);
+      });
+    }
+
+    function renderTrick() {
+      const slots = {
+        0: document.getElementById('trickSouth'),
+        1: document.getElementById('trickEast'),
+        2: document.getElementById('trickNorth'),
+        3: document.getElementById('trickWest')
+      };
+
+      Object.values(slots).forEach(s => {
+        s.classList.add('opacity-0');
+        s.querySelector('.trick-card-slot').innerHTML = '';
+      });
+
+      Game.currentTrick.forEach(p => {
+        const slot = slots[p.playerIndex];
+        slot.classList.remove('opacity-0');
+        const c = p.card;
+        slot.querySelector('.trick-card-slot').innerHTML = `
+          <div class="card-table-size rounded-[8px] sm:rounded-[10px] bg-gradient-to-br from-[#ffffff] via-[#fcfaf5] to-[#f4efe4] border ${
+            c.isTen ? 'border-amber-400 ring-2 ring-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : 'border-[#301a14]/30'
+          } card-shadow relative overflow-hidden">
+            ${renderDiguCardSVG(c, true)}
+            <div class="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] font-mono-code font-bold text-white text-center py-0.5 truncate border-t border-black/40">
+              ${p.playerName}
+            </div>
+          </div>
+        `;
+      });
+
+      const info = document.getElementById('trickInfoText');
+      if (!Game.currentTrick.length) {
+        info.innerText = `Trick ${Game.trickCount} • ${Game.players[Game.turnIndex].name} Leads`;
+      } else {
+        info.innerText = `Led: ${Game.currentTrick[0].card.suit} (${SUIT_SYMBOLS[Game.currentTrick[0].card.suit]})`;
+      }
+    }
+
+    function updateTurnRings() {
+      const seats = [
+        null,
+        document.getElementById('avatarEast'),
+        document.getElementById('avatarNorth'),
+        document.getElementById('avatarWest')
+      ];
+
+      seats.forEach(s => s && s.classList.remove('active-turn-ring'));
+      document.getElementById('myTurnNotice').classList.add('hidden');
+
+      if (Game.turnIndex === 0) {
+        document.getElementById('myTurnNotice').classList.remove('hidden');
+      } else if (seats[Game.turnIndex]) {
+        seats[Game.turnIndex].classList.add('active-turn-ring');
+      }
+
+      const dp = document.getElementById('dealerPill');
+      if (Game.dealerIndex === 0) dp.classList.remove('hidden');
+      else dp.classList.add('hidden');
+    }
+
+    // UI Drawer Handlers
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const drawerPanel = document.getElementById('drawerPanel');
+    const openDrawer = () => {
+      drawerOverlay.classList.remove('opacity-0', 'pointer-events-none');
+      drawerPanel.classList.remove('translate-x-full');
+    };
+    const closeDrawer = () => {
+      drawerOverlay.classList.add('opacity-0', 'pointer-events-none');
+      drawerPanel.classList.add('translate-x-full');
+    };
+    document.getElementById('openDrawerBtn').onclick = openDrawer;
+    document.getElementById('closeDrawerBtn').onclick = closeDrawer;
+    drawerOverlay.onclick = closeDrawer;
+
+    // Rules Modal
+    document.getElementById('openRulesBtn').onclick = () => document.getElementById('rulesModal').classList.remove('hidden');
+    document.getElementById('closeRulesModalBtn').onclick = () => document.getElementById('rulesModal').classList.add('hidden');
+
+    // Drawer Controls
+    document.getElementById('variantSelector').onchange = (e) => {
+      Game.variant = e.target.value;
+      document.getElementById('modeBadge').innerText = Game.variant === 'DYNAMIC_CUT' ? 'Dynamic Cut' : 'Blind Reserve';
+      closeDrawer();
+      dealHand();
+    };
+
+    document.getElementById('aiTierSelector').onchange = (e) => {
+      Game.aiTier = e.target.value;
+    };
+
+    document.getElementById('sortHandBtn').onclick = () => {
+      sortHand(Game.sortMode === 'SUIT' ? 'RANK' : 'SUIT');
+    };
+
+    document.getElementById('stepAiBtn').onclick = () => {
+      if (Game.turnIndex !== 0) stepAi();
+    };
+
+    document.getElementById('drawerNewDealBtn').onclick = () => {
+      closeDrawer();
+      dealHand();
+    };
+
+    document.getElementById('closeSummaryModalBtn').onclick = () => {
+      document.getElementById('summaryModal').classList.add('hidden');
+      dealHand();
+    };
+
+    // Scenarios
+    document.getElementById('scenHaasbagga').onclick = () => {
+      closeDrawer();
+      Game.capturedTens.t1 = createDeck().filter(c => c.isTen);
+      Game.capturedTens.t2 = [];
+      Game.tricksWon.t1 = 13; Game.tricksWon.t2 = 0;
+      finishRound();
+    };
+
+    document.getElementById('scenBagga').onclick = () => {
+      closeDrawer();
+      Game.capturedTens.t1 = [];
+      Game.capturedTens.t2 = createDeck().filter(c => c.isTen);
+      Game.tricksWon.t1 = 4; Game.tricksWon.t2 = 9;
+      finishRound();
+    };
+
+    document.getElementById('scenStandard').onclick = () => {
+      closeDrawer();
+      const tens = createDeck().filter(c => c.isTen);
+      Game.capturedTens.t1 = tens.slice(0, 3);
+      Game.capturedTens.t2 = [tens[3]];
+      Game.tricksWon.t1 = 8; Game.tricksWon.t2 = 5;
+      finishRound();
+    };
+
+    document.getElementById('scenTie').onclick = () => {
+      closeDrawer();
+      const tens = createDeck().filter(c => c.isTen);
+      Game.capturedTens.t1 = tens.slice(0, 2);
+      Game.capturedTens.t2 = tens.slice(2, 4);
+      Game.tricksWon.t1 = 8; Game.tricksWon.t2 = 5;
+      finishRound();
+    };
+
+    // Initialize
+    dealHand();
+  </script>
+</body>
+</html>

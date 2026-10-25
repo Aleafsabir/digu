@@ -31,6 +31,69 @@ interface GinRummyHandProps {
 
 const MELD_COLORS: MeldColor[] = ['cyan', 'emerald', 'amber', 'purple'];
 
+// Standalone memoized turn countdown ring: isolates 1-second interval re-renders
+// so the entire 11-card hand and SVGs DO NOT re-render every second!
+const TurnTimerCountdownRing: React.FC = React.memo(() => {
+  const { remainingSeconds, isHumanTurn } = useTurnTimer();
+  const timerRadius = 9;
+  const timerCircumference = 2 * Math.PI * timerRadius;
+  const timerOffset = timerCircumference - (remainingSeconds / 30) * timerCircumference;
+
+  useEffect(() => {
+    if (isHumanTurn && remainingSeconds > 0 && remainingSeconds <= 3) {
+      playUrgentTimerHeartbeat();
+    }
+  }, [remainingSeconds, isHumanTurn]);
+
+  if (!isHumanTurn) return null;
+
+  return (
+    <div
+      className={`px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 transition-all border ${
+        remainingSeconds <= 6
+          ? 'bg-[#301a14] border-[#c84b31] shadow-[0_0_12px_rgba(200,75,49,0.7)] animate-pulse'
+          : 'bg-[#170b09]/95 border-[#301a14]'
+      }`}
+      title={`Your Turn: ${remainingSeconds}s remaining`}
+    >
+      <div className="relative w-5 h-5 flex items-center justify-center">
+        <svg className="w-5 h-5 -rotate-90">
+          <circle
+            cx="10"
+            cy="10"
+            r={timerRadius}
+            className="stroke-[#301a14]"
+            strokeWidth="2.5"
+            fill="none"
+          />
+          <circle
+            cx="10"
+            cy="10"
+            r={timerRadius}
+            stroke={remainingSeconds <= 6 ? '#c84b31' : '#e5c378'}
+            strokeWidth="2.5"
+            fill="none"
+            strokeDasharray={timerCircumference}
+            strokeDashoffset={timerOffset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-linear"
+          />
+        </svg>
+        <span
+          className={`absolute font-mono text-[8px] font-black ${
+            remainingSeconds <= 6 ? 'text-[#c84b31]' : 'text-[#f7f0ea]'
+          }`}
+        >
+          {remainingSeconds}
+        </span>
+      </div>
+      <span className="text-[9px] font-black uppercase text-[#f7f0ea]/70 font-sans hidden sm:inline">
+        TURN
+      </span>
+    </div>
+  );
+});
+
 export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   handCards,
   selectedCardId,
@@ -53,26 +116,14 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   const [isDraggingUp, setIsDraggingUp] = useState(false);
   const lastClickTimeRef = useRef<{ id: string; time: number }>({ id: '', time: 0 });
 
-  const { remainingSeconds, isHumanTurn } = useTurnTimer();
-  const timerRadius = 9;
-  const timerCircumference = 2 * Math.PI * timerRadius;
-  const timerOffset = timerCircumference - (remainingSeconds / 30) * timerCircumference;
-
   // Golden chime when Gin condition is attained
   const prevCanGinRef = useRef(false);
   useEffect(() => {
-    if (canGin && !prevCanGinRef.current && isHumanTurn) {
+    if (canGin && !prevCanGinRef.current && isActionPhase) {
       playGinReadyChime();
     }
     prevCanGinRef.current = canGin;
-  }, [canGin, isHumanTurn]);
-
-  // Urgent heartbeat pulse when under 4 seconds
-  useEffect(() => {
-    if (isHumanTurn && remainingSeconds > 0 && remainingSeconds <= 3) {
-      playUrgentTimerHeartbeat();
-    }
-  }, [remainingSeconds, isHumanTurn]);
+  }, [canGin, isActionPhase]);
 
   const selectedIndex = selectedCardId ? handCards.findIndex(c => c.id === selectedCardId) : -1;
 
@@ -128,7 +179,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
         
         {/* Deadwood Meter Pill (Royal Lacquer Style) */}
         <div
-          className={`px-3.5 sm:px-4.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
+          className={`px-3.5 sm:px-4.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
             handAnalysis.deadwoodPoints === 0
               ? 'bg-[#170b09]/95 border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.4)]'
               : 'bg-[#170b09]/95 border-[#301a14]'
@@ -155,56 +206,12 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
           )}
         </div>
 
-        {/* 30-Second Turn Countdown Ring */}
-        {isHumanTurn && (
-          <div
-            className={`px-2.5 py-1 rounded-full backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-all border ${
-              remainingSeconds <= 6
-                ? 'bg-[#301a14] border-[#c84b31] shadow-[0_0_12px_rgba(200,75,49,0.7)] animate-pulse'
-                : 'bg-[#170b09]/95 border-[#301a14]'
-            }`}
-            title={`Your Turn: ${remainingSeconds}s remaining`}
-          >
-            <div className="relative w-5 h-5 flex items-center justify-center">
-              <svg className="w-5 h-5 -rotate-90">
-                <circle
-                  cx="10"
-                  cy="10"
-                  r={timerRadius}
-                  className="stroke-[#301a14]"
-                  strokeWidth="2.5"
-                  fill="none"
-                />
-                <circle
-                  cx="10"
-                  cy="10"
-                  r={timerRadius}
-                  stroke={remainingSeconds <= 6 ? '#c84b31' : '#e5c378'}
-                  strokeWidth="2.5"
-                  fill="none"
-                  strokeDasharray={timerCircumference}
-                  strokeDashoffset={timerOffset}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000 ease-linear"
-                />
-              </svg>
-              <span
-                className={`absolute font-mono text-[8px] font-black ${
-                  remainingSeconds <= 6 ? 'text-[#c84b31]' : 'text-[#f7f0ea]'
-                }`}
-              >
-                {remainingSeconds}
-              </span>
-            </div>
-            <span className="text-[9px] font-black uppercase text-[#f7f0ea]/70 font-sans hidden sm:inline">
-              TURN
-            </span>
-          </div>
-        )}
+        {/* 30-Second Turn Countdown Ring (Isolated Subcomponent) */}
+        <TurnTimerCountdownRing />
 
         {/* Selected Card Shift Nudge Controls (Accessibility) */}
         {selectedCardId && selectedIndex >= 0 && (
-          <div className="flex items-center gap-1 bg-[#170b09]/95 backdrop-blur-md border border-[#e5c378]/40 rounded-full px-2 py-0.5 shadow-md">
+          <div className="flex items-center gap-1 bg-[#170b09]/95 border border-[#e5c378]/40 rounded-full px-2 py-0.5 shadow-md">
             <button
               onClick={handleMoveLeft}
               disabled={selectedIndex === 0}

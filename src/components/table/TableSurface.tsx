@@ -723,7 +723,7 @@ export const TableSurface: React.FC = () => {
             {/* South Seat (Human) Reaction Bubble with High Visibility & Sender Attribution */}
             {humanReaction && (
               <div className="absolute bottom-36 sm:bottom-40 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-200 flex flex-col items-center">
-                <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 backdrop-blur-md text-white border-2 border-[#e5c378] rounded-2xl px-4 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_25px_rgba(229,195,120,0.35)] flex items-center gap-3 relative overflow-hidden">
+                <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 text-white border-2 border-[#e5c378] rounded-2xl px-4 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_25px_rgba(229,195,120,0.35)] flex items-center gap-3 relative overflow-hidden">
                   {/* Sender Badge */}
                   <span className="bg-gradient-to-r from-[#FFF0C8] via-[#E5C378] to-[#B48D36] text-[#170b09] font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-full shadow-sm">
                     {humanReaction.senderName || 'You'}
@@ -775,7 +775,7 @@ export const TableSurface: React.FC = () => {
                   setShowQuickChat(true);
                 }}
                 title="Chat & Emojis"
-                className="h-10 sm:h-11 px-3 sm:px-3.5 rounded-full bg-gradient-to-r from-[#170b09]/95 via-[#220f0c]/95 to-[#170b09]/95 hover:from-[#301a14] hover:to-[#220f0c] backdrop-blur-md border-1.5 border-[#e5c378]/80 hover:border-[#e5c378] text-[#e5c378] shadow-[0_6px_20px_rgba(0,0,0,0.8),0_0_12px_rgba(229,195,120,0.2)] flex items-center gap-1.5 transition-all active:scale-95 hover:scale-105 cursor-pointer group"
+                className="h-10 sm:h-11 px-3 sm:px-3.5 rounded-full bg-gradient-to-r from-[#170b09]/95 via-[#220f0c]/95 to-[#170b09]/95 hover:from-[#301a14] hover:to-[#220f0c] border-1.5 border-[#e5c378]/80 hover:border-[#e5c378] text-[#e5c378] shadow-[0_6px_20px_rgba(0,0,0,0.8),0_0_12px_rgba(229,195,120,0.2)] flex items-center gap-1.5 transition-all active:scale-95 hover:scale-105 cursor-pointer group"
               >
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform text-[#e5c378]" />

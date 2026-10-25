@@ -183,7 +183,7 @@ export const StockDiscardArea: React.FC<StockDiscardAreaProps> = ({
             }`}
           >
             <CardBackVisual deckId={activeDeck} />
-            <div className="absolute bottom-1 bg-black/80 backdrop-blur-sm text-[#e5c378] font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none">
+            <div className="absolute bottom-1 bg-[#0d0605]/95 text-[#e5c378] font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none border border-[#301a14]">
               {stockPile.length}
             </div>
           </div>

@@ -40,7 +40,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
           transition={{ type: 'spring', stiffness: 450, damping: 22 }}
           className="absolute -top-12 sm:-top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center"
         >
-          <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 backdrop-blur-md text-white border-1.5 border-[#e5c378] rounded-2xl px-3 py-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.9),0_0_20px_rgba(229,195,120,0.3)] flex items-center gap-2 relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 text-white border-1.5 border-[#e5c378] rounded-2xl px-3 py-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.9),0_0_20px_rgba(229,195,120,0.3)] flex items-center gap-2 relative overflow-hidden">
             {/* Sender Badge */}
             <span className="bg-gradient-to-r from-[#c84b31] to-[#8f2c18] text-white border border-[#e5c378]/60 font-black text-[9px] tracking-wide uppercase px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
               {playerReaction.senderName || player.name}
@@ -147,7 +147,7 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
 
       {/* Clean Floating Name Pill */}
       <div
-        className={`mt-1 px-2.5 py-0.5 rounded-full border backdrop-blur-xs flex items-center shadow-sm transition-colors ${
+        className={`mt-1 px-2.5 py-0.5 rounded-full border flex items-center shadow-sm transition-colors ${
           isActiveTurn
             ? 'bg-[#170b09]/95 border-[#e5c378]/80 text-[#e5c378] font-black shadow-[0_0_10px_rgba(229,195,120,0.4)]'
             : 'bg-[#0d0605]/85 border-[#301a14] text-[#f7f0ea]/70'
