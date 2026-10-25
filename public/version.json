@@ -1,14 +1,13 @@
 {
-  "versionName": "0.3.0",
-  "versionCode": 12,
+  "versionName": "0.3.1",
+  "versionCode": 13,
   "releaseDate": "2026-10-25",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Universal Screen & DPI Scaling: Height-governed fluid layout for 16:9, 19.5:9, 21:9 ultra-wides (Galaxy S25 Ultra), and tablets",
-    "Authoritative Cloud Multiplayer & Private Tables: Cross-device room creation, code joining, and bot filling",
-    "Live Friend Requests & Presence: Instant real-time invitations and status sync",
-    "Samsung Keyboard LTR Input Isolation: Fixed backwards typing on friend and room code fields",
-    "Ergonomic Mid-Table Thumb Rails: Relocated Quick Chat & Emoji triggers to eliminate hand card overlap"
+    "Consolidated Right-Thumb Chat & Emoji: Unified single-button rail trigger eliminating duplicate menus and clutter",
+    "High-Visibility Reaction Bubbles: Directional speech tails, 32px animated emojis, bold contrast typography, and gold lacquer styling",
+    "Explicit Sender Attribution: Unmistakable speaker badges (YOU, HASSAN, AISHATH, etc.) on every reaction",
+    "Extended 6.0s Reaction Display: Smooth linear countdown timer bar for comfortable match reading"
   ]
 }

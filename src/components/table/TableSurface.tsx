@@ -720,42 +720,48 @@ export const TableSurface: React.FC = () => {
               </div>
             )}
 
-            {/* South Seat (Human) Reaction Bubble */}
+            {/* South Seat (Human) Reaction Bubble with High Visibility & Sender Attribution */}
             {humanReaction && (
-              <div className="absolute bottom-36 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-200">
-                <div className="bg-[#12161a]/95 backdrop-blur-md text-white border-0 rounded-2xl px-4 py-2 shadow-2xl flex items-center gap-2">
+              <div className="absolute bottom-36 sm:bottom-40 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-in fade-in zoom-in duration-200 flex flex-col items-center">
+                <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 backdrop-blur-md text-white border-2 border-[#e5c378] rounded-2xl px-4 py-2 shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_25px_rgba(229,195,120,0.35)] flex items-center gap-3 relative overflow-hidden">
+                  {/* Sender Badge */}
+                  <span className="bg-gradient-to-r from-[#FFF0C8] via-[#E5C378] to-[#B48D36] text-[#170b09] font-black text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-full shadow-sm">
+                    {humanReaction.senderName || 'You'}
+                  </span>
+
+                  {/* Reaction Content */}
+                  <div className="flex flex-col">
+                    {humanReaction.text && (
+                      <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-sm">
+                        {humanReaction.text}
+                      </span>
+                    )}
+                  </div>
+
                   {humanReaction.emoji && (
-                    <span className="text-2xl animate-bounce">{humanReaction.emoji}</span>
-                  )}
-                  {humanReaction.text && (
-                    <span className="text-xs font-bold text-amber-200 whitespace-nowrap">
-                      {humanReaction.text}
+                    <span className="text-3xl animate-bounce leading-none drop-shadow-md">
+                      {humanReaction.emoji}
                     </span>
                   )}
+
+                  {/* Countdown Progress Line (6.0s duration) */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-amber-400/20 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#c84b31] to-[#e5c378]"
+                      style={{
+                        animation: 'shrinkProgress 6s linear forwards',
+                        transformOrigin: 'left',
+                      }}
+                    />
+                  </div>
                 </div>
+
+                {/* Speech Bubble Tail pointing down to Human Hand */}
+                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[9px] border-t-[#e5c378] -mt-[1px]" />
               </div>
             )}
 
-            {/* Mid-Table Ergonomic Thumb Rails: Quick Chat (West Rail) & Reaction Emojis (East Rail) */}
-            <div
-              className="absolute z-30 pointer-events-auto"
-              style={{
-                left: 'max(12px, env(safe-area-inset-left))',
-                bottom: 'clamp(90px, 34%, 150px)',
-              }}
-            >
-              <button
-                onClick={() => {
-                  setQuickChatTab('chat');
-                  setShowQuickChat(true);
-                }}
-                title="Quick Chat"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#170b09]/95 hover:bg-[#301a14] backdrop-blur-md border-1.5 border-[#301a14] hover:border-[#e5c378] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
-              >
-                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-              </button>
-            </div>
-
+            {/* Mid-Table Ergonomic Thumb Rail: Unified Chat & Emoji Button (East Rail) */}
             <div
               className="absolute z-30 pointer-events-auto"
               style={{
@@ -765,13 +771,19 @@ export const TableSurface: React.FC = () => {
             >
               <button
                 onClick={() => {
-                  setQuickChatTab('emoji');
+                  setQuickChatTab('chat');
                   setShowQuickChat(true);
                 }}
-                title="Emojis"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#170b09]/95 hover:bg-[#301a14] backdrop-blur-md border-1.5 border-[#301a14] hover:border-[#e5c378] text-[#e5c378] shadow-xl flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                title="Chat & Emojis"
+                className="h-10 sm:h-11 px-3 sm:px-3.5 rounded-full bg-gradient-to-r from-[#170b09]/95 via-[#220f0c]/95 to-[#170b09]/95 hover:from-[#301a14] hover:to-[#220f0c] backdrop-blur-md border-1.5 border-[#e5c378]/80 hover:border-[#e5c378] text-[#e5c378] shadow-[0_6px_20px_rgba(0,0,0,0.8),0_0_12px_rgba(229,195,120,0.2)] flex items-center gap-1.5 transition-all active:scale-95 hover:scale-105 cursor-pointer group"
               >
-                <Smile className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform text-[#e5c378]" />
+                  <Smile className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform text-[#f7f0ea]" />
+                </div>
+                <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[#f7f0ea]">
+                  Chat
+                </span>
               </button>
             </div>
           </div>

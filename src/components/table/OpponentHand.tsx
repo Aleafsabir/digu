@@ -31,17 +31,49 @@ export const OpponentHand: React.FC<OpponentHandProps> = ({
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className="relative flex flex-col items-center select-none group"
     >
-      {/* Active Quick Chat / Emoji Reaction Bubble */}
+      {/* Active Quick Chat / Emoji Reaction Bubble with Sender Attribution & High Visibility */}
       {playerReaction && (
         <motion.div
           key={playerReaction.id}
-          initial={{ scale: 0, y: 6, opacity: 0 }}
+          initial={{ scale: 0.6, y: 8, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 450, damping: 22 }}
-          className="absolute -top-8 sm:-top-9 left-1/2 -translate-x-1/2 z-40 bg-white text-stone-950 px-2.5 py-0.5 rounded-2xl shadow-2xl border-0 font-black text-xs whitespace-nowrap flex items-center gap-1"
+          className="absolute -top-12 sm:-top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center"
         >
-          {playerReaction.emoji && <span className="text-sm sm:text-base leading-none">{playerReaction.emoji}</span>}
-          {playerReaction.text && <span className="text-[10px] leading-tight font-black">{playerReaction.text}</span>}
+          <div className="bg-gradient-to-r from-[#170b09]/98 via-[#220f0c]/98 to-[#170b09]/98 backdrop-blur-md text-white border-1.5 border-[#e5c378] rounded-2xl px-3 py-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.9),0_0_20px_rgba(229,195,120,0.3)] flex items-center gap-2 relative overflow-hidden">
+            {/* Sender Badge */}
+            <span className="bg-gradient-to-r from-[#c84b31] to-[#8f2c18] text-white border border-[#e5c378]/60 font-black text-[9px] tracking-wide uppercase px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+              {playerReaction.senderName || player.name}
+            </span>
+
+            {/* Reaction Text */}
+            {playerReaction.text && (
+              <span className="text-xs sm:text-sm font-extrabold text-white whitespace-nowrap drop-shadow-sm">
+                {playerReaction.text}
+              </span>
+            )}
+
+            {/* Large Animated Emoji */}
+            {playerReaction.emoji && (
+              <span className="text-2xl sm:text-3xl leading-none animate-bounce drop-shadow-md">
+                {playerReaction.emoji}
+              </span>
+            )}
+
+            {/* Countdown Progress Line (6.0s duration) */}
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400/20 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#c84b31] to-[#e5c378]"
+                style={{
+                  animation: 'shrinkProgress 6s linear forwards',
+                  transformOrigin: 'left',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Speech Bubble Tail pointing down to Opponent Avatar */}
+          <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[7px] border-t-[#e5c378] -mt-[1px]" />
         </motion.div>
       )}
 

@@ -86,7 +86,16 @@ export interface GameStoreState {
   setHapticsEnabled: (enabled: boolean) => void;
 
   // Player Chat & Emoji Reactions
-  playerReactions: Record<number, { text?: string; emoji?: string; id: number }>;
+  playerReactions: Record<
+    number,
+    {
+      text?: string;
+      emoji?: string;
+      id: number;
+      senderName?: string;
+      isHuman?: boolean;
+    }
+  >;
   triggerReaction: (playerIndex: number, text?: string, emoji?: string) => void;
 
   // In-App APK Updates
@@ -350,25 +359,30 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
     triggerReaction: (playerIndex: number, text?: string, emoji?: string) => {
       const reactionId = Date.now();
-      set(state => ({
+      const state = get();
+      const player = state.gameState?.players?.[playerIndex];
+      const senderName = player?.name || (playerIndex === 0 ? 'You' : `Player ${playerIndex + 1}`);
+      const isHuman = playerIndex === 0 || !player?.isAI;
+
+      set(curr => ({
         playerReactions: {
-          ...state.playerReactions,
-          [playerIndex]: { text, emoji, id: reactionId },
+          ...curr.playerReactions,
+          [playerIndex]: { text, emoji, id: reactionId, senderName, isHuman },
         },
       }));
 
-      // Auto dismiss reaction after 2.6 seconds
+      // Auto dismiss reaction after 6.0 seconds for optimal readability
       setTimeout(() => {
-        set(state => {
-          const current = state.playerReactions[playerIndex];
+        set(curr => {
+          const current = curr.playerReactions[playerIndex];
           if (current && current.id === reactionId) {
-            const updated = { ...state.playerReactions };
+            const updated = { ...curr.playerReactions };
             delete updated[playerIndex];
             return { playerReactions: updated };
           }
-          return state;
+          return curr;
         });
-      }, 2600);
+      }, 6000);
     },
 
     updateInfo: null,

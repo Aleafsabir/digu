@@ -325,3 +325,12 @@ body {
     border-color: #FFF2A3;
   }
 }
+
+@keyframes shrinkProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}

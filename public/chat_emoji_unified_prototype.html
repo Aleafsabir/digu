@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Digu — Unified Chat & Emoji System Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), url('/fonts/Faruma.woff2') format('woff2'), url('/fonts/Faruma.ttf') format('truetype');
+      font-weight: 400 700;
+      font-display: swap;
+    }
+
+    :root {
+      --ground: #0d0605;
+      --surface: #170b09;
+      --control: #301a14;
+      --cinnabar: #c84b31;
+      --royal-gold: #e5c378;
+      --inlay: #f7f0ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: #050302;
+      color: #f7f0ea;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 10px;
+      overflow-x: hidden;
+    }
+
+    /* Top Control Bar */
+    .sim-header {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    .sim-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sim-title h1 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #f7f0ea;
+      letter-spacing: -0.01em;
+    }
+
+    .sim-tag {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 8px;
+      background: #301a14;
+      color: #e5c378;
+      border-radius: 6px;
+      border: 1px solid rgba(229,195,120,0.3);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0d0605;
+      padding: 4px 8px;
+      border-radius: 10px;
+      border: 1px solid #301a14;
+    }
+
+    .control-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e5c378;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .control-btn {
+      background: #170b09;
+      color: #f7f0ea;
+      border: 1px solid #301a14;
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: #301a14;
+      color: #e5c378;
+      border-color: #e5c378;
+    }
+
+    .control-btn.active {
+      background: linear-gradient(135deg, #c84b31, #e5c378);
+      color: #0d0605;
+      border-color: #e5c378;
+      font-weight: 800;
+      box-shadow: 0 0 10px rgba(229,195,120,0.4);
+    }
+
+    /* Comparison Banner */
+    .compare-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Simulation Viewport Canvas */
+    .sim-viewport-frame {
+      width: 100%;
+      max-width: 980px;
+      height: 440px;
+      background: #0d0605;
+      border: 3px solid #301a14;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), inset 0 0 80px rgba(0,0,0,0.8);
+      transition: all 0.3s ease;
+    }
+
+    /* Aspect ratio modifications */
+    .sim-viewport-frame.ratio-s25 {
+      aspect-ratio: 19.5 / 9;
+      height: 440px;
+      max-width: 953px;
+    }
+    .sim-viewport-frame.ratio-16-9 {
+      aspect-ratio: 16 / 9;
+      height: 440px;
+      max-width: 782px;
+    }
+
+    /* Stadium Felt Table Surface */
+    .table-felt {
+      position: absolute;
+      inset: 8px;
+      border-radius: 24px;
+      background: radial-gradient(circle at 50% 45%, #220f0c 0%, #170b09 45%, #0d0605 100%);
+      border: 2px solid #301a14;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+      overflow: hidden;
+    }
+
+    .table-lacquer-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 480px;
+      height: 240px;
+      border-radius: 50%;
+      border: 1px dashed rgba(229,195,120,0.15);
+      pointer-events: none;
+    }
+
+    .table-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Faruma', 'Cinzel', serif;
+      font-size: 54px;
+      font-weight: 900;
+      color: rgba(229,195,120,0.04);
+      letter-spacing: 0.18em;
+      pointer-events: none;
+      text-transform: uppercase;
+    }
+
+    /* Opponent Seats */
+    .opponent-seat {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .opponent-seat.north {
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .opponent-seat.west {
+      top: 40%;
+      left: 20px;
+      transform: translateY(-50%);
+    }
+
+    .opponent-seat.east {
+      top: 40%;
+      right: 20px;
+      transform: translateY(-50%);
+    }
+
+    .avatar-chip {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #170b09;
+      border: 2px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #e5c378;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8), 0 0 10px rgba(229,195,120,0.25);
+      position: relative;
+    }
+
+    .avatar-name {
+      font-size: 10px;
+      font-weight: 800;
+      color: #f7f0ea;
+      background: rgba(13,6,5,0.85);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid #301a14;
+      white-space: nowrap;
+    }
+
+    /* Center Table: Stock & Discard */
+    .center-piles {
+      position: absolute;
+      top: 46%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 5;
+    }
+
+    .mini-card {
+      width: 60px;
+      height: 85px;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 12px;
+      position: relative;
+    }
+
+    .mini-card.back {
+      background: linear-gradient(135deg, #170b09, #301a14);
+      border: 1.5px solid #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-card.back::after {
+      content: 'DIGU';
+      font-size: 9px;
+      color: #e5c378;
+      letter-spacing: 2px;
+      font-weight: 900;
+    }
+
+    .mini-card.face {
+      background: #f7f0ea;
+      color: #c84b31;
+      border: 1px solid #ddd;
+    }
+
+    /* Player Hand Cards at Bottom */
+    .player-hand-container {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 15;
+    }
+
+    .hand-card {
+      width: 58px;
+      height: 90px;
+      border-radius: 7px;
+      background: #f7f0ea;
+      color: #170b09;
+      border: 1.5px solid #ddd;
+      margin-left: -20px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+    .hand-card:first-child {
+      margin-left: 0;
+    }
+    .hand-card:hover {
+      transform: translateY(-16px);
+      z-index: 20;
+      border-color: #e5c378;
+      box-shadow: 0 -8px 20px rgba(229,195,120,0.4);
+    }
+    .hand-card.red {
+      color: #c84b31;
+    }
+
+    /* Thumb Rail Action Buttons */
+    .thumb-rail {
+      position: absolute;
+      bottom: 120px;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .thumb-rail.west {
+      left: 18px;
+    }
+
+    .thumb-rail.east {
+      right: 18px;
+    }
+
+    /* UNIFIED ACTION BUTTON (NEW DESIGN) */
+    .unified-chat-btn {
+      position: relative;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #1f0e0b 0%, #120705 100%);
+      border: 1.5px solid #e5c378;
+      color: #e5c378;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 16px rgba(229,195,120,0.25);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .unified-chat-btn:hover {
+      transform: scale(1.05);
+      border-color: #fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.9), 0 0 22px rgba(229,195,120,0.45);
+    }
+
+    .unified-chat-btn:active {
+      transform: scale(0.95);
+    }
+
+    .unified-chat-btn .icon-box {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .unified-chat-btn .icon-chat {
+      font-size: 18px;
+    }
+
+    .unified-chat-btn .icon-emoji {
+      font-size: 16px;
+      animation: emojiPulse 2.5s infinite ease-in-out;
+    }
+
+    @keyframes emojiPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2) rotate(6deg); }
+    }
+
+    .unified-chat-btn .btn-label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #f7f0ea;
+      text-transform: uppercase;
+    }
+
+    .unified-chat-btn .pill-sub {
+      font-size: 9px;
+      background: #c84b31;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    /* OLD SEPARATE BUTTONS (FOR COMPARISON) */
+    .old-circle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #170b09;
+      border: 1.5px solid #301a14;
+      color: #e5c378;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .old-circle-btn:hover {
+      border-color: #e5c378;
+      transform: scale(1.05);
+    }
+
+    /* ========================================================= */
+    /* HIGH-VISIBILITY REACTION POPUP (THE CORE UPGRADE)         */
+    /* ========================================================= */
+    .reaction-bubble {
+      position: absolute;
+      z-index: 50;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reaction-bubble.hidden {
+      opacity: 0;
+      transform: scale(0.6) translateY(12px) !important;
+      pointer-events: none;
+    }
+
+    /* Bubble Card Structure */
+    .bubble-card {
+      background: linear-gradient(145deg, rgba(28, 14, 11, 0.98), rgba(15, 7, 5, 0.98));
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid #e5c378;
+      border-radius: 20px;
+      padding: 8px 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.9), 0 0 25px rgba(229,195,120,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 320px;
+      position: relative;
+    }
+
+    /* Sender Pill Badge (Knowing who sent it!) */
+    .bubble-sender-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      flex-shrink: 0;
+    }
+
+    .bubble-sender-badge.is-you {
+      background: linear-gradient(135deg, #e5c378, #b48d36);
+      color: #170b09;
+      border: 1px solid #fff;
+    }
+
+    .bubble-sender-badge.is-opponent {
+      background: linear-gradient(135deg, #c84b31, #8f2c18);
+      color: #fff;
+      border: 1px solid rgba(229,195,120,0.6);
+    }
+
+    /* Content Area */
+    .bubble-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .bubble-text {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      white-space: nowrap;
+    }
+
+    .bubble-subtext {
+      font-size: 10px;
+      font-weight: 600;
+      color: #e5c378;
+      font-style: italic;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .bubble-emoji-large {
+      font-size: 32px;
+      line-height: 1;
+      animation: emojiBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      flex-shrink: 0;
+    }
+
+    @keyframes emojiBounce {
+      0% { transform: scale(0.3) rotate(-15deg); }
+      60% { transform: scale(1.25) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    /* Countdown Duration Ring / Bar */
+    .bubble-timer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 14px;
+      right: 14px;
+      height: 3px;
+      background: rgba(229,195,120,0.2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bubble-timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #c84b31, #e5c378);
+      width: 100%;
+      transform-origin: left;
+    }
+
+    /* Speech Bubble Tails */
+    .bubble-tail-down {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #e5c378;
+      margin-top: -1px;
+    }
+
+    .bubble-tail-up {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 10px solid #e5c378;
+      margin-bottom: -1px;
+    }
+
+    .bubble-tail-left {
+      position: absolute;
+      left: -9px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-right: 9px solid #e5c378;
+    }
+
+    .bubble-tail-right {
+      position: absolute;
+      right: -9px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-left: 9px solid #e5c378;
+    }
+
+    /* Anchors for Specific Seats */
+    /* SOUTH (YOU) */
+    .reaction-bubble.seat-south {
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* NORTH (OPPONENT 2) */
+    .reaction-bubble.seat-north {
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* WEST (OPPONENT 1) */
+    .reaction-bubble.seat-west {
+      top: 40%;
+      left: 74px;
+      transform: translateY(-50%);
+    }
+
+    /* EAST (OPPONENT 3) */
+    .reaction-bubble.seat-east {
+      top: 40%;
+      right: 74px;
+      transform: translateY(-50%);
+    }
+
+    /* MODAL SIMULATION */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .chat-modal-sheet {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(180deg, #170b09 0%, #0d0605 100%);
+      border: 2px solid #301a14;
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-backdrop.open .chat-modal-sheet {
+      transform: translateY(0) scale(1);
+    }
+
+    .sheet-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0d0605;
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid #301a14;
+    }
+
+    .sheet-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: transparent;
+      border: none;
+      color: rgba(229,195,120,0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sheet-tab-btn.active {
+      background: linear-gradient(135deg, #c84b31, #e5c378);
+      color: #0d0605;
+      box-shadow: 0 0 10px rgba(229,195,120,0.35);
+    }
+
+    .phrase-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .phrase-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #0d0605;
+      border: 1px solid #301a14;
+      color: #f7f0ea;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .phrase-item:hover {
+      background: #170b09;
+      border-color: #e5c378;
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+    .phrase-sub {
+      font-size: 10px;
+      color: #e5c378;
+      font-style: italic;
+    }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .emoji-item {
+      height: 52px;
+      background: #0d0605;
+      border: 1px solid #301a14;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .emoji-item:hover {
+      background: #170b09;
+      border-color: #e5c378;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(229,195,120,0.3);
+    }
+
+    /* Testing Deck Bar at Bottom */
+    .tester-bar {
+      width: 100%;
+      max-width: 1040px;
+      margin-top: 16px;
+      background: #170b09;
+      border: 1px solid #301a14;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+
+    .tester-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #e5c378;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tester-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-test-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: #0d0605;
+      border: 1px solid #301a14;
+      color: #f7f0ea;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .quick-test-btn:hover {
+      background: #301a14;
+      border-color: #e5c378;
+      color: #e5c378;
+    }
+
+    /* Side-by-Side Architectural Audit Matrix */
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      width: 100%;
+      max-width: 1040px;
+      margin-top: 16px;
+    }
+
+    .audit-card {
+      background: #170b09;
+      border: 1px solid #301a14;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .audit-card.pass {
+      border-left: 4px solid #22c55e;
+    }
+
+    .audit-card.issue {
+      border-left: 4px solid #c84b31;
+    }
+
+    .audit-card h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f7f0ea;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audit-card p {
+      font-size: 12px;
+      color: rgba(247,240,234,0.7);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Simulation Control Header -->
+  <header class="sim-header">
+    <div class="sim-title">
+      <h1>Digu Chat & Emoji Ergonomics</h1>
+      <span class="sim-tag">Interactive Proposal</span>
+    </div>
+
+    <div class="sim-controls">
+      <!-- Layout Mode Toggle -->
+      <div class="control-group">
+        <span class="control-label">Layout:</span>
+        <button id="btnUnified" class="control-btn active" onclick="setLayoutMode('unified')">
+          ✓ Unified One-Side (Proposed)
+        </button>
+        <button id="btnSeparate" class="control-btn" onclick="setLayoutMode('separate')">
+          Two Separate Sides (Old)
+        </button>
+      </div>
+
+      <!-- Button Dock Position Toggle (Left vs Right) -->
+      <div class="control-group" id="sidePositionGroup">
+        <span class="control-label">Side:</span>
+        <button id="btnSideLeft" class="control-btn" onclick="setSidePosition('left')">
+          Left Rail
+        </button>
+        <button id="btnSideRight" class="control-btn active" onclick="setSidePosition('right')">
+          Right Rail (Selected)
+        </button>
+      </div>
+
+      <!-- Display Duration Slider/Toggle -->
+      <div class="control-group">
+        <span class="control-label">Duration:</span>
+        <button id="dur26" class="control-btn" onclick="setDuration(2600)">2.6s (Old)</button>
+        <button id="dur45" class="control-btn" onclick="setDuration(4500)">4.5s</button>
+        <button id="dur60" class="control-btn active" onclick="setDuration(6000)">6.0s (Selected)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Game Surface Viewport (Samsung Galaxy S25 Ultra Aspect Ratio) -->
+  <main class="sim-viewport-frame ratio-s25" id="viewportFrame">
+    <div class="table-felt">
+      <div class="table-lacquer-ring"></div>
+      <div class="table-watermark">HOLHUASHI</div>
+
+      <!-- 1. North Opponent (Player 2 / AI) -->
+      <div class="opponent-seat north">
+        <div class="avatar-chip">H</div>
+        <div class="avatar-name">Hassan (AI)</div>
+      </div>
+
+      <!-- 2. West Opponent (Player 1 / AI) -->
+      <div class="opponent-seat west">
+        <div class="avatar-chip">A</div>
+        <div class="avatar-name">Aishath (AI)</div>
+      </div>
+
+      <!-- 3. East Opponent (Player 3 / AI) -->
+      <div class="opponent-seat east">
+        <div class="avatar-chip">Z</div>
+        <div class="avatar-name">Zayan (AI)</div>
+      </div>
+
+      <!-- Center Table Stock & Discard -->
+      <div class="center-piles">
+        <div class="mini-card back"></div>
+        <div class="mini-card face">
+          <span>K♥</span>
+          <span style="font-size: 20px; align-self: center;">♥</span>
+          <span style="transform: rotate(180deg); align-self: flex-end;">K♥</span>
+        </div>
+      </div>
+
+      <!-- South Player (You) Hand Cards -->
+      <div class="player-hand-container">
+        <div class="hand-card"><span>A♠</span><span>♠</span></div>
+        <div class="hand-card red"><span>2♥</span><span>♥</span></div>
+        <div class="hand-card red"><span>3♥</span><span>♥</span></div>
+        <div class="hand-card red"><span>4♥</span><span>♥</span></div>
+        <div class="hand-card"><span>7♣</span><span>♣</span></div>
+        <div class="hand-card"><span>8♣</span><span>♣</span></div>
+        <div class="hand-card"><span>9♣</span><span>♣</span></div>
+        <div class="hand-card red"><span>J♦</span><span>♦</span></div>
+        <div class="hand-card red"><span>Q♦</span><span>♦</span></div>
+        <div class="hand-card red"><span>K♦</span><span>♦</span></div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- THUMB RAILS: PROPOSED UNIFIED VS OLD SEPARATE            -->
+      <!-- ======================================================== -->
+
+      <!-- West Thumb Rail (Left side) -->
+      <div class="thumb-rail west" id="westRail">
+        <!-- Unified Button when docked Left -->
+        <button id="unifiedBtnLeft" class="unified-chat-btn" onclick="openChatModal('chat')">
+          <div class="icon-box">
+            <span class="icon-chat">💬</span>
+            <span class="icon-emoji">😀</span>
+          </div>
+          <span class="btn-label">Chat</span>
+        </button>
+
+        <!-- Old Separate Chat Button -->
+        <button id="oldChatBtn" class="old-circle-btn" style="display: none;" onclick="openChatModal('chat')" title="Quick Chat">
+          💬
+        </button>
+      </div>
+
+      <!-- East Thumb Rail (Right side) -->
+      <div class="thumb-rail east" id="eastRail">
+        <!-- Unified Button when docked Right -->
+        <button id="unifiedBtnRight" class="unified-chat-btn" style="display: none;" onclick="openChatModal('chat')">
+          <div class="icon-box">
+            <span class="icon-chat">💬</span>
+            <span class="icon-emoji">😀</span>
+          </div>
+          <span class="btn-label">Chat</span>
+        </button>
+
+        <!-- Old Separate Emoji Button -->
+        <button id="oldEmojiBtn" class="old-circle-btn" style="display: none;" onclick="openChatModal('emoji')" title="Reaction Emojis">
+          😀
+        </button>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- HIGH-VISIBILITY REACTION POPUPS WITH SENDER ATTRIBUTION  -->
+      <!-- ======================================================== -->
+
+      <!-- 1. South Player (You) Reaction Popup -->
+      <div id="popupSouth" class="reaction-bubble seat-south hidden">
+        <div class="bubble-card">
+          <!-- Clear Sender Pill -->
+          <div class="bubble-sender-badge is-you">You</div>
+          <div class="bubble-content">
+            <div id="popupSouthText" class="bubble-text">Gin vejje!</div>
+            <div id="popupSouthSub" class="bubble-subtext">Gin ready!</div>
+          </div>
+          <div id="popupSouthEmoji" class="bubble-emoji-large">🏆</div>
+          <div class="bubble-timer-bar">
+            <div id="popupSouthTimer" class="bubble-timer-fill"></div>
+          </div>
+        </div>
+        <div class="bubble-tail-down"></div>
+      </div>
+
+      <!-- 2. North Opponent (Hassan) Reaction Popup -->
+      <div id="popupNorth" class="reaction-bubble seat-north hidden">
+        <div class="bubble-tail-up"></div>
+        <div class="bubble-card">
+          <div class="bubble-sender-badge is-opponent">Hassan (AI)</div>
+          <div class="bubble-content">
+            <div id="popupNorthText" class="bubble-text">Kaala bala!</div>
+            <div id="popupNorthSub" class="bubble-subtext">Take that / Eat it!</div>
+          </div>
+          <div id="popupNorthEmoji" class="bubble-emoji-large">🔥</div>
+          <div class="bubble-timer-bar">
+            <div id="popupNorthTimer" class="bubble-timer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. West Opponent (Aishath) Reaction Popup -->
+      <div id="popupWest" class="reaction-bubble seat-west hidden">
+        <div class="bubble-card">
+          <div class="bubble-tail-left"></div>
+          <div class="bubble-sender-badge is-opponent">Aishath</div>
+          <div class="bubble-content">
+            <div id="popupWestText" class="bubble-text">Nice discard!</div>
+            <div id="popupWestSub" class="bubble-subtext">Tactical play</div>
+          </div>
+          <div id="popupWestEmoji" class="bubble-emoji-large">👏</div>
+          <div class="bubble-timer-bar">
+            <div id="popupWestTimer" class="bubble-timer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. East Opponent (Zayan) Reaction Popup -->
+      <div id="popupEast" class="reaction-bubble seat-east hidden">
+        <div class="bubble-card">
+          <div class="bubble-tail-right"></div>
+          <div class="bubble-sender-badge is-opponent">Zayan</div>
+          <div class="bubble-content">
+            <div id="popupEastText" class="bubble-text">Haadha molhey!</div>
+            <div id="popupEastSub" class="bubble-subtext">Too skillful!</div>
+          </div>
+          <div id="popupEastEmoji" class="bubble-emoji-large">😎</div>
+          <div class="bubble-timer-bar">
+            <div id="popupEastTimer" class="bubble-timer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Chat & Emoji Modal Simulator -->
+      <div id="modalBackdrop" class="modal-backdrop" onclick="handleBackdropClick(event)">
+        <div class="chat-modal-sheet" onclick="event.stopPropagation()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="sheet-tabs">
+              <button id="modalTabChat" class="sheet-tab-btn active" onclick="switchModalTab('chat')">
+                <span>💬 Quick Chat</span>
+              </button>
+              <button id="modalTabEmoji" class="sheet-tab-btn" onclick="switchModalTab('emoji')">
+                <span>😀 Emojis</span>
+              </button>
+            </div>
+            <button onclick="closeChatModal()" style="background: none; border: none; color: #e5c378; font-size: 18px; cursor: pointer; padding: 4px;">✕</button>
+          </div>
+
+          <!-- Phrases List -->
+          <div id="modalPhrases" class="phrase-list">
+            <div class="phrase-item" onclick="triggerPlayerReaction('Kaala bala!', 'Take that / Eat it!', '🤣')">
+              <span>Kaala bala!</span>
+              <span class="phrase-sub">Take that!</span>
+            </div>
+            <div class="phrase-item" onclick="triggerPlayerReaction('Gin vejje!', 'Gin is ready!', '🏆')">
+              <span>Gin vejje!</span>
+              <span class="phrase-sub">Gin ready!</span>
+            </div>
+            <div class="phrase-item" onclick="triggerPlayerReaction('Haadha molhey!', 'Too skillful / Showing off!', '😎')">
+              <span>Haadha molhey!</span>
+              <span class="phrase-sub">Too skillful!</span>
+            </div>
+            <div class="phrase-item" onclick="triggerPlayerReaction('Dhefaulhaa bala!', 'Watch the trap!', '😱')">
+              <span>Dhefaulhaa bala!</span>
+              <span class="phrase-sub">Watch the trap!</span>
+            </div>
+            <div class="phrase-item" onclick="triggerPlayerReaction('Nice discard!', 'Friendly applause', '👏')">
+              <span>Nice discard!</span>
+              <span class="phrase-sub">Friendly</span>
+            </div>
+            <div class="phrase-item" onclick="triggerPlayerReaction('Partner, I got this!', 'Tactical notice', '🤝')">
+              <span>Partner, I got this!</span>
+              <span class="phrase-sub">Tactical</span>
+            </div>
+          </div>
+
+          <!-- Emoji Grid -->
+          <div id="modalEmojis" class="emoji-grid" style="display: none;">
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '🤣')">🤣</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '😎')">😎</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '😱')">😱</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '🔥')">🔥</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '👏')">👏</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '😭')">😭</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '🤯')">🤯</div>
+            <div class="emoji-item" onclick="triggerPlayerReaction('', '', '☕')">☕</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Interactive Testing Controls -->
+  <section class="tester-bar">
+    <div class="tester-title">
+      <span>Interactive Reaction Testing Deck</span>
+      <span style="font-size: 11px; color: rgba(247,240,234,0.6); font-weight: normal;">Tap any button to test popup visibility, duration & sender attribution</span>
+    </div>
+
+    <div class="tester-actions">
+      <button class="quick-test-btn" style="border-color: #e5c378; color: #e5c378;" onclick="triggerPlayerReaction('Gin vejje! 🏆', 'Gin ready!', '😎')">
+        👑 Test You (South): "Gin vejje!"
+      </button>
+      <button class="quick-test-btn" onclick="triggerOpponentReaction('north', 'Kaala bala! 🔥', 'Take that / Eat it!', '🤣')">
+        🤖 Test Hassan (North): "Kaala bala!"
+      </button>
+      <button class="quick-test-btn" onclick="triggerOpponentReaction('west', 'Nice discard! 👏', 'Tactical praise', '👏')">
+        👩 Test Aishath (West): "Nice discard!"
+      </button>
+      <button class="quick-test-btn" onclick="triggerOpponentReaction('east', 'Haadha molhey! 😎', 'Too skillful!', '🤯')">
+        👦 Test Zayan (East): "Haadha molhey!"
+      </button>
+      <button class="quick-test-btn" style="background: #301a14; border-color: #c84b31;" onclick="triggerAllSimultaneously()">
+        ⚡ Simultaneous Table Chatter
+      </button>
+    </div>
+  </section>
+
+  <!-- Side-by-Side Audit Matrix -->
+  <section class="audit-grid">
+    <div class="audit-card issue">
+      <h3>❌ Previous Architecture</h3>
+      <p>
+        <strong>Two buttons on both sides:</strong> Quick Chat on the Left rail and Emojis on the Right rail, even though clicking either opened a modal that contained both tabs.
+      </p>
+      <p style="margin-top: 8px;">
+        <strong>Tiny 2.6s popup:</strong> Fleeting 2600ms duration caused players to miss reactions while focusing on their hand.
+      </p>
+      <p style="margin-top: 8px;">
+        <strong>No sender name:</strong> Bubbles floated anonymously without indicating whether You or an AI opponent sent the phrase.
+      </p>
+    </div>
+
+    <div class="audit-card pass">
+      <h3>✓ Proposed Architecture</h3>
+      <p>
+        <strong>Consolidated to one ergonomic side:</strong> A single luxury pill button (Left or Right thumb rail) containing both Chat & Emoji, reducing visual clutter by 50%.
+      </p>
+      <p style="margin-top: 8px;">
+        <strong>High-visibility 4.5s popup:</strong> Deep lacquer border, 32px animated emojis, 14px bold typography, and visual countdown timer.
+      </p>
+      <p style="margin-top: 8px;">
+        <strong>Explicit sender badge:</strong> High-contrast pill badges (<span style="color:#e5c378;font-weight:800;">YOU</span>, <span style="color:#c84b31;font-weight:800;">HASSAN</span>, etc.) and directional speech tails unmistakably indicate who is speaking.
+      </p>
+    </div>
+  </section>
+
+  <script>
+    // Configuration State
+    let currentLayoutMode = 'unified'; // 'unified' | 'separate'
+    let currentSidePosition = 'left';  // 'left' | 'right'
+    let currentDurationMs = 4500;       // 4500ms default
+    let activeTimers = {};
+
+    function setLayoutMode(mode) {
+      currentLayoutMode = mode;
+      document.getElementById('btnUnified').classList.toggle('active', mode === 'unified');
+      document.getElementById('btnSeparate').classList.toggle('active', mode === 'separate');
+
+      const sideGroup = document.getElementById('sidePositionGroup');
+      const unifiedLeft = document.getElementById('unifiedBtnLeft');
+      const unifiedRight = document.getElementById('unifiedBtnRight');
+      const oldChat = document.getElementById('oldChatBtn');
+      const oldEmoji = document.getElementById('oldEmojiBtn');
+
+      if (mode === 'unified') {
+        sideGroup.style.display = 'flex';
+        oldChat.style.display = 'none';
+        oldEmoji.style.display = 'none';
+        applySidePosition(currentSidePosition);
+      } else {
+        sideGroup.style.display = 'none';
+        unifiedLeft.style.display = 'none';
+        unifiedRight.style.display = 'none';
+        oldChat.style.display = 'flex';
+        oldEmoji.style.display = 'flex';
+      }
+    }
+
+    function setSidePosition(side) {
+      currentSidePosition = side;
+      document.getElementById('btnSideLeft').classList.toggle('active', side === 'left');
+      document.getElementById('btnSideRight').classList.toggle('active', side === 'right');
+      applySidePosition(side);
+    }
+
+    function applySidePosition(side) {
+      if (currentLayoutMode !== 'unified') return;
+      const unifiedLeft = document.getElementById('unifiedBtnLeft');
+      const unifiedRight = document.getElementById('unifiedBtnRight');
+
+      if (side === 'left') {
+        unifiedLeft.style.display = 'flex';
+        unifiedRight.style.display = 'none';
+      } else {
+        unifiedLeft.style.display = 'none';
+        unifiedRight.style.display = 'flex';
+      }
+    }
+
+    function setDuration(ms) {
+      currentDurationMs = ms;
+      document.getElementById('dur26').classList.toggle('active', ms === 2600);
+      document.getElementById('dur45').classList.toggle('active', ms === 4500);
+      document.getElementById('dur60').classList.toggle('active', ms === 6000);
+    }
+
+    // Modal Operations
+    function openChatModal(initialTab) {
+      const backdrop = document.getElementById('modalBackdrop');
+      backdrop.classList.add('open');
+      switchModalTab(initialTab);
+    }
+
+    function closeChatModal() {
+      document.getElementById('modalBackdrop').classList.remove('open');
+    }
+
+    function handleBackdropClick(e) {
+      closeChatModal();
+    }
+
+    function switchModalTab(tab) {
+      const tabChat = document.getElementById('modalTabChat');
+      const tabEmoji = document.getElementById('modalTabEmoji');
+      const phrases = document.getElementById('modalPhrases');
+      const emojis = document.getElementById('modalEmojis');
+
+      if (tab === 'chat') {
+        tabChat.classList.add('active');
+        tabEmoji.classList.remove('active');
+        phrases.style.display = 'flex';
+        emojis.style.display = 'none';
+      } else {
+        tabChat.classList.remove('active');
+        tabEmoji.classList.add('active');
+        phrases.style.display = 'none';
+        emojis.style.display = 'grid';
+      }
+    }
+
+    // Reaction Display Engine
+    function triggerPlayerReaction(text, subtext, emoji) {
+      closeChatModal();
+      showBubble('South', text, subtext, emoji);
+    }
+
+    function triggerOpponentReaction(seat, text, subtext, emoji) {
+      const capSeat = seat.charAt(0).toUpperCase() + seat.slice(1);
+      showBubble(capSeat, text, subtext, emoji);
+    }
+
+    function triggerAllSimultaneously() {
+      triggerPlayerReaction('Gin vejje! 🏆', 'Gin ready!', '😎');
+      setTimeout(() => triggerOpponentReaction('north', 'Kaala bala! 🔥', 'Take that!', '🤣'), 300);
+      setTimeout(() => triggerOpponentReaction('west', 'Nice discard! 👏', 'Tactical play', '👏'), 700);
+      setTimeout(() => triggerOpponentReaction('east', 'Haadha molhey! 😎', 'Too skillful!', '🤯'), 1100);
+    }
+
+    function showBubble(seatCapitalized, text, subtext, emoji) {
+      const popup = document.getElementById(`popup${seatCapitalized}`);
+      const textEl = document.getElementById(`popup${seatCapitalized}Text`);
+      const subEl = document.getElementById(`popup${seatCapitalized}Sub`);
+      const emojiEl = document.getElementById(`popup${seatCapitalized}Emoji`);
+      const timerBar = document.getElementById(`popup${seatCapitalized}Timer`);
+
+      if (!popup) return;
+
+      // Clear existing timer if re-triggered
+      if (activeTimers[seatCapitalized]) {
+        clearTimeout(activeTimers[seatCapitalized]);
+      }
+
+      // Populate Content
+      if (text) {
+        textEl.style.display = 'block';
+        textEl.textContent = text;
+      } else {
+        textEl.style.display = 'none';
+      }
+
+      if (subtext) {
+        subEl.style.display = 'block';
+        subEl.textContent = subtext;
+      } else {
+        subEl.style.display = 'none';
+      }
+
+      if (emoji) {
+        emojiEl.style.display = 'block';
+        emojiEl.textContent = emoji;
+      } else {
+        emojiEl.style.display = 'none';
+      }
+
+      // Show Popup with spring animation
+      popup.classList.remove('hidden');
+
+      // Animate countdown bar
+      if (timerBar) {
+        timerBar.style.transition = 'none';
+        timerBar.style.transform = 'scaleX(1)';
+        void timerBar.offsetWidth; // force reflow
+        timerBar.style.transition = `transform ${currentDurationMs}ms linear`;
+        timerBar.style.transform = 'scaleX(0)';
+      }
+
+      // Set Dismiss Timer
+      activeTimers[seatCapitalized] = setTimeout(() => {
+        popup.classList.add('hidden');
+      }, currentDurationMs);
+    }
+
+    // Auto-init on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setLayoutMode('unified');
+      setSidePosition('right');
+      setDuration(6000);
+
+      // Trigger welcoming preview reaction after 800ms
+      setTimeout(() => {
+        triggerOpponentReaction('north', 'Assalaamu alaikum! 🙏', 'Welcome to Digu!', '☕');
+      }, 800);
+    });
+  </script>
+</body>
+</html>
