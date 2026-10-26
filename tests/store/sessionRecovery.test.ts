@@ -177,7 +177,7 @@ describe('Mobile Session Recovery, Wake Lock & Away-Turn Forfeit System', () => 
     useGameStore.getState().exitToLobby();
 
     const state = useGameStore.getState();
-    expect(state.currentScreen).toBe('MODE_SELECT');
+    expect(state.currentScreen).toBe('MAIN_LOBBY');
     expect(state.consecutiveMissedTurns).toBe(0);
     expect(state.awayToastMessage).toBeNull();
     expect(state.isForfeitedDueToInactivity).toBe(false);

@@ -209,9 +209,9 @@ describe('useGameStore (Gin Rummy Plus Hand & State Mechanics)', () => {
     expect(tableState.gameState.rules.targetScore).toBe(1500);
     expect(tableState.gameState.players.length).toBe(4);
 
-    // 5. Exit to lobby -> returns to MODE_SELECT
+    // 5. Exit to lobby -> returns to MAIN_LOBBY
     useGameStore.getState().exitToLobby();
-    expect(useGameStore.getState().currentScreen).toBe('MODE_SELECT');
+    expect(useGameStore.getState().currentScreen).toBe('MAIN_LOBBY');
   });
 
   it('supports Holhuashi multi-game navigation: MAIN_LOBBY -> MODE_SELECT (Digu) and game switching', () => {

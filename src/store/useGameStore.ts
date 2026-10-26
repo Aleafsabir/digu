@@ -110,6 +110,7 @@ export interface GameStoreState {
   selectPlayType: (playType: PlayType) => void;
   updatePendingRules: (rules: Partial<TableRules>) => void;
   confirmAndStartMatch: () => void;
+  startDirectMatch: (mode: TableRules['mode'], playType?: PlayType) => void;
   exitToLobby: () => void;
 
   initGame: (rules?: Partial<TableRules>, customPlayerNames?: string[]) => void;
@@ -444,10 +445,42 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       set({ currentScreen: 'TABLE', tablePot: pot, tableBuyIn: buyIn });
     },
 
+    startDirectMatch: (mode: TableRules['mode'], playType: PlayType = 'VS_AI') => {
+      const buyIn = mode === 'SOLO_2P' ? 500 : 1000;
+      const playerCount = mode === 'SOLO_2P' ? 2 : 4;
+      const pot = buyIn * playerCount;
+      const roomCode = `THAAS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      useAuthStore.getState().executeBuyIn(
+        buyIn,
+        `Table Buy-In for ${mode} (#${roomCode})`,
+        roomCode
+      );
+
+      const updatedRules: TableRules = {
+        ...get().pendingRules,
+        mode,
+        playType,
+        targetScore: mode === 'SOLO_2P' ? 500 : 1000,
+        buyIn,
+        roomCode,
+      };
+
+      get().initGame(updatedRules);
+      set({
+        activeGame: 'DIGU',
+        pendingRules: updatedRules,
+        currentScreen: 'TABLE',
+        tablePot: pot,
+        tableBuyIn: buyIn,
+        actionError: null,
+      });
+    },
+
     exitToLobby: () => {
       safeClearSession();
       set({
-        currentScreen: 'MODE_SELECT',
+        currentScreen: 'MAIN_LOBBY',
         isForfeitedDueToInactivity: false,
         consecutiveMissedTurns: 0,
         turnStartedAt: null,

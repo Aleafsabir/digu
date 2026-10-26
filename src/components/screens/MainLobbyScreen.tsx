@@ -2,21 +2,32 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useSocialStore } from '../../store/useSocialStore';
+import { TableRules, PlayType } from '@game/core';
+import { DhihaehVariant } from '../../core/dhihaeh/dhihaehTypes';
+import { BondiVariant } from '../../core/bondi/bondiTypes';
 import {
   Users,
   Settings,
   Gift,
-  Wifi,
-  ChevronRight,
   LogOut,
   HelpCircle,
-  Bell,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  Bot,
+  Globe,
+  Key,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { AVATAR_PRESETS, AvatarPreset } from '../../types/auth';
 
 interface MainLobbyScreenProps {
-  onSelectGame: (game: 'DIGU' | 'DHIHAEH' | 'BONDI') => void;
+  onStartDiguMatch?: (mode: TableRules['mode'], playType: PlayType) => void;
+  onStartDhihaehMatch?: (variant: DhihaehVariant, targetScore: number) => void;
+  onStartBondiMatch?: (variant: BondiVariant, playerCount: number) => void;
+  onOpenPrivateTable?: (game: 'DIGU' | 'DHIHAEH' | 'BONDI') => void;
+  onSelectGame?: (game: 'DIGU' | 'DHIHAEH' | 'BONDI') => void;
   onOpenSettings: () => void;
   onOpenRules: () => void;
   onSwitchAccount: () => void;
@@ -56,6 +67,10 @@ const LagoonGemIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4'
 );
 
 export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
+  onStartDiguMatch,
+  onStartDhihaehMatch,
+  onStartBondiMatch,
+  onOpenPrivateTable,
   onSelectGame,
   onOpenSettings,
   onOpenRules,
@@ -64,12 +79,38 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
   const { profile, claimDailyBonus, setProfileModalOpen } = useAuthStore();
   const { setFriendsModalOpen, friends } = useSocialStore();
 
-  const [teaserGame, setTeaserGame] = useState<{
-    title: string;
-    thaana: string;
-    desc: string;
-    phase: string;
-  } | null>(null);
+  // Active Game Carousel State
+  const [activeGameIdx, setActiveGameIdx] = useState<number>(() => {
+    const saved = localStorage.getItem('holhuashi_last_game');
+    if (saved === 'DHIHAEH') return 1;
+    if (saved === 'BONDI') return 2;
+    return 0; // Default: Digu
+  });
+
+  // Game-Specific Configurations (Persisted)
+  const [diguMode, setDiguMode] = useState<TableRules['mode']>(() => {
+    return (localStorage.getItem('holhuashi_digu_mode') as TableRules['mode']) || 'TEAM_4P';
+  });
+  const [dhihaehVariant, setDhihaehVariant] = useState<DhihaehVariant>(() => {
+    return (localStorage.getItem('holhuashi_dhihaeh_variant') as DhihaehVariant) || 'DYNAMIC_CUT';
+  });
+  const [dhihaehTarget, setDhihaehTarget] = useState<number>(7);
+
+  const [bondiVariant, setBondiVariant] = useState<BondiVariant>(() => {
+    return (localStorage.getItem('holhuashi_bondi_variant') as BondiVariant) || 'SUIT_BONDI';
+  });
+  const [bondiPlayers, setBondiPlayers] = useState<number>(() => {
+    const p = parseInt(localStorage.getItem('holhuashi_bondi_players') || '4', 10);
+    return isNaN(p) ? 4 : p;
+  });
+
+  // Opponent Type (VS AI vs Online Multiplayer)
+  const [opponentType, setOpponentType] = useState<PlayType>(() => {
+    return (localStorage.getItem('holhuashi_opponent_type') as PlayType) || 'VS_AI';
+  });
+
+  // Bottom Sheet Drawer Visibility
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [dailyBonusClaimedMsg, setDailyBonusClaimedMsg] = useState<string | null>(null);
 
   const currentAvatar: AvatarPreset =
@@ -87,11 +128,131 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
     setTimeout(() => setDailyBonusClaimedMsg(null), 3500);
   };
 
+  // Carousel Games Metadata
+  const gamesList = [
+    {
+      id: 'DIGU' as const,
+      title: 'DIGU',
+      thaana: 'ޑިގު',
+      tag: 'ROYAL RUMMY',
+      thaanaLetter: 'ޑ',
+      desc: 'Authentic 1000-point runs, Ace-restricted melds, and 20-card backtracking partnerships. The crown jewel of Maldivian card games.',
+      players: '4 Players (2v2)',
+      duration: '~6 mins',
+      activeTables: '860 Tables',
+      accentColor: '#c84b31',
+      ringColor: '#e5c378',
+    },
+    {
+      id: 'DHIHAEH' as const,
+      title: 'DHIHAEH',
+      thaana: 'ދިހައެއް',
+      tag: 'TRICK TAKING',
+      thaanaLetter: 'ދ',
+      desc: 'Dynamic cut trump declarations, hunting the four objective 10-cards, and achieving the elusive 1,000-point Haasbagga sweep.',
+      players: '4 Players (2v2)',
+      duration: '~8 mins',
+      activeTables: '410 Tables',
+      accentColor: '#0284c7',
+      ringColor: '#38bdf8',
+    },
+    {
+      id: 'BONDI' as const,
+      title: 'BONDI',
+      thaana: 'ބޮނޑި',
+      tag: 'CUTTHROAT SHEDDING',
+      thaanaLetter: 'ބ',
+      desc: 'Card shedding with brutal penalties. Ace of Spades leads, mass suit dump on void turns, and last player standing is The Bondi.',
+      players: '2 to 6 Players',
+      duration: '~5 mins',
+      activeTables: '280 Tables',
+      accentColor: '#059669',
+      ringColor: '#34d399',
+    },
+  ];
+
+  const currentGame = gamesList[activeGameIdx];
+
+  const cyclePrev = () => {
+    const nextIdx = (activeGameIdx - 1 + gamesList.length) % gamesList.length;
+    setActiveGameIdx(nextIdx);
+    localStorage.setItem('holhuashi_last_game', gamesList[nextIdx].id);
+  };
+
+  const cycleNext = () => {
+    const nextIdx = (activeGameIdx + 1) % gamesList.length;
+    setActiveGameIdx(nextIdx);
+    localStorage.setItem('holhuashi_last_game', gamesList[nextIdx].id);
+  };
+
+  // 1-Tap Play Now Execution
+  const handle1TapPlayNow = () => {
+    if (currentGame.id === 'DIGU') {
+      if (onStartDiguMatch) {
+        onStartDiguMatch(diguMode, opponentType);
+      } else if (onSelectGame) {
+        onSelectGame('DIGU');
+      }
+    } else if (currentGame.id === 'DHIHAEH') {
+      if (onStartDhihaehMatch) {
+        onStartDhihaehMatch(dhihaehVariant, dhihaehTarget);
+      } else if (onSelectGame) {
+        onSelectGame('DHIHAEH');
+      }
+    } else if (currentGame.id === 'BONDI') {
+      if (onStartBondiMatch) {
+        onStartBondiMatch(bondiVariant, bondiPlayers);
+      } else if (onSelectGame) {
+        onSelectGame('BONDI');
+      }
+    }
+  };
+
+  // Mode Capsule Label Construction
+  const getCapsuleLabel = () => {
+    if (currentGame.id === 'DIGU') {
+      const modeLabel =
+        diguMode === 'TEAM_4P'
+          ? '2v2 Partnership'
+          : diguMode === 'SOLO_4P'
+          ? '4P Cutthroat'
+          : '1v1 Duel';
+      return {
+        icon: diguMode === 'TEAM_4P' ? '👥' : diguMode === 'SOLO_4P' ? '⚔️' : '⚡',
+        title: modeLabel,
+        opp: opponentType === 'VS_AI' ? 'VS AI' : 'Live P2P',
+      };
+    } else if (currentGame.id === 'DHIHAEH') {
+      return {
+        icon: '✂️',
+        title: dhihaehVariant === 'DYNAMIC_CUT' ? 'Dynamic Cut' : 'Hidden Reserve',
+        opp: `${dhihaehTarget} Pts`,
+      };
+    } else {
+      return {
+        icon: '🎴',
+        title: `${bondiPlayers}P • ${bondiVariant === 'SUIT_BONDI' ? 'Suit Dump' : 'Single Card'}`,
+        opp: 'Shedding',
+      };
+    }
+  };
+
+  const capsuleInfo = getCapsuleLabel();
+
   return (
-    <div className="relative w-full h-full flex flex-col justify-between bg-radial from-[#24110d] via-[#170b09] to-[#0d0605] p-3 sm:p-5 select-none overflow-hidden font-sans-clean text-[#f7f0ea]">
-      {/* Top Header Bar with Safe Area Top Clearance */}
+    <div className="relative w-full h-full flex flex-col justify-between bg-radial from-[#24110d] via-[#170b09] to-[#080202] p-2 sm:p-4 select-none overflow-hidden font-sans-clean text-[#f7f0ea]">
+      {/* Background Vector Ambient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#2a0e09] via-[#120604] to-[#080202] pointer-events-none opacity-90">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e5c378_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[280px] rounded-full blur-3xl pointer-events-none transition-colors duration-700"
+          style={{ backgroundColor: `${currentGame.accentColor}25` }}
+        />
+      </div>
+
+      {/* TOP HEADER BAR */}
       <header
-        className="flex items-center justify-between w-full pb-2 border-b border-[#301a14] shrink-0"
+        className="relative z-30 flex items-center justify-between w-full pb-2 border-b border-[#301a14]/70 shrink-0"
         style={{
           paddingTop: 'max(6px, env(safe-area-inset-top))',
           paddingLeft: 'max(8px, env(safe-area-inset-left))',
@@ -101,12 +262,12 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
         {/* Left: Profile Pill */}
         <div
           onClick={() => setProfileModalOpen(true)}
-          className="flex items-center gap-2.5 bg-[#170b09]/90 border border-[#301a14] px-2 py-1 rounded-full cursor-pointer hover:border-[#e5c378] transition shadow-md"
+          className="flex items-center gap-2 bg-[#170b09]/90 border border-[#301a14] px-2 py-1 rounded-full cursor-pointer hover:border-[#e5c378] transition shadow-md group"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#c84b31] to-[#8f2d1b] flex items-center justify-center font-black text-xs text-white border border-[#e5c378]/60">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#c84b31] to-[#8f2d1b] flex items-center justify-center font-black text-xs text-white border border-[#e5c378]/60 shadow group-hover:scale-105 transition-transform">
             {currentAvatar.icon || profile.displayName.charAt(0).toUpperCase()}
           </div>
-          <div className="flex flex-col text-left pr-2">
+          <div className="flex flex-col text-left pr-1.5">
             <span className="text-xs font-black text-[#f7f0ea] flex items-center gap-1 leading-tight font-serif-luxury">
               {profile.displayName}
               <small className="text-[10px] text-[#e5c378]/70">▼</small>
@@ -117,8 +278,8 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           </div>
         </div>
 
-        {/* Center: Holhuashi Brand Header */}
-        <div className="hidden sm:flex items-center gap-2.5 bg-[#170b09]/90 border border-[#301a14] px-3 py-1 rounded-2xl shadow">
+        {/* Center: Holhuashi Brand Title */}
+        <div className="hidden sm:flex items-center gap-2.5 bg-[#170b09]/90 border border-[#301a14] px-3.5 py-1 rounded-2xl shadow">
           <img
             src="/brand_assets/holhuashi_app_icon_v3.jpg"
             alt="Holhuashi Crest"
@@ -132,326 +293,589 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           </div>
         </div>
 
-        {/* Right: Currency Chips & Actions */}
+        {/* Right: Wallets & Auxiliary Icons */}
         <div className="flex items-center gap-2">
-          {/* Currency Chips */}
+          {/* Gold Coin Wallet */}
           <div className="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#e5c378] shadow">
             <RanDhadhuCoinIcon className="w-3.5 h-3.5" />
             <span className="font-mono text-xs">{profile.coins.toLocaleString()}</span>
           </div>
+
+          {/* Gem Wallet */}
           <div className="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#c84b31] shadow">
             <LagoonGemIcon className="w-3.5 h-3.5" />
             <span className="font-mono text-xs text-[#c84b31]">180</span>
           </div>
 
-          {/* Social */}
+          {/* Daily Bonus Claim Button */}
+          <button
+            onClick={handleDailyBonus}
+            className="w-8 h-8 rounded-xl bg-[#170b09] border border-[#301a14] text-[#e5c378] hover:border-[#e5c378] flex items-center justify-center cursor-pointer transition shadow"
+            title="Claim Daily Bonus"
+          >
+            <Gift className="w-4 h-4" />
+          </button>
+
+          {/* Social Friends */}
           <button
             onClick={() => setFriendsModalOpen(true)}
-            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center relative cursor-pointer transition shadow"
+            className="w-8 h-8 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center relative cursor-pointer transition shadow"
             title="Friends & Social"
           >
             <Users className="w-4 h-4" />
             {onlineFriendsCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#e5c378]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#10b981]" />
             )}
           </button>
 
           {/* Settings */}
           <button
             onClick={onOpenSettings}
-            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center cursor-pointer transition shadow"
+            className="w-8 h-8 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] flex items-center justify-center cursor-pointer transition shadow"
             title="Settings"
           >
             <Settings className="w-4 h-4" />
           </button>
 
-          {/* Switch Account */}
+          {/* Sign Out */}
           <button
             onClick={onSwitchAccount}
-            className="w-9 h-9 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#c84b31] flex items-center justify-center cursor-pointer transition shadow"
-            title="Switch Account / Sign Out"
+            className="w-8 h-8 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#c84b31] flex items-center justify-center cursor-pointer transition shadow"
+            title="Switch Account"
           >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      {/* Daily Bonus Notification Banner */}
+      {/* Floating Daily Bonus Toast */}
       {dailyBonusClaimedMsg && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-[#24110d] border border-[#e5c378] text-[#e5c378] px-4 py-1.5 rounded-full text-xs font-black shadow-lg"
+          className="absolute top-14 left-1/2 -translate-x-1/2 z-40 bg-[#24110d] border border-[#e5c378] text-[#e5c378] px-4 py-1.5 rounded-full text-xs font-black shadow-lg"
         >
           {dailyBonusClaimedMsg}
         </motion.div>
       )}
 
-      {/* Main Carousel Arena */}
-      <main className="flex-1 flex flex-col items-center justify-center my-2 max-w-5xl w-full mx-auto">
-        <div className="text-center mb-3">
-          <span className="text-[11px] font-black tracking-widest text-[#e5c378] uppercase flex items-center justify-center gap-1.5 font-mono">
-            <span>🇲🇻</span>
-            <span>Select Traditional Maldivian Game</span>
-          </span>
+      {/* ========================================================================= */}
+      {/* MODEL 1: HERO GAME SHOWCASE CAROUSEL (Center Stage)                      */}
+      {/* ========================================================================= */}
+      <main className="relative z-20 flex-1 flex items-center justify-between gap-3 max-w-5xl mx-auto w-full my-auto py-1">
+        {/* Left Arrow */}
+        <button
+          onClick={cyclePrev}
+          className="w-9 h-14 sm:w-11 sm:h-16 rounded-2xl bg-[#170b09]/80 border border-[#301a14] hover:border-[#e5c378] text-white flex items-center justify-center text-lg shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
+          title="Previous Game"
+        >
+          <ChevronLeft className="w-6 h-6 text-[#e5c378]" />
+        </button>
+
+        {/* Center Hero Card */}
+        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-5 sm:gap-8 px-2 max-w-3xl">
+          {/* Medallion & Artwork */}
+          <div className="relative flex flex-col items-center justify-center">
+            <motion.div
+              key={currentGame.id}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setIsDrawerOpen(true)}
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl p-3 shadow-2xl flex flex-col items-center justify-center relative group cursor-pointer border-2"
+              style={{
+                borderColor: currentGame.ringColor,
+                background: `linear-gradient(135deg, ${currentGame.accentColor}dd 0%, #0d0605 100%)`,
+                boxShadow: `0 12px 35px rgba(0,0,0,0.8), 0 0 25px ${currentGame.accentColor}40`,
+              }}
+            >
+              <span
+                className="font-thaana text-5xl sm:text-6xl font-black drop-shadow-md"
+                style={{ color: currentGame.ringColor }}
+              >
+                {currentGame.thaanaLetter}
+              </span>
+              <span className="text-[9px] font-mono font-bold tracking-widest text-white/90 uppercase mt-0.5">
+                {currentGame.tag}
+              </span>
+              <div className="absolute -top-2 -right-2 bg-[#e5c378] text-[#0a0403] text-[8px] font-black px-2 py-0.5 rounded-full uppercase shadow">
+                LIVE
+              </div>
+            </motion.div>
+
+            {/* Carousel Dots */}
+            <div className="flex items-center gap-1.5 mt-2.5">
+              {gamesList.map((g, idx) => (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    setActiveGameIdx(idx);
+                    localStorage.setItem('holhuashi_last_game', g.id);
+                  }}
+                  className={`transition-all rounded-full cursor-pointer ${
+                    idx === activeGameIdx
+                      ? 'w-4 h-1.5 bg-[#e5c378]'
+                      : 'w-1.5 h-1.5 bg-white/30 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Narrative & Metrics */}
+          <div className="flex flex-col text-center md:text-left max-w-md">
+            <div className="flex items-center justify-center md:justify-start gap-2.5">
+              <h1 className="font-serif-luxury font-black text-2xl sm:text-3xl text-white tracking-wide">
+                {currentGame.title}
+              </h1>
+              <span
+                className="font-thaana text-2xl font-black"
+                style={{ color: currentGame.ringColor }}
+              >
+                {currentGame.thaana}
+              </span>
+            </div>
+            <p className="text-xs text-white/70 mt-1 line-clamp-2 leading-relaxed">
+              {currentGame.desc}
+            </p>
+
+            {/* Fast Metric Badges */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2.5">
+              <div className="bg-[#140806] border border-[#301a14] px-2.5 py-0.5 rounded-lg text-[10px] font-mono text-[#e5c378] flex items-center gap-1">
+                <span>👥</span> <span>{currentGame.players}</span>
+              </div>
+              <div className="bg-[#140806] border border-[#301a14] px-2.5 py-0.5 rounded-lg text-[10px] font-mono text-white/70 flex items-center gap-1">
+                <span>⏱️</span> <span>{currentGame.duration}</span>
+              </div>
+              <div className="bg-[#140806] border border-[#301a14] px-2.5 py-0.5 rounded-lg text-[10px] font-mono text-[#10b981] flex items-center gap-1">
+                <span>🟢</span> <span>{currentGame.activeTables}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 3 Games Carousel Cards (Fluid Height Clamped to Viewport Height) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 w-full px-2 max-w-4xl">
-          {/* Card 1: DIGU (ޑިގު) - ACTIVE */}
-          <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            onClick={() => onSelectGame('DIGU')}
-            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#c84b31] p-3 sm:p-4 flex flex-col justify-between shadow-[0_0_35px_rgba(200,75,49,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
-          >
-            {/* Subtle background vector caustics */}
-            <div className="absolute inset-0 bg-radial from-[#c84b31]/10 via-transparent to-black/60 pointer-events-none" />
-
-            <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#c84b31]/30 border border-[#e5c378]/60 text-[9px] font-black text-[#e5c378] tracking-wider uppercase font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#e5c378] animate-pulse" />
-                LIVE • PLAY NOW
-              </span>
-              <span className="text-[10px] font-bold text-[#f7f0ea]/60 font-mono">4P & 1v1</span>
-            </div>
-
-            {/* Center Emblem: Ornate Lacquer Medallion with Daviyani (ޑ) */}
-            <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center mb-1">
-                {/* Backing fanned cards with glowing lacquer aura */}
-                <div className="absolute -left-2 top-1 w-7 h-11 rounded-md bg-[#301a14] border border-[#c84b31]/50 -rotate-12 shadow flex items-center justify-center opacity-70">
-                  <span className="text-[8px] text-[#f7f0ea]">♠</span>
-                </div>
-                <div className="absolute -right-2 top-1 w-7 h-11 rounded-md bg-[#301a14] border border-[#e5c378]/50 rotate-12 shadow flex items-center justify-center opacity-70">
-                  <span className="text-[8px] text-[#e5c378]">♥</span>
-                </div>
-                {/* Center Lacquer Shield */}
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#3d2019] via-[#24110d] to-[#0d0605] border-2 border-[#e5c378] flex items-center justify-center shadow-[0_0_20px_rgba(200,75,49,0.4)] relative z-10 group-hover:scale-105 transition-transform duration-300">
-                  <div className="w-10 h-10 rounded-lg border border-[#c84b31]/60 flex items-center justify-center bg-[#170b09]/90">
-                    <span className="font-thaana text-2xl sm:text-3xl font-black text-[#e5c378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.8)]">
-                      ޑ
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 font-serif-luxury">
-                DIGU
-                <span className="font-thaana text-lg text-[#e5c378]">ޑިގު</span>
-              </h3>
-              <p className="text-[10px] text-[#f7f0ea]/70 mt-0.5 line-clamp-1 leading-snug text-center">
-                Classic 10-card Gin Rummy. Form runs, build sets, and slam Gin!
-              </p>
-            </div>
-
-            <div className="z-10 flex flex-col gap-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectGame('DIGU');
-                }}
-                className="w-full py-2 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(200,75,49,0.45)] transition active:scale-95 cursor-pointer border-0"
-              >
-                <span>Enter Digu Lobby</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-              <div className="text-[9px] font-bold text-[#e5c378]/80 text-center font-mono">
-                🟡 1,420 Active Players
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Card 2: DHIHAEH (ދިހައެއް) - ACTIVE */}
-          <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            onClick={() => onSelectGame('DHIHAEH')}
-            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#2a1024] via-[#1a081a] to-[#0d040e] border-2 border-purple-700 p-3 sm:p-4 flex flex-col justify-between shadow-[0_0_35px_rgba(168,85,247,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
-          >
-            <div className="absolute inset-0 bg-radial from-purple-900/15 via-transparent to-black/60 pointer-events-none" />
-
-            <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-400 text-[9px] font-black text-purple-200 tracking-wider uppercase font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-                LIVE • 2v2
-              </span>
-              <span className="text-[10px] font-bold text-slate-300 font-mono">4-Player</span>
-            </div>
-
-            {/* Center Emblem: Crimson & Amethyst Medallion with Dhaalu (ދި) */}
-            <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#581c87] via-[#2e1065] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
-                <div className="w-10 h-10 rounded-lg border border-purple-400/50 flex flex-col items-center justify-center bg-[#170524]/90">
-                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.8)]">
-                    ދި
-                  </span>
-                </div>
-              </div>
-
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 font-serif-luxury">
-                DHIHAEH
-                <span className="font-thaana text-lg text-[#E5C378]">ދިހައެއް</span>
-              </h3>
-              <p className="text-[10px] text-[#f7f0ea]/70 mt-0.5 line-clamp-1 leading-snug text-center">
-                10s capture & trick taking. Haasbagga & Bagga glory!
-              </p>
-            </div>
-
-            <div className="z-10 flex flex-col gap-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectGame('DHIHAEH');
-                }}
-                className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 hover:brightness-110 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(168,85,247,0.45)] transition active:scale-95 cursor-pointer border-0"
-              >
-                <span>Enter Dhihaeh</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-              <div className="text-[9px] font-bold text-purple-300/80 text-center font-mono">
-                🟣 890 Active Players
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Card 3: BONDI (ބޮނޑި) - ACTIVE */}
-          <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            onClick={() => onSelectGame('BONDI')}
-            className="relative h-[clamp(210px,52dvh,245px)] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#121c2b] via-[#091522] to-[#040910] border-2 border-blue-600 p-3 sm:p-4 flex flex-col justify-between shadow-[0_0_35px_rgba(59,130,246,0.35)] cursor-pointer overflow-hidden group hover:border-[#e5c378] transition"
-          >
-            <div className="absolute inset-0 bg-radial from-blue-900/15 via-transparent to-black/60 pointer-events-none" />
-
-            <div className="flex justify-between items-center z-10">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-400 text-[9px] font-black text-blue-200 tracking-wider uppercase font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                LIVE • SHEDDING
-              </span>
-              <span className="text-[10px] font-bold text-slate-300 font-mono">2-6 Players</span>
-            </div>
-
-            {/* Center Emblem: Sapphire & Cyan Medallion with Baa (ބ) */}
-            <div className="relative my-auto flex flex-col items-center z-10">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#1e3a8a] via-[#0c2e4e] to-[#0d0605] border-2 border-[#E5C378] flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-1 relative group-hover:scale-105 transition-transform duration-300">
-                <div className="w-10 h-10 rounded-lg border border-cyan-400/50 flex flex-col items-center justify-center bg-[#07192b]/90">
-                  <span className="font-thaana text-2xl sm:text-3xl font-black text-[#E5C378] drop-shadow-[0_2px_8px_rgba(229,195,120,0.8)]">
-                    ބ
-                  </span>
-                </div>
-              </div>
-
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1.5 font-serif-luxury">
-                BONDI
-                <span className="font-thaana text-lg text-[#E5C378]">ބޮނޑި</span>
-              </h3>
-              <p className="text-[10px] text-[#f7f0ea]/70 mt-0.5 line-clamp-1 leading-snug text-center">
-                Cutthroat card shedding. Avoid eating the pile!
-              </p>
-            </div>
-
-            <div className="z-10 flex flex-col gap-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectGame('BONDI');
-                }}
-                className="w-full py-2 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:brightness-110 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(59,130,246,0.45)] transition active:scale-95 cursor-pointer border-0"
-              >
-                <span>Enter Bondi</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-              <div className="text-[9px] font-bold text-blue-300/80 text-center font-mono">
-                🔵 1,150 Active Players
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        {/* Right Arrow */}
+        <button
+          onClick={cycleNext}
+          className="w-9 h-14 sm:w-11 sm:h-16 rounded-2xl bg-[#170b09]/80 border border-[#301a14] hover:border-[#e5c378] text-white flex items-center justify-center text-lg shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
+          title="Next Game"
+        >
+          <ChevronRight className="w-6 h-6 text-[#e5c378]" />
+        </button>
       </main>
 
-      {/* Footer Navigation Bar with Safe Area Bottom Clearance */}
+      {/* ========================================================================= */}
+      {/* BOTTOM THUMB-ZONE BAR (1-Tap PLAY NOW & Attached Capsule)                 */}
+      {/* ========================================================================= */}
       <footer
-        className="flex items-center justify-between w-full pt-2 border-t border-slate-800/80 shrink-0"
+        className="relative z-30 flex items-center justify-between gap-3 max-w-5xl mx-auto w-full pt-2 border-t border-[#301a14]/60 shrink-0"
         style={{
-          paddingBottom: 'max(8px, calc(env(safe-area-inset-bottom) + 4px))',
+          paddingBottom: 'max(4px, env(safe-area-inset-bottom))',
           paddingLeft: 'max(8px, env(safe-area-inset-left))',
           paddingRight: 'max(8px, env(safe-area-inset-right))',
         }}
       >
-        <div className="flex items-center gap-2">
+        {/* Left Auxiliary Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
-            onClick={handleDailyBonus}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#301a14] border border-[#e5c378]/40 hover:border-[#e5c378] text-[#e5c378] text-xs font-bold transition shadow cursor-pointer font-mono"
+            onClick={() => onOpenRules()}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#140806] border border-[#301a14] hover:border-[#e5c378]/50 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer shadow"
           >
-            <Gift className="w-4 h-4 text-[#e5c378]" />
-            <span>Daily Free Bonus</span>
+            <HelpCircle className="w-4 h-4 text-[#e5c378]" />
+            <span className="font-serif-luxury text-[11px] hidden sm:inline">Rules</span>
           </button>
 
           <button
-            onClick={onOpenRules}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#170b09] border border-[#301a14] hover:border-[#e5c378] text-[#f7f0ea]/80 text-xs font-bold transition shadow cursor-pointer"
+            onClick={() => {
+              if (onOpenPrivateTable) {
+                onOpenPrivateTable(currentGame.id);
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#140806] border border-[#301a14] hover:border-[#a855f7]/50 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer shadow"
           >
-            <HelpCircle className="w-4 h-4 text-[#e5c378]" />
-            <span>Game Guide</span>
+            <Key className="w-4 h-4 text-[#c084fc]" />
+            <span className="font-serif-luxury text-[11px] hidden sm:inline">Private</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] font-bold text-[#f7f0ea]/60 font-mono">
-          <Wifi className="w-3.5 h-3.5 text-[#e5c378]" />
-          <span>Maldives Central (14ms)</span>
-          <span className="w-2 h-2 rounded-full bg-[#e5c378]" />
+        {/* Right Thumb Zone: Mode Capsule + Big 1-Tap PLAY NOW CTA */}
+        <div className="flex items-center gap-2">
+          {/* Interactive Mode Capsule (Opens In-Place Drawer) */}
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex flex-col text-left px-3.5 py-1.5 rounded-2xl bg-[#170b09] border border-[#e5c378]/60 hover:border-[#e5c378] text-white shadow-lg cursor-pointer transition-all hover:bg-[#20100d] group"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[9px] font-mono text-[#e5c378] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                <span>FORMAT</span>
+                <span className="text-[8px] bg-[#e5c378]/20 px-1 py-0.2 rounded text-[#e5c378]">
+                  CHANGE ▾
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-sm">{capsuleInfo.icon}</span>
+              <span className="font-serif-luxury font-black text-xs sm:text-sm text-white">
+                {capsuleInfo.title}
+              </span>
+              <span className="text-[10px] text-[#10b981] font-mono font-bold">
+                • {capsuleInfo.opp}
+              </span>
+            </div>
+          </button>
+
+          {/* Primary 1-Tap PLAY NOW Button */}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={handle1TapPlayNow}
+            className="px-6 sm:px-9 py-3 rounded-2xl bg-gradient-to-r from-[#c84b31] via-[#d65a31] to-[#c84b31] text-white font-serif-luxury font-black text-sm sm:text-base tracking-wider shadow-[0_0_25px_rgba(200,75,49,0.5)] border border-[#fca5a5]/40 flex items-center gap-2 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 fill-white" />
+            <span>PLAY NOW</span>
+          </motion.button>
         </div>
       </footer>
 
-      {/* Teaser Rules Modal */}
+      {/* ========================================================================= */}
+      {/* IN-PLACE MODE CONFIGURATION BOTTOM DRAWER (No screen hops!)              */}
+      {/* ========================================================================= */}
       <AnimatePresence>
-        {teaserGame && (
-          <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4">
+        {isDrawerOpen && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto">
+            {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#301a14] rounded-3xl p-6 max-w-sm w-full text-[#f7f0ea] shadow-2xl relative text-left"
-            >
-              <button
-                onClick={() => setTeaserGame(null)}
-                className="absolute top-4 right-4 text-[#e5c378]/60 hover:text-white p-1 rounded-full hover:bg-white/10"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDrawerOpen(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
 
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">🎴</span>
-                <div>
-                  <h3 className="text-lg font-black text-white font-serif-luxury">{teaserGame.title}</h3>
-                  <span className="font-thaana text-sm text-[#e5c378]">
-                    {teaserGame.thaana}
+            {/* Bottom Sheet Container */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+              className="relative w-full max-w-3xl bg-[#140806] border-t-2 border-[#e5c378] rounded-t-3xl p-4 sm:p-6 shadow-2xl z-10 flex flex-col max-h-[85vh] overflow-y-auto no-scrollbar"
+              style={{
+                boxShadow: '0 -15px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(229,195,120,0.3)',
+              }}
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#301a14]">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-black uppercase text-[#e5c378] tracking-widest flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>CONFIGURE {currentGame.title} FORMAT</span>
+                  </span>
+                  <span className="text-[10px] bg-[#10b981]/20 text-[#10b981] px-2 py-0.5 rounded font-mono font-bold">
+                    0 Extra Screens
                   </span>
                 </div>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="w-7 h-7 rounded-full bg-[#1c0c09] text-white/70 hover:text-white flex items-center justify-center text-xs font-bold cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <p className="text-xs text-[#f7f0ea]/70 leading-relaxed mb-4">
-                {teaserGame.desc}
-              </p>
+              {/* Format Options Grid */}
+              <div className="py-4">
+                {/* DIGU MODES */}
+                {currentGame.id === 'DIGU' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {/* 2v2 Partnership */}
+                    <div
+                      onClick={() => {
+                        setDiguMode('TEAM_4P');
+                        localStorage.setItem('holhuashi_digu_mode', 'TEAM_4P');
+                      }}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                        diguMode === 'TEAM_4P'
+                          ? 'bg-[#260e0a] border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.3)] ring-1 ring-[#e5c378]'
+                          : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-base">👥</span>
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#e5c378] text-[#0a0403]">
+                          RECOMMENDED
+                        </span>
+                      </div>
+                      <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                        2v2 Partnership
+                      </div>
+                      <div className="text-[10px] text-white/60 mt-0.5">
+                        Cooperative melds with teammate. Rush to 1000 pts.
+                      </div>
+                    </div>
 
-              <div className="bg-[#0d0605] border border-[#301a14] rounded-xl p-3 mb-4">
-                <div className="text-[10px] font-black text-[#f7f0ea]/50 uppercase font-mono">
-                  Development Status:
-                </div>
-                <div className="text-xs font-bold text-[#e5c378] mt-0.5 font-mono">
-                  {teaserGame.phase}
-                </div>
+                    {/* 4P Cutthroat */}
+                    <div
+                      onClick={() => {
+                        setDiguMode('SOLO_4P');
+                        localStorage.setItem('holhuashi_digu_mode', 'SOLO_4P');
+                      }}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                        diguMode === 'SOLO_4P'
+                          ? 'bg-[#260e0a] border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.3)] ring-1 ring-[#e5c378]'
+                          : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-base">⚔️</span>
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/40 text-white/60">
+                          SOLO
+                        </span>
+                      </div>
+                      <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                        4P Cutthroat
+                      </div>
+                      <div className="text-[10px] text-white/60 mt-0.5">
+                        Every player for themselves. Defend your deadwood.
+                      </div>
+                    </div>
+
+                    {/* 1v1 Duel */}
+                    <div
+                      onClick={() => {
+                        setDiguMode('SOLO_2P');
+                        localStorage.setItem('holhuashi_digu_mode', 'SOLO_2P');
+                      }}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                        diguMode === 'SOLO_2P'
+                          ? 'bg-[#260e0a] border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.3)] ring-1 ring-[#e5c378]'
+                          : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-base">⚡</span>
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/40 text-white/60">
+                          RAPID
+                        </span>
+                      </div>
+                      <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                        1v1 Head-to-Head
+                      </div>
+                      <div className="text-[10px] text-white/60 mt-0.5">
+                        Fast 2-player duel. 500 points target score.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* DHIHAEH MODES */}
+                {currentGame.id === 'DHIHAEH' && (
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Dynamic Cut */}
+                      <div
+                        onClick={() => {
+                          setDhihaehVariant('DYNAMIC_CUT');
+                          localStorage.setItem('holhuashi_dhihaeh_variant', 'DYNAMIC_CUT');
+                        }}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                          dhihaehVariant === 'DYNAMIC_CUT'
+                            ? 'bg-[#0c2333] border-[#38bdf8] shadow-[0_0_15px_rgba(56,189,248,0.3)] ring-1 ring-[#38bdf8]'
+                            : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-base">✂️</span>
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#38bdf8] text-[#0a0403]">
+                            DEFAULT
+                          </span>
+                        </div>
+                        <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                          Variant A: Dynamic Cut
+                        </div>
+                        <div className="text-[10px] text-white/60 mt-0.5">
+                          Play starts with no trump. First player void in led suit cuts to set Trump.
+                        </div>
+                      </div>
+
+                      {/* Blind Reserve */}
+                      <div
+                        onClick={() => {
+                          setDhihaehVariant('BLIND_RESERVE');
+                          localStorage.setItem('holhuashi_dhihaeh_variant', 'BLIND_RESERVE');
+                        }}
+                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                          dhihaehVariant === 'BLIND_RESERVE'
+                            ? 'bg-[#0c2333] border-[#38bdf8] shadow-[0_0_15px_rgba(56,189,248,0.3)] ring-1 ring-[#38bdf8]'
+                            : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-base">🃏</span>
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-950 text-purple-300">
+                            BLIND
+                          </span>
+                        </div>
+                        <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                          Variant B: Hidden Card
+                        </div>
+                        <div className="text-[10px] text-white/60 mt-0.5">
+                          Opening player isolates 1 blind card face-down, revealed on first void.
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Target Score Toggle */}
+                    <div className="flex items-center justify-between bg-[#0a0403] border border-[#301a14] p-2.5 rounded-2xl">
+                      <span className="text-xs font-mono text-white/70">Victory Target:</span>
+                      <div className="flex items-center gap-1 bg-[#170b09] p-1 rounded-xl border border-[#301a14]">
+                        <button
+                          onClick={() => setDhihaehTarget(7)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                            dhihaehTarget === 7
+                              ? 'bg-[#0284c7] text-white shadow'
+                              : 'text-white/60 hover:text-white'
+                          }`}
+                        >
+                          7 Points (First to 7)
+                        </button>
+                        <button
+                          onClick={() => setDhihaehTarget(13)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                            dhihaehTarget === 13
+                              ? 'bg-[#0284c7] text-white shadow'
+                              : 'text-white/60 hover:text-white'
+                          }`}
+                        >
+                          13 Points (Grand Match)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BONDI MODES */}
+                {currentGame.id === 'BONDI' && (
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {[4, 3, 5, 2].map((pCount) => (
+                        <div
+                          key={pCount}
+                          onClick={() => {
+                            setBondiPlayers(pCount);
+                            localStorage.setItem('holhuashi_bondi_players', String(pCount));
+                          }}
+                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                            bondiPlayers === pCount
+                              ? 'bg-[#092b1e] border-[#34d399] shadow-[0_0_15px_rgba(52,211,153,0.3)] ring-1 ring-[#34d399]'
+                              : 'bg-[#170b09] border-[#301a14] opacity-80 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-base">{pCount === 2 ? '⚔️' : '👥'}</span>
+                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/40 text-white/60">
+                              {pCount === 4 ? 'POPULAR' : `${pCount}P`}
+                            </span>
+                          </div>
+                          <div className="font-serif-luxury font-black text-sm text-white mt-1.5">
+                            {pCount} Players
+                          </div>
+                          <div className="text-[10px] text-white/60 mt-0.5">
+                            {pCount === 4
+                              ? '13 cards each'
+                              : pCount === 3
+                              ? '17-18 cards each'
+                              : pCount === 2
+                              ? '26 cards duel'
+                              : '10-11 cards'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Penalty Variant Toggle */}
+                    <div className="flex items-center justify-between bg-[#0a0403] border border-[#301a14] p-2.5 rounded-2xl">
+                      <span className="text-xs font-mono text-white/70">Penalty Rule:</span>
+                      <div className="flex items-center gap-1 bg-[#170b09] p-1 rounded-xl border border-[#301a14]">
+                        <button
+                          onClick={() => {
+                            setBondiVariant('SUIT_BONDI');
+                            localStorage.setItem('holhuashi_bondi_variant', 'SUIT_BONDI');
+                          }}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                            bondiVariant === 'SUIT_BONDI'
+                              ? 'bg-[#059669] text-white shadow'
+                              : 'text-white/60 hover:text-white'
+                          }`}
+                        >
+                          Suit Bondi (Full-Suit Dump)
+                        </button>
+                        <button
+                          onClick={() => {
+                            setBondiVariant('STANDARD');
+                            localStorage.setItem('holhuashi_bondi_variant', 'STANDARD');
+                          }}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                            bondiVariant === 'STANDARD'
+                              ? 'bg-[#059669] text-white shadow'
+                              : 'text-white/60 hover:text-white'
+                          }`}
+                        >
+                          Standard (Single Card)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <button
-                onClick={() => setTeaserGame(null)}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md border-0 cursor-pointer"
-              >
-                <Bell className="w-4 h-4" />
-                <span>Notify Me When Playable</span>
-              </button>
+              {/* Opponent Selector & Bottom CTA */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#301a14]/70">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-white/70">Opponent:</span>
+                  <div className="flex items-center bg-[#080202] p-1 rounded-xl border border-[#301a14]">
+                    <button
+                      onClick={() => {
+                        setOpponentType('VS_AI');
+                        localStorage.setItem('holhuashi_opponent_type', 'VS_AI');
+                      }}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                        opponentType === 'VS_AI'
+                          ? 'bg-[#c84b31] text-white shadow'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                    >
+                      <Bot className="w-3.5 h-3.5" />
+                      <span>Smart Bots (Offline)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOpponentType('ONLINE');
+                        localStorage.setItem('holhuashi_opponent_type', 'ONLINE');
+                      }}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                        opponentType === 'ONLINE'
+                          ? 'bg-[#c84b31] text-white shadow'
+                          : 'text-white/60 hover:text-white'
+                      }`}
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Live P2P Lobby</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setIsDrawerOpen(false);
+                    handle1TapPlayNow();
+                  }}
+                  className="px-6 py-2 rounded-xl bg-[#e5c378] hover:bg-[#fde68a] text-[#0a0403] font-serif-luxury font-black text-xs tracking-wider transition-all shadow flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-[#0a0403]" />
+                  <span>APPLY & PLAY NOW ➔</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

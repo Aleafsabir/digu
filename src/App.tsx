@@ -197,9 +197,35 @@ export default function App() {
         <AccountGatewayScreen onContinue={() => setScreen('MAIN_LOBBY')} />
       )}
 
-      {/* Screen 3: Main Lobby (Game Selector Hub) */}
+      {/* Screen 3: Main Lobby (Model 1: Supercell Hero 1-Tap Hub) */}
       {currentScreen === 'MAIN_LOBBY' && (
         <MainLobbyScreen
+          onStartDiguMatch={(mode, playType) => {
+            setActiveGame('DIGU');
+            if (playType === 'ONLINE') {
+              updatePendingRules({ mode, playType: 'ONLINE' });
+              setLobbyInitialTab('QUICK_MATCH');
+              setScreen('ONLINE_LOBBY');
+            } else {
+              useGameStore.getState().startDirectMatch(mode, 'VS_AI');
+            }
+          }}
+          onStartDhihaehMatch={(variant, targetScore) => {
+            setActiveGame('DHIHAEH');
+            useDhihaehStore.getState().startMatch(variant, targetScore);
+            setScreen('TABLE');
+          }}
+          onStartBondiMatch={(variant, playerCount) => {
+            setActiveGame('BONDI');
+            useBondiStore.getState().startMatch(variant, playerCount);
+            setScreen('TABLE');
+          }}
+          onOpenPrivateTable={(game) => {
+            setActiveGame(game);
+            updatePendingRules({ playType: 'ONLINE', mode: 'TEAM_4P' });
+            setLobbyInitialTab('CREATE_ROOM');
+            setScreen('ONLINE_LOBBY');
+          }}
           onSelectGame={(game) => {
             setActiveGame(game);
             if (game === 'DIGU') {

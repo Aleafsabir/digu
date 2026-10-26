@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digu Mode Selection — UI Rework Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), local('MV Waheed');
+      font-display: swap;
+    }
+    .font-thaana { font-family: 'Faruma', sans-serif; direction: rtl; }
+    .font-serif-luxury { font-family: 'Cinzel', serif; }
+    .font-sans-clean { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Tactile Lacquer Shadow */
+    .lacquer-shadow {
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(229, 195, 120, 0.35);
+    }
+    .gold-ring-glow {
+      box-shadow: 0 0 25px rgba(229, 195, 120, 0.4), inset 0 1px 0 rgba(253, 230, 138, 0.7);
+    }
+    .purple-ring-glow {
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), inset 0 1px 0 rgba(192, 132, 252, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-[#0a0403] text-[#f7f0ea] font-sans-clean select-none overflow-hidden w-screen h-screen m-0 p-0 flex flex-col justify-between">
+
+  <!-- TOP PROTOTYPE LAB SWITCHER (Instantly toggle between the 3 live design solutions) -->
+  <aside class="relative z-50 bg-[#120705] border-b border-[#301a14] px-3 py-1.5 flex flex-wrap items-center justify-between shrink-0 gap-2">
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-mono font-black uppercase text-[#e5c378] tracking-widest flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-[#e5c378] animate-pulse"></span>
+        <span>UI PROTOTYPE LAB:</span>
+      </span>
+      <div class="flex items-center gap-1 bg-[#080202] p-1 rounded-xl border border-[#301a14]">
+        <button onclick="switchConcept('concept-1')" id="btn-concept-1" class="px-2.5 py-1 rounded-lg text-[11px] font-bold font-sans transition-all bg-[#c84b31] text-white shadow">
+          Concept 1: Grand Showcase (Hero)
+        </button>
+        <button onclick="switchConcept('concept-2')" id="btn-concept-2" class="px-2.5 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white">
+          Concept 2: 3+1 Stadium Arena
+        </button>
+        <button onclick="switchConcept('concept-3')" id="btn-concept-3" class="px-2.5 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white">
+          Concept 3: Tactile Table Mat
+        </button>
+      </div>
+
+      <a href="/main_lobby_rework_prototype.html" class="hidden lg:flex items-center gap-1 text-[10px] font-mono text-[#10b981] hover:underline bg-[#10b981]/15 border border-[#10b981]/40 px-2 py-0.5 rounded-lg">
+        <span>⚡ View 1-Tap Lobby Rework ➔</span>
+      </a>
+    </div>
+    <div class="text-[10px] font-mono text-[#e5c378]/80 hidden md:block">
+      All 3 concepts solve landscape mobile spacing & remove redundant tabs
+    </div>
+  </aside>
+
+  <!-- COMMON HEADER BAR -->
+  <header class="relative z-40 flex items-center justify-between px-3 sm:px-6 py-2 border-b border-[#301a14]/60 bg-[#170b09]/95 shrink-0"
+    style="padding-top: max(4px, env(safe-area-inset-top)); padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right));">
+    
+    <!-- Left: Return to Hub & Profile Pill -->
+    <div class="flex items-center gap-2">
+      <button onclick="playFlick()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#e5c378] text-xs font-bold transition cursor-pointer">
+        <span>◀</span>
+        <span class="font-serif-luxury text-[11px]">Hub</span>
+      </button>
+
+      <div class="flex items-center gap-2 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full shadow">
+        <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#c84b31] to-[#8f2d1b] flex items-center justify-center text-[10px] font-black border border-[#e5c378]/60 text-white">
+          👑
+        </div>
+        <div class="flex flex-col text-left pr-1 leading-tight">
+          <span class="text-xs font-black text-white font-serif-luxury">ALEEF</span>
+          <span class="text-[9px] font-mono font-bold text-[#e5c378]">LVL 2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Crest & Game Title (Clean, NO redundant pill buttons below!) -->
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-[#c84b31] to-[#8f2d1b] border border-[#e5c378]/70 flex items-center justify-center shadow">
+        <span class="font-thaana text-lg font-black text-[#e5c378]">ޑ</span>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="flex items-center gap-1.5 leading-none">
+          <span class="font-serif-luxury font-black text-sm tracking-wider text-white">DIGU</span>
+          <span class="font-thaana text-sm text-[#e5c378] font-black">ޑިގު</span>
+        </div>
+        <span class="text-[9px] font-mono text-[#e5c378]/70 tracking-wider">SELECT MATCH FORMAT</span>
+      </div>
+    </div>
+
+    <!-- Right: Currency Chips & Settings -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#e5c378] shadow">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" fill="#E5C378" stroke="#FDE68A" stroke-width="1"/>
+          <circle cx="12" cy="12" r="6" fill="#B48D36"/>
+          <path d="M12 7 C10 9, 10 15, 12 17 C14 15, 14 9, 12 7 Z" fill="#FEF3C7"/>
+        </svg>
+        <span class="font-mono text-xs font-bold">10,475</span>
+      </div>
+      <div class="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-2.5 py-1 rounded-full text-xs font-black text-[#c84b31] shadow">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+          <polygon points="12,2 21,9 12,22 3,9" fill="#06B6D4" stroke="#A5F3FC" stroke-width="1"/>
+        </svg>
+        <span class="font-mono text-xs font-bold">180</span>
+      </div>
+      <button onclick="playFlick()" class="w-8 h-8 rounded-xl bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]/70 hover:text-white flex items-center justify-center transition cursor-pointer">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- CONCEPT 1: THE GRAND SHOWCASE (Hero Stage + Compact Mode Stack)             -->
+  <!-- ========================================================================= -->
+  <main id="concept-1" class="concept-view flex-1 w-full max-w-7xl mx-auto flex items-stretch gap-3 sm:gap-5 p-3 sm:p-5 overflow-hidden">
+    
+    <!-- LEFT 62%: THE HERO STAGE -->
+    <section class="flex-1 rounded-3xl bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0d0605] border-2 border-[#c84b31] p-4 sm:p-6 flex flex-col justify-between shadow-[0_0_40px_rgba(200,75,49,0.3)] relative overflow-hidden">
+      <!-- Ambient background felt pattern -->
+      <div class="absolute inset-0 bg-radial from-[#c84b31]/10 via-transparent to-black/80 pointer-events-none"></div>
+
+      <!-- Hero Header: Badge + Pot Stake -->
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="hero-badge" class="px-3 py-1 rounded-full bg-[#c84b31] text-white text-[10px] font-black uppercase tracking-wider shadow border border-[#e5c378]/60 font-mono">
+            FLAGSHIP • 2V2 PARTNERSHIP
+          </span>
+          <span id="hero-target-pill" class="text-xs font-mono text-[#e5c378] font-bold">1,000 Points Target</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-[#0d0605] border border-[#301a14] px-3 py-1 rounded-xl shadow">
+          <span class="text-[10px] font-mono text-[#f7f0ea]/60 uppercase">Entry Stake:</span>
+          <span id="hero-stake" class="text-xs font-mono font-black text-[#e5c378]">500 Ran Dhadhu</span>
+        </div>
+      </div>
+
+      <!-- Hero Body: Visual Formation & Mode Showcase -->
+      <div class="relative z-10 my-auto flex items-center justify-between gap-6 py-2">
+        <!-- Mode Narrative -->
+        <div class="flex flex-col text-left max-w-md">
+          <h2 id="hero-title" class="text-2xl sm:text-3xl font-black font-serif-luxury text-white leading-tight">
+            4-Player Team Mode
+          </h2>
+          <p id="hero-desc" class="text-xs sm:text-sm text-[#f7f0ea]/75 mt-1.5 leading-relaxed">
+            Classic North-South vs East-West Maldivian partnership. Combine hands with your partner on round end using the 20-card backtracking merger algorithm to crush deadwood debt!
+          </p>
+
+          <!-- Feature Pills -->
+          <div id="hero-features" class="flex flex-wrap items-center gap-2 mt-3.5">
+            <span class="px-2.5 py-1 rounded-lg bg-[#0d0605] border border-[#301a14] text-[10px] font-mono text-[#e5c378]">
+              👥 2v2 Partnership
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-[#0d0605] border border-[#301a14] text-[10px] font-mono text-[#e5c378]">
+              🔄 20-Card Team Merger
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-[#0d0605] border border-[#301a14] text-[10px] font-mono text-[#e5c378]">
+              🏆 +100 Gin Bonus
+            </span>
+          </div>
+        </div>
+
+        <!-- Interactive Stadium Table Mini-Diagram -->
+        <div id="hero-diagram" class="hidden md:flex flex-col items-center justify-center relative w-48 h-36 rounded-2xl bg-[#0d0605]/80 border border-[#301a14] p-3 shadow-inner">
+          <span class="text-[8px] font-mono font-bold text-[#e5c378]/70 uppercase mb-1">TABLE SEATING</span>
+          <div class="relative w-28 h-20 rounded-xl border border-[#c84b31]/40 bg-[#170b09] flex items-center justify-center">
+            <!-- North (Partner) -->
+            <div class="absolute -top-2.5 px-2 py-0.5 rounded-full bg-[#301a14] border border-[#e5c378] text-[8px] font-bold text-[#e5c378]">
+              PARTNER
+            </div>
+            <!-- South (You) -->
+            <div class="absolute -bottom-2.5 px-2 py-0.5 rounded-full bg-[#c84b31] border border-[#e5c378] text-[8px] font-bold text-white">
+              YOU
+            </div>
+            <!-- East & West -->
+            <div class="absolute -left-3 px-1.5 py-0.5 rounded bg-[#0d0605] border border-[#301a14] text-[7px] text-[#f7f0ea]/60">
+              OPP
+            </div>
+            <div class="absolute -right-3 px-1.5 py-0.5 rounded bg-[#0d0605] border border-[#301a14] text-[7px] text-[#f7f0ea]/60">
+              OPP
+            </div>
+            <!-- Center Cards -->
+            <span class="text-[9px] font-mono text-[#e5c378]">20 CARDS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Footer Controls: Integrated AI Selector + Primary CTA Button -->
+      <div class="relative z-10 flex items-center justify-between gap-4 pt-3 border-t border-[#301a14]/60">
+        <!-- Integrated AI Bot Selector -->
+        <div class="flex items-center gap-2 bg-[#0d0605] border border-[#301a14] px-3 py-1.5 rounded-2xl shadow">
+          <span class="text-[10px] font-mono font-bold text-[#e5c378] uppercase">BOT LEVEL:</span>
+          <div class="flex items-center gap-1">
+            <button onclick="setBotTier(this, 'Casual')" class="bot-btn px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-[#c84b31] text-white transition cursor-pointer">Casual</button>
+            <button onclick="setBotTier(this, 'Regular')" class="bot-btn px-2.5 py-0.5 rounded-lg text-[10px] font-bold text-[#f7f0ea]/60 hover:text-white transition cursor-pointer">Regular</button>
+            <button onclick="setBotTier(this, 'Master')" class="bot-btn px-2.5 py-0.5 rounded-lg text-[10px] font-bold text-[#f7f0ea]/60 hover:text-white transition cursor-pointer">Master</button>
+          </div>
+        </div>
+
+        <!-- Big Tactile Launch Button -->
+        <button onclick="launchMatch()" class="flex-1 max-w-xs py-3 rounded-2xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] hover:brightness-110 text-white font-black text-xs uppercase tracking-wider shadow-[0_4px_25px_rgba(200,75,49,0.55)] flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 border-0">
+          <span>ENTER TABLE</span>
+          <span class="text-sm">➔</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT 38%: SLEEK MODE SELECTOR DECK -->
+    <aside class="w-72 sm:w-80 flex flex-col gap-2.5 justify-between shrink-0">
+      <!-- Mode 1: 2v2 (Selected) -->
+      <div onclick="selectHeroMode(0)" class="mode-item cursor-pointer p-3 rounded-2xl bg-gradient-to-r from-[#24110d] to-[#170b09] border-2 border-[#e5c378] shadow-lg flex items-center justify-between transition hover:scale-[1.02]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#301a14] border border-[#e5c378] flex items-center justify-center text-lg text-[#e5c378]">
+            <svg class="w-5 h-5 text-[#e5c378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="text-xs font-black font-serif-luxury text-white">4P Team Mode</span>
+            <span class="text-[10px] font-mono text-[#e5c378]">2v2 Partnership • 1,000p</span>
+          </div>
+        </div>
+        <span class="text-xs text-[#e5c378]">●</span>
+      </div>
+
+      <!-- Mode 2: 4P Cutthroat -->
+      <div onclick="selectHeroMode(1)" class="mode-item cursor-pointer p-3 rounded-2xl bg-[#170b09] border border-[#301a14] opacity-80 hover:opacity-100 flex items-center justify-between transition hover:border-[#e5c378]/60 hover:scale-[1.02]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-lg text-slate-300">
+            <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="text-xs font-black font-serif-luxury text-white">4P Cutthroat</span>
+            <span class="text-[10px] font-mono text-slate-400">Solo Free-For-All • 1,000p</span>
+          </div>
+        </div>
+        <span class="text-xs text-transparent">○</span>
+      </div>
+
+      <!-- Mode 3: 1v1 Duel -->
+      <div onclick="selectHeroMode(2)" class="mode-item cursor-pointer p-3 rounded-2xl bg-[#170b09] border border-[#301a14] opacity-80 hover:opacity-100 flex items-center justify-between transition hover:border-[#e5c378]/60 hover:scale-[1.02]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-lg text-slate-300">
+            <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="text-xs font-black font-serif-luxury text-white">1v1 Duel</span>
+            <span class="text-[10px] font-mono text-slate-400">Fast Head-to-Head • 500p</span>
+          </div>
+        </div>
+        <span class="text-xs text-transparent">○</span>
+      </div>
+
+      <!-- Mode 4: Private Table Multiplayer -->
+      <div onclick="selectHeroMode(3)" class="mode-item cursor-pointer p-3 rounded-2xl bg-gradient-to-r from-[#170b1f] to-[#0e0717] border border-purple-900/60 opacity-80 hover:opacity-100 flex items-center justify-between transition hover:border-purple-400 hover:scale-[1.02]">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#07030c] border border-purple-900 flex items-center justify-center text-lg text-purple-300">
+            <svg class="w-5 h-5 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="text-xs font-black font-serif-luxury text-purple-100">Private Table</span>
+            <span class="text-[10px] font-mono text-purple-300">Room Code • Multiplayer</span>
+          </div>
+        </div>
+        <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">ONLINE</span>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- CONCEPT 2: THE 3+1 STADIUM ARENA (3 Classic Modes + Dedicated MP Lounge)   -->
+  <!-- ========================================================================= -->
+  <main id="concept-2" class="concept-view hidden flex-1 w-full max-w-7xl mx-auto flex flex-col justify-between p-3 sm:p-5 overflow-hidden">
+    
+    <!-- Sub-Header: Clean Integrated Filter & Bot Config -->
+    <div class="flex items-center justify-between mb-2 shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-mono font-black text-[#e5c378] uppercase tracking-wider">
+          Traditional Table Modes
+        </span>
+        <span class="text-xs text-[#f7f0ea]/40">•</span>
+        <span class="text-[11px] text-[#f7f0ea]/60 font-mono">Tap any stadium tile to enter</span>
+      </div>
+
+      <!-- AI Bot Difficulty Capsule -->
+      <div class="flex items-center gap-2 bg-[#0d0605] border border-[#301a14] px-3 py-1 rounded-full shadow">
+        <span class="text-[10px] font-mono font-bold text-[#e5c378]">AI BOT:</span>
+        <div class="flex items-center gap-1 text-[10px] font-bold">
+          <button class="px-2 py-0.5 rounded bg-[#c84b31] text-white">Casual</button>
+          <button class="px-2 py-0.5 rounded text-[#f7f0ea]/60 hover:text-white">Regular</button>
+          <button class="px-2 py-0.5 rounded text-[#f7f0ea]/60 hover:text-white">Master</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3+1 Split Arena -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4 flex-1 my-auto">
+      
+      <!-- Tile 1: 2v2 Team Mode (Featured Hero Tile) -->
+      <div onclick="launchMatch('TEAM_4P')" class="relative rounded-3xl bg-gradient-to-b from-[#2a130f] via-[#1a0c0a] to-[#0d0605] border-2 border-[#c84b31] p-4 flex flex-col justify-between shadow-[0_0_30px_rgba(200,75,49,0.35)] cursor-pointer group hover:border-[#e5c378] hover:scale-[1.02] transition">
+        <div class="flex items-center justify-between">
+          <span class="px-2.5 py-0.5 rounded-full bg-[#c84b31] text-white text-[9px] font-black uppercase font-mono tracking-wider shadow border border-[#e5c378]/50">
+            RECOMMENDED
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">1,000p</span>
+        </div>
+
+        <div class="flex flex-col items-center text-center my-auto">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3d2019] to-[#0d0605] border-2 border-[#e5c378] flex items-center justify-center text-2xl shadow mb-2 group-hover:scale-105 transition-transform">
+            <svg class="w-7 h-7 text-[#e5c378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-black font-serif-luxury text-white">2v2 Partnership</h3>
+          <span class="text-[10px] font-mono text-[#e5c378] mt-0.5">4 Players (N-S vs E-W)</span>
+          <p class="text-[10px] text-[#f7f0ea]/70 mt-2 line-clamp-2 leading-snug">
+            Combine 20 cards on round end to smash deadwood debt together.
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-[#301a14] flex items-center justify-between text-[10px] font-mono text-[#e5c378]">
+          <span>Pot: 1,000</span>
+          <span class="font-bold group-hover:translate-x-1 transition-transform">Play ➔</span>
+        </div>
+      </div>
+
+      <!-- Tile 2: 4P Cutthroat -->
+      <div onclick="launchMatch('SOLO_4P')" class="relative rounded-3xl bg-gradient-to-b from-[#1c0f0c] via-[#140a08] to-[#0a0403] border border-[#301a14] p-4 flex flex-col justify-between shadow cursor-pointer group hover:border-[#e5c378] hover:scale-[1.02] transition">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-[#301a14] text-[#e5c378] text-[9px] font-bold font-mono">
+            FREE-FOR-ALL
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">1,000p</span>
+        </div>
+
+        <div class="flex flex-col items-center text-center my-auto">
+          <div class="w-14 h-14 rounded-2xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-2xl text-slate-300 shadow mb-2 group-hover:scale-105 transition-transform">
+            <svg class="w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-black font-serif-luxury text-white">4P Cutthroat</h3>
+          <span class="text-[10px] font-mono text-slate-400 mt-0.5">Solo Every Man For Himself</span>
+          <p class="text-[10px] text-[#f7f0ea]/70 mt-2 line-clamp-2 leading-snug">
+            Fast-paced 4-way shootout. Avoid zero melds (-100 penalty).
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-[#301a14] flex items-center justify-between text-[10px] font-mono text-[#f7f0ea]/60">
+          <span>Pot: 1,000</span>
+          <span class="font-bold group-hover:translate-x-1 transition-transform text-[#e5c378]">Play ➔</span>
+        </div>
+      </div>
+
+      <!-- Tile 3: 1v1 Duel -->
+      <div onclick="launchMatch('SOLO_2P')" class="relative rounded-3xl bg-gradient-to-b from-[#1c0f0c] via-[#140a08] to-[#0a0403] border border-[#301a14] p-4 flex flex-col justify-between shadow cursor-pointer group hover:border-[#e5c378] hover:scale-[1.02] transition">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-[#301a14] text-slate-300 text-[9px] font-bold font-mono">
+            HEAD-TO-HEAD
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">500p</span>
+        </div>
+
+        <div class="flex flex-col items-center text-center my-auto">
+          <div class="w-14 h-14 rounded-2xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-2xl text-slate-300 shadow mb-2 group-hover:scale-105 transition-transform">
+            <svg class="w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-black font-serif-luxury text-white">1v1 Duel</h3>
+          <span class="text-[10px] font-mono text-slate-400 mt-0.5">Rapid 2-Player Showdown</span>
+          <p class="text-[10px] text-[#f7f0ea]/70 mt-2 line-clamp-2 leading-snug">
+            Intense tactical duel. Target score 500 points for quick sessions.
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-[#301a14] flex items-center justify-between text-[10px] font-mono text-[#f7f0ea]/60">
+          <span>Pot: 500</span>
+          <span class="font-bold group-hover:translate-x-1 transition-transform text-[#e5c378]">Play ➔</span>
+        </div>
+      </div>
+
+      <!-- Tile 4: Multiplayer & Friends Lounge -->
+      <div onclick="openPrivateRoomModal()" class="relative rounded-3xl bg-gradient-to-b from-[#1e0e29] via-[#12071c] to-[#08030e] border-2 border-purple-800 p-4 flex flex-col justify-between shadow-[0_0_25px_rgba(168,85,247,0.25)] cursor-pointer group hover:border-purple-400 hover:scale-[1.02] transition">
+        <div class="flex items-center justify-between">
+          <span class="px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-200 border border-purple-600 text-[9px] font-black uppercase font-mono tracking-wider">
+            PRIVATE TABLE
+          </span>
+          <span class="text-[10px] font-mono text-purple-300">Room Code</span>
+        </div>
+
+        <div class="flex flex-col items-center text-center my-auto">
+          <div class="w-14 h-14 rounded-2xl bg-[#07030c] border border-purple-800 flex items-center justify-center text-2xl text-purple-300 shadow mb-2 group-hover:scale-105 transition-transform">
+            <svg class="w-7 h-7 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-black font-serif-luxury text-purple-100">Friends Lounge</h3>
+          <span class="text-[10px] font-mono text-purple-300 mt-0.5">Host or Join Online</span>
+          <p class="text-[10px] text-purple-200/70 mt-2 line-clamp-2 leading-snug">
+            Share a 6-digit room code with your friends or play over local WiFi!
+          </p>
+        </div>
+
+        <div class="pt-2 border-t border-purple-900/60 flex items-center justify-between text-[10px] font-mono text-purple-300">
+          <span>Custom Stakes</span>
+          <span class="font-bold group-hover:translate-x-1 transition-transform text-white">Join / Host ➔</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- CONCEPT 3: TACTILE TABLE MAT (Full-Bleed Arched Baa Lacquer Tiles)         -->
+  <!-- ========================================================================= -->
+  <main id="concept-3" class="concept-view hidden flex-1 w-full max-w-7xl mx-auto flex flex-col justify-between p-3 sm:p-5 overflow-hidden">
+    
+    <!-- Top Bar: Ambient Table Title + Difficulty Selector Pill -->
+    <div class="flex items-center justify-between mb-2 shrink-0">
+      <div class="flex items-center gap-3">
+        <h2 class="text-sm font-black font-serif-luxury text-[#e5c378] tracking-widest uppercase">
+          HOLHUASHI ARENA SEATS
+        </h2>
+        <span class="text-[10px] font-mono text-[#f7f0ea]/50 hidden sm:inline">Choose your seat & match structure</span>
+      </div>
+
+      <!-- Integrated Bot Difficulty Selector -->
+      <div class="flex items-center gap-2 bg-[#170b09] border border-[#301a14] px-3 py-1 rounded-full shadow">
+        <span class="text-[10px] font-mono text-[#e5c378]">BOT:</span>
+        <button class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#c84b31] text-white">Casual</button>
+        <button class="px-2 py-0.5 rounded text-[10px] font-bold text-[#f7f0ea]/60">Regular</button>
+        <button class="px-2 py-0.5 rounded text-[10px] font-bold text-[#f7f0ea]/60">Master</button>
+      </div>
+    </div>
+
+    <!-- 4 Equal Luxury Stadium Cards with Integrated Specs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 flex-1 my-auto">
+      
+      <!-- Card 1 -->
+      <div onclick="launchMatch('TEAM_4P')" class="relative rounded-3xl bg-gradient-to-b from-[#24110d] via-[#170b09] to-[#0a0504] border-2 border-[#c84b31] p-3.5 flex flex-col justify-between shadow-[0_0_25px_rgba(200,75,49,0.3)] hover:border-[#e5c378] cursor-pointer group transition hover:scale-[1.02]">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-[#c84b31] text-white text-[8px] font-black uppercase font-mono tracking-wider">
+            2v2 TEAM
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">1,000p</span>
+        </div>
+
+        <div class="flex flex-col items-center my-auto py-1">
+          <div class="w-12 h-12 rounded-xl bg-[#301a14] border border-[#e5c378] flex items-center justify-center text-xl text-[#e5c378] mb-1.5 shadow">
+            <svg class="w-6 h-6 text-[#e5c378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-black font-serif-luxury text-white">Team Mode</h3>
+          <span class="text-[9px] font-mono text-[#e5c378] mt-0.5">2v2 Partnership</span>
+          <!-- Specs List -->
+          <div class="w-full mt-2.5 pt-2 border-t border-[#301a14]/60 flex flex-col gap-1 text-[9px] font-mono text-[#f7f0ea]/70 text-left">
+            <span>• 20-Card Hand Merger</span>
+            <span>• 1,000 Points Target</span>
+            <span>• +100 Gin Declaration</span>
+          </div>
+        </div>
+
+        <button class="w-full py-1.5 rounded-xl bg-gradient-to-r from-[#c84b31] to-[#8f2d1b] group-hover:brightness-110 text-white font-black text-[10px] uppercase tracking-wider transition border-0 cursor-pointer">
+          SELECT SEAT
+        </button>
+      </div>
+
+      <!-- Card 2 -->
+      <div onclick="launchMatch('SOLO_4P')" class="relative rounded-3xl bg-[#140a08] border border-[#301a14] p-3.5 flex flex-col justify-between shadow hover:border-[#e5c378] cursor-pointer group transition hover:scale-[1.02]">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-[#301a14] text-[#e5c378] text-[8px] font-bold font-mono">
+            SOLO 4P
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">1,000p</span>
+        </div>
+
+        <div class="flex flex-col items-center my-auto py-1">
+          <div class="w-12 h-12 rounded-xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-xl text-slate-300 mb-1.5 shadow">
+            <svg class="w-6 h-6 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-black font-serif-luxury text-white">Cutthroat</h3>
+          <span class="text-[9px] font-mono text-slate-400 mt-0.5">Solo Free-For-All</span>
+          <div class="w-full mt-2.5 pt-2 border-t border-[#301a14]/60 flex flex-col gap-1 text-[9px] font-mono text-[#f7f0ea]/70 text-left">
+            <span>• 4-Player Cutthroat</span>
+            <span>• First to Gin Wins</span>
+            <span>• -100 Zero Melds Debt</span>
+          </div>
+        </div>
+
+        <button class="w-full py-1.5 rounded-xl bg-[#301a14] group-hover:bg-[#c84b31] text-[#f7f0ea] font-black text-[10px] uppercase tracking-wider transition border-0 cursor-pointer">
+          SELECT SEAT
+        </button>
+      </div>
+
+      <!-- Card 3 -->
+      <div onclick="launchMatch('SOLO_2P')" class="relative rounded-3xl bg-[#140a08] border border-[#301a14] p-3.5 flex flex-col justify-between shadow hover:border-[#e5c378] cursor-pointer group transition hover:scale-[1.02]">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-[#301a14] text-slate-300 text-[8px] font-bold font-mono">
+            DUEL 1v1
+          </span>
+          <span class="text-xs font-mono font-bold text-[#e5c378]">500p</span>
+        </div>
+
+        <div class="flex flex-col items-center my-auto py-1">
+          <div class="w-12 h-12 rounded-xl bg-[#0d0605] border border-[#301a14] flex items-center justify-center text-xl text-slate-300 mb-1.5 shadow">
+            <svg class="w-6 h-6 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-black font-serif-luxury text-white">Head-to-Head</h3>
+          <span class="text-[9px] font-mono text-slate-400 mt-0.5">1v1 Speed Duel</span>
+          <div class="w-full mt-2.5 pt-2 border-t border-[#301a14]/60 flex flex-col gap-1 text-[9px] font-mono text-[#f7f0ea]/70 text-left">
+            <span>• 10-Card Single Duel</span>
+            <span>• 500 Points Target</span>
+            <span>• Rapid Round Pacing</span>
+          </div>
+        </div>
+
+        <button class="w-full py-1.5 rounded-xl bg-[#301a14] group-hover:bg-[#c84b31] text-[#f7f0ea] font-black text-[10px] uppercase tracking-wider transition border-0 cursor-pointer">
+          SELECT SEAT
+        </button>
+      </div>
+
+      <!-- Card 4 -->
+      <div onclick="openPrivateRoomModal()" class="relative rounded-3xl bg-gradient-to-b from-[#1e0e29] to-[#08030e] border border-purple-900 p-3.5 flex flex-col justify-between shadow hover:border-purple-400 cursor-pointer group transition hover:scale-[1.02]">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-full bg-purple-950 text-purple-200 text-[8px] font-bold font-mono border border-purple-800">
+            ONLINE
+          </span>
+          <span class="text-xs font-mono font-bold text-purple-300">Custom</span>
+        </div>
+
+        <div class="flex flex-col items-center my-auto py-1">
+          <div class="w-12 h-12 rounded-xl bg-[#07030c] border border-purple-900 flex items-center justify-center text-xl text-purple-300 mb-1.5 shadow">
+            <svg class="w-6 h-6 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3 class="text-sm font-black font-serif-luxury text-purple-100">Private Table</h3>
+          <span class="text-[9px] font-mono text-purple-300 mt-0.5">Host with Friends</span>
+          <div class="w-full mt-2.5 pt-2 border-t border-purple-900/60 flex flex-col gap-1 text-[9px] font-mono text-purple-200/70 text-left">
+            <span>• 6-Digit Room Code</span>
+            <span>• Live Multiplayer Radar</span>
+            <span>• Custom Stake Control</span>
+          </div>
+        </div>
+
+        <button class="w-full py-1.5 rounded-xl bg-purple-900 group-hover:bg-purple-700 text-white font-black text-[10px] uppercase tracking-wider transition border-0 cursor-pointer">
+          HOST / JOIN
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER STATUS BAR -->
+  <footer class="relative z-40 flex items-center justify-between px-4 py-1.5 border-t border-[#301a14]/60 bg-[#0d0605] text-[10px] font-mono text-[#f7f0ea]/50 shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-emerald-400 font-bold">Server Online</span>
+      <span>•</span>
+      <span>1,420 Active Players</span>
+    </div>
+    <div>
+      Maldivian Rummy Engine v0.4.0
+    </div>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playFlick() {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {}
+    }
+
+    function switchConcept(conceptId) {
+      playFlick();
+      document.querySelectorAll('.concept-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(conceptId).classList.remove('hidden');
+
+      ['btn-concept-1', 'btn-concept-2', 'btn-concept-3'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white';
+      });
+
+      const activeBtn = document.getElementById('btn-' + conceptId);
+      activeBtn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold font-sans transition-all bg-[#c84b31] text-white shadow';
+    }
+
+    const HERO_DATA = [
+      {
+        badge: 'FLAGSHIP • 2V2 PARTNERSHIP',
+        targetPill: '1,000 Points Target',
+        stake: '500 Ran Dhadhu',
+        title: '4-Player Team Mode',
+        desc: 'Classic North-South vs East-West Maldivian partnership. Combine hands with your partner on round end using the 20-card backtracking merger algorithm to crush deadwood debt!',
+        features: ['👥 2v2 Partnership', '🔄 20-Card Team Merger', '🏆 +100 Gin Bonus'],
+        diagramType: 'TEAM'
+      },
+      {
+        badge: 'CUTTHROAT • SOLO 4P',
+        targetPill: '1,000 Points Target',
+        stake: '500 Ran Dhadhu',
+        title: '4-Player Cutthroat',
+        desc: 'High-stakes 4-player free-for-all. Every player stands alone! Be the first to build a 10-card meld (4+3+3) to slam Gin. Beware the -100 zero meld debt penalty.',
+        features: ['👤 4-Way Shootout', '⚡ First to Gin Wins', '💀 -100 Zero Melds Penalty'],
+        diagramType: 'SOLO4'
+      },
+      {
+        badge: 'HEAD-TO-HEAD • 1V1 DUEL',
+        targetPill: '500 Points Target',
+        stake: '250 Ran Dhadhu',
+        title: '2-Player Head-to-Head',
+        desc: 'Fast-paced, high-intensity 1v1 duel. Perfect for quick casual sessions or testing discard manipulation against skilled bots.',
+        features: ['⚔️ 1v1 High Intensity', '🎴 10 Cards Hand', '🎯 500 Points Target'],
+        diagramType: 'DUEL'
+      },
+      {
+        badge: 'MULTIPLAYER • PRIVATE TABLE',
+        targetPill: 'Custom Points Target',
+        stake: 'Host Selected',
+        title: 'Private Friends Table',
+        desc: 'Create or join a private room with a 6-digit code. Invite friends to play over local WiFi or remote internet with customizable match targets!',
+        features: ['🔑 6-Digit Room Code', '🌐 Remote & Local Multiplayer', '⚙️ Custom Targets'],
+        diagramType: 'PRIVATE'
+      }
+    ];
+
+    function selectHeroMode(index) {
+      playFlick();
+      const data = HERO_DATA[index];
+      document.getElementById('hero-badge').innerText = data.badge;
+      document.getElementById('hero-target-pill').innerText = data.targetPill;
+      document.getElementById('hero-stake').innerText = data.stake;
+      document.getElementById('hero-title').innerText = data.title;
+      document.getElementById('hero-desc').innerText = data.desc;
+      
+      const featEl = document.getElementById('hero-features');
+      featEl.innerHTML = data.features.map(f => `<span class="px-2.5 py-1 rounded-lg bg-[#0d0605] border border-[#301a14] text-[10px] font-mono text-[#e5c378]">${f}</span>`).join('');
+
+      // Update diagram center text
+      const diagEl = document.getElementById('hero-diagram');
+      if (diagEl) {
+        if (data.diagramType === 'DUEL') {
+          diagEl.innerHTML = '<span class="text-[8px] font-mono font-bold text-[#e5c378]/70 uppercase mb-1">TABLE SEATING</span><div class="relative w-28 h-20 rounded-xl border border-[#c84b31]/40 bg-[#170b09] flex items-center justify-center"><div class="absolute -top-2.5 px-2 py-0.5 rounded-full bg-[#0d0605] border border-[#301a14] text-[8px] text-[#f7f0ea]/70">OPPONENT</div><div class="absolute -bottom-2.5 px-2 py-0.5 rounded-full bg-[#c84b31] border border-[#e5c378] text-[8px] font-bold text-white">YOU</div><span class="text-[9px] font-mono text-[#e5c378]">1v1 DUEL</span></div>';
+        } else if (data.diagramType === 'PRIVATE') {
+          diagEl.innerHTML = '<span class="text-[8px] font-mono font-bold text-purple-300 uppercase mb-1">ROOM RADAR</span><div class="relative w-28 h-20 rounded-xl border border-purple-800 bg-[#07030c] flex items-center justify-center"><div class="text-xs font-mono text-purple-300 font-bold">6-DIGIT CODE</div></div>';
+        } else {
+          diagEl.innerHTML = '<span class="text-[8px] font-mono font-bold text-[#e5c378]/70 uppercase mb-1">TABLE SEATING</span><div class="relative w-28 h-20 rounded-xl border border-[#c84b31]/40 bg-[#170b09] flex items-center justify-center"><div class="absolute -top-2.5 px-2 py-0.5 rounded-full bg-[#301a14] border border-[#e5c378] text-[8px] font-bold text-[#e5c378]">PARTNER</div><div class="absolute -bottom-2.5 px-2 py-0.5 rounded-full bg-[#c84b31] border border-[#e5c378] text-[8px] font-bold text-white">YOU</div><div class="absolute -left-3 px-1.5 py-0.5 rounded bg-[#0d0605] border border-[#301a14] text-[7px] text-[#f7f0ea]/60">OPP</div><div class="absolute -right-3 px-1.5 py-0.5 rounded bg-[#0d0605] border border-[#301a14] text-[7px] text-[#f7f0ea]/60">OPP</div><span class="text-[9px] font-mono text-[#e5c378]">20 CARDS</span></div>';
+        }
+      }
+
+      // Update right items styling
+      document.querySelectorAll('.mode-item').forEach((item, i) => {
+        if (i === index) {
+          item.className = 'mode-item cursor-pointer p-3 rounded-2xl bg-gradient-to-r from-[#24110d] to-[#170b09] border-2 border-[#e5c378] shadow-lg flex items-center justify-between transition hover:scale-[1.02]';
+          item.querySelector('span:last-child').className = 'text-xs text-[#e5c378]';
+          item.querySelector('span:last-child').innerText = '●';
+        } else {
+          item.className = 'mode-item cursor-pointer p-3 rounded-2xl bg-[#170b09] border border-[#301a14] opacity-80 hover:opacity-100 flex items-center justify-between transition hover:border-[#e5c378]/60 hover:scale-[1.02]';
+          item.querySelector('span:last-child').className = 'text-xs text-transparent';
+          item.querySelector('span:last-child').innerText = '○';
+        }
+      });
+    }
+
+    function setBotTier(btn, tier) {
+      playFlick();
+      btn.parentElement.querySelectorAll('button').forEach(b => {
+        b.className = 'bot-btn px-2.5 py-0.5 rounded-lg text-[10px] font-bold text-[#f7f0ea]/60 hover:text-white transition cursor-pointer';
+      });
+      btn.className = 'bot-btn px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-[#c84b31] text-white transition cursor-pointer';
+    }
+
+    function launchMatch(mode) {
+      playFlick();
+      alert('Selected: ' + (mode || 'TEAM_4P') + '!\nTransitions to TableSurface.');
+    }
+
+    function openPrivateRoomModal() {
+      playFlick();
+      alert('Private Table selected!\nOpens Online Multiplayer Radar modal.');
+    }
+  </script>
+</body>
+</html>

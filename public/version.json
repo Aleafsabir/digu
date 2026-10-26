@@ -1,13 +1,14 @@
 {
-  "versionName": "0.4.0",
-  "versionCode": 14,
+  "versionName": "0.5.0",
+  "versionCode": 15,
   "releaseDate": "2026-10-26",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "New Game Mode: Dhihaeh (ދިހައެއް) - 4-player 2v2 trick taking, Ace-high hierarchy, Dynamic Cut & Blind Reserve trump modes, 10s Trophy Bar, and Haasbagga (1,000 pts) glory!",
-    "New Game Mode: Bondi (ބޮނޑި) - 2-6 player cutthroat shedding, Standard single-card penalty & Suit Bondi mass dump, at-risk tracking, and 'You Lose!' showdown",
-    "Card Aesthetic Uniformity: Authentic Digu physical card faces, sizing, royal portraits, and fanning across all game modes",
-    "Performance & Lag Elimination: Completely removed expensive CSS backdrop-filter blurs in gameplay HUDs; isolated turn countdown clock to prevent 1-second hand re-renders; added React.memo and GPU hardware acceleration (translateZ) on cards"
+    "Supercell Hero Main Lobby Rework: 1-Tap entry directly to table from the lobby thumb zone, cutting taps from 5 down to 1-2 taps to table",
+    "In-Place Format Capsule: Instant slide-up drawer to configure Digu, Dhihaeh, and Bondi match formats, target scores, and bot vs live multiplayer options in 0 extra screen navigations",
+    "Full Multi-Game Ecosystem: Seamless hero carousel switching between Digu (ޑ), Dhihaeh (ދ), and Bondi (ބ) with persistent player preferences",
+    "Dhihaeh & Bondi Modes: Fully integrated with Ace-high hierarchy, Dynamic Cut & Blind Reserve trump declarations, Mass Dump penalties, and authentic Digu card aesthetic",
+    "Performance & Lag Elimination: Isolated turn timer rings, removed in-game backdrop-filter GPU thrashing, and hardware-accelerated card rendering"
   ]
 }

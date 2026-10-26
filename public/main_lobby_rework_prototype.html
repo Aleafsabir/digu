@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digu Ecosystem — Main Lobby Friction Rework (Commercial Benchmarks)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Faruma';
+      src: local('Faruma'), local('MV Waheed');
+      font-display: swap;
+    }
+    .font-thaana { font-family: 'Faruma', sans-serif; direction: rtl; }
+    .font-serif-luxury { font-family: 'Cinzel', serif; }
+    .font-sans-clean { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Tactile Lacquerware Shadows & Shimmer */
+    .lacquer-panel {
+      background: linear-gradient(135deg, rgba(23, 11, 9, 0.95) 0%, rgba(13, 6, 5, 0.98) 100%);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(229, 195, 120, 0.25);
+    }
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(229, 195, 120, 0.35), inset 0 1px 0 rgba(253, 230, 138, 0.6);
+    }
+    .red-glow {
+      box-shadow: 0 0 30px rgba(200, 75, 49, 0.45), inset 0 1px 0 rgba(255, 138, 101, 0.5);
+    }
+    .teal-glow {
+      box-shadow: 0 0 25px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(94, 234, 212, 0.5);
+    }
+
+    /* Pulse animations */
+    @keyframes subtlePulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.02); opacity: 0.95; }
+    }
+    .animate-subtle-pulse {
+      animation: subtlePulse 3s infinite ease-in-out;
+    }
+
+    /* Mobile landscape safe areas */
+    .safe-padding {
+      padding-top: max(8px, env(safe-area-inset-top));
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+  </style>
+</head>
+<body class="bg-[#080302] text-[#f7f0ea] font-sans-clean select-none overflow-hidden w-screen h-screen m-0 p-0 flex flex-col justify-between">
+
+  <!-- TOP PROTOTYPE BENCHMARK BAR -->
+  <aside class="relative z-50 bg-[#120705] border-b border-[#301a14] px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between shrink-0 gap-2">
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 bg-[#080202] px-2.5 py-1 rounded-xl border border-[#301a14]">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-ping"></span>
+        <span class="text-[10px] font-mono font-black uppercase text-[#e5c378] tracking-widest">
+          COMMERCIAL BENCHMARKS
+        </span>
+      </div>
+
+      <!-- Benchmark Model Switcher Pills -->
+      <div class="flex items-center gap-1 bg-[#080202] p-1 rounded-xl border border-[#301a14]">
+        <button onclick="switchModel('model-1')" id="btn-model-1" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-bold font-sans transition-all bg-[#c84b31] text-white shadow flex items-center gap-1.5 cursor-pointer">
+          <span>⚡ Model 1: Supercell Hero</span>
+          <span class="text-[9px] bg-black/40 px-1.5 py-0.5 rounded text-[#e5c378]">1-Tap Capsule</span>
+        </button>
+        <button onclick="switchModel('model-2')" id="btn-model-2" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white flex items-center gap-1.5 cursor-pointer">
+          <span>🏛️ Model 2: Zynga Lounges</span>
+          <span class="text-[9px] bg-black/40 px-1.5 py-0.5 rounded text-[#e5c378]">Direct Tables</span>
+        </button>
+        <button onclick="switchModel('model-3')" id="btn-model-3" class="px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white flex items-center gap-1.5 cursor-pointer">
+          <span>🎴 Model 3: UNO Parlor</span>
+          <span class="text-[9px] bg-black/40 px-1.5 py-0.5 rounded text-[#e5c378]">Inline Quick-Play</span>
+        </button>
+      </div>
+
+      <!-- Cross-reference link to subscreen prototype -->
+      <a href="/mode_selection_prototype.html" target="_blank" class="hidden lg:flex items-center gap-1 text-[10px] font-mono text-[#e5c378]/70 hover:text-[#e5c378] underline ml-2">
+        <span>View Subscreen Prototype ↗</span>
+      </a>
+    </div>
+
+    <!-- Live Friction Tap Counter HUD -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 bg-[#170b09] border border-[#e5c378]/40 px-3 py-1 rounded-xl shadow">
+        <span class="text-[10px] font-mono text-[#e5c378]/80 font-bold uppercase">Taps to Table:</span>
+        <div id="tap-meter" class="flex items-center gap-1">
+          <span class="text-xs font-mono font-black text-[#10b981] bg-[#10b981]/20 px-2 py-0.5 rounded">1 TAP ⚡</span>
+          <span class="text-[10px] text-white/50 line-through">(Old: 5 taps)</span>
+        </div>
+      </div>
+      <button onclick="resetTapStats()" title="Reset Metrics" class="text-xs text-[#e5c378]/60 hover:text-[#e5c378] px-2 py-1 rounded bg-[#080202] border border-[#301a14] cursor-pointer">↺</button>
+    </div>
+  </aside>
+
+  <!-- COMMON TOP APP BAR (Consistent Across All Models) -->
+  <header class="relative z-40 flex items-center justify-between px-4 sm:px-8 py-2 bg-[#140806]/95 border-b border-[#301a14]/70 shrink-0">
+    <!-- User Profile & Level -->
+    <div class="flex items-center gap-3">
+      <div class="relative cursor-pointer group" onclick="simulateTap('Profile inspected')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#c84b31] to-[#f59e0b] p-[2px] shadow-lg group-hover:scale-105 transition-transform">
+          <div class="w-full h-full bg-[#0d0605] rounded-[14px] flex items-center justify-center text-lg">
+            🇲🇻
+          </div>
+        </div>
+        <div class="absolute -bottom-1 -right-1 bg-[#10b981] border-2 border-[#0d0605] w-3.5 h-3.5 rounded-full"></div>
+      </div>
+
+      <div class="flex flex-col text-left leading-tight">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-black text-white font-serif-luxury tracking-wide">ALEEF SABIR</span>
+          <span class="text-[9px] font-mono font-extrabold bg-[#e5c378]/20 border border-[#e5c378]/50 text-[#e5c378] px-1.5 py-0.5 rounded-full">PRO</span>
+        </div>
+        <div class="flex items-center gap-2 text-[10px] text-white/60 font-mono mt-0.5">
+          <span class="text-[#e5c378] font-bold">LVL 42</span>
+          <span>•</span>
+          <span class="text-[#10b981] font-bold">78% Winrate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Currency & Social Strip -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Gold Coin Wallet -->
+      <div class="flex items-center gap-1.5 bg-[#0a0403] border border-[#e5c378]/30 px-3 py-1 rounded-full shadow-inner">
+        <span class="text-xs">🪙</span>
+        <span class="text-xs font-mono font-black text-[#e5c378]">48,500</span>
+        <button class="w-4 h-4 rounded-full bg-[#e5c378] text-[#0a0403] font-black text-[10px] flex items-center justify-center hover:scale-110 ml-0.5 cursor-pointer">+</button>
+      </div>
+
+      <!-- Coconut Shell Gem Wallet -->
+      <div class="flex items-center gap-1.5 bg-[#0a0403] border border-[#14b8a6]/30 px-3 py-1 rounded-full shadow-inner">
+        <span class="text-xs">🥥</span>
+        <span class="text-xs font-mono font-black text-[#14b8a6]">350</span>
+        <button class="w-4 h-4 rounded-full bg-[#14b8a6] text-[#0a0403] font-black text-[10px] flex items-center justify-center hover:scale-110 ml-0.5 cursor-pointer">+</button>
+      </div>
+
+      <!-- Live Online Indicator -->
+      <div class="hidden md:flex items-center gap-1.5 bg-[#0a0403] border border-[#301a14] px-2.5 py-1 rounded-full text-[10px] font-mono text-white/70">
+        <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+        <span>1,420 Dhivehin Online</span>
+      </div>
+
+      <!-- Settings Gear -->
+      <button onclick="simulateTap('Settings opened')" class="w-8 h-8 rounded-xl bg-[#0a0403] border border-[#301a14] hover:border-[#e5c378]/60 flex items-center justify-center text-xs text-white/80 hover:text-white transition cursor-pointer">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MODEL 1: SUPERCELL / BRAWL STARS PATTERN (1-Tap Hero + Mode Capsule)    -->
+  <!-- ========================================================================= -->
+  <main id="model-1-container" class="relative flex-1 flex flex-col justify-between overflow-hidden p-3 sm:p-5">
+    <!-- Background Hero Ambient Atmosphere -->
+    <div id="m1-hero-bg" class="absolute inset-0 bg-gradient-to-br from-[#2a0e09] via-[#120604] to-[#080202] transition-colors duration-700 pointer-events-none">
+      <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#e5c378_1px,transparent_1px)] [background-size:24px_24px]"></div>
+      <!-- Subtle lacquer art glow -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#c84b31]/15 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- Center Stage: Hero Game Showcase Carousel -->
+    <div class="relative z-10 flex-1 flex items-center justify-between gap-4 max-w-6xl mx-auto w-full">
+      <!-- Left: Game Switcher Arrow -->
+      <button onclick="prevGameM1()" class="w-10 h-14 rounded-2xl bg-[#170b09]/80 border border-[#301a14] hover:border-[#e5c378] text-white flex items-center justify-center text-lg shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer">
+        ◀
+      </button>
+
+      <!-- Center Hero Showcase Card -->
+      <div class="flex-1 flex flex-col md:flex-row items-center justify-center gap-6 h-full py-2">
+        <!-- Visual Game Artwork Presentation -->
+        <div class="relative flex flex-col items-center justify-center">
+          <div id="m1-crest-box" class="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-br from-[#c84b31] to-[#8f2d1b] border-2 border-[#e5c378] p-3 shadow-2xl flex flex-col items-center justify-center relative group cursor-pointer" onclick="toggleModeSheetM1()">
+            <span id="m1-crest-thaana" class="font-thaana text-5xl sm:text-6xl font-black text-[#e5c378] drop-shadow-md">ޑ</span>
+            <span id="m1-crest-tag" class="text-[9px] font-mono font-bold tracking-widest text-white/90 uppercase mt-1">ROYAL RUMMY</span>
+            <div class="absolute -top-2 -right-2 bg-[#e5c378] text-[#0a0403] text-[9px] font-black px-2 py-0.5 rounded-full uppercase shadow">
+              FEATURED
+            </div>
+          </div>
+          <!-- Game Switcher Dots -->
+          <div class="flex items-center gap-2 mt-3">
+            <span id="dot-0" onclick="setGameM1(0)" class="w-3 h-1.5 rounded-full bg-[#e5c378] transition-all cursor-pointer"></span>
+            <span id="dot-1" onclick="setGameM1(1)" class="w-1.5 h-1.5 rounded-full bg-white/30 transition-all cursor-pointer"></span>
+            <span id="dot-2" onclick="setGameM1(2)" class="w-1.5 h-1.5 rounded-full bg-white/30 transition-all cursor-pointer"></span>
+          </div>
+        </div>
+
+        <!-- Game Narrative, Stats & Community High-water Mark -->
+        <div class="flex flex-col text-center md:text-left max-w-md">
+          <div class="flex items-center justify-center md:justify-start gap-2.5">
+            <h1 id="m1-game-title" class="font-serif-luxury font-black text-3xl sm:text-4xl text-white tracking-wide">DIGU</h1>
+            <span id="m1-game-thaana-title" class="font-thaana text-3xl text-[#e5c378] font-black">ޑިގު</span>
+          </div>
+          <p id="m1-game-desc" class="text-xs text-white/70 mt-1 line-clamp-2 leading-relaxed">
+            Authentic 1000-point runs, Ace-restricted melds, and 20-card backtracking partnerships. The crown jewel of Maldivian card games.
+          </p>
+
+          <!-- Quick Game Metrics Pills -->
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-3">
+            <div class="bg-[#140806] border border-[#301a14] px-2.5 py-1 rounded-lg text-[10px] font-mono text-[#e5c378] flex items-center gap-1">
+              <span>👥</span> <span id="m1-players-metric">4 Players (2v2)</span>
+            </div>
+            <div class="bg-[#140806] border border-[#301a14] px-2.5 py-1 rounded-lg text-[10px] font-mono text-white/70 flex items-center gap-1">
+              <span>⏱️</span> <span id="m1-time-metric">~6 mins</span>
+            </div>
+            <div class="bg-[#140806] border border-[#301a14] px-2.5 py-1 rounded-lg text-[10px] font-mono text-[#10b981] flex items-center gap-1">
+              <span>🟢</span> <span id="m1-pool-metric">860 Active Tables</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Game Switcher Arrow -->
+      <button onclick="nextGameM1()" class="w-10 h-14 rounded-2xl bg-[#170b09]/80 border border-[#301a14] hover:border-[#e5c378] text-white flex items-center justify-center text-lg shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer">
+        ▶
+      </button>
+    </div>
+
+    <!-- BOTTOM THUMB-ZONE BAR: The Supercell 1-Tap Core Mechanic -->
+    <div class="relative z-30 flex items-center justify-between gap-3 max-w-6xl mx-auto w-full pt-2 border-t border-[#301a14]/60">
+      <!-- Left: Auxiliary Actions (Friends / Leaderboard / Practice) -->
+      <div class="flex items-center gap-2">
+        <button onclick="simulateTap('Leaderboard inspected')" class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#140806] border border-[#301a14] hover:border-[#e5c378]/50 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer">
+          <span>🏆</span>
+          <span class="font-serif-luxury text-[11px] hidden sm:inline">Ranks</span>
+        </button>
+        <button onclick="simulateTap('Friend Lobby created')" class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#140806] border border-[#301a14] hover:border-[#e5c378]/50 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer">
+          <span>💬</span>
+          <span class="font-serif-luxury text-[11px] hidden sm:inline">Friends</span>
+        </button>
+        <button onclick="simulateTap('Rules Guide opened')" class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#140806] border border-[#301a14] hover:border-[#e5c378]/50 text-white/80 hover:text-white text-xs font-bold transition cursor-pointer">
+          <span>📖</span>
+          <span class="font-serif-luxury text-[11px] hidden sm:inline">Rules</span>
+        </button>
+      </div>
+
+      <!-- Right: The 1-Tap Play Capsule & Huge Primary Button -->
+      <div class="flex items-center gap-2">
+        <!-- Interactive Mode Capsule Button (Tap opens in-place drawer, 0 screen transitions!) -->
+        <button onclick="toggleModeSheetM1()" id="m1-capsule-btn" class="flex flex-col text-left px-3.5 py-1.5 rounded-2xl bg-[#170b09] border border-[#e5c378]/60 hover:border-[#e5c378] text-white shadow-lg group cursor-pointer transition-all hover:bg-[#20100d]">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[9px] font-mono text-[#e5c378] font-extrabold uppercase tracking-wider flex items-center gap-1">
+              <span>SELECTED MODE</span>
+              <span class="text-[8px] bg-[#e5c378]/20 px-1 py-0.2 rounded text-[#e5c378]">CHANGE ▾</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span id="m1-selected-mode-icon" class="text-sm">👥</span>
+            <span id="m1-selected-mode-label" class="font-serif-luxury font-black text-xs sm:text-sm text-white">2v2 Partnership</span>
+            <span class="text-[10px] text-[#10b981] font-mono font-bold">• VS AI</span>
+          </div>
+        </button>
+
+        <!-- The Big Glowing 1-Tap PLAY NOW Button -->
+        <button onclick="launchMatch1Tap('Model 1')" class="px-7 sm:px-9 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-[#c84b31] via-[#d65a31] to-[#c84b31] text-white font-serif-luxury font-black text-sm sm:text-base tracking-wider red-glow hover:scale-105 active:scale-95 transition-all shadow-2xl flex items-center gap-2 cursor-pointer border border-[#fca5a5]/40 animate-subtle-pulse">
+          <span>⚡ PLAY NOW</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- IN-PLACE MODE SELECTION BOTTOM SHEET (Slides up, NO screen switch!) -->
+    <div id="m1-bottom-sheet" class="absolute inset-x-0 bottom-0 z-50 bg-[#120604] border-t-2 border-[#e5c378] p-4 sm:p-6 shadow-2xl transform translate-y-full transition-transform duration-300 ease-out max-w-4xl mx-auto rounded-t-3xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[#301a14]">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono font-black uppercase text-[#e5c378] tracking-widest">
+            CONFIGURE MATCH FORMAT (IN-PLACE)
+          </span>
+          <span class="text-[10px] bg-[#10b981]/20 text-[#10b981] px-2 py-0.5 rounded font-mono font-bold">0 Extra Screens</span>
+        </div>
+        <button onclick="toggleModeSheetM1()" class="w-7 h-7 rounded-full bg-[#1c0c09] text-white/70 hover:text-white flex items-center justify-center text-xs font-bold cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Mode Cards Grid -->
+      <div id="m1-sheet-modes" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 py-4">
+        <!-- Injected via JavaScript based on selected game -->
+      </div>
+
+      <!-- Opponent / Match Type Toggle (In-place) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#301a14]/60">
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-mono text-white/70">Opponent:</span>
+          <div class="flex items-center bg-[#080202] p-1 rounded-xl border border-[#301a14]">
+            <button onclick="selectOpponentType('AI')" id="btn-opp-ai" class="px-3 py-1 rounded-lg text-xs font-bold bg-[#c84b31] text-white shadow cursor-pointer">
+              🤖 Smart Bots (Offline)
+            </button>
+            <button onclick="selectOpponentType('Multiplayer')" id="btn-opp-multi" class="px-3 py-1 rounded-lg text-xs font-bold text-white/60 hover:text-white cursor-pointer">
+              🌐 Live Multiplayer (P2P)
+            </button>
+          </div>
+        </div>
+
+        <button onclick="confirmAndPlayM1()" class="px-6 py-2 rounded-xl bg-[#e5c378] hover:bg-[#fde68a] text-[#0a0403] font-serif-luxury font-black text-xs tracking-wider transition-all shadow cursor-pointer">
+          APPLY & PLAY NOW ➔
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODEL 2: ZYNGA / SPADES PLUS PATTERN (Direct Stadium Lounges / Tables)    -->
+  <!-- ========================================================================= -->
+  <main id="model-2-container" class="relative flex-1 flex flex-col justify-between overflow-hidden p-3 sm:p-5 hidden">
+    <!-- Ambient Background -->
+    <div class="absolute inset-0 bg-[#0c0504] transition-colors duration-500 pointer-events-none">
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:28px_28px]"></div>
+    </div>
+
+    <!-- Top Game Selector Tabstrip (Zynga Style) -->
+    <div class="relative z-10 flex items-center justify-center gap-2 max-w-2xl mx-auto w-full pt-1">
+      <button onclick="setGameM2(0)" id="m2-tab-0" class="flex-1 py-2 px-3 rounded-2xl bg-[#c84b31] text-white border border-[#e5c378]/60 shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all">
+        <span class="font-thaana text-lg font-black text-[#e5c378]">ޑ</span>
+        <span class="font-serif-luxury font-black text-xs sm:text-sm">DIGU</span>
+        <span class="text-[9px] font-mono bg-black/40 px-1.5 py-0.5 rounded text-[#e5c378]">860 Tables</span>
+      </button>
+
+      <button onclick="setGameM2(1)" id="m2-tab-1" class="flex-1 py-2 px-3 rounded-2xl bg-[#140806] text-white/70 border border-[#301a14] hover:border-[#e5c378]/50 shadow flex items-center justify-center gap-2 cursor-pointer transition-all">
+        <span class="font-thaana text-lg font-black text-[#e5c378]">ދ</span>
+        <span class="font-serif-luxury font-black text-xs sm:text-sm">DHIHAEH</span>
+        <span class="text-[9px] font-mono bg-black/40 px-1.5 py-0.5 rounded text-white/50">410 Tables</span>
+      </button>
+
+      <button onclick="setGameM2(2)" id="m2-tab-2" class="flex-1 py-2 px-3 rounded-2xl bg-[#140806] text-white/70 border border-[#301a14] hover:border-[#e5c378]/50 shadow flex items-center justify-center gap-2 cursor-pointer transition-all">
+        <span class="font-thaana text-lg font-black text-[#e5c378]">ބ</span>
+        <span class="font-serif-luxury font-black text-xs sm:text-sm">BONDI</span>
+        <span class="text-[9px] font-mono bg-black/40 px-1.5 py-0.5 rounded text-white/50">280 Tables</span>
+      </button>
+    </div>
+
+    <!-- 4 Direct Table Lounges (1-Tap Entry directly from tile!) -->
+    <div id="m2-lounges-grid" class="relative z-10 flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto w-full my-auto py-2">
+      <!-- Injected via JavaScript based on active game tab -->
+    </div>
+    </div>
+
+    <!-- Bottom Stake Range Filter & Instant Match Button -->
+    <div class="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full pt-2 border-t border-[#301a14]/60">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-mono text-white/60">Table Stakes:</span>
+        <div class="flex items-center bg-[#080202] p-1 rounded-xl border border-[#301a14]">
+          <button class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-[#c84b31] text-white">All Stakes</button>
+          <button class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold text-white/60 hover:text-white">Casual (100)</button>
+          <button class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold text-white/60 hover:text-white">Pro (500+)</button>
+        </div>
+      </div>
+
+      <button onclick="launchMatch1Tap('Zynga Quick Lounge')" class="px-6 py-2.5 rounded-2xl bg-[#e5c378] hover:bg-[#fde68a] text-[#0a0403] font-serif-luxury font-black text-xs tracking-wider shadow-lg flex items-center gap-2 cursor-pointer transition">
+        <span>⚡ INSTANT SEAT ME</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODEL 3: MATTEL / UNO! MOBILE PATTERN (Multi-Game Parlor with Inline Quick)-->
+  <!-- ========================================================================= -->
+  <main id="model-3-container" class="relative flex-1 flex flex-col justify-between overflow-hidden p-3 sm:p-5 hidden">
+    <!-- Background -->
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0a0403] to-[#170b09] pointer-events-none">
+      <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#c84b31_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    </div>
+
+    <!-- Header Prompt -->
+    <div class="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full">
+      <div>
+        <h2 class="font-serif-luxury font-black text-base sm:text-lg text-white">THE MALDIVIAN PARLOR</h2>
+        <p class="text-[11px] text-white/60">Select format inline and jump straight into action with 1 tap.</p>
+      </div>
+      <div class="text-[10px] font-mono text-[#e5c378] bg-[#e5c378]/10 border border-[#e5c378]/30 px-2.5 py-1 rounded-xl">
+        ⚡ 3 Games • Zero Intermediate Menus
+      </div>
+    </div>
+
+    <!-- 3 Game Parlor Cards Side-by-Side -->
+    <div class="relative z-10 flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 max-w-6xl mx-auto w-full my-auto py-3">
+      <!-- Card 1: DIGU (Maldivian Rummy) -->
+      <div class="lacquer-panel rounded-3xl border-2 border-[#e5c378]/60 p-4 flex flex-col justify-between relative group hover:border-[#e5c378] transition-all shadow-2xl">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#c84b31] to-[#8f2d1b] border border-[#e5c378] flex items-center justify-center shadow">
+              <span class="font-thaana text-2xl font-black text-[#e5c378]">ޑ</span>
+            </div>
+            <div>
+              <h3 class="font-serif-luxury font-black text-base text-white">DIGU</h3>
+              <span class="font-thaana text-xs text-[#e5c378]">ޑިގު • RUMMY</span>
+            </div>
+          </div>
+          <span class="text-[9px] font-mono font-bold text-[#10b981] bg-[#10b981]/15 px-2 py-0.5 rounded uppercase">MAIN EVENT</span>
+        </div>
+
+        <p class="text-[11px] text-white/70 my-2 line-clamp-2 leading-relaxed">
+          1000-point runs, deadwood penalty cuts, and seamless 20-card teammate merges.
+        </p>
+
+        <!-- Inline Mode Dropdown (Changes game mode directly on card!) -->
+        <div class="bg-[#0a0403] border border-[#301a14] p-2 rounded-2xl my-1">
+          <div class="flex items-center justify-between text-[10px] font-mono text-white/60 mb-1">
+            <span>FORMAT:</span>
+            <span class="text-[#e5c378] font-bold">1-TAP READY</span>
+          </div>
+          <select id="m3-digu-mode" onchange="simulateTap('Digu mode changed to ' + this.value)" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-2.5 py-1.5 text-xs font-serif-luxury font-bold text-white focus:outline-none focus:border-[#e5c378] cursor-pointer">
+            <option value="2v2 Team">👥 2v2 Partnership (Recommended)</option>
+            <option value="4P Cutthroat">⚔️ 4P Cutthroat (Free-For-All)</option>
+            <option value="1v1 Duel">⚡ 1v1 Fast Duel</option>
+          </select>
+        </div>
+
+        <!-- 1-Tap Quick Match CTA -->
+        <button onclick="launchMatch1Tap('Digu: ' + document.getElementById('m3-digu-mode').value)" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-[#c84b31] to-[#8f2d1b] text-white font-serif-luxury font-black text-xs tracking-wider red-glow hover:scale-[1.02] active:scale-95 transition-all shadow flex items-center justify-center gap-2 cursor-pointer border border-[#fca5a5]/30">
+          <span>⚡ QUICK MATCH</span>
+        </button>
+      </div>
+
+      <!-- Card 2: DHIHAEH (Trick-Taking) -->
+      <div class="lacquer-panel rounded-3xl border border-[#301a14] p-4 flex flex-col justify-between relative group hover:border-[#38bdf8] transition-all shadow-xl">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#0369a1] border border-[#38bdf8] flex items-center justify-center shadow">
+              <span class="font-thaana text-2xl font-black text-white">ދ</span>
+            </div>
+            <div>
+              <h3 class="font-serif-luxury font-black text-base text-white">DHIHAEH</h3>
+              <span class="font-thaana text-xs text-[#38bdf8]">ދިހައެއް • TRICKS</span>
+            </div>
+          </div>
+          <span class="text-[9px] font-mono font-bold text-[#38bdf8] bg-[#38bdf8]/15 px-2 py-0.5 rounded uppercase">TRUMP CUT</span>
+        </div>
+
+        <p class="text-[11px] text-white/70 my-2 line-clamp-2 leading-relaxed">
+          The race for 10s. Hunt the four 10-point cards and achieve Haasbagga (1,000 pts).
+        </p>
+
+        <!-- Inline Mode Dropdown -->
+        <div class="bg-[#0a0403] border border-[#301a14] p-2 rounded-2xl my-1">
+          <div class="flex items-center justify-between text-[10px] font-mono text-white/60 mb-1">
+            <span>TRUMP VARIANT:</span>
+            <span class="text-[#38bdf8] font-bold">1-TAP READY</span>
+          </div>
+          <select id="m3-dhihaeh-mode" onchange="simulateTap('Dhihaeh variant changed to ' + this.value)" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-2.5 py-1.5 text-xs font-serif-luxury font-bold text-white focus:outline-none focus:border-[#38bdf8] cursor-pointer">
+            <option value="Dynamic Cut">✂️ Variant A: Dynamic Cut (Void)</option>
+            <option value="Hidden Reserve">🃏 Variant B: Hidden Reserve Card</option>
+          </select>
+        </div>
+
+        <!-- 1-Tap Quick Match CTA -->
+        <button onclick="launchMatch1Tap('Dhihaeh: ' + document.getElementById('m3-dhihaeh-mode').value)" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-[#0284c7] to-[#0369a1] text-white font-serif-luxury font-black text-xs tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow flex items-center justify-center gap-2 cursor-pointer border border-[#7dd3fc]/30">
+          <span>⚡ QUICK MATCH</span>
+        </button>
+      </div>
+
+      <!-- Card 3: BONDI (Card Shedding) -->
+      <div class="lacquer-panel rounded-3xl border border-[#301a14] p-4 flex flex-col justify-between relative group hover:border-[#10b981] transition-all shadow-xl">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#059669] to-[#047857] border border-[#34d399] flex items-center justify-center shadow">
+              <span class="font-thaana text-2xl font-black text-white">ބ</span>
+            </div>
+            <div>
+              <h3 class="font-serif-luxury font-black text-base text-white">BONDI</h3>
+              <span class="font-thaana text-xs text-[#34d399]">ބޮނޑި • SHEDDING</span>
+            </div>
+          </div>
+          <span class="text-[9px] font-mono font-bold text-[#10b981] bg-[#10b981]/15 px-2 py-0.5 rounded uppercase">CUTTHROAT</span>
+        </div>
+
+        <p class="text-[11px] text-white/70 my-2 line-clamp-2 leading-relaxed">
+          Cutthroat shedding. Avoid absorbing the penalty pile and dump entire suits on rivals.
+        </p>
+
+        <!-- Inline Mode Dropdown -->
+        <div class="bg-[#0a0403] border border-[#301a14] p-2 rounded-2xl my-1">
+          <div class="flex items-center justify-between text-[10px] font-mono text-white/60 mb-1">
+            <span>TABLE SIZE & RULE:</span>
+            <span class="text-[#34d399] font-bold">1-TAP READY</span>
+          </div>
+          <select id="m3-bondi-mode" onchange="simulateTap('Bondi format changed to ' + this.value)" class="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-2.5 py-1.5 text-xs font-serif-luxury font-bold text-white focus:outline-none focus:border-[#34d399] cursor-pointer">
+            <option value="4 Players (Suit Dump)">👥 4 Players • Full Suit Dump</option>
+            <option value="3 Players (Suit Dump)">👥 3 Players • Full Suit Dump</option>
+            <option value="5 Players (Standard)">👥 5 Players • Single Card</option>
+            <option value="2 Players (Duel)">⚔️ 2 Players • 26 Cards Each</option>
+          </select>
+        </div>
+
+        <!-- 1-Tap Quick Match CTA -->
+        <button onclick="launchMatch1Tap('Bondi: ' + document.getElementById('m3-bondi-mode').value)" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-[#059669] to-[#047857] text-white font-serif-luxury font-black text-xs tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow flex items-center justify-center gap-2 cursor-pointer border border-[#6ee7b7]/30">
+          <span>⚡ QUICK MATCH</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Parlor Footer -->
+    <div class="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full pt-2 border-t border-[#301a14]/60">
+      <div class="text-[11px] text-white/50 font-mono">
+        💡 Each game runs independently. Change options inline without ever entering a sub-menu.
+      </div>
+      <button onclick="simulateTap('Tournament Arena opened')" class="text-xs font-serif-luxury text-[#e5c378] hover:underline flex items-center gap-1 cursor-pointer">
+        <span>🏆 Tournaments Hub ➔</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- SIMULATED 1-TAP MATCH LAUNCH OVERLAY (Shows instant jump to table)        -->
+  <!-- ========================================================================= -->
+  <div id="launch-overlay" class="fixed inset-0 z-50 bg-[#080202]/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-[#140806] border-2 border-[#e5c378] rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative lacquer-panel">
+      <!-- Glow -->
+      <div class="w-16 h-16 rounded-full bg-[#10b981]/20 border border-[#10b981] flex items-center justify-center mx-auto mb-4 animate-bounce">
+        <span class="text-2xl">⚡</span>
+      </div>
+
+      <div class="inline-block bg-[#10b981]/15 border border-[#10b981]/40 px-3 py-0.5 rounded-full text-[10px] font-mono text-[#10b981] font-black uppercase mb-2">
+        Instant Seat Reserved (1 Tap!)
+      </div>
+
+      <h3 id="launch-mode-title" class="font-serif-luxury font-black text-xl text-white">
+        ENTERING MATCH...
+      </h3>
+      <p id="launch-mode-sub" class="text-xs text-white/70 mt-1 font-mono">
+        Bypassed 4 redundant screens. Launching straight into table surface.
+      </p>
+
+      <!-- Simulated Player Slots -->
+      <div class="grid grid-cols-4 gap-2 my-5">
+        <div class="bg-[#0a0403] p-2 rounded-xl border border-[#e5c378]/50 flex flex-col items-center">
+          <span class="text-lg">👑</span>
+          <span class="text-[9px] font-mono text-[#e5c378] font-bold mt-1">You</span>
+        </div>
+        <div class="bg-[#0a0403] p-2 rounded-xl border border-[#301a14] flex flex-col items-center animate-pulse">
+          <span class="text-lg">🤖</span>
+          <span class="text-[9px] font-mono text-white/50 font-bold mt-1">Hassan</span>
+        </div>
+        <div class="bg-[#0a0403] p-2 rounded-xl border border-[#301a14] flex flex-col items-center animate-pulse">
+          <span class="text-lg">🤖</span>
+          <span class="text-[9px] font-mono text-white/50 font-bold mt-1">Ally (P3)</span>
+        </div>
+        <div class="bg-[#0a0403] p-2 rounded-xl border border-[#301a14] flex flex-col items-center animate-pulse">
+          <span class="text-lg">🤖</span>
+          <span class="text-[9px] font-mono text-white/50 font-bold mt-1">Mariyam</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="closeLaunchOverlay()" class="flex-1 py-2.5 rounded-xl bg-[#1f0e0b] border border-[#301a14] hover:border-[#e5c378]/50 text-white font-serif-luxury font-bold text-xs cursor-pointer">
+          CANCEL
+        </button>
+        <button onclick="enterRealGame()" class="flex-1 py-2.5 rounded-xl bg-[#e5c378] hover:bg-[#fde68a] text-[#0a0403] font-serif-luxury font-black text-xs cursor-pointer shadow">
+          START MATCH ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-[#170b09] border border-[#e5c378]/50 text-white px-4 py-2 rounded-2xl shadow-2xl text-xs font-mono flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+    <span class="text-[#e5c378]">⚡</span>
+    <span id="toast-msg">Action captured</span>
+  </div>
+
+  <script>
+    // Audio synthesis for tactile clicks
+    let audioCtx = null;
+    function playFlick(freq = 440, type = 'triangle') {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.4, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.09);
+      } catch (e) {}
+    }
+
+    // Tap tracking
+    let tapCount = 0;
+    function countTap() {
+      tapCount++;
+      const meter = document.getElementById('tap-meter');
+      if (tapCount === 1) {
+        meter.innerHTML = `<span class="text-xs font-mono font-black text-[#10b981] bg-[#10b981]/20 px-2 py-0.5 rounded">1 TAP ⚡</span> <span class="text-[10px] text-white/50 line-through">(Old: 5 taps)</span>`;
+      } else if (tapCount === 2) {
+        meter.innerHTML = `<span class="text-xs font-mono font-black text-[#e5c378] bg-[#e5c378]/20 px-2 py-0.5 rounded">2 TAPS (Format changed)</span>`;
+      } else {
+        meter.innerHTML = `<span class="text-xs font-mono font-black text-white/80 bg-white/10 px-2 py-0.5 rounded">${tapCount} TAPS</span>`;
+      }
+    }
+    function resetTapStats() {
+      tapCount = 0;
+      document.getElementById('tap-meter').innerHTML = `<span class="text-xs font-mono font-black text-[#10b981] bg-[#10b981]/20 px-2 py-0.5 rounded">READY</span> <span class="text-[10px] text-white/50">(Tap any Play button)</span>`;
+      showToast('Tap counter reset.');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+
+    function simulateTap(action) {
+      playFlick(520, 'sine');
+      showToast(action);
+    }
+
+    // Game Database
+    const gamesData = [
+      {
+        id: 'digu',
+        title: 'DIGU',
+        thaana: 'ޑިގު',
+        tag: 'ROYAL RUMMY',
+        thaanaLetter: 'ޑ',
+        desc: 'Authentic 1000-point runs, Ace-restricted melds, and 20-card backtracking partnerships. The crown jewel of Maldivian card games.',
+        players: '4 Players (2v2)',
+        time: '~6 mins',
+        activeTables: '860 Active Tables',
+        gradient: 'from-[#c84b31] to-[#8f2d1b]',
+        modes: [
+          { id: '2v2', name: '2v2 Partnership', icon: '👥', badge: 'Recommended', desc: 'Cooperative melds with teammate' },
+          { id: 'cutthroat', name: '4P Cutthroat', icon: '⚔️', badge: 'Solo', desc: 'Every player for themselves' },
+          { id: 'duel', name: '1v1 Duel', icon: '⚡', badge: 'Fast', desc: 'Head-to-head rapid match' },
+          { id: 'private', name: 'Private Room', icon: '🔑', badge: 'Custom', desc: 'Invite friends with 4-digit code' }
+        ]
+      },
+      {
+        id: 'dhihaeh',
+        title: 'DHIHAEH',
+        thaana: 'ދިހައެއް',
+        tag: 'TRICK TAKING',
+        thaanaLetter: 'ދ',
+        desc: 'Dynamic cut trump declarations, hunting the four objective 10-cards, and achieving the elusive 1,000-point Haasbagga sweep.',
+        players: '4 Players (2v2)',
+        time: '~8 mins',
+        activeTables: '410 Active Tables',
+        gradient: 'from-[#0284c7] to-[#0369a1]',
+        modes: [
+          { id: 'dynamic', name: 'Dynamic Cut', icon: '✂️', badge: 'Standard', desc: 'First void card sets the trump suit' },
+          { id: 'hidden', name: 'Hidden Reserve', icon: '🃏', badge: 'Variant B', desc: 'Blind face-down card revealed on void' },
+          { id: 'private', name: 'Private Room', icon: '🔑', badge: 'Custom', desc: 'Invite friends with 4-digit code' }
+        ]
+      },
+      {
+        id: 'bondi',
+        title: 'BONDI',
+        thaana: 'ބޮނޑި',
+        tag: 'CUTTHROAT SHEDDING',
+        thaanaLetter: 'ބ',
+        desc: 'Card shedding with brutal penalties. Ace of Spades leads, mass suit dump on void turns, and last player standing is The Bondi.',
+        players: '2 to 6 Players',
+        time: '~5 mins',
+        activeTables: '280 Active Tables',
+        gradient: 'from-[#059669] to-[#047857]',
+        modes: [
+          { id: 'bondi-4p', name: '4 Players (Suit Dump)', icon: '👥', badge: 'Popular', desc: 'Dump all cards of chosen suit on void' },
+          { id: 'bondi-3p', name: '3 Players (Suit Dump)', icon: '👥', badge: 'Fast', desc: '17-18 cards per player' },
+          { id: 'bondi-5p', name: '5 Players (Standard)', icon: '👥', badge: 'Party', desc: '10-11 cards, single card dump' },
+          { id: 'bondi-duel', name: '2 Players (Duel)', icon: '⚔️', badge: '26 Cards', desc: 'Cutthroat 1-on-1 shedding war' }
+        ]
+      }
+    ];
+
+    let currentGameIdx = 0;
+    let selectedModeIdx = 0;
+    let selectedOpponent = 'AI';
+
+    // Model Switcher
+    function switchModel(modelId) {
+      playFlick(600, 'sine');
+      ['model-1', 'model-2', 'model-3'].forEach(id => {
+        const btn = document.getElementById('btn-' + id);
+        const container = document.getElementById(id + '-container');
+        if (id === modelId) {
+          container.classList.remove('hidden');
+          btn.className = "px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-bold font-sans transition-all bg-[#c84b31] text-white shadow flex items-center gap-1.5 cursor-pointer";
+        } else {
+          container.classList.add('hidden');
+          btn.className = "px-2.5 sm:px-3 py-1 rounded-lg text-[11px] font-bold font-sans transition-all text-[#f7f0ea]/70 hover:text-white flex items-center gap-1.5 cursor-pointer";
+        }
+      });
+      resetTapStats();
+    }
+
+    // Model 1: Supercell Logic
+    function updateM1Hero() {
+      const g = gamesData[currentGameIdx];
+      document.getElementById('m1-crest-thaana').innerText = g.thaanaLetter;
+      document.getElementById('m1-crest-tag').innerText = g.tag;
+      document.getElementById('m1-game-title').innerText = g.title;
+      document.getElementById('m1-game-thaana-title').innerText = g.thaana;
+      document.getElementById('m1-game-desc').innerText = g.desc;
+      document.getElementById('m1-players-metric').innerText = g.players;
+      document.getElementById('m1-time-metric').innerText = g.time;
+      document.getElementById('m1-pool-metric').innerText = g.activeTables;
+
+      // Update dots
+      [0, 1, 2].forEach(i => {
+        const dot = document.getElementById('dot-' + i);
+        if (i === currentGameIdx) {
+          dot.className = "w-4 h-1.5 rounded-full bg-[#e5c378] transition-all cursor-pointer";
+        } else {
+          dot.className = "w-1.5 h-1.5 rounded-full bg-white/30 transition-all cursor-pointer";
+        }
+      });
+
+      // Reset mode to default for that game
+      selectedModeIdx = 0;
+      updateCapsuleDisplay();
+      populateM1Sheet();
+    }
+
+    function updateCapsuleDisplay() {
+      const g = gamesData[currentGameIdx];
+      const m = g.modes[selectedModeIdx] || g.modes[0];
+      document.getElementById('m1-selected-mode-icon').innerText = m.icon;
+      document.getElementById('m1-selected-mode-label').innerText = m.name;
+    }
+
+    function populateM1Sheet() {
+      const g = gamesData[currentGameIdx];
+      const container = document.getElementById('m1-sheet-modes');
+      container.innerHTML = '';
+      g.modes.forEach((mode, idx) => {
+        const isSelected = idx === selectedModeIdx;
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+          isSelected 
+            ? 'bg-[#240d09] border-[#e5c378] gold-glow' 
+            : 'bg-[#170b09] border-[#301a14] hover:border-[#e5c378]/50'
+        }`;
+        card.onclick = () => {
+          countTap();
+          selectedModeIdx = idx;
+          updateCapsuleDisplay();
+          populateM1Sheet();
+          playFlick(620, 'triangle');
+        };
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-base">${mode.icon}</span>
+              <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#e5c378] text-[#0a0403]' : 'bg-black/40 text-white/60'}">${mode.badge}</span>
+            </div>
+            <div class="font-serif-luxury font-black text-xs text-white mt-1.5">${mode.name}</div>
+          </div>
+          <div class="text-[9px] text-white/50 mt-1">${mode.desc}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleModeSheetM1() {
+      countTap();
+      playFlick(480, 'sine');
+      const sheet = document.getElementById('m1-bottom-sheet');
+      sheet.classList.toggle('translate-y-full');
+    }
+
+    function setGameM1(idx) {
+      countTap();
+      playFlick(520, 'triangle');
+      currentGameIdx = idx;
+      updateM1Hero();
+    }
+    function nextGameM1() {
+      countTap();
+      playFlick(520, 'triangle');
+      currentGameIdx = (currentGameIdx + 1) % gamesData.length;
+      updateM1Hero();
+    }
+    function prevGameM1() {
+      countTap();
+      playFlick(520, 'triangle');
+      currentGameIdx = (currentGameIdx - 1 + gamesData.length) % gamesData.length;
+      updateM1Hero();
+    }
+
+    function selectOpponentType(type) {
+      countTap();
+      playFlick(500, 'sine');
+      selectedOpponent = type;
+      if (type === 'AI') {
+        document.getElementById('btn-opp-ai').className = "px-3 py-1 rounded-lg text-xs font-bold bg-[#c84b31] text-white shadow cursor-pointer";
+        document.getElementById('btn-opp-multi').className = "px-3 py-1 rounded-lg text-xs font-bold text-white/60 hover:text-white cursor-pointer";
+      } else {
+        document.getElementById('btn-opp-ai').className = "px-3 py-1 rounded-lg text-xs font-bold text-white/60 hover:text-white cursor-pointer";
+        document.getElementById('btn-opp-multi').className = "px-3 py-1 rounded-lg text-xs font-bold bg-[#c84b31] text-white shadow cursor-pointer";
+      }
+    }
+
+    function confirmAndPlayM1() {
+      toggleModeSheetM1();
+      launchMatch1Tap('Model 1: ' + gamesData[currentGameIdx].title + ' (' + gamesData[currentGameIdx].modes[selectedModeIdx].name + ')');
+    }
+
+    // Model 2: Lounges Database
+    const m2LoungesData = {
+      0: [ // DIGU
+        { title: '2v2 PARTNERSHIP', tag: 'POPULAR', badgeColor: 'text-[#10b981] bg-[#10b981]/15', players: '👥 4P', desc: 'Standard team battle. Merge melds with your ally and rush 1000 pts.', stake: 100, btnClass: 'bg-gradient-to-r from-[#c84b31] to-[#8f2d1b] text-white' },
+        { title: '4P CUTTHROAT', tag: 'SOLO WAR', badgeColor: 'text-[#e5c378] bg-[#e5c378]/15', players: '⚔️ Solo', desc: 'Every player for themselves. Defend your deadwood and strike fast.', stake: 250, btnClass: 'bg-[#1c0c09] border border-[#301a14] group-hover:border-[#e5c378] text-white' },
+        { title: '1v1 HEAD-TO-HEAD', tag: 'DUEL', badgeColor: 'text-[#14b8a6] bg-[#14b8a6]/15', players: '⚡ Rapid', desc: 'Fast, intense 2-player duel. Rapid draw cadence and pure skill.', stake: 500, btnClass: 'bg-[#091a18] border border-[#14b8a6]/50 group-hover:bg-[#14b8a6] group-hover:text-[#080302] text-[#14b8a6]' },
+        { title: 'FRIENDS TABLE', tag: 'PRIVATE', badgeColor: 'text-[#a855f7] bg-[#a855f7]/15', players: '🔑 Code', desc: 'Create custom room or join with a 4-digit code. Zero randoms.', stake: 0, btnClass: 'bg-[#190a24] border border-[#a855f7]/50 group-hover:bg-[#a855f7] group-hover:text-white text-[#c084fc]' }
+      ],
+      1: [ // DHIHAEH
+        { title: 'DYNAMIC CUT (VOID)', tag: 'VARIANT A', badgeColor: 'text-[#38bdf8] bg-[#38bdf8]/15', players: '👥 4P (2v2)', desc: 'First void card played immediately locks in the trump suit.', stake: 100, btnClass: 'bg-gradient-to-r from-[#0284c7] to-[#0369a1] text-white' },
+        { title: 'HIDDEN RESERVE CARD', tag: 'VARIANT B', badgeColor: 'text-[#e5c378] bg-[#e5c378]/15', players: '🃏 Blind Suit', desc: '1 blind card reserved during deal, revealed upon first void.', stake: 250, btnClass: 'bg-[#1c0c09] border border-[#301a14] group-hover:border-[#e5c378] text-white' },
+        { title: '1000-PT HAASBAGGA', tag: 'HIGH ROLLER', badgeColor: 'text-[#10b981] bg-[#10b981]/15', players: '👑 10s Hunt', desc: 'Hunt all four 10-cards and sweep 13 tricks for 1000 points.', stake: 500, btnClass: 'bg-[#0d1f1c] border border-[#10b981]/50 group-hover:bg-[#10b981] group-hover:text-[#080302] text-[#10b981]' },
+        { title: 'PRIVATE DHIHAEH', tag: 'PRIVATE', badgeColor: 'text-[#a855f7] bg-[#a855f7]/15', players: '🔑 Code', desc: 'Host a private 4-player trick room with custom house rules.', stake: 0, btnClass: 'bg-[#190a24] border border-[#a855f7]/50 group-hover:bg-[#a855f7] group-hover:text-white text-[#c084fc]' }
+      ],
+      2: [ // BONDI
+        { title: '4P SUIT DUMP ARENA', tag: 'POPULAR', badgeColor: 'text-[#34d399] bg-[#34d399]/15', players: '👥 4P (13 Cards)', desc: 'Void players dump all cards of chosen suit on high-card leader.', stake: 100, btnClass: 'bg-gradient-to-r from-[#059669] to-[#047857] text-white' },
+        { title: '3P CUTTHROAT SHED', tag: 'FAST', badgeColor: 'text-[#e5c378] bg-[#e5c378]/15', players: '⚔️ 3P (17 Cards)', desc: 'Rapid shedding. High card takes the pile on void suit dump.', stake: 200, btnClass: 'bg-[#1c0c09] border border-[#301a14] group-hover:border-[#e5c378] text-white' },
+        { title: '2P DUEL (26 CARDS)', tag: 'INTENSE', badgeColor: 'text-[#f43f5e] bg-[#f43f5e]/15', players: '⚡ 26 Cards Ea', desc: 'Heads-up shedding war. Mass pile dumps back and forth.', stake: 500, btnClass: 'bg-[#260d13] border border-[#f43f5e]/50 group-hover:bg-[#f43f5e] group-hover:text-white text-[#fb7185]' },
+        { title: 'PRIVATE BONDI', tag: 'PRIVATE', badgeColor: 'text-[#a855f7] bg-[#a855f7]/15', players: '🔑 Code', desc: 'Set up 2 to 6 player custom table with friends.', stake: 0, btnClass: 'bg-[#190a24] border border-[#a855f7]/50 group-hover:bg-[#a855f7] group-hover:text-white text-[#c084fc]' }
+      ]
+    };
+
+    function renderLoungesM2(gameIdx) {
+      const container = document.getElementById('m2-lounges-grid');
+      if (!container) return;
+      container.innerHTML = '';
+      const lounges = m2LoungesData[gameIdx] || m2LoungesData[0];
+      lounges.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "lacquer-panel rounded-3xl border border-[#301a14] hover:border-[#e5c378] p-3.5 sm:p-4 flex flex-col justify-between cursor-pointer group hover:scale-[1.02] transition-all relative overflow-hidden";
+        div.onclick = () => launchDirectTable(item.title, item.stake);
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-mono font-black ${item.badgeColor} px-2 py-0.5 rounded uppercase">${item.tag}</span>
+              <span class="text-xs text-white/50 font-mono">${item.players}</span>
+            </div>
+            <h2 class="font-serif-luxury font-black text-sm sm:text-base text-white mt-2 group-hover:text-[#e5c378] transition-colors">${item.title}</h2>
+            <p class="text-[11px] text-white/60 mt-1 line-clamp-2">${item.desc}</p>
+          </div>
+          <div class="pt-3 border-t border-[#301a14]/60 mt-2">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-mono text-white/50">Stake / Entry</span>
+              <span class="text-xs font-mono font-black ${item.stake > 0 ? 'text-[#e5c378]' : 'text-white/70'}">${item.stake > 0 ? '🪙 ' + item.stake : 'FREE'}</span>
+            </div>
+            <button class="w-full py-2 rounded-xl ${item.btnClass} font-serif-luxury font-black text-xs tracking-wider shadow flex items-center justify-center gap-1.5 transition-colors">
+              <span>⚡ PLAY (1-TAP)</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Model 2: Zynga Logic
+    function setGameM2(idx) {
+      countTap();
+      playFlick(520, 'triangle');
+      [0, 1, 2].forEach(i => {
+        const tab = document.getElementById('m2-tab-' + i);
+        if (i === idx) {
+          tab.className = "flex-1 py-2 px-3 rounded-2xl bg-[#c84b31] text-white border border-[#e5c378]/60 shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all";
+        } else {
+          tab.className = "flex-1 py-2 px-3 rounded-2xl bg-[#140806] text-white/70 border border-[#301a14] hover:border-[#e5c378]/50 shadow flex items-center justify-center gap-2 cursor-pointer transition-all";
+        }
+      });
+      renderLoungesM2(idx);
+      showToast('Switched to ' + gamesData[idx].title + ' Stadium Lounges');
+    }
+
+    function launchDirectTable(tableName, stake) {
+      countTap();
+      playFlick(680, 'sine');
+      showLaunchOverlay(tableName, stake > 0 ? `Entry stake: 🪙 ${stake} • 1-Tap entry without confirmation screens` : 'Private room • Direct entry');
+    }
+
+    // Launch Match (Generic 1-Tap)
+    function launchMatch1Tap(modeName) {
+      countTap();
+      playFlick(720, 'triangle');
+      showLaunchOverlay(modeName, 'Instant seat reserved. Bypassed 4 redundant screens!');
+    }
+
+    function showLaunchOverlay(title, subtitle) {
+      document.getElementById('launch-mode-title').innerText = title.toUpperCase();
+      document.getElementById('launch-mode-sub').innerText = subtitle;
+      document.getElementById('launch-overlay').classList.remove('hidden');
+    }
+
+    function closeLaunchOverlay() {
+      playFlick(350, 'sine');
+      document.getElementById('launch-overlay').classList.add('hidden');
+    }
+
+    function enterRealGame() {
+      playFlick(880, 'triangle');
+      // Redirect to actual Digu app table or show ready alert
+      window.location.href = '/';
+    }
+
+    // Initial load
+    updateM1Hero();
+    renderLoungesM2(0);
+  </script>
+</body>
+</html>
