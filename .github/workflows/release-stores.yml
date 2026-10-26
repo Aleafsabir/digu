@@ -1,0 +1,169 @@
+name: Store Release Pipeline (Google Play & Apple App Store)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      target_platform:
+        description: 'Release Target'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - android
+          - ios
+      play_track:
+        description: 'Google Play Track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+
+jobs:
+  # ----------------------------------------------------
+  # ANDROID STORE DEPLOYMENT (Google Play)
+  # ----------------------------------------------------
+  release-android:
+    name: Package & Deploy Android (AAB)
+    if: github.event.inputs.target_platform != 'ios'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Client Dependencies
+        run: npm ci
+
+      - name: Run Test Suite (Vitest)
+        run: npm run test
+
+      - name: Build Web Application (Vite)
+        run: npm run build
+
+      - name: Setup Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Ruby for Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: gem install fastlane --no-document
+
+      - name: Sync Web Assets to Android Shell
+        run: npx cap sync android
+
+      - name: Decode Release Keystore
+        if: env.RELEASE_KEYSTORE_BASE64 != ''
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > android/release.keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+      - name: Decode Google Play Service Account Key
+        if: env.SUPPLY_JSON_KEY_DATA != ''
+        run: |
+          echo "${{ secrets.SUPPLY_JSON_KEY_DATA }}" > fastlane/google-play-api-key.json
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.SUPPLY_JSON_KEY_DATA }}
+
+      - name: Build Signed Android App Bundle (AAB)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon --stacktrace
+        env:
+          RELEASE_KEYSTORE_PATH: ${{ github.workspace }}/android/release.keystore
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
+      - name: Upload AAB Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: holhuashi-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Deploy to Google Play Track via Fastlane Supply
+        if: env.SUPPLY_JSON_KEY_DATA != ''
+        run: |
+          fastlane android deploy_internal
+        env:
+          SUPPLY_TRACK: ${{ github.event.inputs.play_track || 'internal' }}
+          SUPPLY_JSON_KEY_FILE: fastlane/google-play-api-key.json
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.SUPPLY_JSON_KEY_DATA }}
+
+  # ----------------------------------------------------
+  # IOS STORE DEPLOYMENT (TestFlight & App Store)
+  # ----------------------------------------------------
+  release-ios:
+    name: Package & Deploy iOS (IPA / TestFlight)
+    if: github.event.inputs.target_platform != 'android'
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Client Dependencies
+        run: npm ci
+
+      - name: Run Test Suite (Vitest)
+        run: npm run test
+
+      - name: Build Web Application (Vite)
+        run: npm run build
+
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.0.app
+
+      - name: Setup Ruby for Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Install Fastlane & CocoaPods
+        run: gem install fastlane cocoapods --no-document
+
+      - name: Sync Web Assets to iOS Shell
+        run: npx cap sync ios
+
+      - name: Build & Deploy to TestFlight via Fastlane Pilot
+        if: env.APP_STORE_CONNECT_KEY_CONTENT != ''
+        run: |
+          fastlane ios deploy_testflight
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}

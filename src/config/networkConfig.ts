@@ -3,12 +3,12 @@ import { Capacitor } from '@capacitor/core';
 const STORAGE_KEY = 'digu_custom_backend_url';
 
 /**
- * Default public production/tunnel backend URL for mobile APKs.
- * Can be overridden in in-game settings.
+ * Default production backend URL for native mobile builds (Google Cloud Run / Custom Domain).
+ * Overridden via VITE_API_URL in .env.production or custom setting in in-game settings.
  */
 export const DEFAULT_MOBILE_BACKEND_URL =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  'https://creation-search-watches-collapse.trycloudflare.com';
+  'https://holhuashi-server-710897174854.us-central1.run.app';
 
 /**
  * Returns whether the app is running as a native mobile shell (Android/iOS) via Capacitor.

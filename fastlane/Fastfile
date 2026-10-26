@@ -1,0 +1,151 @@
+# fastlane/Fastfile
+# Holhuashi Mobile Release & Automated Store Deployment Pipeline
+
+default_platform(:android)
+
+# ----------------------------------------------------
+# PLATFORM: ANDROID
+# ----------------------------------------------------
+platform :android do
+  desc "Pre-build web assets and synchronize with Capacitor Android shell"
+  lane :prepare_assets do
+    sh("npm run build")
+    sh("npx cap sync android")
+  end
+
+  desc "Build signed Android App Bundle (AAB) for Google Play release"
+  lane :build_release_bundle do
+    prepare_assets
+
+    gradle(
+      task: "clean bundleRelease",
+      project_dir: "android/",
+      properties: {
+        "android.injected.signing.store.file" => ENV["RELEASE_KEYSTORE_PATH"],
+        "android.injected.signing.store.password" => ENV["RELEASE_KEYSTORE_PASSWORD"],
+        "android.injected.signing.key.alias" => ENV["RELEASE_KEY_ALIAS"],
+        "android.injected.signing.key.password" => ENV["RELEASE_KEY_PASSWORD"]
+      }
+    )
+  end
+
+  desc "Deploy Android App Bundle to Google Play Internal Testing Track"
+  lane :deploy_internal do
+    build_release_bundle
+
+    supply(
+      track: "internal",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      release_status: "completed"
+    )
+  end
+
+  desc "Promote Google Play Internal build to Closed/Production Track"
+  lane :deploy_production do
+    supply(
+      track: "production",
+      aab: "android/app/build/outputs/bundle/release/app-release.aab",
+      track_promote_to: "production",
+      release_status: "completed"
+    )
+  end
+
+  desc "Capture automated localized screenshots via Screengrab"
+  lane :capture_screenshots do
+    gradle(
+      task: "assembleDebug assembleAndroidTest",
+      project_dir: "android/"
+    )
+
+    screengrab
+  end
+end
+
+# ----------------------------------------------------
+# PLATFORM: IOS
+# ----------------------------------------------------
+platform :ios do
+  desc "Pre-build web assets and synchronize with Capacitor iOS shell"
+  lane :prepare_assets do
+    sh("npm run build")
+    sh("npx cap sync ios")
+  end
+
+  desc "Authenticate with App Store Connect using API Key"
+  lane :load_asc_api_key do
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false
+    )
+  end
+
+  desc "Build iOS Archive (.ipa) for App Store & TestFlight distribution"
+  lane :build_release_ipa do
+    prepare_assets
+    load_asc_api_key
+
+    # Synchronize certificates and profiles via fastlane match
+    match(type: "appstore", readonly: is_ci)
+
+    build_app(
+      workspace: "ios/App/App.xcworkspace",
+      scheme: "App",
+      export_method: "app-store",
+      output_directory: "build-ipa-output",
+      output_name: "Holhuashi.ipa",
+      clean: true,
+      export_options: {
+        signingStyle: "manual",
+        stripSwiftSymbols: true
+      }
+    )
+  end
+
+  desc "Deploy build to Apple TestFlight"
+  lane :deploy_testflight do
+    build_release_ipa
+    load_asc_api_key
+
+    upload_to_testflight(
+      ipa: "build-ipa-output/Holhuashi.ipa",
+      skip_waiting_for_build_processing: true,
+      changelog: "Holhuashi v0.5.2 production candidate with unified Royal Lacquer aesthetics and cloud synchronization."
+    )
+  end
+
+  desc "Upload metadata, screenshots, and submit build for App Store Review"
+  lane :deploy_app_store do
+    build_release_ipa
+    load_asc_api_key
+
+    upload_to_app_store(
+      ipa: "build-ipa-output/Holhuashi.ipa",
+      force: true,
+      submit_for_review: false,
+      automatic_release: true,
+      skip_screenshots: false,
+      metadata_path: "./fastlane/metadata/ios"
+    )
+  end
+
+  desc "Capture automated screenshots across all required iOS form factors via Snapshot"
+  lane :capture_screenshots do
+    snapshot
+  end
+end
+
+# ----------------------------------------------------
+# SHARED / CROSS-PLATFORM LANES
+# ----------------------------------------------------
+desc "Apply marketing titles and device framing to all captured screenshots"
+lane :frame_screenshots do
+  frameit(
+    path: "./fastlane/screenshots"
+  )
+end

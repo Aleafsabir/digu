@@ -1,4 +1,5 @@
 import { APP_VERSION_CONFIG, AppUpdateInfo } from '../config/versionConfig';
+import { Capacitor } from '@capacitor/core';
 
 const LAST_CHECK_KEY = 'holhuashi_last_update_check';
 const DISMISSED_VERSION_KEY = 'holhuashi_dismissed_update_version';
@@ -36,34 +37,22 @@ export async function checkForAppUpdate(forceManualCheck = false): Promise<Check
       // Fallback below
     }
 
-    // 2. If manifest fetch failed, fallback to public GitHub Releases API
+    // 2. Default store-compliant fallback if remote manifest is unreachable
     if (!manifest) {
-      try {
-        const ghRes = await fetch(APP_VERSION_CONFIG.githubApiUrl, {
-          headers: { Accept: 'application/vnd.github.v3+json' },
-        });
-        if (ghRes.ok) {
-          const ghData = await ghRes.json();
-          const tagName = String(ghData.tag_name || '').replace(/^v/, '');
-          const apkAsset = ghData.assets?.find((a: { name: string }) =>
-            a.name.endsWith('.apk')
-          );
+      const platform = Capacitor.getPlatform();
+      const defaultStoreUrl =
+        platform === 'ios'
+          ? APP_VERSION_CONFIG.appStoreUrl
+          : APP_VERSION_CONFIG.playStoreUrl;
 
-          const isReleaseNewer = compareSemver(tagName, APP_VERSION_CONFIG.versionName) > 0;
-          manifest = {
-            versionName: tagName || APP_VERSION_CONFIG.versionName,
-            versionCode: isReleaseNewer ? APP_VERSION_CONFIG.versionCode + 1 : APP_VERSION_CONFIG.versionCode,
-            releaseDate: ghData.published_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-            downloadUrl: apkAsset?.browser_download_url || APP_VERSION_CONFIG.directApkUrl,
-            isMandatory: false,
-            releaseNotes: ghData.body
-              ? ghData.body.split('\n').filter((l: string) => l.trim().length > 0).slice(0, 5)
-              : ['Performance improvements and bug fixes'],
-          };
-        }
-      } catch {
-        // Network offline or GitHub rate limit
-      }
+      manifest = {
+        versionName: APP_VERSION_CONFIG.versionName,
+        versionCode: APP_VERSION_CONFIG.versionCode,
+        releaseDate: new Date().toISOString().split('T')[0],
+        downloadUrl: defaultStoreUrl,
+        isMandatory: false,
+        releaseNotes: ['General stability and performance improvements.'],
+      };
     }
 
     if (!manifest) {
@@ -107,19 +96,24 @@ export function dismissUpdate(versionName: string) {
 }
 
 export function downloadAndInstallUpdate(downloadUrl?: string) {
-  const url = downloadUrl || APP_VERSION_CONFIG.directApkUrl;
+  const platform = Capacitor.getPlatform();
+  let defaultUrl: string;
+
+  if (platform === 'android') {
+    defaultUrl = APP_VERSION_CONFIG.playStoreMarketUrl;
+  } else if (platform === 'ios') {
+    defaultUrl = APP_VERSION_CONFIG.appStoreSchemeUrl;
+  } else {
+    defaultUrl = APP_VERSION_CONFIG.playStoreUrl;
+  }
+
+  const url = downloadUrl || defaultUrl;
+
   try {
-    // Try opening via window.open with _system for Capacitor / mobile browsers
+    // Open in native system handler (Google Play app or App Store app)
     const target = window.open(url, '_system');
     if (!target) {
-      // Fallback: create temporary DOM anchor
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'Holhuashi-Digu.apk';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      window.location.href = url;
     }
   } catch {
     window.location.href = url;

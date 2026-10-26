@@ -3,14 +3,14 @@
 
 @font-face {
   font-family: 'Faruma';
-  src: local('Faruma'), url('/fonts/Faruma.woff2') format('woff2'), url('/fonts/Faruma.ttf') format('truetype');
+  src: local('Faruma'), local('MV Faruma');
   font-weight: 400 700;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'MV Waheed';
-  src: local('MV Waheed'), local('MV_Waheed'), url('/fonts/MVWaheed.woff2') format('woff2');
+  src: local('MV Waheed'), local('MV_Waheed'), local('Waheed');
   font-weight: 700;
   font-display: swap;
 }

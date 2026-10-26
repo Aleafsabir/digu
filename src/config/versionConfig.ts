@@ -10,9 +10,10 @@ export interface AppUpdateInfo {
 export const APP_VERSION_CONFIG = {
   versionName: '0.5.2',
   versionCode: 17,
-  appName: 'Holhuashi: Digu',
-  githubRepo: 'Aleafsabir/digu',
+  appName: 'Holhuashi',
+  playStoreUrl: 'https://play.google.com/store/apps/details?id=com.thaasbai.digu',
+  playStoreMarketUrl: 'market://details?id=com.thaasbai.digu',
+  appStoreUrl: 'https://apps.apple.com/app/holhuashi/id6470000000',
+  appStoreSchemeUrl: 'itms-apps://itunes.apple.com/app/id6470000000',
   manifestUrl: 'https://raw.githubusercontent.com/Aleafsabir/digu/main/public/version.json',
-  githubApiUrl: 'https://api.github.com/repos/Aleafsabir/digu/releases/latest',
-  directApkUrl: 'https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk',
 } as const;

@@ -2,7 +2,7 @@
   "versionName": "0.5.2",
   "versionCode": 17,
   "releaseDate": "2026-10-26",
-  "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
+  "downloadUrl": "https://play.google.com/store/apps/details?id=com.thaasbai.digu",
   "isMandatory": false,
   "releaseNotes": [
     "Multi-Screen & Variable DPI Architecture: Dual-layout engine with auto-switching between Ultra-Dense Browser Mode (<360px) and Spacious Stadium Mode (>=360px)",

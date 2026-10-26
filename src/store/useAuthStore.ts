@@ -236,11 +236,35 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   loginWithApple: async () => {
     set({ isSyncing: true });
     try {
+      let email: string | undefined;
+      let displayName: string | undefined;
+
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+          const res = await FirebaseAuthentication.signInWithApple();
+          if (res?.user) {
+            email = res.user.email || undefined;
+            displayName = res.user.displayName || undefined;
+          }
+        } catch (nativeErr: any) {
+          console.warn('[Auth] Native Apple Sign-In error:', nativeErr);
+          if (
+            nativeErr?.message?.includes('cancel') ||
+            nativeErr?.code === 'SIGN_IN_CANCELLED' ||
+            nativeErr?.message?.includes('1001')
+          ) {
+            return;
+          }
+        }
+      }
+
       const updated = await CloudSyncService.linkCloudAccount(
         get().profile,
         'APPLE',
         {
-          email: 'apple.user@privaterelay.appleid.com',
+          email: email || 'player.apple@privaterelay.appleid.com',
+          displayName,
         }
       );
       set({ profile: updated, isAuthModalOpen: false });

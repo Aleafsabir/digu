@@ -1,0 +1,9 @@
+# fastlane/Matchfile
+# Code signing synchronization across macOS/CI runners
+
+git_url(ENV["MATCH_GIT_URL"] || "git@github.com:Aleafsabir/digu-certificates.git")
+storage_mode("git")
+type("appstore") # Default type: appstore, adhoc, or development
+app_identifier(["com.thaasbai.digu"])
+username(ENV["APPLE_ID"] || "developer@holhuashi.com")
+team_id(ENV["APPLE_TEAM_ID"])

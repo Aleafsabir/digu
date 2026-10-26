@@ -1,0 +1,16 @@
+# fastlane/Appfile
+# Application Identifiers and Developer Credentials for Holhuashi
+
+# -----------------
+# iOS Configuration
+# -----------------
+app_identifier("com.thaasbai.digu") # The bundle identifier of your app
+apple_id(ENV["APPLE_ID"] || "developer@holhuashi.com") # Your Apple Developer account email
+team_id(ENV["APPLE_TEAM_ID"]) # Apple Developer Portal Team ID
+itc_team_id(ENV["APPLE_ITC_TEAM_ID"]) # App Store Connect Team ID
+
+# ---------------------
+# Android Configuration
+# ---------------------
+package_name("com.thaasbai.digu") # Android application ID
+json_key_file(ENV["SUPPLY_JSON_KEY_FILE"] || "fastlane/google-play-api-key.json") # Google Play Service Account JSON key

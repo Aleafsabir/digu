@@ -1,0 +1,42 @@
+{
+  "default": {
+    "keyword": {
+      "font": "./fonts/PlusJakartaSans-Bold.ttf",
+      "color": "#E5C378"
+    },
+    "title": {
+      "font": "./fonts/PlusJakartaSans-Regular.ttf",
+      "color": "#F7F0EA"
+    },
+    "background": "#0D0605",
+    "padding": 50,
+    "show_complete_frame": false
+  },
+  "data": [
+    {
+      "filter": "01_main_lobby",
+      "keyword": { "text": "MALDIVIAN HERITAGE" },
+      "title": { "text": "Play Digu, Bondi & Dhihaeh anywhere" }
+    },
+    {
+      "filter": "02_gameplay_stadium",
+      "keyword": { "text": "LUXURY STADIUM" },
+      "title": { "text": "4-way compass docking with split-flank south controls" }
+    },
+    {
+      "filter": "03_gin_slam_victory",
+      "keyword": { "text": "GIN SLAM VICTORY" },
+      "title": { "text": "1,000-point runs & zero deadwood scoring" }
+    },
+    {
+      "filter": "04_bondi_classic",
+      "keyword": { "text": "BONDI SHOWDOWN" },
+      "title": { "text": "Fast-paced 3-card tactical rounds" }
+    },
+    {
+      "filter": "05_visual_themes",
+      "keyword": { "text": "ROYAL LACQUER" },
+      "title": { "text": "Authentic Baa Atoll Liyelaa Jehun craft aesthetics" }
+    }
+  ]
+}

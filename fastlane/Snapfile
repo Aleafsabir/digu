@@ -1,0 +1,35 @@
+# fastlane/Snapfile
+# iOS Automated Snapshot Configuration for App Store Screenshots
+
+devices([
+  "iPhone 16 Pro Max",
+  "iPhone 15 Plus",
+  "iPhone 8 Plus",
+  "iPad Pro 13-inch (M4)"
+])
+
+languages([
+  "en-US"
+])
+
+# The iOS test scheme configured in Xcode
+scheme("AppUITests")
+
+# Output folder for raw captures
+output_directory("./fastlane/screenshots")
+
+# Clear old captures before new run
+clear_previous_screenshots(true)
+
+# Simulator settings
+reinstall_app(true)
+erase_simulator(false)
+localize_simulator(true)
+dark_mode(true)
+
+# Arguments passed to the app to guarantee deterministic, offline, mocked test state
+launch_arguments([
+  "-FASTLANE_SNAPSHOT true",
+  "-TEST_OFFLINE_MODE true",
+  "-SEED_TABLE_STATE gin_slam"
+])
