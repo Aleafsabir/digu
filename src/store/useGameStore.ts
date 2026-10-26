@@ -1432,7 +1432,7 @@ useGameStore.subscribe((state) => {
       turnStartedAt: state.turnStartedAt,
       savedAt: Date.now(),
     });
-  } else if (state.currentScreen === 'MODE_SELECT' || state.isForfeitedDueToInactivity) {
+  } else if (state.currentScreen === 'MAIN_LOBBY' || state.isForfeitedDueToInactivity) {
     safeClearSession();
   }
 });

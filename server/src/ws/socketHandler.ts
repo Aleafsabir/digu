@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { query } from '../db.js';
+import { RedisState } from '../redis.js';
 
 interface AuthenticatedSocket extends WebSocket {
   profileId?: string;
@@ -139,6 +140,24 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
           payload: { profileId, status: 'IN_LOBBY', friendCode: resolvedFriendCode },
         })
       );
+
+      // Reconnect recovery check: restore active seat & room from Redis
+      if (payload.sessionToken) {
+        try {
+          const session = await RedisState.getClientSession(payload.sessionToken);
+          if (session) {
+            const room = await RedisState.getRoom(session.roomCode);
+            if (room && room.status !== 'FINISHED') {
+              socket.send(
+                JSON.stringify({
+                  type: 'SESSION_RESTORED',
+                  payload: { room, seatIndex: session.seatIndex },
+                })
+              );
+            }
+          }
+        } catch (_err) {}
+      }
       break;
     }
 

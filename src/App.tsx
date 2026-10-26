@@ -11,10 +11,7 @@ import { OrientationGuard } from './components/shared/OrientationGuard';
 import { LaunchSplashScreen } from './components/screens/LaunchSplashScreen';
 import { AccountGatewayScreen } from './components/screens/AccountGatewayScreen';
 import { MainLobbyScreen } from './components/screens/MainLobbyScreen';
-import { ModeSelectionScreen } from './components/screens/ModeSelectionScreen';
-import { PlayTypeModal } from './components/screens/PlayTypeModal';
 import { OnlineLobbyModal } from './components/screens/OnlineLobbyModal';
-import { RulesConfirmationModal } from './components/screens/RulesConfirmationModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { ProfileEditModal } from './components/auth/ProfileEditModal';
 import { CloudConflictModal } from './components/auth/CloudConflictModal';
@@ -51,10 +48,7 @@ export default function App() {
     setUpdateInfo,
     setShowUpdateModal,
     setScreen,
-    selectModeAndReview,
-    selectPlayType,
     updatePendingRules,
-    confirmAndStartMatch,
     clearError,
     clearAwayToast,
     exitToLobby,
@@ -228,13 +222,6 @@ export default function App() {
           }}
           onSelectGame={(game) => {
             setActiveGame(game);
-            if (game === 'DIGU') {
-              setScreen('MODE_SELECT');
-            } else if (game === 'DHIHAEH') {
-              setShowDhihaehSetup(true);
-            } else if (game === 'BONDI') {
-              setShowBondiSetup(true);
-            }
           }}
           onOpenSettings={() => setShowSettings(true)}
           onOpenRules={() => setShowRules(true)}
@@ -242,77 +229,16 @@ export default function App() {
         />
       )}
 
-      {/* Screen 4: Digu Sub-Lobby (Mode Selection) */}
-      {currentScreen === 'MODE_SELECT' && (
-        <ModeSelectionScreen
-          onSelectMode={selectModeAndReview}
-          onOpenRules={() => setShowRules(true)}
-          onOpenSettings={() => setShowSettings(true)}
-          onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
-          onOpenPrivateTable={() => {
-            updatePendingRules({ playType: 'ONLINE', mode: 'TEAM_4P' });
-            setLobbyInitialTab('CREATE_ROOM');
-            setScreen('ONLINE_LOBBY');
-          }}
-        />
-      )}
-
-      {/* Screen 2.5: Play Type Selection (VS AI vs Online) */}
-      {currentScreen === 'PLAY_TYPE_SELECT' && (
-        <>
-          <ModeSelectionScreen
-            onSelectMode={selectModeAndReview}
-            onOpenRules={() => setShowRules(true)}
-            onOpenSettings={() => setShowSettings(true)}
-            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
-          />
-          <PlayTypeModal
-            mode={pendingRules.mode}
-            onSelectPlayType={type => {
-              if (type === 'ONLINE') {
-                setLobbyInitialTab('QUICK_MATCH');
-              }
-              selectPlayType(type);
-            }}
-            onBack={() => setScreen('MODE_SELECT')}
-          />
-        </>
-      )}
-
       {/* Screen 2.6: Online Multiplayer Lobby Radar */}
       {currentScreen === 'ONLINE_LOBBY' && (
-        <>
-          <ModeSelectionScreen
-            onSelectMode={selectModeAndReview}
-            onOpenRules={() => setShowRules(true)}
-            onOpenSettings={() => setShowSettings(true)}
-            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
-          />
-          <OnlineLobbyModal
-            pendingRules={pendingRules}
-            initialTab={lobbyInitialTab}
-            onPlayVSAI={() => selectPlayType('VS_AI')}
-            onBack={() => setScreen(lobbyInitialTab === 'CREATE_ROOM' ? 'MODE_SELECT' : 'PLAY_TYPE_SELECT')}
-          />
-        </>
-      )}
-
-      {/* Screen 3: Rules & Stakes Confirmation */}
-      {currentScreen === 'RULES_CONFIRM' && (
-        <>
-          <ModeSelectionScreen
-            onSelectMode={selectModeAndReview}
-            onOpenRules={() => setShowRules(true)}
-            onOpenSettings={() => setShowSettings(true)}
-            onBackToMainLobby={() => setScreen('MAIN_LOBBY')}
-          />
-          <RulesConfirmationModal
-            pendingRules={pendingRules}
-            onUpdateRules={updatePendingRules}
-            onConfirm={confirmAndStartMatch}
-            onBack={() => setScreen('PLAY_TYPE_SELECT')}
-          />
-        </>
+        <OnlineLobbyModal
+          pendingRules={pendingRules}
+          initialTab={lobbyInitialTab}
+          onPlayVSAI={() => {
+            useGameStore.getState().startDirectMatch(pendingRules.mode, 'VS_AI');
+          }}
+          onBack={() => setScreen('MAIN_LOBBY')}
+        />
       )}
 
       {/* Screen 4: Active Gameplay (Headerless Stadium Table) */}

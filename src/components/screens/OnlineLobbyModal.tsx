@@ -55,9 +55,30 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
 
   // Matchmaking State
   const [isSearching, setIsSearching] = useState(false);
+  const [searchTimer, setSearchTimer] = useState(0);
   const [matchedSeats, setMatchedSeats] = useState<RoomSeat[]>([]);
   const [matchCountdown, setMatchCountdown] = useState<number | null>(null);
   const matchmakingCancelRef = useRef<(() => void) | null>(null);
+  const privateRoomCodeRef = useRef<string>(privateRoomCode);
+
+  useEffect(() => {
+    privateRoomCodeRef.current = privateRoomCode;
+  }, [privateRoomCode]);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (isSearching) {
+      setSearchTimer(0);
+      interval = setInterval(() => {
+        setSearchTimer(prev => prev + 1);
+      }, 1000);
+    } else {
+      setSearchTimer(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSearching]);
 
   const maxPlayers = pendingRules.mode === 'SOLO_2P' ? 2 : 4;
   const currentPot = selectedStake * maxPlayers;
@@ -137,13 +158,14 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
       true
     ).then(room => {
       if (!isMounted || !room) return;
-      if (room.roomCode && room.roomCode !== privateRoomCode) {
+      if (room.roomCode) {
+        privateRoomCodeRef.current = room.roomCode;
         setPrivateRoomCode(room.roomCode);
       }
     });
 
     const pollInterval = setInterval(async () => {
-      const room = await DatabaseService.getRoomByCode(privateRoomCode);
+      const room = await DatabaseService.getRoomByCode(privateRoomCodeRef.current);
       if (room && isMounted) {
         const nextJoined: Record<number, { playerName: string; avatarId: string; isBot?: boolean }> = {};
         room.seats.forEach(s => {
@@ -166,7 +188,23 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
       isMounted = false;
       clearInterval(pollInterval);
     };
-  }, [activeTab, privateRoomCode, profile, pendingRules.mode, selectedStake, selectedTarget]);
+  }, [activeTab, profile.id, pendingRules.mode, selectedStake, selectedTarget]);
+
+  const handleRegenerateCode = async () => {
+    const newRoom = await DatabaseService.createRoom(
+      profile,
+      pendingRules.mode,
+      selectedStake,
+      selectedTarget,
+      true
+    );
+    if (newRoom?.roomCode) {
+      privateRoomCodeRef.current = newRoom.roomCode;
+      setPrivateRoomCode(newRoom.roomCode);
+      setJoinedSeats({});
+      setInvitedSeats({});
+    }
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(privateRoomCode);
@@ -194,23 +232,22 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
     confirmAndStartMatch();
   };
 
-  const handleJoinWithCode = async () => {
+  const handleJoinWithCode = async (codeToJoin?: string) => {
     setJoinError(null);
-    const clean = joinInputCode.trim().toUpperCase();
-    if (!clean) {
-      setJoinError('Please enter a 6-digit room code');
+    const targetCode = (codeToJoin || joinInputCode).trim().replace(/[^0-9]/g, '');
+    if (targetCode.length !== 4) {
+      setJoinError('Please enter a 4-digit room PIN (e.g. 4892)');
       return;
     }
-    const formattedCode = clean.startsWith('THAAS-') ? clean : `THAAS-${clean.replace(/[^0-9]/g, '')}`;
 
     if (profile.coins < selectedStake) {
       setJoinError(`Insufficient coins. Need ${selectedStake.toLocaleString()} coins.`);
       return;
     }
 
-    const joinResult = await DatabaseService.joinRoom(formattedCode, profile);
+    const joinResult = await DatabaseService.joinRoom(targetCode, profile);
     if (!joinResult.success) {
-      setJoinError(joinResult.error || 'Could not find or join room');
+      setJoinError(joinResult.error || 'Room not found or table is full');
       return;
     }
 
@@ -379,7 +416,10 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               <span className="text-xs sm:text-sm font-black text-[#e5c378] mt-2 flex items-center gap-1.5 font-sans-clean">
                 {matchCountdown !== null
                   ? `Match Starting in ${matchCountdown}s...`
-                  : `Finding ${pendingRules.mode === 'TEAM_4P' ? '2v2 Team' : 'Online'} Opponents...`}
+                  : `Finding Real Opponents... (${searchTimer}s)`}
+              </span>
+              <span className="text-[10px] text-[#f7f0ea]/60 mt-0.5">
+                {matchedSeats.length} of {maxPlayers} Players Seated (Zero Bots)
               </span>
             </div>
 
@@ -442,7 +482,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => setPrivateRoomCode(DatabaseService.generateRoomCode())}
+                  onClick={handleRegenerateCode}
                   title="Generate New Code"
                   className="p-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-[#f7f0ea] transition cursor-pointer border-0 shadow"
                 >
@@ -584,28 +624,13 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
                         </button>
                       </div>
                     ) : (
-                      <div className="w-full flex items-center gap-1">
-                        <button
-                          onClick={() => setFriendPickerSeatIndex(seatIdx)}
-                          className="flex-1 py-1 rounded-lg bg-[#301a14] hover:bg-[#4a2820] border border-[#e5c378]/30 text-[#e5c378] text-[9px] font-bold transition cursor-pointer flex items-center justify-center gap-0.5"
-                        >
-                          <UserPlus className="w-2.5 h-2.5" />
-                          <span>Invite</span>
-                        </button>
-                        <button
-                          onClick={async () => {
-                            await DatabaseService.fillSeatWithBot('', privateRoomCode, seatIdx);
-                            setJoinedSeats(prev => ({
-                              ...prev,
-                              [seatIdx]: { playerName: `Bot ${seatIdx + 1}`, avatarId: 'fisher', isBot: true },
-                            }));
-                          }}
-                          title="Fill with AI Bot"
-                          className="px-2 py-1 rounded-lg bg-[#0d0605] hover:bg-[#301a14] border border-[#301a14] text-[#f7f0ea]/70 hover:text-[#e5c378] text-[9px] font-bold transition cursor-pointer"
-                        >
-                          +Bot
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setFriendPickerSeatIndex(seatIdx)}
+                        className="w-full py-1.5 rounded-lg bg-[#301a14] hover:bg-[#4a2820] border border-[#e5c378]/30 text-[#e5c378] text-[9.5px] font-bold transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-sm"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        <span>Invite</span>
+                      </button>
                     )}
                   </div>
                 );
@@ -724,28 +749,33 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
         {/* ======================================================== */}
         {activeTab === 'JOIN_ROOM' && (
           <div className="flex flex-col my-auto space-y-3.5">
-            <div className="bg-[#0d0605] border border-[#301a14] rounded-2xl p-4 flex flex-col text-left shadow-md">
+            <div className="bg-[#0d0605] border border-[#301a14] rounded-2xl p-4 flex flex-col text-center shadow-md">
               <label className="text-[10px] uppercase font-black text-[#e5c378]/70 tracking-wider mb-2">
-                Enter 6-Digit Room Code
+                Enter 4-Digit Room PIN
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center py-2">
                 <input
                   type="text"
                   dir="ltr"
-                  autoCapitalize="characters"
-                  autoCorrect="off"
-                  autoComplete="off"
-                  spellCheck={false}
-                  inputMode="text"
-                  placeholder="e.g. 8842 or THAAS-8842"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  autoFocus
+                  placeholder="4892"
                   value={joinInputCode}
-                  onChange={e => setJoinInputCode(e.target.value.toUpperCase())}
-                  className="w-full bg-[#170b09] border border-[#301a14] rounded-xl px-3.5 py-2.5 font-mono font-black text-sm sm:text-base text-[#f7f0ea] uppercase tracking-widest placeholder:text-[#f7f0ea]/30 outline-none focus:ring-2 focus:ring-[#e5c378] text-left"
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                    setJoinInputCode(val);
+                    if (val.length === 4) {
+                      handleJoinWithCode(val);
+                    }
+                  }}
+                  className="w-full max-w-xs bg-[#170b09] border border-[#301a14] rounded-2xl px-4 py-3 font-mono font-black text-center text-2xl sm:text-3xl text-[#e5c378] tracking-[0.35em] placeholder:text-[#f7f0ea]/20 outline-none focus:ring-2 focus:ring-[#e5c378] shadow-inner"
                 />
               </div>
 
               {joinError && (
-                <span className="text-[10px] font-bold text-rose-400 mt-2">
+                <span className="text-[11px] font-bold text-rose-400 mt-2">
                   {joinError}
                 </span>
               )}
@@ -754,7 +784,7 @@ export const OnlineLobbyModal: React.FC<OnlineLobbyModalProps> = ({
             <JuicyButton
               variant="gold"
               size="md"
-              onClick={handleJoinWithCode}
+              onClick={() => handleJoinWithCode()}
               disabled={!hasEnoughCoins}
               className="w-full mt-2"
             >

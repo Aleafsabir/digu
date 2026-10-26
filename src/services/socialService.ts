@@ -9,6 +9,20 @@ import { getApiBaseUrl, getWsBaseUrl } from '../config/networkConfig';
 
 const LOCAL_FRIENDS_KEY = 'thaasbai_local_friends_v1';
 const LOCAL_REQUESTS_KEY = 'thaasbai_local_friend_requests_v1';
+const SESSION_TOKEN_KEY = 'thaasbai_client_session_token_v1';
+
+export function getOrCreateSessionToken(): string {
+  try {
+    let token = localStorage.getItem(SESSION_TOKEN_KEY);
+    if (!token) {
+      token = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem(SESSION_TOKEN_KEY, token);
+    }
+    return token;
+  } catch {
+    return `sess_${Date.now()}`;
+  }
+}
 
 export class SocialService {
   private static ws: WebSocket | null = null;
@@ -38,7 +52,8 @@ export class SocialService {
       this.ws = new WebSocket(getWsBaseUrl());
 
       this.ws.onopen = () => {
-        this.send('AUTH_INIT', { profileId, displayName, avatarId, friendCode, level });
+        const sessionToken = getOrCreateSessionToken();
+        this.send('AUTH_INIT', { profileId, displayName, avatarId, friendCode, level, sessionToken });
       };
 
       this.ws.onmessage = event => {

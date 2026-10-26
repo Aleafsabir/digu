@@ -71,11 +71,11 @@ describe('Database & Currency Ledger Suite', () => {
     expect(useAuthStore.getState().profile.coins).toBe(11000);
   });
 
-  it('creates and joins game rooms with valid 6-digit codes', async () => {
+  it('creates and joins game rooms with valid 4-digit codes', async () => {
     const hostProfile = useAuthStore.getState().profile;
     const room = await DatabaseService.createRoom(hostProfile, 'TEAM_4P', 1000, 1000, true);
 
-    expect(room.roomCode).toMatch(/^THAAS-\d{4}$/);
+    expect(room.roomCode).toMatch(/^\d{4}$/);
     expect(room.seats.length).toBe(4);
     expect(room.seats[0].playerName).toBe(hostProfile.displayName);
     expect(room.seats[0].isReady).toBe(true);

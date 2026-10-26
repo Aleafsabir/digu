@@ -50,6 +50,8 @@ type MusicTrack = 'lobby' | 'table' | 'none';
 class BGMManager {
   private currentTrack: MusicTrack = 'none';
   private audioElement: HTMLAudioElement | null = null;
+  private isAppBackgrounded = false;
+  private fadeInterval: any = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -69,7 +71,7 @@ class BGMManager {
             this.audioElement.pause();
           }
         } else {
-          if (this.audioElement) {
+          if (this.audioElement && !this.isAppBackgrounded) {
             this.audioElement.volume = Math.max(0, Math.min(1, state.musicVolume));
             if (this.audioElement.paused && this.currentTrack !== 'none') {
               this.audioElement.play().catch(() => {});
@@ -77,6 +79,77 @@ class BGMManager {
           }
         }
       });
+
+      // HTML5 Visibility API (Browser tab switch / WebView minimize)
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.handleAppBackground();
+        } else {
+          this.handleAppForeground();
+        }
+      });
+
+      // Capacitor Native App Lifecycle (Android app minimize, home button, recent apps switch)
+      import('@capacitor/app').then(({ App: CapApp }) => {
+        CapApp.addListener('appStateChange', ({ isActive }) => {
+          if (!isActive) {
+            this.handleAppBackground();
+          } else {
+            this.handleAppForeground();
+          }
+        });
+      }).catch(() => {});
+    }
+  }
+
+  private handleAppBackground() {
+    if (this.isAppBackgrounded) return;
+    this.isAppBackgrounded = true;
+    if (this.fadeInterval) clearInterval(this.fadeInterval);
+
+    if (this.audioElement && !this.audioElement.paused) {
+      let vol = this.audioElement.volume;
+      const step = vol / 6;
+      this.fadeInterval = setInterval(() => {
+        if (!this.audioElement) {
+          clearInterval(this.fadeInterval);
+          return;
+        }
+        vol = Math.max(0, vol - step);
+        this.audioElement.volume = vol;
+        if (vol <= 0.01) {
+          clearInterval(this.fadeInterval);
+          this.audioElement.pause();
+        }
+      }, 30);
+    }
+  }
+
+  private handleAppForeground() {
+    if (!this.isAppBackgrounded) return;
+    this.isAppBackgrounded = false;
+    if (this.fadeInterval) clearInterval(this.fadeInterval);
+
+    const { musicEnabled, musicVolume } = useSettingsStore.getState();
+    if (this.audioElement && this.currentTrack !== 'none' && musicEnabled) {
+      const targetVol = Math.max(0, Math.min(1, musicVolume));
+      this.audioElement.volume = 0;
+      this.audioElement.play().then(() => {
+        let vol = 0;
+        const step = targetVol / 6;
+        this.fadeInterval = setInterval(() => {
+          if (!this.audioElement) {
+            clearInterval(this.fadeInterval);
+            return;
+          }
+          vol = Math.min(targetVol, vol + step);
+          this.audioElement.volume = vol;
+          if (vol >= targetVol - 0.01) {
+            this.audioElement.volume = targetVol;
+            clearInterval(this.fadeInterval);
+          }
+        }, 30);
+      }).catch(() => {});
     }
   }
 
