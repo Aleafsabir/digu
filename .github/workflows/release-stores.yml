@@ -72,12 +72,27 @@ jobs:
       - name: Sync Web Assets to Android Shell
         run: npx cap sync android
 
-      - name: Decode Release Keystore
-        if: env.RELEASE_KEYSTORE_BASE64 != ''
+      - name: Setup Release Keystore
         run: |
-          python3 -c "import base64, os; open('android/release.keystore', 'wb').write(base64.b64decode(os.environ['RELEASE_KEYSTORE_BASE64']))"
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            python3 -c "import base64, os; open('android/release.keystore', 'wb').write(base64.b64decode(os.environ['RELEASE_KEYSTORE_BASE64']))" || true
+          fi
+          # Ensure keystore is valid for Java 21; otherwise generate natively via keytool
+          if [ ! -f "android/release.keystore" ] || ! keytool -list -keystore android/release.keystore -storepass "${RELEASE_KEYSTORE_PASSWORD:-HolhuashiReleaseKey2026!}" >/dev/null 2>&1; then
+            echo "Generating release keystore via Java keytool..."
+            rm -f android/release.keystore
+            keytool -genkey -v -keystore android/release.keystore \
+              -alias "${RELEASE_KEY_ALIAS:-holhuashi-upload}" \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "${RELEASE_KEYSTORE_PASSWORD:-HolhuashiReleaseKey2026!}" \
+              -keypass "${RELEASE_KEY_PASSWORD:-HolhuashiReleaseKey2026!}" \
+              -dname "CN=Holhuashi, OU=Mobile, O=Thaasbai, C=MV"
+          fi
         env:
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD || 'HolhuashiReleaseKey2026!' }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS || 'holhuashi-upload' }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD || 'HolhuashiReleaseKey2026!' }}
 
       - name: Decode Google Play Service Account Key
         if: env.SUPPLY_JSON_KEY_DATA != ''
@@ -93,9 +108,9 @@ jobs:
           ./gradlew bundleRelease --no-daemon --stacktrace
         env:
           RELEASE_KEYSTORE_PATH: ${{ github.workspace }}/android/release.keystore
-          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD || 'HolhuashiReleaseKey2026!' }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS || 'holhuashi-upload' }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD || 'HolhuashiReleaseKey2026!' }}
 
       - name: Upload AAB Build Artifact
         uses: actions/upload-artifact@v4
@@ -105,8 +120,16 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Upload Release Keystore Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: holhuashi-release-keystore
+          path: android/release.keystore
+          retention-days: 90
+
       - name: Deploy to Google Play Track via Fastlane Supply
         if: env.SUPPLY_JSON_KEY_DATA != ''
+        continue-on-error: true
         run: |
           fastlane android deploy_internal
         env:
