@@ -44,8 +44,8 @@ const SIZE_CLASSES = {
   sm: 'w-10 h-14 rounded-md',
   md: 'w-14 sm:w-16 md:w-20 h-20 sm:h-24 md:h-28 rounded-lg sm:rounded-xl',
   lg: 'w-18 sm:w-22 md:w-26 h-26 sm:h-30 md:h-36 rounded-xl sm:rounded-2xl',
-  hand: 'w-[clamp(58px,17.4dvh,82px)] h-[clamp(88px,26dvh,124px)] rounded-[9px] sm:rounded-[11px]',
-  table: 'w-[clamp(52px,15dvh,76px)] h-[clamp(76px,22dvh,110px)] rounded-[8px] sm:rounded-[10px]',
+  hand: 'w-[clamp(46px,14.5dvh,82px)] h-[clamp(68px,21.5dvh,124px)] rounded-[7px] sm:rounded-[11px]',
+  table: 'w-[clamp(42px,13dvh,76px)] h-[clamp(62px,19dvh,110px)] rounded-[6px] sm:rounded-[10px]',
 };
 
 export function getSuitSVGPath(suit: Suit, cx: number, cy: number, scale = 1, fill = '#111827'): React.ReactElement {

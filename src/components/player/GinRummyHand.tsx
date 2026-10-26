@@ -4,6 +4,7 @@ import { Card, PlayerState } from '../../core/models/types';
 import { HandAnalysis } from '../../store/useGameStore';
 import { PlayingCard, MeldColor, MeldHighlight, RANK_LABELS } from '../shared/PlayingCard';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
+import { useResponsiveViewport } from '../../hooks/useResponsiveViewport';
 import { playFanReorderTick, playGinReadyChime, playUrgentTimerHeartbeat } from '../../utils/audioEffects';
 import {
   ArrowDownToLine,
@@ -110,6 +111,7 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
   hiddenCardId,
   draggedDrawIndex,
 }) => {
+  const { isDenseMode } = useResponsiveViewport();
   const is11Cards = handCards.length === 11;
   const canGin = handAnalysis.isGinReady || handAnalysis.isThousandRunReady;
   const isDraggingRef = useRef(false);
@@ -174,85 +176,139 @@ export const GinRummyHand: React.FC<GinRummyHandProps> = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none z-20">
-      {/* Floating Over-Hand HUD: Clean Deadwood Meter, Turn Countdown, and Card Shift Controls */}
-      <div className="relative z-30 flex items-center justify-center gap-2.5 sm:gap-3.5 mb-1.5">
-        
-        {/* Deadwood Meter Pill (Royal Lacquer Style) */}
-        <div
-          className={`px-3.5 sm:px-4.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
-            handAnalysis.deadwoodPoints === 0
-              ? 'bg-[#170b09]/95 border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.4)]'
-              : 'bg-[#170b09]/95 border-[#301a14]'
-          }`}
-          title={`Deadwood: ${handAnalysis.deadwoodPoints} points`}
-        >
-          <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#f7f0ea]/70 font-mono tracking-wider">
-            DEADWOOD
-          </span>
-          <span
-            className={`text-xs sm:text-sm font-black font-mono px-2 py-0.5 rounded leading-none ${
+      {/* Spacious Mode Floating Over-Hand HUD (Hidden in Ultra-Dense Browser Mode to save 40px) */}
+      {!isDenseMode && (
+        <div className="relative z-30 flex items-center justify-center gap-2.5 sm:gap-3.5 mb-1.5">
+          {/* Deadwood Meter Pill (Royal Lacquer Style) */}
+          <div
+            className={`px-3.5 sm:px-4.5 py-1 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 transition-all border ${
               handAnalysis.deadwoodPoints === 0
-                ? 'bg-[#301a14] border border-[#e5c378] text-[#e5c378] drop-shadow-[0_0_8px_#e5c378]'
-                : 'bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]'
+                ? 'bg-[#170b09]/95 border-[#e5c378] shadow-[0_0_15px_rgba(229,195,120,0.4)]'
+                : 'bg-[#170b09]/95 border-[#301a14]'
             }`}
+            title={`Deadwood: ${handAnalysis.deadwoodPoints} points`}
           >
-            {handAnalysis.deadwoodPoints} / 10
-          </span>
-          {canGin && (
-            <span className="text-[9px] font-black uppercase text-[#e5c378] bg-[#301a14] px-2 py-0.5 rounded-full border border-[#e5c378] tracking-wider animate-pulse flex items-center gap-0.5">
-              <span>⚡</span>
-              <span>GIN READY</span>
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-[#f7f0ea]/70 font-mono tracking-wider">
+              DEADWOOD
             </span>
+            <span
+              className={`text-xs sm:text-sm font-black font-mono px-2 py-0.5 rounded leading-none ${
+                handAnalysis.deadwoodPoints === 0
+                  ? 'bg-[#301a14] border border-[#e5c378] text-[#e5c378] drop-shadow-[0_0_8px_#e5c378]'
+                  : 'bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]'
+              }`}
+            >
+              {handAnalysis.deadwoodPoints} / 10
+            </span>
+            {canGin && (
+              <span className="text-[9px] font-black uppercase text-[#e5c378] bg-[#301a14] px-2 py-0.5 rounded-full border border-[#e5c378] tracking-wider animate-pulse flex items-center gap-0.5">
+                <span>⚡</span>
+                <span>GIN READY</span>
+              </span>
+            )}
+          </div>
+
+          {/* 30-Second Turn Countdown Ring (Isolated Subcomponent) */}
+          <TurnTimerCountdownRing />
+
+          {/* Selected Card Shift Nudge Controls (Accessibility) */}
+          {selectedCardId && selectedIndex >= 0 && (
+            <div className="flex items-center gap-1 bg-[#170b09]/95 border border-[#e5c378]/40 rounded-full px-2 py-0.5 shadow-md">
+              <button
+                onClick={handleMoveLeft}
+                disabled={selectedIndex === 0}
+                className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
+                  selectedIndex > 0
+                    ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
+                    : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
+                }`}
+                title="Shift Left"
+              >
+                <ChevronLeft className="w-3 h-3" />
+              </button>
+              <span className="text-[9px] font-mono text-[#e5c378] px-0.5 font-bold">
+                {selectedIndex + 1}/{handCards.length}
+              </span>
+              <button
+                onClick={handleMoveRight}
+                disabled={selectedIndex === handCards.length - 1}
+                className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
+                  selectedIndex < handCards.length - 1
+                    ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
+                    : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
+                }`}
+                title="Shift Right"
+              >
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
           )}
         </div>
+      )}
 
-        {/* 30-Second Turn Countdown Ring (Isolated Subcomponent) */}
-        <TurnTimerCountdownRing />
-
-        {/* Selected Card Shift Nudge Controls (Accessibility) */}
-        {selectedCardId && selectedIndex >= 0 && (
-          <div className="flex items-center gap-1 bg-[#170b09]/95 border border-[#e5c378]/40 rounded-full px-2 py-0.5 shadow-md">
-            <button
-              onClick={handleMoveLeft}
-              disabled={selectedIndex === 0}
-              className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
-                selectedIndex > 0
-                  ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
-                  : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
-              }`}
-              title="Shift Left"
-            >
-              <ChevronLeft className="w-3 h-3" />
-            </button>
-            <span className="text-[9px] font-mono text-[#e5c378] px-0.5 font-bold">
-              {selectedIndex + 1}/{handCards.length}
-            </span>
-            <button
-              onClick={handleMoveRight}
-              disabled={selectedIndex === handCards.length - 1}
-              className={`p-1 rounded-full text-[10px] font-black transition active:scale-95 border-0 ${
-                selectedIndex < handCards.length - 1
-                  ? 'bg-[#e5c378] text-[#0d0605] cursor-pointer hover:brightness-110'
-                  : 'text-[#f7f0ea]/30 cursor-not-allowed opacity-30'
-              }`}
-              title="Shift Right"
-            >
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Main Fanned Hand with Fluid Responsive Scaling */}
+      {/* Main Fanned Hand Container with Split Flank support */}
       <div
         id="anchor-seat-0"
-        className="relative w-full overflow-visible py-0 px-2 flex items-end justify-center min-h-[clamp(90px,26dvh,130px)] touch-none mb-0 pb-[max(14px,calc(env(safe-area-inset-bottom)+6px))] transition-all duration-300"
+        className={`relative w-full overflow-visible py-0 px-2 flex items-end justify-between sm:justify-center min-h-[clamp(70px,22dvh,124px)] touch-none mb-0 transition-all duration-300 ${
+          isDenseMode
+            ? 'pb-[max(4px,calc(env(safe-area-inset-bottom)+2px))]'
+            : 'pb-[max(12px,calc(env(safe-area-inset-bottom)+4px))]'
+        }`}
       >
+        {/* ULTRA-DENSE LEFT FLANK: Deadwood Meter + Turn Timer (Zero Vertical Stacking) */}
+        {isDenseMode && (
+          <div className="flex flex-col items-start gap-1 shrink-0 pb-1 z-40 pl-1">
+            <div
+              className={`px-2.5 py-1 rounded-xl shadow-lg flex items-center gap-1.5 transition-all border ${
+                handAnalysis.deadwoodPoints === 0
+                  ? 'bg-[#170b09]/95 border-[#e5c378] shadow-[0_0_12px_rgba(229,195,120,0.4)]'
+                  : 'bg-[#170b09]/95 border-[#301a14]'
+              }`}
+            >
+              <span className="text-[8.5px] font-black uppercase text-[#f7f0ea]/70 font-mono">DW</span>
+              <span
+                className={`text-[11px] font-black font-mono px-1.5 py-0.5 rounded leading-none ${
+                  handAnalysis.deadwoodPoints === 0
+                    ? 'bg-[#301a14] border border-[#e5c378] text-[#e5c378]'
+                    : 'bg-[#0d0605] border border-[#301a14] text-[#f7f0ea]'
+                }`}
+              >
+                {handAnalysis.deadwoodPoints}/10
+              </span>
+            </div>
+            <TurnTimerCountdownRing />
+          </div>
+        )}
+
         {/* Dedicated landing anchor for the 11th drawn card slot on the far right */}
         <div
           id="anchor-seat-0-draw-slot"
-          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[clamp(58px,17.4dvh,82px)] h-[clamp(88px,26dvh,124px)] pointer-events-none"
+          className="absolute right-3 sm:right-6 md:right-10 bottom-0 w-[clamp(46px,14.5dvh,82px)] h-[clamp(68px,21.5dvh,124px)] pointer-events-none"
         />
+
+        {/* ULTRA-DENSE RIGHT FLANK: Contextual Action Trigger (Thumb Reach) */}
+        {isDenseMode && (
+          <div className="flex flex-col items-end gap-1 shrink-0 pb-1 z-40 pr-1">
+            {canGin && isActionPhase ? (
+              <button
+                onClick={onSlamFinish}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_16px_rgba(245,158,11,0.6)] border border-white active:scale-95 transition cursor-pointer flex items-center gap-1 animate-pulse"
+              >
+                <span>⚡</span>
+                <span>GIN SLAM</span>
+              </button>
+            ) : isActionPhase && selectedCardId ? (
+              <button
+                onClick={() => onDiscardCard(selectedCardId)}
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#d65a3f] to-[#c84b31] text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition cursor-pointer border border-[#e5c378]/60 flex items-center gap-1"
+              >
+                <span>Discard</span>
+              </button>
+            ) : (
+              <div className="h-7 w-12" />
+            )}
+          </div>
+        )}
 
         {/* Release to Discard Floating Indicator */}
         {isDraggingUp && isActionPhase && (

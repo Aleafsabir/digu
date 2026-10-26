@@ -1,15 +1,14 @@
 {
-  "versionName": "0.5.1",
-  "versionCode": 16,
+  "versionName": "0.5.2",
+  "versionCode": 17,
   "releaseDate": "2026-10-26",
   "downloadUrl": "https://github.com/Aleafsabir/digu/releases/latest/download/app-debug.apk",
   "isMandatory": false,
   "releaseNotes": [
-    "Android Immersive Sticky Fullscreen: Completely hidden system status bar and bottom gesture bar with seamless shortEdges camera cutout support",
-    "Smart Audio Lifecycle: Background music automatically fades out and pauses when switching apps or minimizing, smoothly resuming upon foreground return",
-    "Legacy Mode Selection Purged: Direct navigation to the Supercell Hero Lobby with zero vestigial intermediary screens",
-    "100% Real Player Matchmaking: Online matchmaking now pairs strictly real human players with zero bot backfilling",
-    "4-Digit Numeric Room PINs: Mobile-friendly 4-digit numeric room codes with auto-joining and zero re-generation bugs",
-    "Redis Game State Persistence & Reconnect Tokens: Active games and seats survive server restarts with automatic client token reconnection"
+    "Multi-Screen & Variable DPI Architecture: Dual-layout engine with auto-switching between Ultra-Dense Browser Mode (<360px) and Spacious Stadium Mode (>=360px)",
+    "Split-Flank South Zone: Deadwood meter and Turn Timer moved to Left Flank, Discard/Gin to Right Flank, freeing 40px of vertical space and preventing card collisions",
+    "4-Way Compass Edge-Docking: Opponents distributed naturally around all 4 table edges (West on Left, East on Right, North at Top Center)",
+    "iPhone Safari PWA Fullscreen Support: Replaced non-working HTML5 fullscreen icon on iPhone with dedicated gold '📲 Fullscreen App' badge and 2-step Home Screen guide sheet",
+    "Fluid Card Clamping: Hand cards and table piles dynamically scale down to fit tight toolbar-constrained viewports with zero clipping"
   ]
 }

@@ -10,11 +10,13 @@ import { MatchScoreHistoryModal } from '../shared/MatchScoreHistoryModal';
 import { InGameSettingsModal } from '../shared/InGameSettingsModal';
 import { CardFlightOverlay } from '../shared/CardFlightOverlay';
 import { useAnimationStore } from '../../store/useAnimationStore';
-import { Trophy, Menu, MessageSquare, Smile, Maximize2, Minimize2 } from 'lucide-react';
+import { Trophy, Menu, MessageSquare, Smile, Maximize2, Minimize2, Smartphone } from 'lucide-react';
 import { THEME_CONFIGS } from '../../theme/themeConfig';
 import { QuickChatModal } from '../shared/QuickChatModal';
 import { RulesModal } from '../shared/RulesModal';
 import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { IosPwaInstallModal } from '../shared/IosPwaInstallModal';
+import { useResponsiveViewport } from '../../hooks/useResponsiveViewport';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { ShuffleDeckAnimation } from './ShuffleDeckAnimation';
 import {
@@ -76,15 +78,12 @@ export const TableSurface: React.FC = () => {
   const [showRules, setShowRules] = useState(false);
   const [showQuickChat, setShowQuickChat] = useState(false);
   const [quickChatTab, setQuickChatTab] = useState<'chat' | 'emoji'>('chat');
+  const { isDenseMode, showIosPwaPrompt } = useResponsiveViewport();
+  const [showIosPwaModal, setShowIosPwaModal] = useState(false);
   const [pendingDiscardCardId, setPendingDiscardCardId] = useState<string | null>(null);
   const [dragHoverPoint, setDragHoverPoint] = useState<{ x: number; y: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showFullscreenHint, setShowFullscreenHint] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-    return isIOS && !isStandalone;
-  });
+  const [showFullscreenHint, setShowFullscreenHint] = useState(false);
   const isDrawingRef = useRef(false);
 
   useEffect(() => {
@@ -463,10 +462,13 @@ export const TableSurface: React.FC = () => {
     .filter(p => p.teamId === 'TEAM_B')
     .reduce((sum, p) => sum + p.cumulativeScore, 0);
 
-  // Top rim seating layout:
-  // In normal play, show all other seats (Seats 1..N - Bots/Opponents/Partner).
-  // During SCATTER_CUT: displays all players so all cut cards can be compared.
+  // Seating breakdown for 4-way compass docking
   const isScatterCut = gameState.phase === 'SCATTER_CUT';
+  const is4Player = gameState.players.length === 4;
+  const westPlayer = is4Player ? gameState.players[1] : null;
+  const northPlayer = is4Player ? gameState.players[2] : (gameState.players[1] || null);
+  const eastPlayer = is4Player ? gameState.players[3] : null;
+
   const displayedSeats = isScatterCut
     ? gameState.players.map((p, idx) => ({ player: p, index: idx }))
     : gameState.players
@@ -579,7 +581,7 @@ export const TableSurface: React.FC = () => {
                 paddingTop: 'max(4px, env(safe-area-inset-top))',
               }}
             >
-              {/* Top-Left: Menu/Pause Button (Pure Icon) + Fullscreen Toggle */}
+              {/* Top-Left: Menu/Pause Button (Pure Icon) + Fullscreen / PWA Toggle */}
               <div className="flex items-center gap-1.5 shrink-0 relative">
                 <button
                   onClick={() => setShowInGameMenu(true)}
@@ -589,13 +591,25 @@ export const TableSurface: React.FC = () => {
                   <Menu className="w-4 h-4" />
                 </button>
 
-                <button
-                  onClick={toggleFullscreen}
-                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-                  className={`p-2 rounded-xl flex items-center justify-center transition shadow active:scale-95 cursor-pointer shrink-0 ${currentTheme.menuButtonClass}`}
-                >
-                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
+                {showIosPwaPrompt ? (
+                  <button
+                    onClick={() => setShowIosPwaModal(true)}
+                    title="Play Fullscreen on iPhone"
+                    className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#c84b31] via-[#e5c378] to-[#c84b31] text-[#0d0605] font-black text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-[0_0_12px_rgba(229,195,120,0.4)] active:scale-95 cursor-pointer border border-[#e5c378]"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Fullscreen</span>
+                    <span>App</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={toggleFullscreen}
+                    title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                    className={`p-2 rounded-xl flex items-center justify-center transition shadow active:scale-95 cursor-pointer shrink-0 ${currentTheme.menuButtonClass}`}
+                  >
+                    {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  </button>
+                )}
 
                 {showFullscreenHint && (
                   <div
@@ -618,16 +632,27 @@ export const TableSurface: React.FC = () => {
 
               {/* Center: Opponent Avatar Chips */}
               <div className="flex-1 flex items-center justify-center gap-2 sm:gap-6">
-                {displayedSeats.map(({ player, index }) => (
+                {isDenseMode && is4Player && !isScatterCut && northPlayer ? (
                   <OpponentHand
-                    key={player.id}
-                    player={player}
-                    isActiveTurn={index === gameState.activePlayerIndex}
-                    isDealer={index === gameState.dealerIndex}
+                    key={northPlayer.id}
+                    player={northPlayer}
+                    isActiveTurn={2 === gameState.activePlayerIndex}
+                    isDealer={2 === gameState.dealerIndex}
                     phase={gameState.phase}
-                    thoughtMessage={aiThoughtMessage?.seatIndex === index ? aiThoughtMessage.message : null}
+                    thoughtMessage={aiThoughtMessage?.seatIndex === 2 ? aiThoughtMessage.message : null}
                   />
-                ))}
+                ) : (
+                  displayedSeats.map(({ player, index }) => (
+                    <OpponentHand
+                      key={player.id}
+                      player={player}
+                      isActiveTurn={index === gameState.activePlayerIndex}
+                      isDealer={index === gameState.dealerIndex}
+                      phase={gameState.phase}
+                      thoughtMessage={aiThoughtMessage?.seatIndex === index ? aiThoughtMessage.message : null}
+                    />
+                  ))
+                )}
               </div>
 
               {/* Top-Right: Table Pot & Score Trophy Chip */}
@@ -663,33 +688,68 @@ export const TableSurface: React.FC = () => {
               </div>
             </div>
 
-            {/* Center Felt Play Arena (Clean, Focused, Zero Text Clutter) */}
-            <div className="flex items-center justify-center my-auto z-10 px-2 shrink-0 relative">
-              {openingPhase === 'dealing' && (
-                <button
-                  onClick={() => { skipDealRef.current = true; }}
-                  className="absolute -top-7 z-40 bg-[#0d0605]/90 hover:bg-[#170b09] text-[#f7f0ea]/80 hover:text-white border border-[#301a14] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer font-sans-clean animate-in fade-in duration-300"
-                >
-                  <span>Dealing...</span>
-                  <span className="text-[#e5c378]">Skip ⏩</span>
-                </button>
-              )}
-              {openingPhase === 'shuffle' ? (
-                <ShuffleDeckAnimation onComplete={handleShuffleComplete} />
+            {/* Center Felt Play Arena with 4-Way Compass Edge-Docking */}
+            <div className="flex items-center justify-between my-auto z-10 px-2 sm:px-4 w-full shrink-0 relative">
+              {/* West Opponent (Docked Left in Ultra-Dense Browser Mode) */}
+              {isDenseMode && is4Player && !isScatterCut && westPlayer ? (
+                <div className="shrink-0 z-20">
+                  <OpponentHand
+                    key={westPlayer.id}
+                    player={westPlayer}
+                    isActiveTurn={1 === gameState.activePlayerIndex}
+                    isDealer={1 === gameState.dealerIndex}
+                    phase={gameState.phase}
+                    thoughtMessage={aiThoughtMessage?.seatIndex === 1 ? aiThoughtMessage.message : null}
+                  />
+                </div>
               ) : (
-                <StockDiscardArea
-                  stockPile={gameState.stockPile}
-                  discardPile={gameState.discardPile}
-                  finishSlotCard={gameState.finishSlotCard}
-                  phase={gameState.phase}
-                  isHumanTurn={isHumanTurn}
-                  onDrawStock={handleHumanDrawStock}
-                  onDrawDiscard={handleHumanDrawDiscard}
-                  onDiscardSelected={handleDiscardSelected}
-                  onSlamFinish={handleSlamFinish}
-                  onDragDrawHover={handleDragDrawHover}
-                  onInitiateReshuffle={handleInitiateReshuffle}
-                />
+                <div className="w-1" />
+              )}
+
+              {/* Center Stock & Discard Area */}
+              <div className="flex items-center justify-center px-1 shrink-0 relative">
+                {openingPhase === 'dealing' && (
+                  <button
+                    onClick={() => { skipDealRef.current = true; }}
+                    className="absolute -top-7 z-40 bg-[#0d0605]/90 hover:bg-[#170b09] text-[#f7f0ea]/80 hover:text-white border border-[#301a14] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer font-sans-clean animate-in fade-in duration-300"
+                  >
+                    <span>Dealing...</span>
+                    <span className="text-[#e5c378]">Skip ⏩</span>
+                  </button>
+                )}
+                {openingPhase === 'shuffle' ? (
+                  <ShuffleDeckAnimation onComplete={handleShuffleComplete} />
+                ) : (
+                  <StockDiscardArea
+                    stockPile={gameState.stockPile}
+                    discardPile={gameState.discardPile}
+                    finishSlotCard={gameState.finishSlotCard}
+                    phase={gameState.phase}
+                    isHumanTurn={isHumanTurn}
+                    onDrawStock={handleHumanDrawStock}
+                    onDrawDiscard={handleHumanDrawDiscard}
+                    onDiscardSelected={handleDiscardSelected}
+                    onSlamFinish={handleSlamFinish}
+                    onDragDrawHover={handleDragDrawHover}
+                    onInitiateReshuffle={handleInitiateReshuffle}
+                  />
+                )}
+              </div>
+
+              {/* East Opponent (Docked Right in Ultra-Dense Browser Mode) */}
+              {isDenseMode && is4Player && !isScatterCut && eastPlayer ? (
+                <div className="shrink-0 z-20">
+                  <OpponentHand
+                    key={eastPlayer.id}
+                    player={eastPlayer}
+                    isActiveTurn={3 === gameState.activePlayerIndex}
+                    isDealer={3 === gameState.dealerIndex}
+                    phase={gameState.phase}
+                    thoughtMessage={aiThoughtMessage?.seatIndex === 3 ? aiThoughtMessage.message : null}
+                  />
+                </div>
+              ) : (
+                <div className="w-1" />
               )}
             </div>
 
@@ -829,6 +889,12 @@ export const TableSurface: React.FC = () => {
         initialTab={quickChatTab}
         onClose={() => setShowQuickChat(false)}
         onSendReaction={(text, emoji) => triggerReaction(0, text, emoji)}
+      />
+
+      {/* 8. iOS PWA Home Screen Fullscreen Guide Modal */}
+      <IosPwaInstallModal
+        isOpen={showIosPwaModal}
+        onClose={() => setShowIosPwaModal(false)}
       />
     </div>
   );
