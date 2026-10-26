@@ -39,3 +39,25 @@ jobs:
 
       - name: Verify Capacitor Mobile Sync
         run: npx cap sync
+
+  deploy-to-fly:
+    name: Deploy Backend to Fly.io
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy Server to Fly.io
+        run: |
+          if [ -n "${{ secrets.FLY_API_TOKEN }}" ]; then
+            flyctl deploy server --remote-only
+          else
+            echo "FLY_API_TOKEN not set in GitHub Secrets. Skipping automatic Fly deployment."
+          fi
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

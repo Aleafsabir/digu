@@ -1,0 +1,36 @@
+# fly.toml app configuration file for Thaasbai Digu Backend
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+
+app = "thaasbai-server"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 2000
+    soft_limit = 1500
+
+[[http_service.checks]]
+  interval = "15s"
+  timeout = "3s"
+  grace_period = "5s"
+  method = "GET"
+  path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

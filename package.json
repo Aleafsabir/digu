@@ -15,7 +15,9 @@
     "build:mobile": "npm run build && cap sync",
     "server:dev": "npm --prefix server run dev",
     "server:build": "npm --prefix server run build",
-    "server:start": "npm --prefix server start"
+    "server:start": "npm --prefix server start",
+    "fly:deploy": "flyctl deploy server",
+    "fly:logs": "flyctl logs -a thaasbai-server"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.5.2",
