@@ -29,6 +29,10 @@ build-apk-output
 holhuashi-digu-debug-apk
 *.apk
 *.aab
+*.keystore
+*.jks
+fastlane/*.json
+!fastlane/Framefile.json
 *.env*.local
 .env
 .taste-skill/
