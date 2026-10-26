@@ -27,6 +27,7 @@ dist-ssr
 maldives_fleet_financial_model_excel_workbook.html
 build-apk-output
 holhuashi-digu-debug-apk
+distribution/builds/
 *.apk
 *.aab
 *.keystore
