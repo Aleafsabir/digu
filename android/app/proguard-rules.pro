@@ -31,7 +31,10 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
-# 6. Suppress safe warnings for dynamic plugin loading
+# 6. Suppress safe warnings for dynamic plugin loading & optional auth providers
 -dontwarn com.google.errorprone.annotations.**
 -dontwarn javax.annotation.**
 -dontwarn org.apache.commons.**
+-dontwarn com.facebook.**
+-dontwarn com.twitter.**
+-dontwarn playcore.**
