@@ -119,13 +119,6 @@ export const BondiTableSurface: React.FC = () => {
         </div>
       </header>
 
-      {/* STATUS BANNER */}
-      {statusMessage && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-40 bg-[#170524]/95 border border-[#e5c378]/60 text-[#e5c378] text-xs font-bold px-4 py-1.5 rounded-full shadow-lg pointer-events-none transition animate-in fade-in">
-          {statusMessage}
-        </div>
-      )}
-
       {/* MIDDLE ARENA: Opponents on Perimeter + High-Visibility Center Trick Pile */}
       <main
         className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-1 sm:p-2 overflow-hidden"
@@ -168,6 +161,14 @@ export const BondiTableSurface: React.FC = () => {
         <div className="relative w-[clamp(220px,36vw,320px)] h-[clamp(130px,36dvh,185px)] rounded-2xl sm:rounded-3xl bg-[#0d0514]/90 border-2 border-purple-900/60 flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.85)] z-10 px-2 sm:px-4">
           {/* Subtle felt rings */}
           <div className="absolute inset-2 sm:inset-3 rounded-xl sm:rounded-2xl border border-purple-800/30 border-dashed pointer-events-none" />
+
+          {/* DOCKED STATUS BANNER: Zero Collision with North Opponents */}
+          {statusMessage && (
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-40 bg-[#170524]/95 border border-[#e5c378]/70 text-[#e5c378] text-[10px] sm:text-xs font-bold px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.9)] pointer-events-none transition whitespace-nowrap animate-in fade-in flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <span>{statusMessage}</span>
+            </div>
+          )}
 
           {currentTrick.cards.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-purple-400/50 text-xs font-mono">

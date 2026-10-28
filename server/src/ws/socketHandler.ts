@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { query } from '../db.js';
 import { RedisState } from '../redis.js';
+import { upsertProfile } from '../firestore.js';
 
 interface AuthenticatedSocket extends WebSocket {
   profileId?: string;
@@ -123,6 +124,17 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
         last_active_at: new Date().toISOString(),
       });
 
+      // Update profile and presence in Google Cloud Firestore
+      upsertProfile({
+        id: profileId,
+        display_name: displayName || existing?.display_name || 'Player',
+        avatar_id: avatarId || existing?.avatar_id || 'boduthakurufaanu',
+        friend_code: resolvedFriendCode,
+        level: level || existing?.level || 1,
+        presence_status: 'IN_LOBBY',
+        last_active_at: new Date().toISOString(),
+      }).catch(() => {});
+
       // Update presence in database
       try {
         await query(
@@ -164,6 +176,13 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
     case 'UPDATE_PRESENCE': {
       if (!socket.profileId) return;
       const { status, matchInfo } = payload; // status: 'IN_LOBBY' | 'IN_MATCH' | 'OFFLINE'
+
+      upsertProfile({
+        id: socket.profileId,
+        presence_status: status,
+        current_match_info: matchInfo,
+        last_active_at: new Date().toISOString(),
+      }).catch(() => {});
 
       try {
         await query(
@@ -301,6 +320,12 @@ async function handleSocketMessage(socket: AuthenticatedSocket, message: any) {
 
 async function handleDisconnection(profileId: string) {
   activeClients.delete(profileId);
+  upsertProfile({
+    id: profileId,
+    presence_status: 'OFFLINE',
+    current_match_info: null,
+    last_active_at: new Date().toISOString(),
+  }).catch(() => {});
   try {
     await query(
       "UPDATE profiles SET presence_status = 'OFFLINE', current_match_info = NULL, last_active_at = now() WHERE id = $1",

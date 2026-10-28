@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db.js';
 import { RedisState } from '../redis.js';
+import { saveRoom, getRoomByCode } from '../firestore.js';
 
 export const roomsRouter = Router();
 
@@ -107,6 +108,7 @@ roomsRouter.post('/create', async (req: Request, res: Response) => {
   // 1. Store in decoupled Redis (or fallback memory)
   await RedisState.saveRoom(roomCode, fullRoom);
   memoryRooms[roomCode] = fullRoom;
+  saveRoom(fullRoom).catch(() => {});
 
   // 2. Associate client reconnect session token in Redis
   if (sessionToken) {
@@ -157,7 +159,17 @@ roomsRouter.get('/:roomCode', async (req: Request, res: Response) => {
     return res.json({ room: memoryRooms[cleanCode] });
   }
 
-  // 2. Fall back to Postgres if connected
+  // 2. Check Google Cloud Firestore
+  try {
+    const fsRoom = await getRoomByCode(cleanCode);
+    if (fsRoom) {
+      await RedisState.saveRoom(cleanCode, fsRoom);
+      memoryRooms[cleanCode] = fsRoom;
+      return res.json({ room: fsRoom });
+    }
+  } catch {}
+
+  // 3. Fall back to Postgres if connected
   try {
     const roomRes = await query(
       'SELECT * FROM game_rooms WHERE room_code = $1',
@@ -287,9 +299,10 @@ roomsRouter.post('/join', async (req: Request, res: Response) => {
     room.current_player_count = room.currentPlayerCount;
   }
 
-  // Persist updated room in Redis
+  // Persist updated room in Redis and Firestore
   await RedisState.saveRoom(cleanCode, room);
   memoryRooms[cleanCode] = room;
+  saveRoom(room).catch(() => {});
 
   // Persist client session token in Redis for seamless deployment reconnections
   if (sessionToken && existingSeat) {

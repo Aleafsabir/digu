@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { WebSocketServer } from 'ws';
 import { checkDatabaseHealth, initDatabase } from './db.js';
+import { checkFirestoreHealth } from './firestore.js';
 import { setupWebSocket } from './ws/socketHandler.js';
 import { friendsRouter } from './routes/friends.js';
 import { roomsRouter } from './routes/rooms.js';
@@ -27,12 +28,17 @@ app.use(express.json());
 
 // Healthcheck endpoint for container orchestration & load balancers
 app.get('/api/health', async (_req, res) => {
-  const dbHealth = await checkDatabaseHealth();
+  const [dbHealth, firestoreHealth] = await Promise.all([
+    checkDatabaseHealth(),
+    checkFirestoreHealth(),
+  ]);
+  const isHealthy = firestoreHealth.connected || dbHealth.connected;
   res.json({
-    status: dbHealth.connected ? 'ok' : 'degraded',
-    service: 'thaasbai-server',
-    version: '0.1.0',
+    status: isHealthy ? 'ok' : 'degraded',
+    service: 'holhuashi-server',
+    version: '0.5.4',
     timestamp: new Date().toISOString(),
+    firestore: firestoreHealth,
     database: dbHealth,
   });
 });

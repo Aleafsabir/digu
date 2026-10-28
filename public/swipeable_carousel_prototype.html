@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Holhuashi Lobby: Swipeable Game Mode Carousel Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Noto+Sans+Thaana:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-primary: #e5c378;
+      --gold-light: #fef08a;
+      --crimson: #c84b31;
+      --crimson-dark: #8f2d1b;
+      --bg-void: #080302;
+      --bg-surface: #140705;
+      --border-lacquer: rgba(229, 195, 120, 0.3);
+      --text-main: #f7f0ea;
+      --text-muted: rgba(247, 240, 234, 0.7);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: #050201;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+      touch-action: pan-y;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 16px;
+      max-width: 800px;
+    }
+    .page-header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: var(--gold-primary);
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .page-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    /* Swipe instruction hint badge */
+    .swipe-hint-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(229, 195, 120, 0.12);
+      border: 1px solid var(--gold-primary);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gold-primary);
+      margin-bottom: 14px;
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(229, 195, 120, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(229, 195, 120, 0.5); }
+    }
+    /* Mobile Landscape Stage Container */
+    .stage-wrapper {
+      position: relative;
+      background: #000;
+      border: 2px solid var(--gold-primary);
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(229, 195, 120, 0.2);
+      width: 100%;
+      max-width: 860px;
+      height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Lobby Screen Viewport */
+    .lobby-viewport {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 30%, #260f0a 0%, #130604 60%, #080202 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      user-select: none;
+      overflow: hidden;
+    }
+    /* Ambient Glow Behind Active Card */
+    .ambient-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 260px;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events-none;
+      transition: background-color 0.4s ease;
+      opacity: 0.35;
+    }
+    /* Lobby Header Bar */
+    .lobby-header {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(229, 195, 120, 0.2);
+      background: rgba(13, 6, 5, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #140705;
+      border: 1px solid var(--border-lacquer);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+    .profile-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c84b31, #8f2d1b);
+      border: 1px solid var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+    .profile-name {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .profile-code {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gold-primary);
+    }
+    .header-coins {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #140705;
+      border: 1px solid var(--border-lacquer);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--gold-primary);
+    }
+    /* Main Carousel Track Zone */
+    .carousel-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+      touch-action: pan-y;
+    }
+    .carousel-nav-btn {
+      width: 42px;
+      height: 60px;
+      border-radius: 16px;
+      background: rgba(23, 11, 9, 0.85);
+      border: 1px solid rgba(229, 195, 120, 0.35);
+      color: var(--gold-primary);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 30;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    }
+    .carousel-nav-btn:hover {
+      border-color: var(--gold-primary);
+      transform: scale(1.05);
+      background: rgba(35, 16, 13, 0.95);
+    }
+    .carousel-nav-btn:active { transform: scale(0.95); }
+    /* Swipeable Hero Card Container */
+    .hero-swipe-container {
+      position: relative;
+      flex: 1;
+      max-width: 620px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      touch-action: none;
+    }
+    .hero-swipe-container:active {
+      cursor: grabbing;
+    }
+    /* The Animated Card Box */
+    .hero-card {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      padding: 16px;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
+      will-change: transform, opacity;
+    }
+    /* Left: Medallion */
+    .medallion-box {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .game-medallion {
+      width: 110px;
+      height: 110px;
+      border-radius: 26px;
+      border: 2.5px solid var(--gold-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85);
+      position: relative;
+      overflow: hidden;
+    }
+    .medallion-thaana {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 58px;
+      font-weight: 900;
+      line-height: 1;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+    }
+    .medallion-tag {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 2px;
+    }
+    .live-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--gold-primary);
+      color: #080302;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    /* Carousel Dots */
+    .dots-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .dot.active {
+      width: 18px;
+      background: var(--gold-primary);
+      box-shadow: 0 0 8px rgba(229, 195, 120, 0.6);
+    }
+    /* Right: Details */
+    .hero-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      max-width: 360px;
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .title-en {
+      font-family: 'Cinzel', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .title-thaana {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      direction: rtl;
+    }
+    .game-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+    .metrics-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .metric-chip {
+      background: #140705;
+      border: 1px solid var(--border-lacquer);
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    /* Action Button Footer */
+    .lobby-footer {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px 14px;
+      background: rgba(13, 6, 5, 0.85);
+      border-top: 1px solid rgba(229, 195, 120, 0.2);
+    }
+    .btn-play-now {
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-dark));
+      border: 2px solid var(--gold-primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 36px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(200, 75, 49, 0.5);
+      cursor: pointer;
+    }
+    /* Swipe Visual Feedback Overlay */
+    .drag-indicator-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 28px;
+      color: var(--gold-primary);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events-none;
+      z-index: 40;
+    }
+    .drag-indicator-left { left: 10px; }
+    .drag-indicator-right { right: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>LOBBY SWIPEABLE GAME MODE CAROUSEL</h1>
+    <p>Drag or swipe horizontally across the center card on phone or desktop to fluidly cycle between Digu, Dhihaeh, and Bondi.</p>
+  </div>
+
+  <div class="swipe-hint-pill">
+    <span>👈 SWIPE OR DRAG HORIZONTALLY TO SWITCH GAMES 👉</span>
+  </div>
+
+  <div class="stage-wrapper">
+    <div class="lobby-viewport">
+      <!-- Ambient Glow Behind Active Card -->
+      <div id="ambientGlow" class="ambient-glow" style="background-color: #c84b31;"></div>
+
+      <!-- Top Header -->
+      <header class="lobby-header">
+        <div class="profile-pill">
+          <div class="profile-avatar">👑</div>
+          <div class="profile-info">
+            <span class="profile-name">Islander</span>
+            <span class="profile-code">HLH-24013</span>
+          </div>
+        </div>
+        <div class="header-coins">
+          <span>🪙</span> <span>10,000</span>
+        </div>
+      </header>
+
+      <!-- Center Carousel Track -->
+      <main class="carousel-stage">
+        <!-- Left Arrow -->
+        <button class="carousel-nav-btn" onclick="cycle(-1)" title="Previous Game">‹</button>
+
+        <!-- Touch / Drag Area -->
+        <div id="swipeArea" class="hero-swipe-container">
+          <div id="dragLeft" class="drag-indicator-arrow drag-indicator-left">‹</div>
+          <div id="dragRight" class="drag-indicator-arrow drag-indicator-right">›</div>
+
+          <!-- Dynamic Active Card -->
+          <div id="heroCard" class="hero-card">
+            <!-- Medallion -->
+            <div class="medallion-box">
+              <div id="medallion" class="game-medallion">
+                <span id="thaanaLetter" class="medallion-thaana">ޑ</span>
+                <span id="gameTag" class="medallion-tag">ROYAL RUMMY</span>
+                <div class="live-badge">LIVE</div>
+              </div>
+
+              <!-- Dots -->
+              <div class="dots-row">
+                <div class="dot active" onclick="goToGame(0)"></div>
+                <div class="dot" onclick="goToGame(1)"></div>
+                <div class="dot" onclick="goToGame(2)"></div>
+              </div>
+            </div>
+
+            <!-- Details -->
+            <div class="hero-info">
+              <div class="title-row">
+                <span id="gameTitleEn" class="title-en">DIGU</span>
+                <span id="gameTitleThaana" class="title-thaana">ޑިގު</span>
+              </div>
+              <p id="gameDesc" class="game-desc">
+                Authentic 1000-point runs, Ace-restricted melds, and 20-card backtracking partnerships.
+              </p>
+              <div class="metrics-row">
+                <div class="metric-chip">
+                  <span>👥</span> <span id="gamePlayers">4 Players (2v2)</span>
+                </div>
+                <div class="metric-chip">
+                  <span>⏱️</span> <span id="gameDuration">~6 mins</span>
+                </div>
+                <div class="metric-chip" style="color: #34d399;">
+                  <span>🟢</span> <span id="gameTables">860 Tables</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Arrow -->
+        <button class="carousel-nav-btn" onclick="cycle(1)" title="Next Game">›</button>
+      </main>
+
+      <!-- Bottom Play Now Footer -->
+      <footer class="lobby-footer">
+        <button class="btn-play-now" onclick="alert('Launching match for: ' + GAMES[currentIndex].title)">
+          PLAY NOW ➔
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const GAMES = [
+      {
+        id: 'DIGU',
+        title: 'DIGU',
+        thaana: 'ޑިގު',
+        thaanaLetter: 'ޑ',
+        tag: 'ROYAL RUMMY',
+        desc: 'Authentic 1000-point runs, Ace-restricted melds, and 20-card backtracking partnerships.',
+        players: '4 Players (2v2)',
+        duration: '~6 mins',
+        activeTables: '860 Tables',
+        accentColor: '#c84b31',
+        ringColor: '#e5c378'
+      },
+      {
+        id: 'DHIHAEH',
+        title: 'DHIHAEH',
+        thaana: 'ދިހައެއް',
+        thaanaLetter: 'ދ',
+        tag: 'DYNAMIC CUT',
+        desc: 'Fast-paced Maldivian trick-taking. Dynamic trump cuts on voids, 10s capture scoring, and partner signals.',
+        players: '4 Players (2v2)',
+        duration: '~4 mins',
+        activeTables: '640 Tables',
+        accentColor: '#1e3a8a',
+        ringColor: '#60a5fa'
+      },
+      {
+        id: 'BONDI',
+        title: 'BONDI',
+        thaana: 'ބޮނޑި',
+        thaanaLetter: 'ބ',
+        tag: 'HIGH-STAKES SHEDDING',
+        desc: 'High-stakes shedding and brutal single-card dumps. Void your hand, pass penalty burns, and survive.',
+        players: '2-4 Players',
+        duration: '~5 mins',
+        activeTables: '512 Tables',
+        accentColor: '#6b21a8',
+        ringColor: '#c084fc'
+      }
+    ];
+
+    let currentIndex = 0;
+    const swipeArea = document.getElementById('swipeArea');
+    const heroCard = document.getElementById('heroCard');
+    const ambientGlow = document.getElementById('ambientGlow');
+    const dragLeft = document.getElementById('dragLeft');
+    const dragRight = document.getElementById('dragRight');
+
+    function renderGame(index, direction = 0) {
+      const g = GAMES[index];
+
+      // Update contents
+      document.getElementById('gameTitleEn').innerText = g.title;
+      document.getElementById('gameTitleThaana').innerText = g.thaana;
+      document.getElementById('gameTitleThaana').style.color = g.ringColor;
+      document.getElementById('thaanaLetter').innerText = g.thaanaLetter;
+      document.getElementById('thaanaLetter').style.color = g.ringColor;
+      document.getElementById('gameTag').innerText = g.tag;
+      document.getElementById('gameDesc').innerText = g.desc;
+      document.getElementById('gamePlayers').innerText = g.players;
+      document.getElementById('gameDuration').innerText = g.duration;
+      document.getElementById('gameTables').innerText = g.activeTables;
+
+      // Styling
+      const medallion = document.getElementById('medallion');
+      medallion.style.borderColor = g.ringColor;
+      medallion.style.background = `linear-gradient(135deg, ${g.accentColor}dd 0%, #0d0605 100%)`;
+      medallion.style.boxShadow = `0 14px 35px rgba(0,0,0,0.85), 0 0 25px ${g.accentColor}55`;
+      ambientGlow.style.backgroundColor = g.accentColor;
+
+      // Dots
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+
+      // Entrance animation
+      if (direction !== 0) {
+        heroCard.style.transition = 'none';
+        heroCard.style.transform = `translateX(${direction * 80}px)`;
+        heroCard.style.opacity = '0';
+        requestAnimationFrame(() => {
+          heroCard.style.transition = 'transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.25s ease';
+          heroCard.style.transform = 'translateX(0px)';
+          heroCard.style.opacity = '1';
+        });
+      }
+    }
+
+    function cycle(step) {
+      const nextIndex = (currentIndex + step + GAMES.length) % GAMES.length;
+      currentIndex = nextIndex;
+      renderGame(currentIndex, step);
+    }
+
+    function goToGame(index) {
+      if (index === currentIndex) return;
+      const step = index > currentIndex ? 1 : -1;
+      currentIndex = index;
+      renderGame(currentIndex, step);
+    }
+
+    // Touch & Pointer Gesture Handling
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    const threshold = 55; // Pixels needed to trigger swipe change
+
+    swipeArea.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      currentX = e.clientX;
+      heroCard.style.transition = 'none';
+      swipeArea.setPointerCapture(e.pointerId);
+    });
+
+    swipeArea.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      currentX = e.clientX;
+      const diffX = currentX - startX;
+
+      // Card follows finger with gentle elastic damping
+      heroCard.style.transform = `translateX(${diffX * 0.75}px) rotate(${diffX * 0.02}deg)`;
+      heroCard.style.opacity = `${Math.max(0.4, 1 - Math.abs(diffX) / 400)}`;
+
+      // Show directional arrows
+      if (diffX < -20) {
+        dragRight.style.opacity = Math.min(1, Math.abs(diffX) / 60);
+        dragLeft.style.opacity = '0';
+      } else if (diffX > 20) {
+        dragLeft.style.opacity = Math.min(1, Math.abs(diffX) / 60);
+        dragRight.style.opacity = '0';
+      } else {
+        dragLeft.style.opacity = '0';
+        dragRight.style.opacity = '0';
+      }
+    });
+
+    swipeArea.addEventListener('pointerup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diffX = currentX - startX;
+      dragLeft.style.opacity = '0';
+      dragRight.style.opacity = '0';
+
+      if (diffX < -threshold) {
+        // Swiped Left -> Cycle Next Game
+        cycle(1);
+      } else if (diffX > threshold) {
+        // Swiped Right -> Cycle Previous Game
+        cycle(-1);
+      } else {
+        // Snap Back
+        heroCard.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease';
+        heroCard.style.transform = 'translateX(0px)';
+        heroCard.style.opacity = '1';
+      }
+    });
+
+    swipeArea.addEventListener('pointercancel', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      dragLeft.style.opacity = '0';
+      dragRight.style.opacity = '0';
+      heroCard.style.transition = 'transform 0.25s ease, opacity 0.2s ease';
+      heroCard.style.transform = 'translateX(0px)';
+      heroCard.style.opacity = '1';
+    });
+
+    // Initial render
+    renderGame(0);
+  </script>
+</body>
+</html>

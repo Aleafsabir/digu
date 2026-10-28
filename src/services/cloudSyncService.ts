@@ -92,6 +92,7 @@ export class CloudSyncService {
             CloudSyncService.saveProfileLocally(profile);
           }
 
+          CloudSyncService.registerProfileWithDirectory(profile).catch(() => {});
           return profile;
         }
       }
@@ -100,7 +101,25 @@ export class CloudSyncService {
     }
     const freshProfile = createGuestProfile();
     CloudSyncService.saveProfileLocally(freshProfile);
+    CloudSyncService.registerProfileWithDirectory(freshProfile).catch(() => {});
     return freshProfile;
+  }
+
+  /**
+   * Registers a profile (Guest or Authenticated) with the server index
+   * so their friend code can be searched and added by friends immediately.
+   */
+  static async registerProfileWithDirectory(profile: UserProfile): Promise<void> {
+    try {
+      const baseUrl = getBackendBaseUrl();
+      await fetch(`${baseUrl}/api/profile/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile }),
+      });
+    } catch {
+      // Non-blocking background registration
+    }
   }
 
   /**
@@ -124,8 +143,9 @@ export class CloudSyncService {
   static async syncToCloud(profile: UserProfile): Promise<{ success: boolean; syncedAt: string }> {
     const syncedAt = new Date().toISOString();
 
-    // Guest profiles stay local-only
+    // Guest profiles register friend code and lightweight stats with Firestore index
     if (profile.loginProvider === 'GUEST') {
+      this.registerProfileWithDirectory(profile).catch(() => {});
       const updated = {
         ...profile,
         cloudSyncStatus: 'LOCAL_ONLY' as const,

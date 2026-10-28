@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { AVATAR_PRESETS, AvatarPreset } from '../../types/auth';
 import { LogoutConfirmationModal } from '../shared/LogoutConfirmationModal';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { playCardFlickSound } from '../../utils/audioEffects';
 
 interface MainLobbyScreenProps {
   onStartDiguMatch?: (mode: TableRules['mode'], playType: PlayType) => void;
@@ -179,12 +181,20 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
     const nextIdx = (activeGameIdx - 1 + gamesList.length) % gamesList.length;
     setActiveGameIdx(nextIdx);
     localStorage.setItem('holhuashi_last_game', gamesList[nextIdx].id);
+    try {
+      Haptics.impact({ style: ImpactStyle.Light });
+    } catch {}
+    playCardFlickSound();
   };
 
   const cycleNext = () => {
     const nextIdx = (activeGameIdx + 1) % gamesList.length;
     setActiveGameIdx(nextIdx);
     localStorage.setItem('holhuashi_last_game', gamesList[nextIdx].id);
+    try {
+      Haptics.impact({ style: ImpactStyle.Light });
+    } catch {}
+    playCardFlickSound();
   };
 
   // 1-Tap Play Now Execution
@@ -375,12 +385,26 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           <ChevronLeft className="w-6 h-6 text-[#e5c378]" />
         </button>
 
-        {/* Center Hero Card */}
-        <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-5 sm:gap-8 px-2 max-w-3xl">
+        {/* Center Hero Card with Horizontal Swipe/Drag Gesture Support */}
+        <motion.div
+          key={currentGame.id}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.25}
+          onDragEnd={(_e, info) => {
+            const swipeThreshold = 40;
+            const velocityThreshold = 300;
+            if (info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold) {
+              cycleNext();
+            } else if (info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold) {
+              cyclePrev();
+            }
+          }}
+          className="flex-1 flex flex-col md:flex-row items-center justify-center gap-5 sm:gap-8 px-2 max-w-3xl cursor-grab active:cursor-grabbing touch-pan-y"
+        >
           {/* Medallion & Artwork */}
           <div className="relative flex flex-col items-center justify-center">
             <motion.div
-              key={currentGame.id}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.25 }}
@@ -406,7 +430,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
               </div>
             </motion.div>
 
-            {/* Carousel Dots */}
+            {/* Carousel Dots & Swipe Hint */}
             <div className="flex items-center gap-1.5 mt-2.5">
               {gamesList.map((g, idx) => (
                 <button
@@ -423,10 +447,13 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
                 />
               ))}
             </div>
+            <div className="text-[9px] font-mono text-white/40 tracking-wider uppercase mt-1 hidden sm:block">
+              Swipe ↔ or arrows
+            </div>
           </div>
 
           {/* Narrative & Metrics */}
-          <div className="flex flex-col text-center md:text-left max-w-md">
+          <div className="flex flex-col text-center md:text-left max-w-md pointer-events-none sm:pointer-events-auto">
             <div className="flex items-center justify-center md:justify-start gap-2.5">
               <h1 className="font-serif-luxury font-black text-2xl sm:text-3xl text-white tracking-wide">
                 {currentGame.title}
@@ -455,7 +482,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Arrow */}
         <button

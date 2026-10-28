@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDhihaehStore } from '../../store/useDhihaehStore';
 import { useGameStore } from '../../store/useGameStore';
@@ -6,6 +6,7 @@ import { PlayingCard } from '../shared/PlayingCard';
 import { Suit } from '../../core/models/types';
 import { DhihaehValidator } from '@game/core';
 import { ArrowLeft, Trophy, Shield } from 'lucide-react';
+import { TrumpDeclarationModal } from './TrumpDeclarationModal';
 
 const SUIT_ICONS: Record<Suit, { symbol: string; color: string }> = {
   SPADES: { symbol: '♠', color: '#1e293b' },
@@ -40,6 +41,24 @@ export const DhihaehTableSurface: React.FC = () => {
 
   const currentTrick = gameState.currentTrick;
   const isHumanTurn = gameState.activeSeat === 0 && !isResolvingTrick && gameState.phase === 'TRICK_PLAY';
+
+  // Trump Cut Declaration Fanfare tracking
+  const [showTrumpModal, setShowTrumpModal] = useState(false);
+  const [lastAnnouncedTrump, setLastAnnouncedTrump] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (gameState.trumpSuit && gameState.trumpSuit !== lastAnnouncedTrump) {
+      setLastAnnouncedTrump(gameState.trumpSuit);
+      setShowTrumpModal(true);
+    } else if (!gameState.trumpSuit) {
+      setLastAnnouncedTrump(null);
+      setShowTrumpModal(false);
+    }
+  }, [gameState.trumpSuit, lastAnnouncedTrump]);
+
+  const declarerSeat = gameState.trumpDeclaredBySeat ?? 0;
+  const declarerPlayer = gameState.players[declarerSeat];
+  const declarerName = declarerSeat === 0 ? 'You' : declarerPlayer?.name || 'A player';
 
   // 10s tracking for trophy bar
   const allTens: Suit[] = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
@@ -143,13 +162,6 @@ export const DhihaehTableSurface: React.FC = () => {
         </div>
       </header>
 
-      {/* STATUS BANNER */}
-      {statusMessage && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-40 bg-[#170b09]/95 border border-[#e5c378]/60 text-[#e5c378] text-xs font-bold px-4 py-1.5 rounded-full shadow-lg pointer-events-none transition animate-in fade-in">
-          {statusMessage}
-        </div>
-      )}
-
       {/* MIDDLE ARENA: 4 Seats Perimeter & Fluid Center Trick Arena */}
       <main
         className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-1 sm:p-2 overflow-hidden"
@@ -211,6 +223,14 @@ export const DhihaehTableSurface: React.FC = () => {
         <div className="relative w-[clamp(210px,36vw,290px)] h-[clamp(135px,36dvh,195px)] rounded-2xl sm:rounded-3xl bg-[#120806]/90 border-2 border-[#301a14] flex items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.85)] z-10">
           {/* Subtle felt markings */}
           <div className="absolute inset-2 sm:inset-3 rounded-xl sm:rounded-2xl border border-[#301a14]/40 border-dashed pointer-events-none" />
+
+          {/* DOCKED STATUS BANNER: Zero Collision with North Partner */}
+          {statusMessage && (
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-40 bg-[#170b09]/95 border border-[#e5c378]/70 text-[#e5c378] text-[10px] sm:text-xs font-bold px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.9)] pointer-events-none transition whitespace-nowrap animate-in fade-in flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <span>{statusMessage}</span>
+            </div>
+          )}
 
           {/* Cards played into active trick */}
           {currentTrick.cards.length === 0 ? (
@@ -411,6 +431,16 @@ export const DhihaehTableSurface: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* TRUMP CUT DECLARATION FANFARE MODAL */}
+      <TrumpDeclarationModal
+        isOpen={showTrumpModal}
+        suit={gameState.trumpSuit as any}
+        cardRank={gameState.trumpCard?.rank}
+        cardSuit={gameState.trumpCard?.suit as any}
+        declaredByName={declarerName}
+        onDismiss={() => setShowTrumpModal(false)}
+      />
     </div>
   );
 };

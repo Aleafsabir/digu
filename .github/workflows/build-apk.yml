@@ -74,11 +74,11 @@ jobs:
           name: "Holhuashi: Digu ${{ steps.version_info.outputs.tag }}"
           body: |
             ## Holhuashi: Digu ${{ steps.version_info.outputs.tag }} Release
-            - **Player Confirmation on Logout**: Instant sign-out replaced with account-aware confirmation modal (cloud safety reassurance vs guest local switch warning with Dhivehi typography).
-            - **Dhihaeh Screen Scaling & DPI Optimization**: Fluid center trick arena (`clamp`) and adaptive 13-card overlap prevent edge clipping across compact phones and foldables.
-            - **Bondi Screen Scaling & Docked Suit Dump**: High-visibility trick zone with safe-area notch padding and non-intrusive docked suit dump picker.
-            - **Sharp Multi-DPI Vector Cards**: Pure SVG suit geometry for crisp presentation on all screen ratios and densities (1x to 4x).
-            - **Seamless APK Updates**: Signed with the permanent keystore to ensure uninterrupted updates without "App not installed" package errors.
+            - **Google Cloud Firestore Database**: Permanent cloud persistence for profiles, friend codes (`HLH-XXXXX`), presence, and rooms across Cloud Run sleep/wake cycles.
+            - **Guest Profile Auto-Registration**: Guest accounts now automatically register with the global player index so any player is immediately discoverable by friend code.
+            - **Gameplay Commentary Overlap Fix**: Bondi and Dhihaeh status messages are docked directly to the Center Trick Arena, completely resolving overlap with North opponent nameplates.
+            - **Dhihaeh Trump Declaration Fanfare**: Live 2.5s modal with glowing suit emblems, Dhivehi calligraphy (`ހުކުމް ކަނޑައެޅުން`), and declaring player announcement.
+            - **Swipeable Game Mode Carousel**: Smooth horizontal touch swipe and mouse drag gesture support with haptics across Digu, Dhihaeh, and Bondi in the main lobby.
           files: |
             android/app/build/outputs/apk/debug/app-debug.apk
           prerelease: false

@@ -1,6 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db.js';
 import { activeClients, inMemoryProfiles, inMemoryFriendships, MemoryFriendship } from '../ws/socketHandler.js';
+import {
+  getProfileByFriendCode,
+  createFriendRequest,
+  getAcceptedFriends,
+  getFriendRequests,
+  respondToRequest,
+} from '../firestore.js';
 import { WebSocket } from 'ws';
 
 export const friendsRouter = Router();
@@ -12,6 +19,20 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'profileId is required' });
   }
 
+  // 1. Check Google Cloud Firestore
+  try {
+    const fsFriends = await getAcceptedFriends(profileId);
+    if (fsFriends && fsFriends.length > 0) {
+      const friends = fsFriends.map(f => ({
+        ...f,
+        presenceStatus: activeClients.has(f.friendId) ? 'IN_LOBBY' : f.presenceStatus,
+        presence_status: activeClients.has(f.friendId) ? 'IN_LOBBY' : f.presenceStatus,
+      }));
+      return res.json({ friends });
+    }
+  } catch {}
+
+  // 2. Check PostgreSQL (if connected)
   try {
     const result = await query(
       `SELECT 
@@ -103,6 +124,15 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'profileId is required' });
   }
 
+  // 1. Check Google Cloud Firestore
+  try {
+    const fsRequests = await getFriendRequests(profileId);
+    if (fsRequests && (fsRequests.incoming.length > 0 || fsRequests.outgoing.length > 0)) {
+      return res.json(fsRequests);
+    }
+  } catch {}
+
+  // 2. Check PostgreSQL (if connected)
   try {
     const incomingRes = await query(
       `SELECT 
@@ -214,22 +244,39 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
 
   let targetUser: any = null;
 
+  // 1. Check Google Cloud Firestore index
   try {
-    const targetRes = await query(
-      `SELECT id, display_name, avatar_id, level, friend_code FROM profiles 
-       WHERE UPPER(friend_code) = $1 
-          OR UPPER(friend_code) = $2 
-          OR UPPER(friend_code) = $3
-          OR (length($4) >= 4 AND UPPER(friend_code) LIKE '%' || $4)`,
-      [cleanCode, `HLH-${digitsOnly}`, `DIGU-${digitsOnly}`, digitsOnly]
-    );
-    if (targetRes?.rows?.length > 0) {
-      targetUser = targetRes.rows[0];
+    const fsTarget = await getProfileByFriendCode(cleanCode);
+    if (fsTarget) {
+      targetUser = {
+        id: fsTarget.id,
+        display_name: fsTarget.display_name,
+        avatar_id: fsTarget.avatar_id,
+        level: fsTarget.level,
+        friend_code: fsTarget.friend_code,
+      };
     }
   } catch {}
 
+  // 2. Check PostgreSQL
   if (!targetUser) {
-    // Search in-memory connected profiles
+    try {
+      const targetRes = await query(
+        `SELECT id, display_name, avatar_id, level, friend_code FROM profiles 
+         WHERE UPPER(friend_code) = $1 
+            OR UPPER(friend_code) = $2 
+            OR UPPER(friend_code) = $3
+            OR (length($4) >= 4 AND UPPER(friend_code) LIKE '%' || $4)`,
+        [cleanCode, `HLH-${digitsOnly}`, `DIGU-${digitsOnly}`, digitsOnly]
+      );
+      if (targetRes?.rows?.length > 0) {
+        targetUser = targetRes.rows[0];
+      }
+    } catch {}
+  }
+
+  // 3. Search in-memory connected profiles
+  if (!targetUser) {
     for (const p of inMemoryProfiles.values()) {
       const pCode = (p.friend_code || '').toUpperCase();
       const pDigits = pCode.replace(/^HLH-|^DIGU-/, '').trim();
@@ -254,7 +301,12 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'You cannot add your own Friend Code' });
   }
 
-  // Check if friendship or request already exists
+  // Save to Google Cloud Firestore
+  try {
+    await createFriendRequest(profileId, targetUser.id);
+  } catch {}
+
+  // Check if friendship or request already exists in memory
   const existingMemory = inMemoryFriendships.find(
     f =>
       (f.user_id === profileId && f.friend_id === targetUser.id) ||
@@ -321,6 +373,11 @@ friendsRouter.post('/respond', async (req: Request, res: Response) => {
   }
 
   const status = accept ? 'ACCEPTED' : 'DECLINED';
+
+  // 1. Update Firestore
+  try {
+    await respondToRequest(requestId, !!accept);
+  } catch {}
 
   const idx = inMemoryFriendships.findIndex(f => f.id === requestId);
   if (idx >= 0) {

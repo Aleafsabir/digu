@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Holhuashi: Dhihaeh Trump Declaration & Commentary Overlap Fix Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Noto+Sans+Thaana:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-primary: #e5c378;
+      --gold-light: #fef08a;
+      --gold-dim: #9e7d3b;
+      --crimson: #c84b31;
+      --crimson-dark: #8f2d1b;
+      --lacquer-black: #0d0605;
+      --lacquer-surface: #1a0b08;
+      --lacquer-card: #230e0a;
+      --border-lacquer: rgba(229, 195, 120, 0.35);
+      --text-main: #f7f0ea;
+      --text-muted: rgba(247, 240, 234, 0.7);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #070302;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 14px;
+      max-width: 900px;
+    }
+    .page-header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 21px;
+      color: var(--gold-primary);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .page-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    /* Main Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      background: #140705;
+      border: 1px solid var(--border-lacquer);
+      border-radius: 16px;
+      padding: 6px;
+      margin-bottom: 16px;
+    }
+    .nav-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-tab-btn.active {
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-dark));
+      border-color: var(--gold-primary);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(200, 75, 49, 0.45);
+    }
+    .stage-container {
+      position: relative;
+      background: #000;
+      border: 2px solid var(--gold-primary);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(229, 195, 120, 0.15);
+      width: 100%;
+      max-width: 880px;
+      height: 440px;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Dhihaeh Table Surface */
+    .dhihaeh-table {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 35%, #2a0e08 0%, #130604 65%, #080202 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      user-select: none;
+    }
+    .table-rim {
+      position: absolute;
+      inset: 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(229, 195, 120, 0.2);
+      pointer-events-none;
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+    }
+    .dhihaeh-header {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(229, 195, 120, 0.2);
+      background: rgba(13, 6, 5, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-en {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--gold-primary);
+    }
+    .title-thaana {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 13px;
+      color: var(--gold-primary);
+      direction: rtl;
+    }
+    .trump-header-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #140705;
+      border: 1px solid var(--gold-primary);
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .score-header-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      background: #140705;
+      border: 1px solid rgba(229, 195, 120, 0.3);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    /* Main Area with 4 Seats */
+    .table-arena {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* North Seat */
+    .seat-north {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: rgba(26, 11, 8, 0.95);
+      border: 1px solid rgba(229, 195, 120, 0.4);
+      border-radius: 999px;
+      padding: 3px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+    /* West & East Seats */
+    .seat-west {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      background: rgba(26, 11, 8, 0.95);
+      border: 1px solid rgba(229, 195, 120, 0.4);
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 80px;
+    }
+    .seat-east {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      background: rgba(26, 11, 8, 0.95);
+      border: 1px solid rgba(229, 195, 120, 0.4);
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 80px;
+    }
+    /* Center Trick Box */
+    .center-trick-box {
+      position: relative;
+      width: clamp(220px, 36vw, 300px);
+      height: clamp(140px, 36vh, 185px);
+      background: rgba(18, 7, 5, 0.94);
+      border: 2px solid rgba(229, 195, 120, 0.5);
+      border-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+      margin-top: 10px;
+    }
+    .docked-commentary {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: linear-gradient(180deg, #2a0e08 0%, #150503 100%);
+      border: 1.5px solid var(--gold-primary);
+      color: var(--gold-primary);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85), 0 0 12px rgba(229, 195, 120, 0.35);
+      white-space: nowrap;
+    }
+    /* CINEMATIC TRUMP DECLARATION FANFARE MODAL */
+    .trump-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .trump-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      background: linear-gradient(180deg, #2a0e08 0%, #170704 60%, #0d0302 100%);
+      border: 2.5px solid var(--gold-primary);
+      border-radius: 28px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.98), 0 0 50px rgba(229, 195, 120, 0.4);
+      animation: scalePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      overflow: hidden;
+    }
+    .trump-modal-card::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 120px;
+      background: radial-gradient(ellipse, rgba(229, 195, 120, 0.25) 0%, transparent 70%);
+      pointer-events-none;
+    }
+    .fanfare-thaana {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--gold-primary);
+      margin-bottom: 2px;
+      direction: rtl;
+      text-shadow: 0 0 20px rgba(229, 195, 120, 0.6);
+    }
+    .fanfare-title-en {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+    .fanfare-centerpiece {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+    /* Cut Playing Card Presentation */
+    .fanfare-card {
+      width: 72px;
+      height: 104px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 2px solid var(--gold-primary);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 0 20px rgba(229, 195, 120, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px 8px;
+      color: #111;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      transform: rotate(-4deg);
+    }
+    .fanfare-card-rank { font-size: 18px; line-height: 1; }
+    .fanfare-card-suit { font-size: 32px; align-self: center; line-height: 1; }
+    /* Giant Glowing Suit Emblem */
+    .suit-emblem-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .giant-suit-icon {
+      font-size: 54px;
+      line-height: 1;
+      filter: drop-shadow(0 0 16px rgba(229, 195, 120, 0.8));
+      margin-bottom: 4px;
+    }
+    .giant-suit-name {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: var(--gold-primary);
+    }
+    .fanfare-declarant-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(229, 195, 120, 0.4);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .fanfare-declarant-pill strong {
+      color: var(--gold-primary);
+    }
+    .auto-dismiss-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(229, 195, 120, 0.2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .auto-dismiss-progress {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--crimson), var(--gold-primary));
+      transform-origin: left;
+    }
+    .btn-dismiss {
+      background: linear-gradient(135deg, var(--crimson), var(--crimson-dark));
+      border: 1.5px solid var(--gold-primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    /* Controls Footer */
+    .demo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #140705;
+      border: 1px solid var(--border-lacquer);
+      border-radius: 16px;
+      padding: 12px 20px;
+      margin-top: 16px;
+      max-width: 880px;
+      width: 100%;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #c84b31, #8f2d1b);
+      border: 1.5px solid var(--gold-primary);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(200, 75, 49, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-action:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+    .btn-action:active { transform: translateY(1px); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scalePop {
+      0% { opacity: 0; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>DHIHAEH TRUMP DECLARATION & COMMENTARY PROTOTYPE</h1>
+    <p>Test the 2.5-second cinematic declaration fanfare (<code>ހުކުމް ކަނޑައެޅުން</code>) and the docked arena commentary layout.</p>
+  </div>
+
+  <div class="stage-container">
+    <div class="dhihaeh-table">
+      <div class="table-rim"></div>
+
+      <!-- Header -->
+      <header class="dhihaeh-header">
+        <div class="header-title-row">
+          <div style="font-size: 14px; cursor: pointer; color: var(--gold-primary);">←</div>
+          <span class="title-en">DHIHAEH</span>
+          <span class="title-thaana">ދިހައެއް</span>
+        </div>
+
+        <div id="headerTrumpPill" class="trump-header-pill">
+          <span style="font-size: 9px; color: rgba(247,240,234,0.6); font-family: monospace;">TRUMP:</span>
+          <span id="headerTrumpText" style="color: var(--gold-primary);">Cut On Void</span>
+        </div>
+
+        <div class="score-header-pill">
+          <span style="color: var(--gold-primary);">T1: 2</span>
+          <span style="color: rgba(255,255,255,0.3); margin: 0 4px;">•</span>
+          <span style="color: #c84b31;">T2: 1</span>
+        </div>
+      </header>
+
+      <!-- Main 4-Player Arena -->
+      <main class="table-arena">
+        <!-- North Seat (Partner) -->
+        <div class="seat-north">
+          <span style="color: var(--gold-primary);">🛡️ Ali (Partner)</span>
+          <span style="font-family: monospace; font-size: 9px; color: #d8b4fe;">10 cards</span>
+        </div>
+
+        <!-- West Seat -->
+        <div class="seat-west">
+          <span style="color: #fff;">Ahmed</span>
+          <span style="font-family: monospace; font-size: 9px; color: #94a3b8;">11 cards</span>
+        </div>
+
+        <!-- East Seat -->
+        <div class="seat-east">
+          <span style="color: #fff;">Naeem</span>
+          <span style="font-family: monospace; font-size: 9px; color: #94a3b8;">9 cards</span>
+        </div>
+
+        <!-- Center Trick Arena -->
+        <div class="center-trick-box">
+          <!-- Docked Commentary Pill (Zero Overlap with North Seat!) -->
+          <div id="dockedCommentary" class="docked-commentary">
+            Round 4 • Ali leads.
+          </div>
+
+          <div style="font-size: 9px; font-family: monospace; color: #d8b4fe; margin-bottom: 6px;">
+            LED SUIT: <strong style="color: #fff;">♠ SPADES</strong>
+          </div>
+
+          <div style="width: 52px; height: 74px; background: #fff; border-radius: 8px; border: 1.5px solid #c84b31; color: #111; display: flex; flex-direction: column; justify-content: space-between; padding: 4px; font-family: 'Cinzel', serif; font-weight: 900;">
+            <span style="font-size: 13px;">K</span>
+            <span style="font-size: 22px; align-self: center;">♠</span>
+          </div>
+
+          <div style="font-size: 8px; font-family: monospace; color: rgba(216, 180, 254, 0.7); margin-top: 8px;">
+            1 card in active trick
+          </div>
+        </div>
+      </main>
+
+      <!-- Player Hand Zone -->
+      <footer style="padding: 6px 16px 12px; display: flex; justify-content: center;">
+        <div style="font-family: monospace; font-size: 10px; font-weight: 800; padding: 4px 14px; border-radius: 999px; background: rgba(20,7,5,0.85); border: 1px solid rgba(229,195,120,0.4); color: rgba(247,240,234,0.6);">
+          WAITING FOR OPPONENT...
+        </div>
+      </footer>
+
+      <!-- CINEMATIC TRUMP DECLARATION FANFARE MODAL -->
+      <div id="trumpModal" class="trump-modal-backdrop" onclick="closeTrumpModal()">
+        <div class="trump-modal-card" onclick="event.stopPropagation()">
+          <div class="fanfare-thaana">ހުކުމް ކަނޑައެޅުން</div>
+          <div class="fanfare-title-en">TRUMP SUIT DECLARED!</div>
+
+          <div class="fanfare-centerpiece">
+            <!-- Cut Card -->
+            <div class="fanfare-card" id="modalCard">
+              <span class="fanfare-card-rank" id="modalRank">A</span>
+              <span class="fanfare-card-suit" id="modalSuitSymbol">♠</span>
+            </div>
+
+            <!-- Big Suit Emblem -->
+            <div class="suit-emblem-box">
+              <div class="giant-suit-icon" id="modalGiantSuit">♠</div>
+              <div class="giant-suit-name" id="modalGiantName">SPADES</div>
+            </div>
+          </div>
+
+          <div class="fanfare-declarant-pill">
+            <span>Cut by <strong id="modalDeclarant">Naeem</strong> (Void in Hearts)</span>
+          </div>
+
+          <!-- Auto-Dismiss Progress Bar -->
+          <div class="auto-dismiss-bar">
+            <div id="progressBar" class="auto-dismiss-progress"></div>
+          </div>
+
+          <button class="btn-dismiss" onclick="closeTrumpModal()">Continue (Auto in 2.5s)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Controls to Trigger Trump Declaration with Different Suits -->
+  <div class="demo-controls">
+    <span style="font-size: 11px; font-family: monospace; color: var(--gold-primary); font-weight: 800;">TEST TRUMP DECLARATION:</span>
+    <button class="btn-action" onclick="triggerDeclaration('SPADES', '♠', 'A', '#111', 'Naeem')">
+      ♠ Declare Spades (Naeem)
+    </button>
+    <button class="btn-action" style="background: linear-gradient(135deg, #b91c1c, #7f1d1d);" onclick="triggerDeclaration('HEARTS', '♥', 'K', '#b91c1c', 'You (South)')">
+      ♥ Declare Hearts (You)
+    </button>
+    <button class="btn-action" style="background: linear-gradient(135deg, #b91c1c, #7f1d1d);" onclick="triggerDeclaration('DIAMONDS', '♦', '10', '#b91c1c', 'Ali (Partner)')">
+      ♦ Declare Diamonds (Ali)
+    </button>
+    <button class="btn-action" onclick="triggerDeclaration('CLUBS', '♣', 'Q', '#111', 'Ahmed')">
+      ♣ Declare Clubs (Ahmed)
+    </button>
+  </div>
+
+  <script>
+    let dismissTimer = null;
+    let animFrame = null;
+
+    function triggerDeclaration(suit, symbol, rank, color, player) {
+      const modal = document.getElementById('trumpModal');
+      const modalCard = document.getElementById('modalCard');
+      const modalRank = document.getElementById('modalRank');
+      const modalSuitSymbol = document.getElementById('modalSuitSymbol');
+      const modalGiantSuit = document.getElementById('modalGiantSuit');
+      const modalGiantName = document.getElementById('modalGiantName');
+      const modalDeclarant = document.getElementById('modalDeclarant');
+      const headerTrumpText = document.getElementById('headerTrumpText');
+      const dockedCommentary = document.getElementById('dockedCommentary');
+      const progressBar = document.getElementById('progressBar');
+
+      // Populate Modal Details
+      modalRank.innerText = rank;
+      modalRank.style.color = color;
+      modalSuitSymbol.innerText = symbol;
+      modalSuitSymbol.style.color = color;
+      modalGiantSuit.innerText = symbol;
+      modalGiantSuit.style.color = color === '#111' ? '#fff' : color;
+      modalGiantName.innerText = suit;
+      modalGiantName.style.color = color === '#111' ? 'var(--gold-primary)' : color;
+      modalDeclarant.innerText = player;
+
+      // Update Table & Header State
+      headerTrumpText.innerHTML = `<span style="color: ${color === '#111' ? '#fff' : color}">${symbol} ${suit}</span>`;
+      dockedCommentary.innerHTML = `⚡ ${player} cut with ${symbol} ${rank}! <strong>${suit} is TRUMP!</strong>`;
+
+      modal.style.display = 'flex';
+
+      // 2.5s Auto Dismiss Animation
+      clearTimeout(dismissTimer);
+      cancelAnimationFrame(animFrame);
+      const startTime = performance.now();
+      const duration = 2500;
+
+      function updateBar(time) {
+        const elapsed = time - startTime;
+        const remaining = Math.max(0, 1 - (elapsed / duration));
+        progressBar.style.transform = `scaleX(${remaining})`;
+        if (elapsed < duration) {
+          animFrame = requestAnimationFrame(updateBar);
+        } else {
+          closeTrumpModal();
+        }
+      }
+      animFrame = requestAnimationFrame(updateBar);
+    }
+
+    function closeTrumpModal() {
+      const modal = document.getElementById('trumpModal');
+      modal.style.display = 'none';
+      cancelAnimationFrame(animFrame);
+      clearTimeout(dismissTimer);
+    }
+  </script>
+</body>
+</html>

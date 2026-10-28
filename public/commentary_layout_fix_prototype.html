@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Holhuashi Bondi: Commentary vs Opponent Badges Layout Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Noto+Sans+Thaana:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-primary: #e5c378;
+      --gold-light: #fef08a;
+      --border-purple: rgba(107, 33, 168, 0.45);
+      --bg-dark: #0a040d;
+      --bg-surface: #12071a;
+      --bg-arena: rgba(13, 5, 20, 0.92);
+      --crimson: #c84b31;
+      --rose-risk: #f43f5e;
+      --text-main: #f7f0ea;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #060208;
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 16px;
+      max-width: 900px;
+    }
+    .page-header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: var(--gold-primary);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .page-header p {
+      font-size: 13px;
+      color: rgba(247, 240, 234, 0.7);
+    }
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #14081c;
+      border: 1px solid var(--border-purple);
+      border-radius: 18px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      max-width: 960px;
+      width: 100%;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .control-label {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gold-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-toggle {
+      background: #1c0c28;
+      border: 1px solid rgba(229, 195, 120, 0.3);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-toggle.active {
+      background: linear-gradient(135deg, #c84b31, #8f2d1b);
+      border-color: var(--gold-primary);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(200, 75, 49, 0.5);
+    }
+    .btn-toggle:hover:not(.active) {
+      border-color: var(--gold-primary);
+    }
+    .stage-wrapper {
+      position: relative;
+      background: #000;
+      border: 2px solid var(--gold-primary);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(107, 33, 168, 0.3);
+      width: 100%;
+      max-width: 860px;
+      height: 420px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+    /* Mobile Landscape Table Shell */
+    .game-table {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 30%, #1a0826 0%, #0c0412 65%, #050108 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      user-select: none;
+    }
+    /* Felt ambient border */
+    .table-felt-rim {
+      position: absolute;
+      inset: 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(147, 51, 234, 0.25);
+      pointer-events-none;
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+    }
+    /* Top Header */
+    .table-header {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(147, 51, 234, 0.25);
+      background: rgba(7, 3, 12, 0.7);
+      backdrop-filter: blur(8px);
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-back {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: #07030c;
+      border: 1px solid rgba(147, 51, 234, 0.4);
+      color: rgba(247, 240, 234, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .game-title-group {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .title-en {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--gold-primary);
+      letter-spacing: 0.06em;
+    }
+    .title-thaana {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 12px;
+      color: var(--gold-primary);
+      direction: rtl;
+    }
+    .title-sub {
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(247, 240, 234, 0.5);
+      letter-spacing: 0.05em;
+    }
+    .risk-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #2a0e1a;
+      border: 1px solid var(--rose-risk);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fda4af;
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.35);
+    }
+    .risk-badge {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      background: #4c0519;
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #ffe4e6;
+    }
+    .burned-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #07030c;
+      border: 1px solid rgba(147, 51, 234, 0.4);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #d8b4fe;
+    }
+    /* Main Center Area */
+    .table-main {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 16px;
+      overflow: hidden;
+    }
+    /* Opponents Row */
+    .opponents-row {
+      position: absolute;
+      top: 6px;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 20;
+    }
+    .opponent-badge {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      padding: 4px 12px;
+      border-radius: 14px;
+      background: rgba(15, 7, 23, 0.95);
+      border: 1px solid rgba(147, 51, 234, 0.45);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      min-width: 90px;
+    }
+    .opponent-badge.highlight {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 14px rgba(229, 195, 120, 0.4);
+    }
+    .opp-name {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .opp-cards {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #c084fc;
+    }
+    /* BUGGY OVERLAY PILL */
+    .buggy-commentary-pill {
+      position: absolute;
+      top: 14px; /* BUG: Intersects right with opponents row! */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      background: rgba(23, 5, 36, 0.96);
+      border: 1.5px solid rgba(229, 195, 120, 0.8);
+      color: var(--gold-primary);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 16px;
+      border-radius: 999px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(229, 195, 120, 0.3);
+      white-space: nowrap;
+    }
+    .bug-indicator {
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(225, 29, 72, 0.95);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      z-index: 50;
+      letter-spacing: 0.05em;
+      border: 1px solid #fda4af;
+      box-shadow: 0 0 10px rgba(225, 29, 72, 0.8);
+    }
+    /* PROPOSED LAYOUT A: DOCKED ARENA PILL */
+    .docked-commentary-pill {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: linear-gradient(180deg, #240a36 0%, #150522 100%);
+      border: 1.5px solid var(--gold-primary);
+      color: var(--gold-primary);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85), 0 0 12px rgba(229, 195, 120, 0.35);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .docked-commentary-pill::before {
+      content: '⚡';
+      font-size: 10px;
+    }
+    /* PROPOSED LAYOUT B: INTEGRATED DEDICATED COMMENTARY SLOT */
+    .dedicated-commentary-slot {
+      position: absolute;
+      top: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      background: rgba(18, 6, 28, 0.92);
+      border: 1px solid rgba(229, 195, 120, 0.4);
+      color: var(--gold-primary);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 999px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      white-space: nowrap;
+    }
+    /* Center Trick Arena */
+    .center-arena {
+      position: relative;
+      width: clamp(230px, 38vw, 320px);
+      height: clamp(140px, 38vh, 180px);
+      border-radius: 22px;
+      background: var(--bg-arena);
+      border: 2px solid rgba(147, 51, 234, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+      margin-top: 14px;
+    }
+    .arena-dashed-ring {
+      position: absolute;
+      inset: 8px;
+      border-radius: 14px;
+      border: 1px dashed rgba(147, 51, 234, 0.25);
+      pointer-events-none;
+    }
+    .lead-suit-label {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: #d8b4fe;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .playing-card-mock {
+      position: relative;
+      width: 58px;
+      height: 84px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7), 0 0 16px rgba(244, 63, 94, 0.75);
+      border: 2px solid var(--rose-risk);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px 6px;
+      color: #111;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+    }
+    .card-rank {
+      font-size: 14px;
+      line-height: 1;
+    }
+    .card-suit-center {
+      align-self: center;
+      font-size: 24px;
+      line-height: 1;
+    }
+    .card-played-badge {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #07030c;
+      border: 1px solid rgba(147, 51, 234, 0.6);
+      color: #e9d5ff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .pile-count-label {
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(216, 180, 254, 0.7);
+      margin-top: 14px;
+    }
+    /* Turn Prompt Zone */
+    .turn-prompt-zone {
+      padding: 8px 16px 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .turn-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: rgba(15, 7, 23, 0.85);
+      border: 1px solid rgba(147, 51, 234, 0.5);
+      color: rgba(247, 240, 234, 0.55);
+      letter-spacing: 0.05em;
+    }
+    .comparison-notes {
+      margin-top: 20px;
+      max-width: 860px;
+      width: 100%;
+      background: #14081c;
+      border: 1px solid var(--border-purple);
+      border-radius: 18px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .note-col h3 {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .note-col.bad h3 { color: #f43f5e; }
+    .note-col.good h3 { color: #34d399; }
+    .note-col ul {
+      list-style-type: none;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(247, 240, 234, 0.75);
+    }
+    .note-col li {
+      margin-bottom: 6px;
+      position: relative;
+      padding-left: 16px;
+    }
+    .note-col li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--gold-primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>BONDI COMMENTARY VS OPPONENTS OVERLAP FIX</h1>
+    <p>Interactive Prototype demonstrating why the commentary pill collided with player names in Bondi and testing the proposed spatial solutions.</p>
+  </div>
+
+  <div class="control-panel">
+    <div class="control-group">
+      <span class="control-label">Layout Mode:</span>
+      <button class="btn-toggle active" id="btnBuggy" onclick="setLayout('buggy')">Current (Buggy Collision)</button>
+      <button class="btn-toggle" id="btnDocked" onclick="setLayout('docked')">Layout A (Docked Arena Pill)</button>
+      <button class="btn-toggle" id="btnDedicated" onclick="setLayout('dedicated')">Layout B (Sub-Opponents Slot)</button>
+    </div>
+
+    <div class="control-group" style="margin-left: auto;">
+      <span class="control-label">Test Message:</span>
+      <select id="msgSelect" onchange="updateMessage()" style="background: #1c0c28; border: 1px solid rgba(229,195,120,0.3); color: #fff; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; outline: none;">
+        <option value="Round 17 • Naeem leads.">Round 17 • Naeem leads.</option>
+        <option value="Naeem dumped 4 Hearts (BONDI)!">Naeem dumped 4 Hearts (BONDI)!</option>
+        <option value="Trick won by Afeef (King of Spades)">Trick won by Afeef (King of Spades)</option>
+        <option value="Afeef has Cleared and Exited Table!">Afeef has Cleared and Exited Table!</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stage-wrapper" id="stageWrapper">
+    <div class="game-table">
+      <div class="table-felt-rim"></div>
+
+      <!-- Top Header -->
+      <header class="table-header">
+        <div class="header-left">
+          <div class="btn-back">←</div>
+          <div class="game-title-group">
+            <div class="title-row">
+              <span class="title-en">BONDI</span>
+              <span class="title-thaana">ބޮނޑި</span>
+            </div>
+            <span class="title-sub">STANDARD SINGLE-CARD • 4P</span>
+          </div>
+        </div>
+
+        <div class="risk-pill">
+          <span>⚠️ AT RISK: Naeem</span>
+          <span class="risk-badge">2♠</span>
+        </div>
+
+        <div class="burned-pill">
+          <span>🔥 Burned: 29</span>
+        </div>
+      </header>
+
+      <!-- Center Main Arena -->
+      <main class="table-main">
+        <!-- Opponents Row -->
+        <div class="opponents-row">
+          <div class="opponent-badge highlight">
+            <span class="opp-name">Afeef</span>
+            <span class="opp-cards">5 cards left</span>
+          </div>
+          <div class="opponent-badge">
+            <span class="opp-name">Naeem</span>
+            <span class="opp-cards">12 cards left</span>
+          </div>
+          <div class="opponent-badge">
+            <span class="opp-name">Ismail</span>
+            <span class="opp-cards">8 cards left</span>
+          </div>
+        </div>
+
+        <!-- BUGGY PILL (Active in Buggy Mode) -->
+        <div id="buggyPill" class="buggy-commentary-pill">
+          <div class="bug-indicator">⚠️ OVERLAPPING PLAYER DETAILS</div>
+          <span id="buggyText">Round 17 • Naeem leads.</span>
+        </div>
+
+        <!-- DEDICATED SUB-SLOT (Active in Dedicated Mode) -->
+        <div id="dedicatedPill" class="dedicated-commentary-slot" style="display: none;">
+          <span id="dedicatedText">Round 17 • Naeem leads.</span>
+        </div>
+
+        <!-- Center Trick Arena Box -->
+        <div class="center-arena">
+          <div class="arena-dashed-ring"></div>
+
+          <!-- DOCKED ARENA PILL (Active in Docked Mode) -->
+          <div id="dockedPill" class="docked-commentary-pill" style="display: none;">
+            <span id="dockedText">Round 17 • Naeem leads.</span>
+          </div>
+
+          <div class="lead-suit-label">
+            <span>LED SUIT:</span>
+            <span style="color: #fff;">♠ SPADES</span>
+          </div>
+
+          <!-- Active Card in Trick -->
+          <div class="playing-card-mock">
+            <span class="card-rank">2</span>
+            <span class="card-suit-center">♠</span>
+            <span class="card-played-badge">Naeem</span>
+          </div>
+
+          <div class="pile-count-label">
+            1 card in active pile
+          </div>
+        </div>
+      </main>
+
+      <!-- Turn Prompt -->
+      <footer class="turn-prompt-zone">
+        <div class="turn-pill">
+          WAITING FOR OPPONENT...
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="comparison-notes">
+    <div class="note-col bad">
+      <h3>❌ The Current Bug (Screenshot)</h3>
+      <ul>
+        <li>Commentary was placed at fixed <code>top-14</code> (56px) while opponents row sits at <code>top-1</code> inside <code>&lt;main&gt;</code> (~52px).</li>
+        <li>The commentary pill lands on the exact same vertical and horizontal space as the middle opponent badges.</li>
+        <li>Player names and card counts are occluded, destroying situational awareness.</li>
+      </ul>
+    </div>
+
+    <div class="note-col good">
+      <h3>✨ Proposed Layout A: Docked Arena Pill</h3>
+      <ul>
+        <li>Commentary pill docks to the <strong>top rim of the Center Trick Arena</strong> (<code>-top-3.5</code>).</li>
+        <li>Visually unifies round state (e.g. <em>"Naeem leads"</em>) directly with the card pile below it.</li>
+        <li>Guarantees zero overlap with opponent badges above, preserving clear sightlines regardless of phone screen ratio.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    let currentMode = 'buggy';
+
+    function setLayout(mode) {
+      currentMode = mode;
+      document.getElementById('btnBuggy').classList.toggle('active', mode === 'buggy');
+      document.getElementById('btnDocked').classList.toggle('active', mode === 'docked');
+      document.getElementById('btnDedicated').classList.toggle('active', mode === 'dedicated');
+
+      document.getElementById('buggyPill').style.display = mode === 'buggy' ? 'block' : 'none';
+      document.getElementById('dockedPill').style.display = mode === 'docked' ? 'flex' : 'none';
+      document.getElementById('dedicatedPill').style.display = mode === 'dedicated' ? 'block' : 'none';
+    }
+
+    function updateMessage() {
+      const msg = document.getElementById('msgSelect').value;
+      document.getElementById('buggyText').innerText = msg;
+      document.getElementById('dockedText').innerText = msg;
+      document.getElementById('dedicatedText').innerText = msg;
+    }
+  </script>
+</body>
+</html>

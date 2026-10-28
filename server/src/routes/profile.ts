@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db.js';
+import { upsertProfile, getProfileById } from '../firestore.js';
 
 export const profileRouter = Router();
 
@@ -89,6 +90,17 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
 
     if (existing && existing.rows && existing.rows.length > 0) {
       const cloudProfile = mapRowToUserProfile(existing.rows[0]);
+      await upsertProfile({
+        id: cloudProfile.id,
+        display_name: cloudProfile.displayName,
+        avatar_id: cloudProfile.avatarId,
+        friend_code: cloudProfile.friendCode,
+        level: cloudProfile.level,
+        coins: cloudProfile.coins,
+        gems: cloudProfile.gems,
+        login_provider: cloudProfile.loginProvider,
+        stats: cloudProfile.stats,
+      }).catch(() => {});
       return res.json({
         exists: true,
         profile: cloudProfile,
@@ -135,6 +147,17 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
     );
 
     const newProfile = mapRowToUserProfile(insertRes.rows[0]);
+    await upsertProfile({
+      id: newProfile.id,
+      display_name: newProfile.displayName,
+      avatar_id: newProfile.avatarId,
+      friend_code: newProfile.friendCode,
+      level: newProfile.level,
+      coins: newProfile.coins,
+      gems: newProfile.gems,
+      login_provider: newProfile.loginProvider,
+      stats: newProfile.stats,
+    }).catch(() => {});
     return res.json({
       exists: false,
       profile: newProfile,
@@ -145,9 +168,21 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
     console.warn('[Profile Route] Database query failed, using in-memory adapter:', err.message);
 
     if (memoryProfiles.has(lookupKey)) {
+      const p = memoryProfiles.get(lookupKey);
+      await upsertProfile({
+        id: p.id,
+        display_name: p.displayName,
+        avatar_id: p.avatarId,
+        friend_code: p.friendCode,
+        level: p.level,
+        coins: p.coins,
+        gems: p.gems,
+        login_provider: p.loginProvider,
+        stats: p.stats,
+      }).catch(() => {});
       return res.json({
         exists: true,
-        profile: memoryProfiles.get(lookupKey),
+        profile: p,
         message: 'Existing profile retrieved from memory adapter.',
       });
     }
@@ -181,6 +216,17 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
     };
 
     memoryProfiles.set(lookupKey, memoryProfile);
+    await upsertProfile({
+      id: memoryProfile.id,
+      display_name: memoryProfile.displayName,
+      avatar_id: memoryProfile.avatarId,
+      friend_code: memoryProfile.friendCode,
+      level: memoryProfile.level,
+      coins: memoryProfile.coins,
+      gems: memoryProfile.gems,
+      login_provider: memoryProfile.loginProvider,
+      stats: memoryProfile.stats,
+    }).catch(() => {});
     return res.json({
       exists: false,
       profile: memoryProfile,
@@ -190,8 +236,39 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/profile/register
+ * Registers or updates any profile (Guest or Authenticated) in Firestore.
+ * Guarantees friendCode is immediately discoverable.
+ */
+profileRouter.post('/register', async (req: Request, res: Response) => {
+  const { profile } = req.body;
+  if (!profile || !profile.id) {
+    return res.status(400).json({ error: 'Valid profile with id is required' });
+  }
+
+  try {
+    await upsertProfile({
+      id: profile.id,
+      display_name: profile.displayName || 'Player',
+      avatar_id: profile.avatarId || 'sultan',
+      friend_code: profile.friendCode || '',
+      level: Number(profile.level) || 1,
+      coins: Number(profile.coins) || 0,
+      gems: Number(profile.gems) || 0,
+      login_provider: profile.loginProvider || 'GUEST',
+      stats: profile.stats || {},
+      presence_status: profile.presenceStatus || 'IN_LOBBY',
+    });
+
+    return res.json({ success: true, message: 'Profile registered successfully' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/profile/sync
- * Flushes active progression, coins, stats to PostgreSQL.
+ * Flushes active progression, coins, stats to PostgreSQL and Google Cloud Firestore.
  */
 profileRouter.post('/sync', async (req: Request, res: Response) => {
   const { profile } = req.body;
@@ -201,6 +278,24 @@ profileRouter.post('/sync', async (req: Request, res: Response) => {
   }
 
   const lookupKey = profile.googleId || profile.email || profile.id;
+
+  // 1. Always persist to Google Cloud Firestore
+  try {
+    await upsertProfile({
+      id: profile.id,
+      display_name: profile.displayName,
+      avatar_id: profile.avatarId,
+      friend_code: profile.friendCode,
+      level: profile.level,
+      coins: profile.coins,
+      gems: profile.gems,
+      login_provider: profile.loginProvider,
+      stats: profile.stats,
+      presence_status: profile.presenceStatus || 'IN_LOBBY',
+    });
+  } catch (fsErr: any) {
+    console.warn('[Profile Route] Firestore sync warning:', fsErr.message);
+  }
 
   try {
     const statsJson = JSON.stringify(profile.stats || {});
