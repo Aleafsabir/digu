@@ -22,6 +22,7 @@ RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
 COPY db ./db
+COPY public-web ./public-web
 
 EXPOSE 8080
 

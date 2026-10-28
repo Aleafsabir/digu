@@ -2,6 +2,9 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { WebSocketServer } from 'ws';
 import { checkDatabaseHealth, initDatabase } from './db.js';
 import { checkFirestoreHealth } from './firestore.js';
@@ -11,6 +14,10 @@ import { roomsRouter } from './routes/rooms.js';
 import { profileRouter } from './routes/profile.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicWebDir = path.resolve(__dirname, '../public-web');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -47,6 +54,24 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api/friends', friendsRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/profile', profileRouter);
+
+// Serve static web app and downloads if present
+if (fs.existsSync(publicWebDir)) {
+  app.use(express.static(publicWebDir));
+  console.log(`[Thaasbai Game Server] Mounted static web client from: ${publicWebDir}`);
+}
+
+// Fallback SPA routing for client-side navigation (non-API routes)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  const indexPath = path.join(publicWebDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  next();
+});
 
 // Create HTTP and WebSocket server
 const server = http.createServer(app);

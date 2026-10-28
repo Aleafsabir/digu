@@ -40,4 +40,5 @@ fastlane/*.json
 .impeccable/
 .claude/
 agent/
+server/public-web/
 
