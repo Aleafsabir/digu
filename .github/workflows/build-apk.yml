@@ -74,11 +74,11 @@ jobs:
           name: "Holhuashi: Digu ${{ steps.version_info.outputs.tag }}"
           body: |
             ## Holhuashi: Digu ${{ steps.version_info.outputs.tag }} Release
-            - **Google Cloud Data Restoration**: Full multi-device account restoration across Google sign-ins, restoring coin balances, gems, levels, and career stats.
-            - **Smart Chip Merge & Conflict Resolution**: Interactive `<CloudConflictModal />` allowing players to retain cloud saves, keep local guest saves, or merge guest chip/gem balances into their cloud account.
-            - **Unified Royal Lacquer Design System**: Complete visual harmonization across all 20+ screens, matchmaking radars, modals, and stadium tables in luxury Baa Atoll lacquerware aesthetics.
+            - **Player Confirmation on Logout**: Instant sign-out replaced with account-aware confirmation modal (cloud safety reassurance vs guest local switch warning with Dhivehi typography).
+            - **Dhihaeh Screen Scaling & DPI Optimization**: Fluid center trick arena (`clamp`) and adaptive 13-card overlap prevent edge clipping across compact phones and foldables.
+            - **Bondi Screen Scaling & Docked Suit Dump**: High-visibility trick zone with safe-area notch padding and non-intrusive docked suit dump picker.
+            - **Sharp Multi-DPI Vector Cards**: Pure SVG suit geometry for crisp presentation on all screen ratios and densities (1x to 4x).
             - **Seamless APK Updates**: Signed with the permanent keystore to ensure uninterrupted updates without "App not installed" package errors.
-            - **Offline Sync Queueing**: Automatic background sync with offline transaction persistence and automatic sync flush on app launch.
           files: |
             android/app/build/outputs/apk/debug/app-debug.apk
           prerelease: false

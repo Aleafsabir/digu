@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download Holhuashi: Digu (Android Update APK)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Noto+Sans+Thaana:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #090302;
+      --card-bg: #140806;
+      --border: #e5c378;
+      --border-dim: rgba(229, 195, 120, 0.25);
+      --gold: #e5c378;
+      --gold-light: #fef08a;
+      --crimson: #c84b31;
+      --crimson-dark: #8f2d1b;
+      --text: #f7f0ea;
+      --text-muted: rgba(247, 240, 234, 0.7);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: radial-gradient(circle at 50% 20%, #230d08 0%, #0d0403 60%, #050101 100%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .container {
+      max-width: 540px;
+      width: 100%;
+      background: linear-gradient(180deg, #1d0b08 0%, #120604 100%);
+      border: 2px solid var(--border);
+      border-radius: 28px;
+      padding: 32px 28px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(229, 195, 120, 0.2);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .top-glow {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      height: 120px;
+      background: radial-gradient(ellipse, rgba(229, 195, 120, 0.22) 0%, transparent 70%);
+      pointer-events-none;
+    }
+    .crest {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
+      background: #0a0302;
+      border: 2px solid var(--border);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(229, 195, 120, 0.35);
+      overflow: hidden;
+    }
+    .crest img {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+    }
+    .thaana-title {
+      font-family: 'Noto Sans Thaana', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      direction: rtl;
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      letter-spacing: 0.05em;
+      color: #fff;
+      margin-bottom: 8px;
+      font-weight: 900;
+    }
+    .version-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      background: rgba(229, 195, 120, 0.12);
+      border: 1px solid var(--border-dim);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+    .btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--crimson) 0%, var(--crimson-dark) 100%);
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(200, 75, 49, 0.45);
+      transition: all 0.2s ease;
+      margin-bottom: 24px;
+    }
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(200, 75, 49, 0.6);
+      filter: brightness(1.1);
+    }
+    .btn-download:active {
+      transform: translateY(1px);
+    }
+    .qr-card {
+      background: #090302;
+      border: 1px solid var(--border-dim);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .qr-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #qrcode {
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .changelog {
+      text-align: left;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(229, 195, 120, 0.15);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .changelog-title {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(229, 195, 120, 0.15);
+      padding-bottom: 4px;
+    }
+    .changelog ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .changelog li {
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      position: relative;
+      padding-left: 18px;
+    }
+    .changelog li::before {
+      content: '◆';
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+      font-size: 9px;
+      top: 2px;
+    }
+    .changelog li strong {
+      color: #fff;
+    }
+    .footer-note {
+      margin-top: 18px;
+      font-size: 11px;
+      color: rgba(247, 240, 234, 0.4);
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-glow"></div>
+
+    <div class="crest">
+      <img src="/logos/concept-a-symbol.svg" alt="Holhuashi Crest" onerror="this.src='/brand_assets/holhuashi_app_icon_v3.jpg'" />
+    </div>
+
+    <div class="thaana-title">ހޮޅުއަށި : ޑިގު</div>
+    <h1>HOLHUASHI : DIGU</h1>
+    <div class="version-tag">UPDATE BUILD • v0.5.3</div>
+
+    <!-- Direct Download Button -->
+    <a href="/holhuashi-debug.apk" download="holhuashi-debug.apk" class="btn-download">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span>Download APK (14.9 MB)</span>
+    </a>
+
+    <!-- QR Code Card for Scanning with Mobile Camera -->
+    <div class="qr-card">
+      <div class="qr-label">📱 Scan with Phone Camera to Install</div>
+      <div id="qrcode"></div>
+      <div style="font-size: 10px; color: rgba(247, 240, 234, 0.5); font-family: monospace;">
+        Direct Mobile Download Link
+      </div>
+    </div>
+
+    <!-- What's New in this Build -->
+    <div class="changelog">
+      <div class="changelog-title">What's New in this Update</div>
+      <ul>
+        <li><strong>Player Logout Confirmation:</strong> Instant sign-out replaced with account-aware confirmation modal (cloud safety reassurance vs guest switch warning).</li>
+        <li><strong>Dhihaeh Screen Optimization:</strong> Fluid center arena (`clamp`) and adaptive 13-card overlap prevent edge clipping across compact phones and foldables.</li>
+        <li><strong>Bondi Screen Optimization:</strong> High-visibility trick zone with safe-area notch padding and non-intrusive docked suit dump picker.</li>
+        <li><strong>Sharp Multi-DPI Vector Cards:</strong> Pure SVG suit rendering ensures crisp visuals across 1x to 4x screen pixel densities.</li>
+        <li><strong>Permanent Keystore Signature:</strong> Seamless in-place updates without "App not installed" package errors.</li>
+      </ul>
+    </div>
+
+    <div class="footer-note">
+      Package: com.thaasbai.digu • Signed Debug APK
+    </div>
+  </div>
+
+  <script>
+    // Generate QR code using current origin URL + APK path
+    const apkUrl = window.location.origin + '/holhuashi-debug.apk';
+    new QRCode(document.getElementById("qrcode"), {
+      text: apkUrl,
+      width: 140,
+      height: 140,
+      colorDark : "#0a0302",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.M
+    });
+  </script>
+</body>
+</html>
