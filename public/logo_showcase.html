@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Holhuashi — Identity & Logo Design Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Faruma&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #080403;
+      --bg-surface: #120B09;
+      --bg-card: #1A100E;
+      --border-lacquer: rgba(229, 195, 120, 0.22);
+      --gold-primary: #E5C378;
+      --gold-hover: #FFE082;
+      --gold-dim: #9E7D3B;
+      --cinnabar-red: #C62828;
+      --lagoon-teal: #00A896;
+      --text-main: #FBF8F2;
+      --text-sub: #BAACA5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      padding: 40px 24px;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(198, 40, 40, 0.18), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(229, 195, 120, 0.08), transparent 80%);
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      border-bottom: 1px solid var(--border-lacquer);
+      padding-bottom: 32px;
+      position: relative;
+    }
+
+    .brand-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 16px;
+      background: rgba(229, 195, 120, 0.1);
+      border: 1px solid rgba(229, 195, 120, 0.3);
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 18px;
+    }
+
+    .brand-eyebrow span.thaana {
+      font-family: 'Faruma', sans-serif;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: #FFFFFF;
+      text-shadow: 0 4px 24px rgba(229, 195, 120, 0.25);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--text-sub);
+      font-size: 16px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* Tabs & Concept Switcher */
+    .tabs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-lacquer);
+      color: var(--text-sub);
+      padding: 14px 28px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--gold-primary);
+      color: var(--gold-hover);
+      transform: translateY(-2px);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(229, 195, 120, 0.18), rgba(198, 40, 40, 0.22));
+      border-color: var(--gold-primary);
+      color: #FFFFFF;
+      box-shadow: 0 0 24px rgba(229, 195, 120, 0.2);
+    }
+
+    .badge-rec {
+      background: var(--gold-primary);
+      color: var(--bg-void);
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Concept Panels */
+    .concept-panel {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .concept-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Main Showcase Grid */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-lacquer);
+      border-radius: 18px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+    }
+
+    .mark-stage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 280px;
+      background: radial-gradient(circle at center, rgba(30, 18, 14, 0.9), rgba(10, 6, 5, 0.95));
+      border-radius: 14px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(229, 195, 120, 0.1);
+      padding: 24px;
+    }
+
+    .mark-stage svg {
+      width: 220px;
+      height: 220px;
+      filter: drop-shadow(0 12px 32px rgba(0,0,0,0.6));
+    }
+
+    .lockup-stage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0A0605;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(229, 195, 120, 0.15);
+    }
+
+    .lockup-stage svg {
+      width: 100%;
+      max-width: 540px;
+      height: auto;
+    }
+
+    .concept-title {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      margin-bottom: 8px;
+    }
+
+    .concept-desc {
+      color: var(--text-sub);
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+
+    .metric-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .metric-item {
+      background: var(--bg-card);
+      border: 1px solid rgba(229, 195, 120, 0.15);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 2px;
+    }
+
+    .metric-lbl {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Stress Test & Environments */
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gold-primary);
+      margin: 40px 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-lacquer);
+    }
+
+    .ladder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .ladder-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-lacquer);
+      border-radius: 14px;
+      padding: 24px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+    }
+
+    .ladder-card .mark-icon {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ladder-card span {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    /* Mockups: App Icon & Game Header */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 800px) {
+      .mockup-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .app-icon-preview {
+      background: #181D24;
+      border-radius: 18px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-lacquer);
+    }
+
+    .ios-squircle {
+      width: 120px;
+      height: 120px;
+      border-radius: 27px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(255, 255, 255, 0.15) inset;
+      margin-bottom: 16px;
+      background: #0D0605;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ios-squircle svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .in-game-preview {
+      background: linear-gradient(180deg, #1A0D0B, #0E0706);
+      border: 1px solid var(--border-lacquer);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .game-felt-bar {
+      background: #08241D;
+      border: 1px solid rgba(229, 195, 120, 0.3);
+      border-radius: 12px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5) inset;
+    }
+
+    .game-felt-bar .logo-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .game-felt-bar .logo-mini svg {
+      width: 44px;
+      height: 44px;
+    }
+
+    .game-felt-bar .title-group {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold-primary);
+      letter-spacing: 2px;
+    }
+
+    .game-felt-bar .table-info {
+      font-size: 12px;
+      color: #93C5BD;
+      font-weight: 600;
+    }
+
+    /* Actions & Directives */
+    .callout-box {
+      background: linear-gradient(135deg, rgba(229, 195, 120, 0.08), rgba(198, 40, 40, 0.12));
+      border: 1px solid var(--gold-primary);
+      border-radius: 16px;
+      padding: 28px 32px;
+      text-align: center;
+      margin-top: 48px;
+    }
+
+    .callout-box h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+    }
+
+    .callout-box p {
+      color: var(--text-sub);
+      font-size: 15px;
+      max-width: 680px;
+      margin: 0 auto 20px;
+    }
+
+    .btn-action {
+      background: linear-gradient(135deg, #FFE082, #E5C378);
+      color: #0A0605;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(229, 195, 120, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(229, 195, 120, 0.45);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand-eyebrow">
+        <span>Identity Design</span> • <span class="thaana">ހޮޅުއަށި</span> • <span>Maldivian Rummy &amp; Cards</span>
+      </div>
+      <h1>HOLHUASHI BRAND IDENTITY</h1>
+      <p class="subtitle">
+        Vector brand-mark and logotype proposals designed under the professional <code>logo-design</code> skill and Dhivehi lacquer craftsmanship guidelines.
+      </p>
+    </header>
+
+    <!-- Interactive Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchConcept('a')">
+        <span>Concept A: Sovereign Pavilion</span>
+        <span class="badge-rec">Recommended</span>
+      </button>
+      <button class="tab-btn" onclick="switchConcept('b')">
+        <span>Concept B: Melded Monogram</span>
+      </button>
+      <button class="tab-btn" onclick="switchConcept('c')">
+        <span>Concept C: Royal Joali Crest</span>
+      </button>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CONCEPT A PANEL (RECOMMENDED) -->
+    <!-- ============================================== -->
+    <div id="panel-a" class="concept-panel active">
+      <div class="hero-grid">
+        <!-- Mark Stage -->
+        <div class="card-box">
+          <div class="mark-stage">
+            <!-- Embedded Symbol A -->
+            <img src="logos/concept-a-symbol.svg" alt="Concept A Symbol" style="width: 220px; height: 220px;" />
+          </div>
+          <h2 class="concept-title">The Sovereign Pavilion (Liyelaa Holhuashi)</h2>
+          <p class="concept-desc">
+            A regal fusion of the traditional island Holhuashi pavilion roofline, an upturned Ace of Spades, and fanned cards resting upon handcrafted joali timber rails.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">81 / 100</div>
+              <div class="metric-lbl">Audit Score</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">106</div>
+              <div class="metric-lbl">Anchor Count</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">16 px</div>
+              <div class="metric-lbl">Scale Floor</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lockup Stage -->
+        <div class="card-box">
+          <div class="lockup-stage">
+            <img src="logos/concept-a-lockup.svg" alt="Concept A Lockup" style="width: 100%; max-width: 520px;" />
+          </div>
+          <h2 class="concept-title">Horizontal Logotype Lockup</h2>
+          <p class="concept-desc">
+            Features bespoke high-contrast serif typography ("HOLHUASHI"), authentic Thaana script ("ހޮޅުއަށި"), and a central lacquer diamond dividing bar.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">3 Colors</div>
+              <div class="metric-lbl">Color System</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">0 Texts</div>
+              <div class="metric-lbl">Pure Paths</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">Emblem</div>
+              <div class="metric-lbl">Mark Type</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stress Testing: Scale Ladder -->
+      <h3 class="section-title">Optical Scale Ladder (16px to 256px)</h3>
+      <div class="ladder-grid">
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 200px; height: 200px;">
+            <img src="logos/concept-a-symbol.svg" width="200" height="200" alt="200px" />
+          </div>
+          <span>200 px (Hero / Store)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 128px; height: 128px;">
+            <img src="logos/concept-a-symbol.svg" width="128" height="128" alt="128px" />
+          </div>
+          <span>128 px (App Icon)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 64px; height: 64px;">
+            <img src="logos/concept-a-symbol.svg" width="64" height="64" alt="64px" />
+          </div>
+          <span>64 px (HUD Avatar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 32px; height: 32px;">
+            <img src="logos/concept-a-symbol.svg" width="32" height="32" alt="32px" />
+          </div>
+          <span>32 px (Navbar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 16px; height: 16px;">
+            <img src="logos/concept-a-symbol.svg" width="16" height="16" alt="16px" />
+          </div>
+          <span>16 px (Favicon / Squint)</span>
+        </div>
+      </div>
+
+      <!-- Real Context Mockups -->
+      <h3 class="section-title">In-Game &amp; Store App Icon Mockup</h3>
+      <div class="mockup-grid">
+        <div class="app-icon-preview">
+          <div class="ios-squircle">
+            <img src="logos/concept-a-symbol.svg" width="120" height="120" alt="App Icon" />
+          </div>
+          <p style="font-weight: 700; font-size: 14px; color: #FFFFFF;">Holhuashi</p>
+          <p style="font-size: 12px; color: var(--text-sub);">App Store / Google Play Icon</p>
+        </div>
+
+        <div class="in-game-preview">
+          <div class="game-felt-bar">
+            <div class="logo-mini">
+              <img src="logos/concept-a-symbol.svg" width="40" height="40" alt="Mini" />
+              <div>
+                <div class="title-group">HOLHUASHI</div>
+                <div class="table-info">Stadium Table • Royal Lacquer</div>
+              </div>
+            </div>
+            <div style="font-size: 13px; font-weight: 800; color: #E5C378; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(229,195,120,0.3);">
+              1,000 PTS
+            </div>
+          </div>
+          <p style="font-size: 13px; color: var(--text-sub); margin-top: 18px; text-align: center;">
+            Integrated in-game header mockup rendered directly on the Emerald Lacquer felt table.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CONCEPT B PANEL -->
+    <!-- ============================================== -->
+    <div id="panel-b" class="concept-panel">
+      <div class="hero-grid">
+        <div class="card-box">
+          <div class="mark-stage">
+            <img src="logos/concept-b-symbol.svg" alt="Concept B Symbol" style="width: 220px; height: 220px;" />
+          </div>
+          <h2 class="concept-title">The Melded Monogram (H-Run)</h2>
+          <p class="concept-desc">
+            An architectural monogram "H" built from two upright playing cards (Ace &amp; King) interlocked by a woven timber meld crossbar.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">98 / 100</div>
+              <div class="metric-lbl">Audit Score</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">85</div>
+              <div class="metric-lbl">Anchor Count</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">16 px</div>
+              <div class="metric-lbl">Scale Floor</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-box">
+          <div class="lockup-stage">
+            <img src="logos/concept-b-lockup.svg" alt="Concept B Lockup" style="width: 100%; max-width: 520px;" />
+          </div>
+          <h2 class="concept-title">Horizontal Monogram Lockup</h2>
+          <p class="concept-desc">
+            Ultra-bold silhouette with maximum punch on store shelves and high readability on tiny smartwatches and lock screens.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">3 Colors</div>
+              <div class="metric-lbl">Color System</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">Monogram</div>
+              <div class="metric-lbl">Mark Type</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">Clean Geometric</div>
+              <div class="metric-lbl">Aesthetic</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Optical Scale Ladder (16px to 256px)</h3>
+      <div class="ladder-grid">
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 200px; height: 200px;">
+            <img src="logos/concept-b-symbol.svg" width="200" height="200" alt="200px" />
+          </div>
+          <span>200 px (Hero / Store)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 128px; height: 128px;">
+            <img src="logos/concept-b-symbol.svg" width="128" height="128" alt="128px" />
+          </div>
+          <span>128 px (App Icon)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 64px; height: 64px;">
+            <img src="logos/concept-b-symbol.svg" width="64" height="64" alt="64px" />
+          </div>
+          <span>64 px (HUD Avatar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 32px; height: 32px;">
+            <img src="logos/concept-b-symbol.svg" width="32" height="32" alt="32px" />
+          </div>
+          <span>32 px (Navbar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 16px; height: 16px;">
+            <img src="logos/concept-b-symbol.svg" width="16" height="16" alt="16px" />
+          </div>
+          <span>16 px (Favicon / Squint)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CONCEPT C PANEL -->
+    <!-- ============================================== -->
+    <div id="panel-c" class="concept-panel">
+      <div class="hero-grid">
+        <div class="card-box">
+          <div class="mark-stage">
+            <img src="logos/concept-c-symbol.svg" alt="Concept C Symbol" style="width: 220px; height: 220px;" />
+          </div>
+          <h2 class="concept-title">The Royal Joali Crest (Atoll Seal)</h2>
+          <p class="concept-desc">
+            A centrifugal pinwheel of four rotating card suits orbiting an eight-pointed Maldivian nautical star and ocean lagoon rosette.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">82 / 100</div>
+              <div class="metric-lbl">Audit Score</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">102</div>
+              <div class="metric-lbl">Anchor Count</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">16 px</div>
+              <div class="metric-lbl">Scale Floor</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-box">
+          <div class="lockup-stage">
+            <img src="logos/concept-c-lockup.svg" alt="Concept C Lockup" style="width: 100%; max-width: 520px;" />
+          </div>
+          <h2 class="concept-title">Horizontal Crest Lockup</h2>
+          <p class="concept-desc">
+            Infused with vibrant lagoon turquoise accents, celebrating the four players seated together at the island pavilion.
+          </p>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-val">4 Colors</div>
+              <div class="metric-lbl">Color System</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">Abstract</div>
+              <div class="metric-lbl">Mark Type</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-val">Centrifugal</div>
+              <div class="metric-lbl">Dynamic Flow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Optical Scale Ladder (16px to 256px)</h3>
+      <div class="ladder-grid">
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 200px; height: 200px;">
+            <img src="logos/concept-c-symbol.svg" width="200" height="200" alt="200px" />
+          </div>
+          <span>200 px (Hero / Store)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 128px; height: 128px;">
+            <img src="logos/concept-c-symbol.svg" width="128" height="128" alt="128px" />
+          </div>
+          <span>128 px (App Icon)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 64px; height: 64px;">
+            <img src="logos/concept-c-symbol.svg" width="64" height="64" alt="64px" />
+          </div>
+          <span>64 px (HUD Avatar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 32px; height: 32px;">
+            <img src="logos/concept-c-symbol.svg" width="32" height="32" alt="32px" />
+          </div>
+          <span>32 px (Navbar)</span>
+        </div>
+        <div class="ladder-card">
+          <div class="mark-icon" style="width: 16px; height: 16px;">
+            <img src="logos/concept-c-symbol.svg" width="16" height="16" alt="16px" />
+          </div>
+          <span>16 px (Favicon / Squint)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Callout Checkpoint -->
+    <div class="callout-box">
+      <h3>Design Checkpoint — Which direction resonates most?</h3>
+      <p>
+        Review the three concepts in this interactive test harness. Once you choose your preferred direction, we can proceed to generate the complete production kit (all app icon resolutions, Android adaptive mipmaps, iOS asset catalogs, and brand guidelines).
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function switchConcept(id) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.concept-panel').forEach(panel => panel.classList.remove('active'));
+
+      if (id === 'a') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('panel-a').classList.add('active');
+      } else if (id === 'b') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('panel-b').classList.add('active');
+      } else if (id === 'c') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('panel-c').classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

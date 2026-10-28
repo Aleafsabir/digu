@@ -127,15 +127,21 @@ export const BondiTableSurface: React.FC = () => {
       )}
 
       {/* MIDDLE ARENA: Opponents on Perimeter + High-Visibility Center Trick Pile */}
-      <main className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-2">
+      <main
+        className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-1 sm:p-2 overflow-hidden"
+        style={{
+          paddingLeft: 'max(16px, env(safe-area-inset-left))',
+          paddingRight: 'max(16px, env(safe-area-inset-right))',
+        }}
+      >
         {/* OPPONENTS PERIMETER SLOTS (Zero overlap with center!) */}
-        <div className="absolute top-1 left-0 right-0 flex items-center justify-center gap-3 sm:gap-6 z-20 px-4">
+        <div className="absolute top-1 left-0 right-0 flex items-center justify-center gap-2 sm:gap-6 z-20 px-2 sm:px-4">
           {opponents.map(opp => {
             const isActive = gameState.activeSeat === opp.seatIndex;
             return (
               <div
                 key={opp.id}
-                className={`flex items-center gap-2 px-3 py-1 rounded-2xl border transition shadow ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-2xl border transition shadow ${
                   opp.hasExited
                     ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300 opacity-60'
                     : isActive
@@ -144,11 +150,11 @@ export const BondiTableSurface: React.FC = () => {
                 }`}
               >
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight">
+                  <span className="text-[11px] sm:text-xs font-bold leading-tight">
                     {opp.name} {opp.hasExited ? '✓ CLEARED' : ''}
                   </span>
                   {!opp.hasExited && (
-                    <span className="text-[9px] font-mono text-purple-300">
+                    <span className="text-[8px] sm:text-[9px] font-mono text-purple-300">
                       {opp.hand.length} cards left
                     </span>
                   )}
@@ -158,10 +164,10 @@ export const BondiTableSurface: React.FC = () => {
           })}
         </div>
 
-        {/* HIGH-VISIBILITY CENTER TRICK ARENA */}
-        <div className="relative w-72 sm:w-96 h-56 sm:h-64 rounded-3xl bg-[#0d0514]/85 border-2 border-purple-900/60 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(0,0,0,0.85)] z-10 px-4">
+        {/* HIGH-VISIBILITY CENTER TRICK ARENA (Fluid Sizing for All Screen Sizes & DPIs) */}
+        <div className="relative w-[clamp(220px,36vw,320px)] h-[clamp(130px,36dvh,185px)] rounded-2xl sm:rounded-3xl bg-[#0d0514]/90 border-2 border-purple-900/60 flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.85)] z-10 px-2 sm:px-4">
           {/* Subtle felt rings */}
-          <div className="absolute inset-3 rounded-2xl border border-purple-800/30 border-dashed pointer-events-none" />
+          <div className="absolute inset-2 sm:inset-3 rounded-xl sm:rounded-2xl border border-purple-800/30 border-dashed pointer-events-none" />
 
           {currentTrick.cards.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-purple-400/50 text-xs font-mono">
@@ -172,7 +178,7 @@ export const BondiTableSurface: React.FC = () => {
             <div className="flex flex-col items-center justify-center w-full">
               {/* Lead Suit Label */}
               {currentTrick.leadSuit && (
-                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300 mb-2 flex items-center gap-1">
+                <div className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300 mb-1 sm:mb-2 flex items-center gap-1">
                   <span>Led Suit:</span>
                   <span className={currentTrick.leadSuit === 'HEARTS' || currentTrick.leadSuit === 'DIAMONDS' ? 'text-red-400' : 'text-slate-200'}>
                     {SUIT_ICONS[currentTrick.leadSuit].symbol} {currentTrick.leadSuit}
@@ -181,7 +187,7 @@ export const BondiTableSurface: React.FC = () => {
               )}
 
               {/* Fanned / Stacked Visible Trick Cards */}
-              <div className="flex items-center justify-center -space-x-6 sm:-space-x-7 py-2 overflow-visible">
+              <div className="flex items-center justify-center -space-x-5 sm:-space-x-7 py-1 sm:py-2 overflow-visible">
                 {currentTrick.cards.map((play, idx) => {
                   const isAtRiskPlay =
                     currentTrick.atRiskCard && play.card.id === currentTrick.atRiskCard.id;
@@ -201,7 +207,7 @@ export const BondiTableSurface: React.FC = () => {
                           size="table"
                           isInteractive={false}
                         />
-                        <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#07030c] border border-purple-900 text-[8px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap text-purple-200">
+                        <span className="absolute -bottom-3 sm:-bottom-4 left-1/2 -translate-x-1/2 bg-[#07030c] border border-purple-900 text-[8px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap text-purple-200">
                           {gameState.players[play.playedBySeat].name}
                         </span>
                       </div>
@@ -211,7 +217,7 @@ export const BondiTableSurface: React.FC = () => {
               </div>
 
               {/* Total Cards in Pile */}
-              <div className="text-[9px] font-mono text-purple-400/80 mt-4">
+              <div className="text-[8px] sm:text-[9px] font-mono text-purple-400/80 mt-2 sm:mt-3">
                 {currentTrick.cards.length} {currentTrick.cards.length === 1 ? 'card' : 'cards'} in active pile
               </div>
             </div>
@@ -219,25 +225,25 @@ export const BondiTableSurface: React.FC = () => {
         </div>
       </main>
 
-      {/* SUIT BONDI DUMP PICKER MODAL (When Void in Suit Bondi) */}
+      {/* SUIT BONDI DUMP PICKER MODAL (Docked Gracefully above Hand Tray) */}
       <AnimatePresence>
         {isHumanTurn && isHumanVoid && gameState.variant === 'SUIT_BONDI' && availableDumpSuits.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 15 }}
-            className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 bg-[#170524]/95 border-2 border-rose-500/80 rounded-2xl p-2.5 shadow-[0_0_25px_rgba(244,63,94,0.4)] flex flex-col items-center gap-1.5"
+            className="absolute bottom-[clamp(76px,24dvh,115px)] left-1/2 -translate-x-1/2 z-40 bg-[#170524]/95 border-2 border-rose-500/80 rounded-xl sm:rounded-2xl p-2 sm:p-2.5 shadow-[0_0_25px_rgba(244,63,94,0.5)] flex flex-col items-center gap-1"
           >
-            <div className="flex items-center gap-1 text-[11px] font-black text-rose-300">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-black text-rose-300">
+              <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
               <span>GIVE BONDI: CHOOSE SUIT TO DUMP!</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {availableDumpSuits.map(dump => (
                 <button
                   key={dump.suit}
                   onClick={() => dumpSuit(dump.suit)}
-                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-700 to-rose-900 border border-rose-400 hover:brightness-110 font-bold text-xs text-white shadow cursor-pointer transition active:scale-95"
+                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-gradient-to-r from-rose-700 to-rose-900 border border-rose-400 hover:brightness-110 font-bold text-[11px] sm:text-xs text-white shadow cursor-pointer transition active:scale-95"
                 >
                   {SUIT_ICONS[dump.suit].symbol} {dump.suit} ({dump.cards.length})
                 </button>
@@ -280,8 +286,16 @@ export const BondiTableSurface: React.FC = () => {
           )}
         </div>
 
-        {/* Fanned Hand Cards Container */}
-        <div className="flex items-end justify-center -space-x-5 sm:-space-x-6 md:-space-x-7 px-2 pb-0 overflow-visible min-h-[clamp(88px,26dvh,124px)]">
+        {/* Fanned Hand Cards Container (Dynamic Overlap for Bondi across all Screen Sizes) */}
+        <div
+          className={`flex items-end justify-center px-1 pb-0 overflow-visible min-h-[clamp(74px,23dvh,118px)] max-w-full ${
+            human.hand.length > 10
+              ? '-space-x-5 sm:-space-x-6 md:-space-x-7'
+              : human.hand.length > 7
+              ? '-space-x-4 sm:-space-x-5 md:-space-x-6'
+              : '-space-x-3 sm:-space-x-4'
+          }`}
+        >
           {human.hand.map((card, index) => {
             const isSelected = selectedCardIds.includes(card.id);
             const midIndex = (human.hand.length - 1) / 2;

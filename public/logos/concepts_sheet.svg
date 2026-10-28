@@ -1,0 +1,698 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="984" viewBox="0 0 1600 984"><rect width="1600" height="984" fill="#f7f7f4"/><text x="60" y="78" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#161616">HOLHUASHI — Logo Concepts</text><text x="60" y="116" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#6b6b6b">Maldivian Rummy &amp; Cards (com.thaasbai.digu)</text><rect x="60" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#161616" stroke-width="2"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="90" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept A: The Sovereign Pavilion</title>
+
+  <!-- Deep Obsidian Circular Base -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="6"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#C62828" stroke-width="3"/>
+
+  <!-- Sovereign Pavilion Roof Canopy (Sweeping traditional Maldivian Eaves) -->
+  <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" 
+        fill="#E5C378"/>
+
+  <!-- Finial Spearhead atop Canopy -->
+  <path d="M 124 42 L 128 20 L 132 42 Z" fill="#E5C378"/>
+  <circle cx="128" cy="18" r="6" fill="#C62828"/>
+
+  <!-- Left Angled Fanned Card (Tilted 15°) -->
+  <g transform="translate(86, 130) rotate(-15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Heart Pip -->
+    <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Right Angled Fanned Card (Tilted +15°) -->
+  <g transform="translate(170, 130) rotate(15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Diamond Pip -->
+    <polygon points="0,-14 11,0 0,14 -11,0" fill="#C62828"/>
+  </g>
+
+  <!-- Center Monarch Card: The Ace of Spades -->
+  <rect x="98" y="82" width="60" height="96" rx="8" fill="#FFFFFF" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Top-Left) -->
+  <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Bottom-Right, Inverted) -->
+  <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Central Regal Spade Emblem -->
+  <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" 
+        fill="#0D0605" stroke="#E5C378" stroke-width="2"/>
+  <polygon points="126,146 123,158 133,158 130,146" fill="#0D0605"/>
+
+  <!-- Pavilion Joali Base & Foundation Beam -->
+  <rect x="44" y="186" width="168" height="10" rx="5" fill="#E5C378"/>
+  <rect x="56" y="202" width="144" height="6" rx="3" fill="#C62828"/>
+
+  <!-- Central Star Accent in Base -->
+  <circle cx="128" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="88" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="168" cy="191" r="3.5" fill="#0D0605"/>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 256" x="90" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept A Horizontal Lockup</title>
+
+  <!-- Left Symbol (Scaled & Positioned) -->
+  <g transform="translate(24, 20) scale(0.84375)">
+    <!-- Base Medallion -->
+    <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="6"/>
+    <circle cx="128" cy="128" r="108" fill="none" stroke="#C62828" stroke-width="3"/>
+
+    <!-- Pavilion Roof Canopy -->
+    <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" fill="#E5C378"/>
+    <path d="M 124 42 L 128 20 L 132 42 Z" fill="#E5C378"/>
+    <circle cx="128" cy="18" r="6" fill="#C62828"/>
+
+    <!-- Left Fanned Card -->
+    <g transform="translate(86, 130) rotate(-15)">
+      <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+      <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#C62828"/>
+    </g>
+
+    <!-- Right Fanned Card -->
+    <g transform="translate(170, 130) rotate(15)">
+      <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+      <polygon points="0,-14 11,0 0,14 -11,0" fill="#C62828"/>
+    </g>
+
+    <!-- Center Ace Card -->
+    <rect x="98" y="82" width="60" height="96" rx="8" fill="#FFFFFF" stroke="#E5C378" stroke-width="4"/>
+    <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Spade -->
+    <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" fill="#0D0605" stroke="#E5C378" stroke-width="2"/>
+    <polygon points="126,146 123,158 133,158 130,146" fill="#0D0605"/>
+
+    <!-- Base Rails -->
+    <rect x="44" y="186" width="168" height="10" rx="5" fill="#E5C378"/>
+    <rect x="56" y="202" width="144" height="6" rx="3" fill="#C62828"/>
+    <circle cx="128" cy="191" r="3.5" fill="#0D0605"/>
+    <circle cx="88" cy="191" r="3.5" fill="#0D0605"/>
+    <circle cx="168" cy="191" r="3.5" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Logotype Section -->
+  <g transform="translate(276, 50)">
+    <!-- Thaana Cultural Script (Right-aligned over title) -->
+    <text x="460" y="24" text-anchor="end" font-family="'MV Waheed', 'Faruma', sans-serif" font-weight="bold" font-size="22" fill="#E5C378" letter-spacing="2">ހޮޅުއަށި</text>
+
+    <!-- Primary Brand Wordmark: HOLHUASHI -->
+    <text x="0" y="86" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-weight="800" font-size="64" fill="#FBF8F2" letter-spacing="6">HOLHUASHI</text>
+
+    <!-- Decorative Lacquer Divider Line with Diamond Center -->
+    <line x1="0" y1="112" x2="190" y2="112" stroke="#E5C378" stroke-width="2"/>
+    <polygon points="205,112 215,106 225,112 215,118" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+    <line x1="240" y1="112" x2="460" y2="112" stroke="#E5C378" stroke-width="2"/>
+
+    <!-- Genre & Origin Subtitle -->
+    <text x="2" y="146" font-family="'Plus Jakarta Sans', Montserrat, sans-serif" font-weight="700" font-size="16" fill="#E5C378" letter-spacing="5">MALDIVIAN RUMMY &amp; CARDS</text>
+  </g>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="90" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept A: The Sovereign Pavilion</title>
+
+  <!-- Deep Obsidian Circular Base -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="6"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#C62828" stroke-width="3"/>
+
+  <!-- Sovereign Pavilion Roof Canopy (Sweeping traditional Maldivian Eaves) -->
+  <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" 
+        fill="#E5C378"/>
+
+  <!-- Finial Spearhead atop Canopy -->
+  <path d="M 124 42 L 128 20 L 132 42 Z" fill="#E5C378"/>
+  <circle cx="128" cy="18" r="6" fill="#C62828"/>
+
+  <!-- Left Angled Fanned Card (Tilted 15°) -->
+  <g transform="translate(86, 130) rotate(-15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Heart Pip -->
+    <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Right Angled Fanned Card (Tilted +15°) -->
+  <g transform="translate(170, 130) rotate(15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Diamond Pip -->
+    <polygon points="0,-14 11,0 0,14 -11,0" fill="#C62828"/>
+  </g>
+
+  <!-- Center Monarch Card: The Ace of Spades -->
+  <rect x="98" y="82" width="60" height="96" rx="8" fill="#FFFFFF" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Top-Left) -->
+  <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Bottom-Right, Inverted) -->
+  <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Central Regal Spade Emblem -->
+  <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" 
+        fill="#0D0605" stroke="#E5C378" stroke-width="2"/>
+  <polygon points="126,146 123,158 133,158 130,146" fill="#0D0605"/>
+
+  <!-- Pavilion Joali Base & Foundation Beam -->
+  <rect x="44" y="186" width="168" height="10" rx="5" fill="#E5C378"/>
+  <rect x="56" y="202" width="144" height="6" rx="3" fill="#C62828"/>
+
+  <!-- Central Star Accent in Base -->
+  <circle cx="128" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="88" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="168" cy="191" r="3.5" fill="#0D0605"/>
+</svg>
+</g><text x="122" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="180" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept A: The Sovereign Pavilion</title>
+
+  <!-- Deep Obsidian Circular Base -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="6"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#C62828" stroke-width="3"/>
+
+  <!-- Sovereign Pavilion Roof Canopy (Sweeping traditional Maldivian Eaves) -->
+  <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" 
+        fill="#E5C378"/>
+
+  <!-- Finial Spearhead atop Canopy -->
+  <path d="M 124 42 L 128 20 L 132 42 Z" fill="#E5C378"/>
+  <circle cx="128" cy="18" r="6" fill="#C62828"/>
+
+  <!-- Left Angled Fanned Card (Tilted 15°) -->
+  <g transform="translate(86, 130) rotate(-15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Heart Pip -->
+    <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Right Angled Fanned Card (Tilted +15°) -->
+  <g transform="translate(170, 130) rotate(15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Diamond Pip -->
+    <polygon points="0,-14 11,0 0,14 -11,0" fill="#C62828"/>
+  </g>
+
+  <!-- Center Monarch Card: The Ace of Spades -->
+  <rect x="98" y="82" width="60" height="96" rx="8" fill="#FFFFFF" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Top-Left) -->
+  <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Bottom-Right, Inverted) -->
+  <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Central Regal Spade Emblem -->
+  <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" 
+        fill="#0D0605" stroke="#E5C378" stroke-width="2"/>
+  <polygon points="126,146 123,158 133,158 130,146" fill="#0D0605"/>
+
+  <!-- Pavilion Joali Base & Foundation Beam -->
+  <rect x="44" y="186" width="168" height="10" rx="5" fill="#E5C378"/>
+  <rect x="56" y="202" width="144" height="6" rx="3" fill="#C62828"/>
+
+  <!-- Central Star Accent in Base -->
+  <circle cx="128" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="88" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="168" cy="191" r="3.5" fill="#0D0605"/>
+</svg>
+</g><text x="196" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="238" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept A: The Sovereign Pavilion</title>
+
+  <!-- Deep Obsidian Circular Base -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="6"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#C62828" stroke-width="3"/>
+
+  <!-- Sovereign Pavilion Roof Canopy (Sweeping traditional Maldivian Eaves) -->
+  <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" 
+        fill="#E5C378"/>
+
+  <!-- Finial Spearhead atop Canopy -->
+  <path d="M 124 42 L 128 20 L 132 42 Z" fill="#E5C378"/>
+  <circle cx="128" cy="18" r="6" fill="#C62828"/>
+
+  <!-- Left Angled Fanned Card (Tilted 15°) -->
+  <g transform="translate(86, 130) rotate(-15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Heart Pip -->
+    <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Right Angled Fanned Card (Tilted +15°) -->
+  <g transform="translate(170, 130) rotate(15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <!-- Diamond Pip -->
+    <polygon points="0,-14 11,0 0,14 -11,0" fill="#C62828"/>
+  </g>
+
+  <!-- Center Monarch Card: The Ace of Spades -->
+  <rect x="98" y="82" width="60" height="96" rx="8" fill="#FFFFFF" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Top-Left) -->
+  <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Bottom-Right, Inverted) -->
+  <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Central Regal Spade Emblem -->
+  <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" 
+        fill="#0D0605" stroke="#E5C378" stroke-width="2"/>
+  <polygon points="126,146 123,158 133,158 130,146" fill="#0D0605"/>
+
+  <!-- Pavilion Joali Base & Foundation Beam -->
+  <rect x="44" y="186" width="168" height="10" rx="5" fill="#E5C378"/>
+  <rect x="56" y="202" width="144" height="6" rx="3" fill="#C62828"/>
+
+  <!-- Central Star Accent in Base -->
+  <circle cx="128" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="88" cy="191" r="3.5" fill="#0D0605"/>
+  <circle cx="168" cy="191" r="3.5" fill="#0D0605"/>
+</svg>
+</g><text x="246" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="90.0" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">A · The Sovereign Pavilion</text><text x="90.0" y="808" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#161616" letter-spacing="1.5">RECOMMENDED</text><text x="90.0" y="842" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Maldivian pavilion roofline fused with Ace</text><text x="90.0" y="868" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">of Spades and fanned cards.</text><rect x="562.667" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="592.667" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept B: The Melded Monogram</title>
+
+  <!-- Deep Obsidian Tile -->
+  <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Subtle Inner Border -->
+  <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+  <!-- Left Card Pillar of the "H" (Ace Card) -->
+  <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Spade Cutout -->
+  <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+  <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+  <!-- Right Card Pillar of the "H" (Run Partner Card) -->
+  <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Heart Cutout -->
+  <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+  <!-- Interlocking "Meld Bridge" Crossbar (Creating the 'H' and representing Digu runs) -->
+  <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+
+  <!-- Woven Coir / Lacquer Ring Motifs in Crossbar -->
+  <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+  <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+  <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+  <!-- Crown Accents atop Pillars -->
+  <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+  <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+
+  <!-- Bottom Foundation Bar (Joali Rest) -->
+  <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 256" x="592.667" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept B Horizontal Lockup</title>
+
+  <!-- Left Symbol (Scaled & Positioned) -->
+  <g transform="translate(24, 20) scale(0.84375)">
+    <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+    <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+    <!-- Left Pillar -->
+    <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+    <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+    <!-- Right Pillar -->
+    <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+    <!-- Crossbar Bridge -->
+    <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+    <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+    <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+    <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+    <!-- Accents -->
+    <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+    <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+    <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+  </g>
+
+  <!-- Right Logotype Section -->
+  <g transform="translate(276, 50)">
+    <text x="460" y="24" text-anchor="end" font-family="'MV Waheed', 'Faruma', sans-serif" font-weight="bold" font-size="22" fill="#E5C378" letter-spacing="2">ހޮޅުއަށި</text>
+    <text x="0" y="86" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-weight="800" font-size="64" fill="#FBF8F2" letter-spacing="6">HOLHUASHI</text>
+
+    <!-- Geometric Bridge Divider -->
+    <line x1="0" y1="112" x2="200" y2="112" stroke="#E5C378" stroke-width="2"/>
+    <rect x="210" y="106" width="12" height="12" fill="#C62828" stroke="#E5C378" stroke-width="1.5" transform="rotate(45 216 112)"/>
+    <line x1="232" y1="112" x2="460" y2="112" stroke="#E5C378" stroke-width="2"/>
+
+    <text x="2" y="146" font-family="'Plus Jakarta Sans', Montserrat, sans-serif" font-weight="700" font-size="16" fill="#E5C378" letter-spacing="5">MALDIVIAN RUMMY &amp; CARDS</text>
+  </g>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="592.667" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept B: The Melded Monogram</title>
+
+  <!-- Deep Obsidian Tile -->
+  <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Subtle Inner Border -->
+  <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+  <!-- Left Card Pillar of the "H" (Ace Card) -->
+  <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Spade Cutout -->
+  <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+  <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+  <!-- Right Card Pillar of the "H" (Run Partner Card) -->
+  <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Heart Cutout -->
+  <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+  <!-- Interlocking "Meld Bridge" Crossbar (Creating the 'H' and representing Digu runs) -->
+  <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+
+  <!-- Woven Coir / Lacquer Ring Motifs in Crossbar -->
+  <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+  <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+  <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+  <!-- Crown Accents atop Pillars -->
+  <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+  <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+
+  <!-- Bottom Foundation Bar (Joali Rest) -->
+  <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+</svg>
+</g><text x="624.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="682.667" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept B: The Melded Monogram</title>
+
+  <!-- Deep Obsidian Tile -->
+  <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Subtle Inner Border -->
+  <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+  <!-- Left Card Pillar of the "H" (Ace Card) -->
+  <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Spade Cutout -->
+  <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+  <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+  <!-- Right Card Pillar of the "H" (Run Partner Card) -->
+  <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Heart Cutout -->
+  <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+  <!-- Interlocking "Meld Bridge" Crossbar (Creating the 'H' and representing Digu runs) -->
+  <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+
+  <!-- Woven Coir / Lacquer Ring Motifs in Crossbar -->
+  <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+  <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+  <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+  <!-- Crown Accents atop Pillars -->
+  <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+  <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+
+  <!-- Bottom Foundation Bar (Joali Rest) -->
+  <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+</svg>
+</g><text x="698.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="740.667" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept B: The Melded Monogram</title>
+
+  <!-- Deep Obsidian Tile -->
+  <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Subtle Inner Border -->
+  <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+  <!-- Left Card Pillar of the "H" (Ace Card) -->
+  <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Spade Cutout -->
+  <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+  <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+  <!-- Right Card Pillar of the "H" (Run Partner Card) -->
+  <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+  <!-- Top Heart Cutout -->
+  <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+  <!-- Interlocking "Meld Bridge" Crossbar (Creating the 'H' and representing Digu runs) -->
+  <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+
+  <!-- Woven Coir / Lacquer Ring Motifs in Crossbar -->
+  <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+  <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+  <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+  <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+  <!-- Crown Accents atop Pillars -->
+  <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+  <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+
+  <!-- Bottom Foundation Bar (Joali Rest) -->
+  <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+</svg>
+</g><text x="748.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="592.6666666666667" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">B · The Melded Monogram</text><text x="592.6666666666667" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Architectural H monogram formed by</text><text x="592.6666666666667" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">interlocking cards and woven timber</text><text x="592.6666666666667" y="866" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">joinery.</text><rect x="1065.33" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1095.33" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept C: The Royal Joali Crest</title>
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Four Dynamic Interlocking Cards (Rotating in a pinwheel around 128,128) -->
+  <!-- Top Card (Spade Suite) -->
+  <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+    <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Card (Heart Suite) -->
+  <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Bottom Card (Club Suite) -->
+  <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+    <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+    <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+    <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+  </g>
+
+  <!-- Left Card (Diamond Suite) -->
+  <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+  </g>
+
+  <!-- Central Maldivian Nautical Star / Lacquer Rosette -->
+  <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  
+  <!-- 8-Point Compass Star -->
+  <!-- Primary Cardinal Points -->
+  <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+  <!-- Secondary Diagonal Points -->
+  <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+
+  <!-- Center Eye -->
+  <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 256" x="1095.33" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept C Horizontal Lockup</title>
+
+  <!-- Left Symbol (Scaled & Positioned) -->
+  <g transform="translate(24, 20) scale(0.84375)">
+    <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+    <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+    <!-- Four Interlocking Cards -->
+    <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+      <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+      <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+      <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+    </g>
+    <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+      <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+      <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+    </g>
+    <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+      <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+      <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+      <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+      <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+      <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+    </g>
+    <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+      <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+      <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+    </g>
+
+    <!-- Central Rosette -->
+    <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+    <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+    <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+    <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+  </g>
+
+  <!-- Right Logotype Section -->
+  <g transform="translate(276, 50)">
+    <text x="460" y="24" text-anchor="end" font-family="'MV Waheed', 'Faruma', sans-serif" font-weight="bold" font-size="22" fill="#00A896" letter-spacing="2">ހޮޅުއަށި</text>
+    <text x="0" y="86" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-weight="800" font-size="64" fill="#FBF8F2" letter-spacing="6">HOLHUASHI</text>
+
+    <!-- Star Divider -->
+    <line x1="0" y1="112" x2="200" y2="112" stroke="#00A896" stroke-width="2"/>
+    <polygon points="216,104 220,112 228,112 222,116 224,124 216,119 208,124 210,116 204,112 212,112" fill="#E5C378"/>
+    <line x1="232" y1="112" x2="460" y2="112" stroke="#00A896" stroke-width="2"/>
+
+    <text x="2" y="146" font-family="'Plus Jakarta Sans', Montserrat, sans-serif" font-weight="700" font-size="16" fill="#E5C378" letter-spacing="5">MALDIVIAN RUMMY &amp; CARDS</text>
+  </g>
+</svg>
+</g><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1095.33" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept C: The Royal Joali Crest</title>
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Four Dynamic Interlocking Cards (Rotating in a pinwheel around 128,128) -->
+  <!-- Top Card (Spade Suite) -->
+  <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+    <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Card (Heart Suite) -->
+  <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Bottom Card (Club Suite) -->
+  <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+    <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+    <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+    <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+  </g>
+
+  <!-- Left Card (Diamond Suite) -->
+  <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+  </g>
+
+  <!-- Central Maldivian Nautical Star / Lacquer Rosette -->
+  <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  
+  <!-- 8-Point Compass Star -->
+  <!-- Primary Cardinal Points -->
+  <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+  <!-- Secondary Diagonal Points -->
+  <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+
+  <!-- Center Eye -->
+  <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+</svg>
+</g><text x="1127.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1185.33" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept C: The Royal Joali Crest</title>
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Four Dynamic Interlocking Cards (Rotating in a pinwheel around 128,128) -->
+  <!-- Top Card (Spade Suite) -->
+  <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+    <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Card (Heart Suite) -->
+  <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Bottom Card (Club Suite) -->
+  <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+    <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+    <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+    <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+  </g>
+
+  <!-- Left Card (Diamond Suite) -->
+  <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+  </g>
+
+  <!-- Central Maldivian Nautical Star / Lacquer Rosette -->
+  <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  
+  <!-- 8-Point Compass Star -->
+  <!-- Primary Cardinal Points -->
+  <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+  <!-- Secondary Diagonal Points -->
+  <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+
+  <!-- Center Eye -->
+  <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+</svg>
+</g><text x="1201.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" x="1243.33" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title>Holhuashi — Concept C: The Royal Joali Crest</title>
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Four Dynamic Interlocking Cards (Rotating in a pinwheel around 128,128) -->
+  <!-- Top Card (Spade Suite) -->
+  <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+    <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Card (Heart Suite) -->
+  <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Bottom Card (Club Suite) -->
+  <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+    <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+    <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+    <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+  </g>
+
+  <!-- Left Card (Diamond Suite) -->
+  <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+  </g>
+
+  <!-- Central Maldivian Nautical Star / Lacquer Rosette -->
+  <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  
+  <!-- 8-Point Compass Star -->
+  <!-- Primary Cardinal Points -->
+  <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+  <!-- Secondary Diagonal Points -->
+  <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+
+  <!-- Center Eye -->
+  <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+</svg>
+</g><text x="1251.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="1095.3333333333335" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">C · The Royal Joali Crest</text><text x="1095.3333333333335" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Centrifugal four-card pinwheel seal</text><text x="1095.3333333333335" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">orbiting a Maldivian nautical star.</text></svg>

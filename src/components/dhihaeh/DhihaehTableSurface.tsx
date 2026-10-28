@@ -150,61 +150,67 @@ export const DhihaehTableSurface: React.FC = () => {
         </div>
       )}
 
-      {/* MIDDLE ARENA: 4 Seats Perimeter & Center Trick Arena */}
-      <main className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-2">
+      {/* MIDDLE ARENA: 4 Seats Perimeter & Fluid Center Trick Arena */}
+      <main
+        className="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center p-1 sm:p-2 overflow-hidden"
+        style={{
+          paddingLeft: 'max(16px, env(safe-area-inset-left))',
+          paddingRight: 'max(16px, env(safe-area-inset-right))',
+        }}
+      >
         {/* NORTH SEAT: Partner (Ali) */}
         <div className="absolute top-1 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border shadow transition ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border shadow transition ${
               gameState.activeSeat === 2
                 ? 'bg-[#301a14] border-[#e5c378] text-[#e5c378] ring-2 ring-[#e5c378]/60 animate-pulse'
                 : 'bg-[#170b09]/90 border-[#301a14] text-[#f7f0ea]/80'
             }`}
           >
-            <Shield className="w-3.5 h-3.5 text-[#e5c378]" />
-            <span className="text-xs font-bold">{northPartner.name}</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-[#e5c378]">
+            <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#e5c378]" />
+            <span className="text-[11px] sm:text-xs font-bold">{northPartner.name}</span>
+            <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-[#e5c378]">
               {northPartner.hand.length} cards
             </span>
           </div>
         </div>
 
         {/* WEST SEAT: Opponent (Ahmed) */}
-        <div className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 flex flex-col items-center z-20">
+        <div className="absolute left-1 sm:left-3 top-1/2 -translate-y-1/2 flex flex-col items-center z-20">
           <div
-            className={`flex flex-col items-center gap-1 px-2.5 py-2 rounded-2xl border shadow transition ${
+            className={`flex flex-col items-center gap-0.5 sm:gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-2xl border shadow transition ${
               gameState.activeSeat === 3
                 ? 'bg-[#301a14] border-[#c84b31] text-[#c84b31] ring-2 ring-[#c84b31]/60 animate-pulse'
                 : 'bg-[#170b09]/90 border-[#301a14] text-[#f7f0ea]/80'
             }`}
           >
-            <span className="text-xs font-bold">{westBot.name}</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-slate-300">
+            <span className="text-[11px] sm:text-xs font-bold">{westBot.name}</span>
+            <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-slate-300">
               {westBot.hand.length} cards
             </span>
           </div>
         </div>
 
         {/* EAST SEAT: Opponent (Hussain) */}
-        <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 flex flex-col items-center z-20">
+        <div className="absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 flex flex-col items-center z-20">
           <div
-            className={`flex flex-col items-center gap-1 px-2.5 py-2 rounded-2xl border shadow transition ${
+            className={`flex flex-col items-center gap-0.5 sm:gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-2xl border shadow transition ${
               gameState.activeSeat === 1
                 ? 'bg-[#301a14] border-[#c84b31] text-[#c84b31] ring-2 ring-[#c84b31]/60 animate-pulse'
                 : 'bg-[#170b09]/90 border-[#301a14] text-[#f7f0ea]/80'
             }`}
           >
-            <span className="text-xs font-bold">{eastBot.name}</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-slate-300">
+            <span className="text-[11px] sm:text-xs font-bold">{eastBot.name}</span>
+            <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.2 bg-[#0d0605] rounded text-slate-300">
               {eastBot.hand.length} cards
             </span>
           </div>
         </div>
 
-        {/* CENTER TRICK ARENA (Spacious, Clear, Zero Obstruction) */}
-        <div className="relative w-64 h-52 sm:w-80 sm:h-64 rounded-3xl bg-[#120806]/85 border-2 border-[#301a14] flex items-center justify-center shadow-[0_0_50px_rgba(0,0,0,0.85)] z-10">
+        {/* CENTER TRICK ARENA (Fluid Responsive Sizing for all Screen Sizes & DPIs) */}
+        <div className="relative w-[clamp(210px,36vw,290px)] h-[clamp(135px,36dvh,195px)] rounded-2xl sm:rounded-3xl bg-[#120806]/90 border-2 border-[#301a14] flex items-center justify-center shadow-[0_0_40px_rgba(0,0,0,0.85)] z-10">
           {/* Subtle felt markings */}
-          <div className="absolute inset-3 rounded-2xl border border-[#301a14]/40 border-dashed pointer-events-none" />
+          <div className="absolute inset-2 sm:inset-3 rounded-xl sm:rounded-2xl border border-[#301a14]/40 border-dashed pointer-events-none" />
 
           {/* Cards played into active trick */}
           {currentTrick.cards.length === 0 ? (
@@ -217,10 +223,10 @@ export const DhihaehTableSurface: React.FC = () => {
                 // Coordinate offset depending on player position
                 const seat = play.playedBySeat;
                 let offsetClass = '';
-                if (seat === 0) offsetClass = 'translate-y-8 sm:translate-y-10 z-20'; // South
-                else if (seat === 2) offsetClass = '-translate-y-8 sm:-translate-y-10 z-10'; // North
-                else if (seat === 3) offsetClass = '-translate-x-10 sm:-translate-x-14 z-15'; // West
-                else if (seat === 1) offsetClass = 'translate-x-10 sm:translate-x-14 z-15'; // East
+                if (seat === 0) offsetClass = 'translate-y-6 sm:translate-y-8 z-20'; // South
+                else if (seat === 2) offsetClass = '-translate-y-6 sm:-translate-y-8 z-10'; // North
+                else if (seat === 3) offsetClass = '-translate-x-8 sm:-translate-x-12 z-15'; // West
+                else if (seat === 1) offsetClass = 'translate-x-8 sm:translate-x-12 z-15'; // East
 
                 const isWinnerCard = currentTrick.winnerSeat === seat;
 
@@ -237,7 +243,7 @@ export const DhihaehTableSurface: React.FC = () => {
                         size="table"
                         isInteractive={false}
                       />
-                      <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#0d0605] border border-[#301a14] text-[8px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap text-[#e5c378]">
+                      <span className="absolute -bottom-3 sm:-bottom-4 left-1/2 -translate-x-1/2 bg-[#0d0605] border border-[#301a14] text-[8px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap text-[#e5c378]">
                         {gameState.players[seat].name.split(' ')[0]}
                       </span>
                     </div>
@@ -277,8 +283,16 @@ export const DhihaehTableSurface: React.FC = () => {
           )}
         </div>
 
-        {/* Fanned Hand Cards Container */}
-        <div className="flex items-end justify-center -space-x-5 sm:-space-x-6 md:-space-x-7 px-2 pb-0 overflow-visible min-h-[clamp(88px,26dvh,124px)]">
+        {/* Fanned Hand Cards Container (Dynamic Overlap for 13 Cards across all Screen Sizes) */}
+        <div
+          className={`flex items-end justify-center px-1 pb-0 overflow-visible min-h-[clamp(74px,23dvh,118px)] max-w-full ${
+            human.hand.length > 10
+              ? '-space-x-5 sm:-space-x-6 md:-space-x-7'
+              : human.hand.length > 7
+              ? '-space-x-4 sm:-space-x-5 md:-space-x-6'
+              : '-space-x-3 sm:-space-x-4'
+          }`}
+        >
           {human.hand.map((card, index) => {
             const isSelected = selectedCardId === card.id;
             const midIndex = (human.hand.length - 1) / 2;

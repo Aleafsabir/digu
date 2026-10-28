@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { AVATAR_PRESETS, AvatarPreset } from '../../types/auth';
+import { LogoutConfirmationModal } from '../shared/LogoutConfirmationModal';
 
 interface MainLobbyScreenProps {
   onStartDiguMatch?: (mode: TableRules['mode'], playType: PlayType) => void;
@@ -112,6 +113,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
   // Bottom Sheet Drawer Visibility
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [dailyBonusClaimedMsg, setDailyBonusClaimedMsg] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const currentAvatar: AvatarPreset =
     AVATAR_PRESETS.find((a: AvatarPreset) => a.id === profile.avatarId) || AVATAR_PRESETS[0];
@@ -339,7 +341,7 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
 
           {/* Sign Out */}
           <button
-            onClick={onSwitchAccount}
+            onClick={() => setShowLogoutConfirm(true)}
             className="w-8 h-8 rounded-xl bg-[#170b09] border border-[#301a14] text-[#f7f0ea]/80 hover:text-white hover:border-[#c84b31] flex items-center justify-center cursor-pointer transition shadow"
             title="Switch Account"
           >
@@ -880,6 +882,16 @@ export const MainLobbyScreen: React.FC<MainLobbyScreenProps> = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirmLogout={() => {
+          setShowLogoutConfirm(false);
+          onSwitchAccount();
+        }}
+      />
     </div>
   );
 };

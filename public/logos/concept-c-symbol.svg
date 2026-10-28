@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Holhuashi — Concept C: The Royal Joali Crest</title>
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+  <circle cx="128" cy="128" r="110" fill="none" stroke="#00A896" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Four Dynamic Interlocking Cards (Rotating in a pinwheel around 128,128) -->
+  <!-- Top Card (Spade Suite) -->
+  <g transform="translate(128, 128) rotate(0) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 42 C 125 48, 117 56, 117 60 C 117 64, 121 66, 124 66 C 126 66, 127 65, 128 64 C 129 65, 130 66, 132 66 C 135 66, 139 64, 139 60 C 139 56, 131 48, 128 42 Z" fill="#0D0605"/>
+    <polygon points="127,64 125,70 131,70 129,64" fill="#0D0605"/>
+  </g>
+
+  <!-- Right Card (Heart Suite) -->
+  <g transform="translate(128, 128) rotate(90) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <path d="M 128 44 C 124 38, 116 38, 116 46 C 116 56, 128 66, 128 66 C 128 66, 140 56, 140 46 C 140 38, 132 38, 128 44 Z" fill="#C62828"/>
+  </g>
+
+  <!-- Bottom Card (Club Suite) -->
+  <g transform="translate(128, 128) rotate(180) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="48" r="5" fill="#0D0605"/>
+    <circle cx="123" cy="56" r="5" fill="#0D0605"/>
+    <circle cx="133" cy="56" r="5" fill="#0D0605"/>
+    <polygon points="127,56 125,66 131,66 129,56" fill="#0D0605"/>
+  </g>
+
+  <!-- Left Card (Diamond Suite) -->
+  <g transform="translate(128, 128) rotate(270) translate(-128, -128)">
+    <rect x="106" y="24" width="44" height="64" rx="6" fill="#FBF8F2" stroke="#E5C378" stroke-width="2.5"/>
+    <polygon points="128,42 137,55 128,68 119,55" fill="#C62828"/>
+  </g>
+
+  <!-- Central Maldivian Nautical Star / Lacquer Rosette -->
+  <circle cx="128" cy="128" r="32" fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  
+  <!-- 8-Point Compass Star -->
+  <!-- Primary Cardinal Points -->
+  <polygon points="128,98 134,122 158,128 134,134 128,158 122,134 98,128 122,122" fill="#E5C378"/>
+  <!-- Secondary Diagonal Points -->
+  <polygon points="128,108 132,124 148,128 132,132 128,148 124,132 108,128 124,124" fill="#00A896" transform="rotate(45 128 128)"/>
+
+  <!-- Center Eye -->
+  <circle cx="128" cy="128" r="6" fill="#C62828" stroke="#E5C378" stroke-width="1.5"/>
+</svg>

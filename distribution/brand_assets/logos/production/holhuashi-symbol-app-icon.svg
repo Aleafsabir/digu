@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>Holhuashi Brand Symbol</title><rect width="256" height="256" rx="57.6" fill="#0D0605"/><g transform="translate(43.39 43.39) scale(0.661)">
+  
+
+  <!-- Deep Obsidian Tile -->
+  <circle cx="128" cy="128" r="120" fill="#0D0605" stroke="#E5C378" stroke-width="12"/>
+
+  <!-- Pavilion Roof Canopy (Bolded for small scale) -->
+  <path d="M 28 104 C 56 86, 96 60, 128 38 C 160 60, 200 86, 228 104 C 212 110, 196 106, 186 98 C 164 78, 144 64, 128 54 C 112 64, 92 78, 70 98 C 60 106, 44 110, 28 104 Z" 
+        fill="#E5C378"/>
+  <circle cx="128" cy="22" r="10" fill="#C62828" stroke="#E5C378" stroke-width="4"/>
+
+  <!-- Left Angled Card Silhouette -->
+  <rect x="-24" y="-36" width="48" height="72" rx="8" 
+        transform="translate(84, 126) rotate(-16)"
+        fill="#FBF8F2" stroke="#E5C378" stroke-width="6"/>
+
+  <!-- Right Angled Card Silhouette -->
+  <rect x="-24" y="-36" width="48" height="72" rx="8" 
+        transform="translate(172, 126) rotate(16)"
+        fill="#FBF8F2" stroke="#E5C378" stroke-width="6"/>
+
+  <!-- Center Monarch Card -->
+  <rect x="94" y="80" width="68" height="98" rx="10" fill="#FFFFFF" stroke="#E5C378" stroke-width="6"/>
+
+  <!-- Enlarged Central Spade for Microscopic Recognition -->
+  <path d="M 128 98 C 122 112, 106 128, 106 138 C 106 148, 114 154, 122 154 C 126 154, 127 152, 128 149 C 129 152, 130 154, 134 154 C 142 154, 150 148, 150 138 C 150 128, 134 112, 128 98 Z" 
+        fill="#0D0605" stroke="#E5C378" stroke-width="3"/>
+  <polygon points="125,148 120,164 136,164 131,148" fill="#0D0605"/>
+
+  <!-- Bold Joali Foundation Base Bar -->
+  <rect x="40" y="190" width="176" height="18" rx="9" fill="#E5C378"/>
+</g></svg>

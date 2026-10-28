@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 256" width="768" height="256">
+  <title>Holhuashi — Concept B Horizontal Lockup</title>
+
+  <!-- Left Symbol (Scaled & Positioned) -->
+  <g transform="translate(24, 20) scale(0.84375)">
+    <rect x="12" y="12" width="232" height="232" rx="44" fill="#0D0605" stroke="#E5C378" stroke-width="4"/>
+    <rect x="22" y="22" width="212" height="212" rx="36" fill="none" stroke="#C62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.6"/>
+
+    <!-- Left Pillar -->
+    <rect x="48" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <path d="M 76 68 C 73 75, 63 85, 63 90 C 63 95, 67 98, 71 98 C 74 98, 75 97, 76 95 C 77 97, 78 98, 81 98 C 85 98, 89 95, 89 90 C 89 85, 79 75, 76 68 Z" fill="#0D0605"/>
+    <polygon points="75,95 73,103 79,103 77,95" fill="#0D0605"/>
+
+    <!-- Right Pillar -->
+    <rect x="152" y="44" width="56" height="168" rx="10" fill="#FBF8F2" stroke="#E5C378" stroke-width="3"/>
+    <path d="M 180 72 C 176 66, 168 66, 168 74 C 168 84, 180 94, 180 94 C 180 94, 192 84, 192 74 C 192 66, 184 66, 180 72 Z" fill="#C62828"/>
+
+    <!-- Crossbar Bridge -->
+    <rect x="100" y="108" width="56" height="40" fill="#C62828" stroke="#E5C378" stroke-width="3"/>
+    <line x1="104" y1="118" x2="152" y2="118" stroke="#E5C378" stroke-width="2.5"/>
+    <line x1="104" y1="138" x2="152" y2="138" stroke="#E5C378" stroke-width="2.5"/>
+    <circle cx="128" cy="128" r="8" fill="#E5C378"/>
+    <circle cx="128" cy="128" r="4" fill="#0D0605"/>
+
+    <!-- Accents -->
+    <polygon points="66,44 76,32 86,44" fill="#E5C378"/>
+    <polygon points="170,44 180,32 190,44" fill="#E5C378"/>
+    <rect x="40" y="210" width="176" height="6" rx="3" fill="#E5C378"/>
+  </g>
+
+  <!-- Right Logotype Section -->
+  <g transform="translate(276, 50)">
+    <text x="460" y="24" text-anchor="end" font-family="'MV Waheed', 'Faruma', sans-serif" font-weight="bold" font-size="22" fill="#E5C378" letter-spacing="2">ހޮޅުއަށި</text>
+    <text x="0" y="86" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-weight="800" font-size="64" fill="#FBF8F2" letter-spacing="6">HOLHUASHI</text>
+
+    <!-- Geometric Bridge Divider -->
+    <line x1="0" y1="112" x2="200" y2="112" stroke="#E5C378" stroke-width="2"/>
+    <rect x="210" y="106" width="12" height="12" fill="#C62828" stroke="#E5C378" stroke-width="1.5" transform="rotate(45 216 112)"/>
+    <line x1="232" y1="112" x2="460" y2="112" stroke="#E5C378" stroke-width="2"/>
+
+    <text x="2" y="146" font-family="'Plus Jakarta Sans', Montserrat, sans-serif" font-weight="700" font-size="16" fill="#E5C378" letter-spacing="5">MALDIVIAN RUMMY &amp; CARDS</text>
+  </g>
+</svg>

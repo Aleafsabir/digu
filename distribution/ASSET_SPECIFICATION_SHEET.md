@@ -9,7 +9,7 @@
 
 | Asset Name | Resolution & Format | Alpha Channel | Color Space | Existing Collateral Mapping |
 | :--- | :--- | :--- | :--- | :--- |
-| **App Icon** | 512 x 512 px, PNG (32-bit) | No transparency | sRGB | `distribution/brand_assets/holhuashi_app_icon_v2.jpg` (or SVG in `icon_proposals/`) |
+| **App Icon** | 512 x 512 px, PNG (32-bit) | No transparency | sRGB | `distribution/brand_assets/logos/production/holhuashi-symbol-app-icon-512.png` (The Sovereign Pavilion Master) |
 | **Feature Graphic** | 1024 x 500 px, PNG or JPEG (Max 15 MB) | No transparency | sRGB | `distribution/brand_assets/digu_game_poster.jpg` (Scaled/Formatted to 1024x500) |
 | **Phone Screenshots** | Min 1080 px short edge, 16:9 / 18:9 / 20:9 Landscape (e.g., 2400 x 1080 px or 1920 x 1080 px) | No transparency | sRGB | Generated via Fastlane `screengrab` into `fastlane/metadata/android/images/phoneScreenshots/` |
 | **7-Inch Tablet Screenshots**| Min 1080 px, 16:10 Landscape (e.g., 1920 x 1200 px) | No transparency | sRGB | Generated via Fastlane `screengrab` |
@@ -21,7 +21,7 @@
 
 | Display Form Factor | Screen Resolution (Landscape) | Device Mapping | Generation Pipeline |
 | :--- | :--- | :--- | :--- |
-| **App Store Icon** | 1024 x 1024 px, PNG (72 dpi) | Universal App Store Icon | `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` |
+| **App Store Icon** | 1024 x 1024 px, PNG (72 dpi) | Universal App Store Icon | `distribution/brand_assets/logos/production/holhuashi-symbol-app-icon-1024.png` (The Sovereign Pavilion Master) |
 | **6.9" Super Retina XDR** | 2868 x 1320 px (or 1320 x 2868) | iPhone 16 Pro Max | Fastlane `snapshot` (`iPhone 16 Pro Max`) |
 | **6.7" Super Retina XDR** | 2796 x 1290 px (or 1290 x 2796) | iPhone 15 Pro Max / 15 Plus | Fastlane `snapshot` (`iPhone 15 Plus`) |
 | **5.5" Retina Display** | 2208 x 1242 px (or 1242 x 2208) | iPhone 8 Plus / 7 Plus / 6s Plus | Fastlane `snapshot` (`iPhone 8 Plus`) |

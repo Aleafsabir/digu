@@ -1,0 +1,50 @@
+<svg fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>Holhuashi Brand Symbol</title>
+  
+
+  <!-- Deep Obsidian Circular Medallion -->
+  <circle cx="128" cy="128" r="120" fill="#ffffff" stroke="#ffffff" stroke-width="6"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#ffffff" stroke-width="3"/>
+
+  <!-- Sovereign Pavilion Roof Canopy (Traditional Maldivian Eaves) -->
+  <path d="M 28 104 C 56 90, 96 64, 128 42 C 160 64, 200 90, 228 104 C 216 108, 196 106, 186 100 C 164 80, 144 68, 128 58 C 112 68, 92 80, 70 100 C 60 106, 40 108, 28 104 Z" 
+        fill="#ffffff"/>
+
+  <!-- Finial Spearhead atop Canopy -->
+  <polygon points="124,42 128,18 132,42" fill="#ffffff"/>
+  <circle cx="128" cy="18" r="6" fill="#ffffff"/>
+
+  <!-- Left Angled Fanned Card (Tilted -15°) -->
+  <g transform="translate(86, 130) rotate(-15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
+    <path d="M 0 -10 C -4 -16, -12 -16, -12 -8 C -12 2, 0 12, 0 12 C 0 12, 12 2, 12 -8 C 12 -16, 4 -16, 0 -10 Z" fill="#ffffff"/>
+  </g>
+
+  <!-- Right Angled Fanned Card (Tilted +15°) -->
+  <g transform="translate(170, 130) rotate(15)">
+    <rect x="-24" y="-38" width="48" height="76" rx="6" fill="#ffffff" stroke="#ffffff" stroke-width="3"/>
+    <polygon points="0,-14 11,0 0,14 -11,0" fill="#ffffff"/>
+  </g>
+
+  <!-- Center Monarch Card: The Ace of Spades -->
+  <rect x="98" y="82" width="60" height="96" rx="8" fill="#ffffff" stroke="#ffffff" stroke-width="4"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Top-Left) -->
+  <path d="M 106 104 L 109 94 L 112 104 M 107 101 L 111 101" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ace Corner Pip 'A' Outlined (Bottom-Right, Inverted) -->
+  <path d="M 144 158 L 147 168 L 150 158 M 145 161 L 149 161" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Central Regal Spade Emblem -->
+  <path d="M 128 106 C 124 116, 110 130, 110 138 C 110 145, 116 150, 122 150 C 126 150, 127 148, 128 146 C 129 148, 130 150, 134 150 C 140 150, 146 145, 146 138 C 146 130, 132 116, 128 106 Z" 
+        fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+  <polygon points="126,146 123,158 133,158 130,146" fill="#ffffff"/>
+
+  <!-- Pavilion Joali Base & Foundation Beam -->
+  <rect x="44" y="186" width="168" height="10" rx="5" fill="#ffffff"/>
+  <rect x="56" y="202" width="144" height="6" rx="3" fill="#ffffff"/>
+
+  <!-- Central Star Accent in Base -->
+  <circle cx="128" cy="191" r="3.5" fill="#ffffff"/>
+  <circle cx="88" cy="191" r="3.5" fill="#ffffff"/>
+  <circle cx="168" cy="191" r="3.5" fill="#ffffff"/>
+</svg>
