@@ -60,25 +60,27 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. The 120 FPS Flame Engine Canvas
+          // 1. 120 FPS Flame Engine Canvas (Table, Fanned Hand, Stock & Discard)
           GameWidget<DiguGameTable>.controlled(
             gameFactory: () => _gameTable,
           ),
 
           // 2. High-Level Flutter Overlay HUD
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // App Title & Mode Indicator
-                  Row(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Top Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // App Title & Mode Indicator
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
+                          color: const Color(0xF2170B09),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
@@ -106,37 +108,133 @@ class _GameScreenState extends State<GameScreen> {
                           ],
                         ),
                       ),
+
+                      // Actions: Deal New Hand / Sound / Instructions
+                      Row(
+                        children: [
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFD4AF37),
+                              foregroundColor: Colors.black,
+                            ),
+                            icon: const Icon(Icons.refresh, size: 20),
+                            tooltip: 'Deal New Hand',
+                            onPressed: () {
+                              _gameTable.dealNewRound();
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.black.withValues(alpha: 0.5),
+                              foregroundColor: Colors.white70,
+                            ),
+                            icon: const Icon(Icons.volume_up, size: 20),
+                            tooltip: 'Sound',
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
                     ],
                   ),
+                ),
 
-                  // Actions: Deal New Hand / Sound / Settings
-                  Row(
+                // Floating Over-Hand HUD (Deadwood Meter & Gin Indicator)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 120.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton.filled(
-                        style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFFD4AF37),
-                          foregroundColor: Colors.black,
-                        ),
-                        icon: const Icon(Icons.refresh, size: 20),
-                        tooltip: 'Deal New Hand',
-                        onPressed: () {
-                          _gameTable.dealNewRound();
+                      // Deadwood Pill (Replicating live style)
+                      ValueListenableBuilder<int>(
+                        valueListenable: _gameTable.deadwoodPointsNotifier,
+                        builder: (context, deadwood, _) {
+                          final isZero = deadwood == 0;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xF2170B09),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
+                              ),
+                              boxShadow: isZero
+                                  ? [
+                                      const BoxShadow(
+                                        color: Color(0x66E5C378),
+                                        blurRadius: 15,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'DEADWOOD ',
+                                  style: TextStyle(
+                                    color: Color(0xB2F7F0EA),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'monospace',
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isZero ? const Color(0xFF301A14) : const Color(0xFF0D0605),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '$deadwood / 10',
+                                    style: TextStyle(
+                                      color: isZero ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ),
+                                ValueListenableBuilder<bool>(
+                                  valueListenable: _gameTable.canGinNotifier,
+                                  builder: (context, canGin, _) {
+                                    if (!canGin) return const SizedBox.shrink();
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF301A14),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE5C378)),
+                                        ),
+                                        child: const Text(
+                                          '⚡ GIN READY',
+                                          style: TextStyle(
+                                            color: Color(0xFFE5C378),
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            fontFamily: 'monospace',
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.black.withValues(alpha: 0.5),
-                          foregroundColor: Colors.white70,
-                        ),
-                        icon: const Icon(Icons.volume_up, size: 20),
-                        tooltip: 'Sound',
-                        onPressed: () {},
-                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
