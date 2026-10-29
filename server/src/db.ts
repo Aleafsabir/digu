@@ -9,12 +9,16 @@ const connectionString =
   process.env.DATABASE_URL ||
   'postgres://postgres:postgres@localhost:5432/thaasbai_digu';
 
+const sslConfig =
+  process.env.DATABASE_SSL === 'false'
+    ? false
+    : process.env.NODE_ENV === 'production' || connectionString.includes('sslmode=require')
+    ? { rejectUnauthorized: false }
+    : false;
+
 export const pool = new Pool({
   connectionString,
-  ssl:
-    process.env.NODE_ENV === 'production' || connectionString.includes('sslmode=require')
-      ? { rejectUnauthorized: false }
-      : false,
+  ssl: sslConfig,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

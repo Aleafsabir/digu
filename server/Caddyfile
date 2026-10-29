@@ -1,0 +1,35 @@
+# Caddyfile for Holhuashi WebSocket Game Server & REST API
+# Replace {$DOMAIN:api.holhuashi.mv} with your domain or VPS IP in your .env file
+
+{$DOMAIN:api.holhuashi.mv} {
+    encode gzip zstd
+
+    # WebSocket and REST API reverse proxy to internal Node container
+    reverse_proxy app:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Generous keepalive for persistent turn-based card game WebSocket sessions
+        transport http {
+            keepalive 300s
+            keepalive_idle_conns 100
+        }
+    }
+
+    # Production security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    log {
+        output file /data/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
