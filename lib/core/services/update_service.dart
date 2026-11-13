@@ -55,7 +55,7 @@ class UpdateDownloadProgress {
 
 /// Service checking GitHub Releases for newer APKs and coordinating in-app updates.
 class UpdateService {
-  static const String currentVersion = '0.8.2';
+  static const String currentVersion = '0.8.3';
   static const String latestReleaseEndpoint =
       'https://api.github.com/repos/Aleafsabir/digu/releases/latest';
   static const Duration checkCooldown = Duration(hours: 4);

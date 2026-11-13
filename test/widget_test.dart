@@ -332,7 +332,7 @@ void main() {
     // Verify Modal Header & Version Transition
     expect(find.text('New Update Available!'), findsOneWidget);
     expect(find.text('އައު އަޕްޑޭޓެއް ލިބެން އެބައޮތް!'), findsOneWidget);
-    expect(find.text('v0.8.2'), findsOneWidget);
+    expect(find.text('v0.8.3'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
     expect(find.text('v0.8.5'), findsOneWidget);
     expect(find.text('WHAT\'S NEW • އައު ބަދަލުތައް'), findsOneWidget);
@@ -343,7 +343,7 @@ void main() {
     expect(find.text('LATER • ފަހުން'), findsOneWidget);
   });
 
-  testWidgets('SettingsModal presents controls, update check button, and build version v0.8.1',
+  testWidgets('SettingsModal presents controls, update check button, and build version v0.8.3',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -376,7 +376,7 @@ void main() {
 
     // Verify Application Updates Section & Button
     expect(find.byKey(const Key('btn_check_updates')), findsOneWidget);
-    expect(find.textContaining('Current Build: v0.8.2'), findsOneWidget);
+    expect(find.textContaining('Current Build: v0.8.3'), findsOneWidget);
 
     // Close Settings Modal
     await tester.tap(find.byIcon(Icons.close));

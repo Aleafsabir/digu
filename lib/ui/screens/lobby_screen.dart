@@ -7,6 +7,7 @@ import '../../state/game_session_provider.dart';
 import '../modals/friends_modal.dart';
 import '../modals/settings_modal.dart';
 import '../modals/update_prompt_modal.dart';
+import '../widgets/mode_crest_artwork.dart';
 
 /// Main Holhuashi Lobby Screen.
 class LobbyScreen extends ConsumerStatefulWidget {
@@ -355,31 +356,13 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                         backgroundColor: const Color(0xFF260A0D),
                         foregroundColor: const Color(0xFFF7F0EA),
                         side: const BorderSide(color: Color(0xFF380C10)),
-                        minimumSize: const Size(36, 36),
+                        minimumSize: const Size(38, 38),
                       ),
-                      icon: const Icon(Icons.settings, size: 16),
+                      icon: const Icon(Icons.settings, size: 18),
                       tooltip: 'Settings',
                       onPressed: () {
                         SensoryService.instance.playButtonTap();
                         SettingsModal.show(context);
-                      },
-                    ),
-                    const SizedBox(width: 6),
-
-                    // Sign Out Button
-                    IconButton.filled(
-                      key: const Key('btn_sign_out'),
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E080A),
-                        foregroundColor: const Color(0xFFFFA07A),
-                        side: const BorderSide(color: Color(0xFF380C10)),
-                        minimumSize: const Size(36, 36),
-                      ),
-                      icon: const Icon(Icons.logout, size: 16),
-                      tooltip: 'Sign Out',
-                      onPressed: () {
-                        SensoryService.instance.playButtonTap();
-                        notifier.signOut();
                       },
                     ),
                   ],
@@ -433,7 +416,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   ),
                 ),
 
-              // 2. Main 3 Game Mode Cards
+              // 2. Main 3 Game Mode Cards (Card Crests Layout)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -446,13 +429,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           mode: HolhuashiGameMode.digu,
                           thaanaTitle: 'ޑިގު',
                           englishTitle: 'DIGU',
-                          iconBadge: '🎴',
                           elo: session.diguElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.digu,
                           selectorRow: _buildVariantSelectorRow<DiguTableFormat>(
                             values: DiguTableFormat.values,
                             selected: session.diguFormat,
                             labelFor: (v) => v.shortLabel,
+                            flexFor: (v) =>
+                                v == DiguTableFormat.partners2v2 ? 15 : 8,
                             onSelected: (v) {
                               SensoryService.instance.playButtonTap();
                               notifier.selectGameMode(HolhuashiGameMode.digu);
@@ -488,7 +472,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           mode: HolhuashiGameMode.dhihaeh,
                           thaanaTitle: 'ދިހައެއް',
                           englishTitle: 'DHIHAEH (10s)',
-                          iconBadge: '🔟',
                           elo: session.dhihaehElo,
                           isSelected:
                               session.selectedMode == HolhuashiGameMode.dhihaeh,
@@ -533,7 +516,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           mode: HolhuashiGameMode.bondi,
                           thaanaTitle: 'ބޮނޑި',
                           englishTitle: 'BONDI',
-                          iconBadge: '🔥',
                           elo: session.bondiElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.bondi,
                           selectorRow: _buildVariantSelectorRow<BondiVariant>(
@@ -576,14 +558,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
               // 3. Bottom Bar: Stake Selector + Room Code Join
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
                 child: Row(
                   children: [
                     // Stake selector
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
+                        horizontal: 12,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xF2140506),
@@ -596,16 +578,16 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           const Text(
                             'STAKE',
                             style: TextStyle(
-                              color: Color(0x99F7F0EA),
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
+                              color: Color(0xCCF7F0EA),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.7,
                             ),
                           ),
                           const SizedBox(width: 8),
                           for (final stake in const [100, 500, 1000, 5000, 10000])
                             Padding(
-                              padding: const EdgeInsets.only(right: 4),
+                              padding: const EdgeInsets.only(right: 5),
                               child: InkWell(
                                 key: Key('stake_$stake'),
                                 onTap: () {
@@ -615,8 +597,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                    horizontal: 11,
+                                    vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
                                     color: session.stakeBuyIn == stake
@@ -634,10 +616,12 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                     style: TextStyle(
                                       color: session.stakeBuyIn == stake
                                           ? const Color(0xFF0D0605)
-                                          : const Color(0xCCF7F0EA),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'monospace',
+                                          : const Color(0xDDF7F0EA),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -652,8 +636,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                     // Quick Join by Room Code
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xF2140506),
@@ -664,8 +648,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           SizedBox(
-                            width: 112,
-                            height: 28,
+                            width: 120,
+                            height: 32,
                             child: TextField(
                               key: const Key('input_join_room_code'),
                               controller: _roomCodeController,
@@ -673,21 +657,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               maxLength: 8,
                               style: const TextStyle(
                                 color: Color(0xFFF7F0EA),
-                                fontSize: 11,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.w800,
-                                fontFamily: 'monospace',
                               ),
                               decoration: const InputDecoration(
                                 counterText: '',
                                 isDense: true,
                                 hintText: 'Room Code',
                                 hintStyle: TextStyle(
-                                  color: Color(0x66F7F0EA),
-                                  fontSize: 10.5,
+                                  color: Color(0x88F7F0EA),
+                                  fontSize: 12,
                                 ),
                                 contentPadding: EdgeInsets.symmetric(
                                   horizontal: 8,
-                                  vertical: 6,
+                                  vertical: 7,
                                 ),
                                 border: InputBorder.none,
                               ),
@@ -697,17 +680,17 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           ElevatedButton(
                             key: const Key('btn_join_room_code'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF260A0D),
+                              backgroundColor: const Color(0xFF301217),
                               foregroundColor: const Color(0xFFE5C378),
                               side: const BorderSide(
                                 color: Color(0xFFD4AF37),
                                 width: 1.0,
                               ),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                              minimumSize: const Size(52, 28),
+                              minimumSize: const Size(58, 32),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(9),
                               ),
@@ -716,8 +699,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                             child: const Text(
                               'Join',
                               style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
@@ -738,40 +721,45 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required List<T> values,
     required T selected,
     required String Function(T) labelFor,
+    int Function(T)? flexFor,
     required ValueChanged<T> onSelected,
   }) {
     return Row(
       children: values.map((v) {
         final isSel = v == selected;
         return Expanded(
+          flex: flexFor != null ? flexFor(v) : 1,
           child: Padding(
-            padding: EdgeInsets.only(right: v == values.last ? 0 : 4),
+            padding: EdgeInsets.only(right: v == values.last ? 0 : 6),
             child: InkWell(
               onTap: () => onSelected(v),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(9),
               child: Container(
-                height: 26,
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSel
                       ? const Color(0xFFD4AF37).withValues(alpha: 0.22)
-                      : const Color(0xFF0D0405),
-                  borderRadius: BorderRadius.circular(8),
+                      : const Color(0xFF0C0506),
+                  borderRadius: BorderRadius.circular(9),
                   border: Border.all(
                     color: isSel ? const Color(0xFFD4AF37) : const Color(0xFF380C10),
                     width: isSel ? 1.2 : 0.8,
                   ),
                 ),
-                child: Text(
-                  labelFor(v),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: isSel
-                        ? const Color(0xFFE5C378)
-                        : const Color(0xB3F7F0EA),
-                    fontSize: 9.5,
-                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    labelFor(v),
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: isSel
+                          ? const Color(0xFFF6E7BD)
+                          : const Color(0xCCD1C6CA),
+                      fontSize: 11.5,
+                      fontWeight: isSel ? FontWeight.w800 : FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -786,7 +774,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required HolhuashiGameMode mode,
     required String thaanaTitle,
     required String englishTitle,
-    required String iconBadge,
     required int elo,
     required bool isSelected,
     required Widget selectorRow,
@@ -798,221 +785,203 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     return GestureDetector(
       onTap: onCardTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isSelected
-                ? const [
-                    Color(0xFF3B1015),
-                    Color(0xFF23090B),
-                    Color(0xFF140506),
-                  ]
-                : const [
-                    Color(0xFF1B0709),
-                    Color(0xFF110405),
-                    Color(0xFF0D0304),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected
+              ? const Color(0xFF280D11)
+              : const Color(0xFF190A0C),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF380C10),
-            width: isSelected ? 2.0 : 1.2,
+            color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF3C1419),
+            width: isSelected ? 1.8 : 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.30),
-                    blurRadius: 20,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : const [
-                  BoxShadow(
-                    color: Colors.black54,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
         ),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(13),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row: Badge + ELO pill
+            // Card Header: Thaana + English title pair on left, single-line ELO badge on right
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0D0405),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFD4AF37)
-                          : const Color(0xFF380C10),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          thaanaTitle,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFFE8CA7A)
+                                : const Color(0xFFF4F4F6),
+                            fontSize: 21,
+                            fontWeight: FontWeight.w900,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Text(
+                          englishTitle,
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFFD4AF37)
+                                : const Color(0xFFD1C6CA),
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  alignment: Alignment.center,
-                  child: Text(iconBadge, style: const TextStyle(fontSize: 17)),
                 ),
+                const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+                    horizontal: 9,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFD4AF37)
-                        : const Color(0xFF260A0D),
-                    borderRadius: BorderRadius.circular(12),
+                        : const Color(0xFF240E11),
+                    borderRadius: BorderRadius.circular(9),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFFE5C378)
-                          : const Color(0xFF380C10),
+                          ? const Color(0xFFE8CA7A)
+                          : const Color(0xFF3C1419),
                     ),
                   ),
                   child: Text(
                     'ELO $elo',
-                    style: TextStyle(
-                      color: isSelected
-                          ? const Color(0xFF0D0605)
-                          : const Color(0xFFE5C378),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Title row
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  thaanaTitle,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    color: isSelected
-                        ? const Color(0xFFE5C378)
-                        : const Color(0xFFF7F0EA),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    englishTitle,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isSelected
-                          ? const Color(0xFFD4AF37)
-                          : const Color(0xFFF7F0EA),
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0,
+                          ? const Color(0xFF0D0505)
+                          : const Color(0xFFE8CA7A),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
 
-            // Format / Variant selector pills
-            selectorRow,
-
-            const Spacer(),
-
-            // Action 1: Primary Online Find Match
-            SizedBox(
-              width: double.infinity,
-              height: 36,
-              child: ElevatedButton.icon(
-                key: Key('find_match_${mode.name}'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
-                  foregroundColor: const Color(0xFF0D0605),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  elevation: 3,
-                ),
-                onPressed: onFindMatch,
-                icon: const Icon(Icons.public, size: 15),
-                label: const Text(
-                  'Find Match',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.4,
+            // Centered Card Crest Stage (fills card empty space responsively)
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: ModeCrestArtwork(
+                    mode: mode,
+                    isSelected: isSelected,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
+
+            // Format / Variant selector pills
+            selectorRow,
+            const SizedBox(height: 8),
+
+            // Action 1: Primary Online Find Match
+            SizedBox(
+              width: double.infinity,
+              height: 41,
+              child: ElevatedButton.icon(
+                key: Key('find_match_${mode.name}'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD4AF37),
+                  foregroundColor: const Color(0xFF0D0505),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: onFindMatch,
+                icon: const Icon(Icons.public, size: 17),
+                label: const Text(
+                  'Find Match',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 7),
 
             // Action 2 & 3: VS AI + Private Room
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  flex: 9,
+                  child: OutlinedButton.icon(
                     key: Key('play_solo_${mode.name}'),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF380C10)),
-                      backgroundColor: const Color(0xFF140506),
-                      foregroundColor: const Color(0xFFF7F0EA),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      minimumSize: const Size(0, 32),
+                      side: const BorderSide(color: Color(0xFF3C1419)),
+                      backgroundColor: const Color(0xFF240E11),
+                      foregroundColor: const Color(0xFFF4F4F6),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 35),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onPressed: onVsAi,
-                    child: const Text(
-                      'VS AI',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
+                    icon: const Icon(Icons.smart_toy_outlined, size: 14),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'VS AI',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 7),
                 Expanded(
-                  child: OutlinedButton(
+                  flex: 11,
+                  child: OutlinedButton.icon(
                     key: Key('private_table_${mode.name}'),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(
                         color: Color(0xFFD4AF37),
                         width: 1.0,
                       ),
-                      backgroundColor: const Color(0xFF260A0D),
-                      foregroundColor: const Color(0xFFE5C378),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      minimumSize: const Size(0, 32),
+                      backgroundColor: const Color(0xFF231114),
+                      foregroundColor: const Color(0xFFE8CA7A),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 35),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onPressed: onPrivateRoom,
-                    child: const Text(
-                      'Private Room',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
+                    icon: const Icon(Icons.vpn_key_outlined, size: 14),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Private Room',
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -1351,10 +1320,18 @@ class _ProfileIdentityDialogState
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       SensoryService.instance.playButtonTap();
-                      notifier.signOut();
-                      Navigator.of(context).pop();
+                      final profileState = ref.read(gameSessionProvider);
+                      final dialogNav = Navigator.of(context);
+                      final confirmed = await SettingsModal.confirmSignOut(
+                        context,
+                        displayName: profileState.displayName,
+                        handle: profileState.username,
+                      );
+                      if (!confirmed) return;
+                      dialogNav.pop();
+                      await notifier.signOut();
                     },
                     child: const Text(
                       'Sign Out',

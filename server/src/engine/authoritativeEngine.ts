@@ -1235,20 +1235,37 @@ export function validateAndApplyAction(
         return { valid: false, error: 'Cannot draw from stock right now', stateChanged: false };
       }
       if (gs.stockDeck.length === 0) {
-        // Recycle discard pile except top card
-        if (gs.discardPile.length > 1) {
-          const top = gs.discardPile.pop()!;
-          gs.stockDeck = shuffleDeck(gs.discardPile);
-          gs.discardPile = [top];
-        } else {
-          return { valid: false, error: 'Stock deck exhausted', stateChanged: false };
-        }
+        return { valid: false, error: 'Stock deck is empty — take discard or shuffle and draw', stateChanged: false };
       }
       const drawn = gs.stockDeck.shift()!;
       hand.push(drawn);
       gs.phase = 'DISCARD_PHASE';
       gs.turnStartedAt = Date.now();
       return { valid: true, stateChanged: true, summary: { drawnCardId: drawn.id, source: 'STOCK' } };
+    }
+
+    if (action.type === 'SHUFFLE_AND_DRAW') {
+      if (gs.phase !== 'DRAW_PHASE' || hand.length !== 10) {
+        return { valid: false, error: 'Cannot shuffle and draw right now', stateChanged: false };
+      }
+      if (gs.stockDeck.length > 0) {
+        return { valid: false, error: 'Stock deck still has cards remaining', stateChanged: false };
+      }
+      if (gs.discardPile.length <= 1) {
+        return { valid: false, error: 'Not enough discarded cards to shuffle', stateChanged: false };
+      }
+      const top = gs.discardPile.pop()!;
+      gs.stockDeck = shuffleDeck(gs.discardPile);
+      gs.discardPile = [top];
+      const drawn = gs.stockDeck.shift()!;
+      hand.push(drawn);
+      gs.phase = 'DISCARD_PHASE';
+      gs.turnStartedAt = Date.now();
+      return {
+        valid: true,
+        stateChanged: true,
+        summary: { drawnCardId: drawn.id, source: 'SHUFFLE_AND_DRAW', recycledCount: gs.stockDeck.length + 1 },
+      };
     }
 
     if (action.type === 'DRAW_DISCARD') {
@@ -1652,9 +1669,19 @@ export function computeBotActionForActiveSeat(
         gs.discardPile.length > 0
           ? gs.discardPile[gs.discardPile.length - 1]
           : null;
-      const drawType = diguBotShouldDrawDiscard(hand, topDiscard)
-        ? 'DRAW_DISCARD'
-        : 'DRAW_STOCK';
+      const wantsDiscard = diguBotShouldDrawDiscard(hand, topDiscard);
+      let drawType: string;
+      if (wantsDiscard && topDiscard) {
+        drawType = 'DRAW_DISCARD';
+      } else if (gs.stockDeck.length > 0) {
+        drawType = 'DRAW_STOCK';
+      } else if (gs.discardPile.length > 1) {
+        drawType = 'SHUFFLE_AND_DRAW';
+      } else if (topDiscard) {
+        drawType = 'DRAW_DISCARD';
+      } else {
+        drawType = 'DRAW_STOCK';
+      }
       const drawRes = validateAndApplyAction(room, seatIndex, {
         type: drawType,
         isAfkBotOverride,

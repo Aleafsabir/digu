@@ -303,12 +303,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       child: _buildSeatPlacard(north),
                     ),
 
-                  // East Placard (Right Center)
-                  if (east != null)
-                    Align(
-                      alignment: const Alignment(0.92, -0.05),
-                      child: _buildSeatPlacard(east),
+                  // East Placard + Right-Side Empty Stock Shuffle Action
+                  Align(
+                    alignment: const Alignment(0.92, 0.04),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (east != null) _buildSeatPlacard(east),
+                        _buildRightSideEmptyStockShuffleButton(
+                          topPadding: east != null ? 10 : 0,
+                        ),
+                      ],
                     ),
+                  ),
 
                   // West Placard (Left Center)
                   if (west != null)
@@ -725,6 +733,85 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Renders the explicit right-side "Shuffle & Draw" control in Digu when
+  /// the stock pile hits 0 cards on the player's draw turn, allowing them to
+  /// choose between taking the top discard or shuffling remaining discards.
+  Widget _buildRightSideEmptyStockShuffleButton({double topPadding = 0}) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        _gameTable.activeModeNotifier,
+        _gameTable.phaseNotifier,
+        _gameTable.stockCountNotifier,
+        _gameTable.discardCountNotifier,
+      ]),
+      builder: (context, _) {
+        final shouldShow =
+            _gameTable.activeModeNotifier.value == HolhuashiGameMode.digu &&
+            _gameTable.phaseNotifier.value == GameTurnPhase.awaitDraw &&
+            _gameTable.stockCountNotifier.value == 0 &&
+            _gameTable.discardCountNotifier.value > 1;
+        if (!shouldShow) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              key: const Key('btn_empty_stock_shuffle'),
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                SensoryService.instance.playButtonTap();
+                _gameTable.shuffleDiscardAndDrawStock();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF3A1418), Color(0xFF1E090B)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFFE5C378),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.28),
+                      blurRadius: 14,
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.shuffle_rounded,
+                      color: Color(0xFFE5C378),
+                      size: 16,
+                    ),
+                    SizedBox(width: 7),
+                    Text(
+                      'Shuffle & Draw',
+                      style: TextStyle(
+                        color: Color(0xFFF7F0EA),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

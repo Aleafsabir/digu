@@ -238,6 +238,8 @@ class DiguGameTable extends FlameGame {
   final ValueNotifier<bool> hasSelectedCardNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<int> team1TricksNotifier = ValueNotifier<int>(0);
   final ValueNotifier<int> team2TricksNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> stockCountNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> discardCountNotifier = ValueNotifier<int>(0);
 
   // Lifecycle & Sensory Callbacks
   void Function(RoundOverData data)? onRoundCompleted;
@@ -498,6 +500,11 @@ class DiguGameTable extends FlameGame {
     deadwoodPointsNotifier.value = 0;
     canGinNotifier.value = false;
     handCountNotifier.value = 0;
+    stockCountNotifier.value = 0;
+    discardCountNotifier.value = 0;
+    if (isLoaded) {
+      _tableSurface.isStockEmpty = false;
+    }
     _publishSeats();
   }
 
@@ -654,8 +661,8 @@ class DiguGameTable extends FlameGame {
 
     _setPhase(GameTurnPhase.awaitDraw);
     activeSeatNotifier.value = 0;
-    statusMessageNotifier.value = 'Your Turn: Draw 1 card from Stock or Discard';
     _layoutTablePiles();
+    statusMessageNotifier.value = _humanDrawStatusMessage();
     _layoutDiguOpponents();
     _recalculateAnalysisAndLayoutHand();
     _publishSeats();
@@ -889,14 +896,24 @@ class DiguGameTable extends FlameGame {
     }
   }
 
+  String _humanDrawStatusMessage() {
+    if (stockPile.isNotEmpty) {
+      return 'Your Turn: Draw 1 card from Stock or Discard';
+    }
+    return discardPile.length > 1
+        ? 'Stock Empty — Take Discard or tap Shuffle & Draw'
+        : 'Stock Empty — Take top Discard';
+  }
+
   void drawCardFromStock() {
     if (activeMode != HolhuashiGameMode.digu) return;
     if (phase != GameTurnPhase.awaitDraw) return;
     if (currentHand.length >= 11) return;
 
     if (stockPile.isEmpty) {
-      _recycleDiscardIntoStock();
-      if (stockPile.isEmpty) return;
+      statusMessageNotifier.value = _humanDrawStatusMessage();
+      _layoutTablePiles();
+      return;
     }
 
     final token = _roundToken;
@@ -931,6 +948,19 @@ class DiguGameTable extends FlameGame {
         },
       ),
     );
+  }
+
+  /// Explicitly initiated by the turn player when Digu stock runs out and
+  /// they choose to shuffle earlier discards into a fresh stock pile & draw.
+  void shuffleDiscardAndDrawStock() {
+    if (activeMode != HolhuashiGameMode.digu) return;
+    if (phase != GameTurnPhase.awaitDraw) return;
+    if (currentHand.length >= 11) return;
+    if (stockPile.isNotEmpty || discardPile.length <= 1) return;
+
+    onShuffleSound?.call();
+    _recycleDiscardIntoStock();
+    drawCardFromStock();
   }
 
   void drawCardFromDiscard() {
@@ -1297,10 +1327,6 @@ class DiguGameTable extends FlameGame {
         return;
       }
 
-      if (stockPile.isEmpty) {
-        _recycleDiscardIntoStock();
-      }
-
       final seatHand = _seatHands[seat];
       final topDiscard = discardPile.isNotEmpty ? discardPile.last : null;
       final shouldDrawDiscard = DiguAI.shouldDrawDiscard(
@@ -1308,9 +1334,16 @@ class DiguGameTable extends FlameGame {
         topDiscard: topDiscard,
       );
 
+      if (!shouldDrawDiscard && stockPile.isEmpty && discardPile.length > 1) {
+        onShuffleSound?.call();
+        statusMessageNotifier.value = '$seatLabel shuffled Discard pile';
+        _recycleDiscardIntoStock();
+      }
+
       final oppAnchor = _seatAnchor(seat).pos;
       final oppAngle = _seatAnchor(seat).angle;
-      if (shouldDrawDiscard && discardPile.isNotEmpty) {
+      final mustTakeSoleDiscard = stockPile.isEmpty && discardPile.length == 1;
+      if ((shouldDrawDiscard || mustTakeSoleDiscard) && discardPile.isNotEmpty) {
         final drawn = discardPile.removeLast();
         _layoutTablePiles();
         statusMessageNotifier.value = '$seatLabel drew from Discard pile';
@@ -1429,7 +1462,7 @@ class DiguGameTable extends FlameGame {
     _setPhase(GameTurnPhase.awaitDraw);
     activeSeatNotifier.value = 0;
     _publishSeats();
-    statusMessageNotifier.value = 'Your Turn: Draw 1 card from Stock or Discard';
+    statusMessageNotifier.value = _humanDrawStatusMessage();
   }
 
   // ---------------------------------------------------------------------------
@@ -2493,6 +2526,10 @@ class DiguGameTable extends FlameGame {
       c.removeFromParent();
     }
     stockComponents.clear();
+    stockCountNotifier.value = stockPile.length;
+    if (isLoaded) {
+      _tableSurface.isStockEmpty = stockPile.isEmpty;
+    }
 
     if (stockPile.isNotEmpty) {
       final layers = math.min(stockPile.length, 3);
@@ -2516,6 +2553,7 @@ class DiguGameTable extends FlameGame {
     if (activeMode != HolhuashiGameMode.digu) return;
 
     _layoutStockOnly();
+    discardCountNotifier.value = discardPile.length;
 
     for (final c in discardComponents) {
       c.removeFromParent();
@@ -2828,9 +2866,52 @@ class _GinSlamCardComponent extends PositionComponent {
   }
 }
 
+void _drawEmptyStockReceptacle(
+  Canvas canvas,
+  Offset center,
+  double width,
+  double height,
+) {
+  final rect = Rect.fromCenter(center: center, width: width, height: height);
+  final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(10));
+  canvas.drawRRect(rrect, Paint()..color = const Color(0x380D0607));
+
+  final outlinePath = Path()..addRRect(rrect);
+  final borderPaint = Paint()
+    ..color = const Color(0x9CE5C378)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.6;
+  const dashLength = 7.0;
+  const gapLength = 5.0;
+  for (final metric in outlinePath.computeMetrics()) {
+    double distance = 0.0;
+    while (distance < metric.length) {
+      final end = (distance + dashLength).clamp(0.0, metric.length);
+      canvas.drawPath(metric.extractPath(distance, end), borderPaint);
+      distance += dashLength + gapLength;
+    }
+  }
+
+  final tp = TextPainter(
+    text: const TextSpan(
+      text: 'EMPTY',
+      style: TextStyle(
+        color: Color(0xCCE5C378),
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.4,
+      ),
+    ),
+    textAlign: TextAlign.center,
+    textDirection: TextDirection.ltr,
+  )..layout(maxWidth: width - 12);
+  tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
+}
+
 class _TableSurfaceComponent extends PositionComponent {
   HolhuashiGameMode activeMode = HolhuashiGameMode.digu;
   Suit? trumpSuit;
+  bool isStockEmpty = false;
 
   bool _showDiscardZone = false;
   bool _discardActive = false;
@@ -2931,6 +3012,15 @@ class _TableSurfaceComponent extends PositionComponent {
     );
 
     if (activeMode == HolhuashiGameMode.digu) {
+      if (isStockEmpty) {
+        _drawEmptyStockReceptacle(
+          canvas,
+          Offset(centerX - 155.0, centerY),
+          DiguGameTable.tableCardSize.x,
+          DiguGameTable.tableCardSize.y,
+        );
+      }
+
       if (_showDiscardZone) {
         _drawDropTargetRect(
           canvas,

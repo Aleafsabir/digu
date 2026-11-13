@@ -24,6 +24,100 @@ class SettingsModal extends ConsumerWidget {
     );
   }
 
+  /// Prompts explicit user confirmation before ending the active session.
+  static Future<bool> confirmSignOut(
+    BuildContext context, {
+    required String displayName,
+    String? handle,
+  }) async {
+    final identityLabel =
+        (handle != null && handle.isNotEmpty) ? '@$handle' : displayName;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogCtx) => AlertDialog(
+        key: const Key('dialog_sign_out_confirm'),
+        backgroundColor: const Color(0xFF1B0A0C),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.5),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFC84B31).withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFD4472F)),
+              ),
+              child: const Icon(
+                Icons.logout,
+                color: Color(0xFFFFB8AC),
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Sign Out?',
+              style: TextStyle(
+                color: Color(0xFFF4F4F6),
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'End session for $identityLabel and return to sign-in.',
+          style: const TextStyle(
+            color: Color(0xFFD1C6CA),
+            fontSize: 13,
+          ),
+        ),
+        actions: [
+          OutlinedButton(
+            key: const Key('btn_cancel_sign_out'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFF4F4F6),
+              side: const BorderSide(color: Color(0xFF380C10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              SensoryService.instance.playButtonTap();
+              Navigator.of(dialogCtx).pop(false);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+          ElevatedButton(
+            key: const Key('btn_confirm_sign_out'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFA82E1B),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              SensoryService.instance.playButtonTap();
+              Navigator.of(dialogCtx).pop(true);
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionState = ref.watch(gameSessionProvider);
@@ -355,6 +449,102 @@ class SettingsModal extends ConsumerWidget {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Sign Out Tile (moved from Lobby Header with Confirmation)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B0B0C),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF380C10)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF380C10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.person_outline,
+                              color: Color(0xFFD4AF37),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  sessionState.username != null &&
+                                          sessionState.username!.isNotEmpty
+                                      ? '${sessionState.displayName} (@${sessionState.username})'
+                                      : sessionState.displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF7F0EA),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Text(
+                                  sessionState.authStatusLabel,
+                                  style: const TextStyle(
+                                    color: Color(0x99F7F0EA),
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            key: const Key('btn_settings_sign_out'),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor:
+                                  const Color(0xFFA82E1B).withValues(alpha: 0.22),
+                              foregroundColor: const Color(0xFFFFB8AC),
+                              side: const BorderSide(
+                                color: Color(0xFFD4472F),
+                                width: 1.1,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              minimumSize: const Size(0, 34),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () async {
+                              SensoryService.instance.playButtonTap();
+                              final modalNav = Navigator.of(context);
+                              final confirmed = await SettingsModal.confirmSignOut(
+                                context,
+                                displayName: sessionState.displayName,
+                                handle: sessionState.username,
+                              );
+                              if (!confirmed) return;
+                              modalNav.pop();
+                              await notifier.signOut();
+                            },
+                            icon: const Icon(Icons.logout, size: 14),
+                            label: const Text(
+                              'Sign Out',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),

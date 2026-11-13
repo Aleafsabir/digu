@@ -1137,9 +1137,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     _cancelReadyGateTimers();
     _inviteExpiryTimer?.cancel();
     unawaited(_wsClient.disconnect());
-    await _googleAuthService.signOut();
-    if (!mounted) return;
 
+    if (!mounted) return;
     state = state.copyWith(
       authProvider: AuthProviderType.none,
       cloudSyncState: CloudSyncState.offlineLocal,
@@ -1156,6 +1155,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       isReadyCheckActive: false,
       screenState: AppScreenState.auth,
     );
+
+    await _googleAuthService.signOut();
+    if (!mounted) return;
 
     try {
       await _persistence.setCloudProfileId(null);
