@@ -30,6 +30,7 @@ const server = http.createServer((req, res) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   let safePath = path.normalize(new URL(req.url, `http://${req.headers.host}`).pathname);
   if (safePath === '/') safePath = '/index.html';

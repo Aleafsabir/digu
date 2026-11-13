@@ -12,6 +12,15 @@
 .swiftpm/
 migrate_working_dir/
 
+# Local development, prototypes & secrets
+.claude/
+.impeccable/
+.taste-skill/
+agent/
+distribution/
+fastlane/
+prototypes/
+
 # Server ignores
 server/node_modules/
 server/dist/

@@ -1,11 +1,18 @@
+import 'dart:async';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/audio/sensory_service.dart';
 import 'core/models/card_models.dart';
 import 'game/table_canvas.dart';
+import 'state/game_session_provider.dart';
 import 'ui/modals/round_score_modal.dart';
+import 'ui/modals/settings_modal.dart';
 import 'ui/modals/trump_declaration_modal.dart';
+import 'ui/overlays/quick_chat_overlay.dart';
+import 'ui/screens/lobby_screen.dart';
+import 'ui/screens/waiting_room_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,44 +31,114 @@ void main() async {
   );
 }
 
-class HolhuashiApp extends StatelessWidget {
+class HolhuashiApp extends ConsumerWidget {
   const HolhuashiApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final screenState = ref.watch(gameSessionProvider.select((s) => s.screenState));
+
+    Widget activeView;
+    switch (screenState) {
+      case AppScreenState.lobby:
+        activeView = const LobbyScreen();
+        break;
+      case AppScreenState.waitingRoom:
+        activeView = const WaitingRoomScreen();
+        break;
+      case AppScreenState.inGame:
+        activeView = const GameScreen();
+        break;
+    }
+
     return MaterialApp(
       title: 'Holhuashi: Maldivian Rummy & Cards',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0A0D14),
       ),
-      home: const GameScreen(),
+      home: activeView,
     );
   }
 }
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> {
   late final DiguGameTable _gameTable;
-
-  HolhuashiGameMode _activeMode = HolhuashiGameMode.digu;
   int _humanCumulativeScore = 0;
   int _botCumulativeScore = 0;
+  bool _showCountdown = true;
 
   @override
   void initState() {
     super.initState();
     _gameTable = DiguGameTable();
+
+    // Bind Lifecycle & Sensory Callbacks
     _gameTable.onRoundCompleted = _showRoundScoreModal;
+    _gameTable.onRequestTrumpDeclaration = _handleTrumpDeclaration;
+
+    final sensory = ref.read(sensoryServiceProvider);
+    _gameTable.onShuffleSound = sensory.playShuffle;
+    _gameTable.onCardDealSound = sensory.playCardDeal;
+    _gameTable.onCardSnapSound = sensory.playCardSnap;
+    _gameTable.onTrickSweepSound = sensory.playTrickSweep;
+    _gameTable.onGinSlamSound = sensory.playGinSlam;
+    _gameTable.onFanfareSound = sensory.playFanfare;
+
+    // Apply sensory settings
+    final session = ref.read(gameSessionProvider);
+    _gameTable.updateSettings(
+      screenShakeEnabled: session.screenShakeEnabled,
+      fastDealSpeed: session.fastDealSpeed,
+    );
+
+    // Initial mode sync
+    if (_gameTable.activeMode != session.selectedMode) {
+      _gameTable.switchMode(session.selectedMode);
+    }
+  }
+
+  Future<Suit> _handleTrumpDeclaration(
+    List<PlayingCard> pass1Hand,
+    int declarerSeat,
+  ) async {
+    final completer = Completer<Suit>();
+    if (!mounted) return Suit.spades;
+
+    final isHuman = declarerSeat == 0;
+    final declarerName = isHuman ? 'You (South)' : 'East AI';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => TrumpDeclarationModal(
+        isHumanDeclarer: isHuman,
+        declarerName: declarerName,
+        pass1Cards: pass1Hand,
+        onSuitSelected: (suit) {
+          Navigator.of(ctx).pop();
+          if (!completer.isCompleted) completer.complete(suit);
+        },
+        onDismiss: () {
+          Navigator.of(ctx).pop();
+          if (!completer.isCompleted) completer.complete(Suit.spades);
+        },
+      ),
+    );
+
+    return completer.future;
   }
 
   void _showRoundScoreModal(RoundOverData data) {
+    final notifier = ref.read(gameSessionProvider.notifier);
+
     setState(() {
       if (data.humanWon) {
         _humanCumulativeScore += data.netRoundScore;
@@ -70,51 +147,48 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
 
+    notifier.recordMatchResult(
+      mode: data.mode,
+      humanWon: data.humanWon,
+      humanScore: _humanCumulativeScore,
+      opponentScore: _botCumulativeScore,
+    );
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => RoundScoreModal(
-        humanWon: data.humanWon,
-        winnerName: data.winnerName,
-        winningMelds: data.winningMelds,
-        deadwood: data.deadwood,
-        meldScore: data.meldScore,
-        debtScore: data.debtScore,
-        ginBonus: data.ginBonus,
-        netRoundScore: data.netRoundScore,
+      builder: (ctx) => RoundScoreModal.fromRoundData(
+        data: data,
         humanCumulativeScore: _humanCumulativeScore,
         botCumulativeScore: _botCumulativeScore,
         onNextRound: () {
           Navigator.of(ctx).pop();
           _gameTable.dealNewRound();
         },
+        onReturnToLobby: () {
+          Navigator.of(ctx).pop();
+          notifier.goToLobby();
+        },
       ),
     );
   }
 
   void _switchGameMode(HolhuashiGameMode mode) {
-    setState(() {
-      _activeMode = mode;
-    });
-
-    if (mode == HolhuashiGameMode.dhihaeh) {
-      _gameTable.dealNewRound();
-      // Demonstrate the Trump Declaration Fanfare
-      showDialog(
-        context: context,
-        builder: (ctx) => TrumpDeclarationModal(
-          trumpSuit: Suit.spades,
-          declarerName: 'Hussain (East AI)',
-          onDismiss: () => Navigator.of(ctx).pop(),
-        ),
-      );
-    } else {
-      _gameTable.dealNewRound();
-    }
+    ref.read(gameSessionProvider.notifier).selectGameMode(mode);
+    _gameTable.switchMode(mode);
   }
 
   @override
   Widget build(BuildContext context) {
+    final session = ref.watch(gameSessionProvider);
+    final notifier = ref.read(gameSessionProvider.notifier);
+
+    // Keep settings in sync
+    _gameTable.updateSettings(
+      screenShakeEnabled: session.screenShakeEnabled,
+      fastDealSpeed: session.fastDealSpeed,
+    );
+
     return Scaffold(
       body: Stack(
         children: [
@@ -123,7 +197,51 @@ class _GameScreenState extends State<GameScreen> {
             gameFactory: () => _gameTable,
           ),
 
-          // 2. High-Level Flutter Overlay HUD
+          // 2. 4-Seat Compass Placards on Table Edges
+          ValueListenableBuilder<List<SeatInfo>>(
+            valueListenable: _gameTable.seatsNotifier,
+            builder: (context, seats, _) {
+              final seatMap = {for (final s in seats) s.seatIndex: s};
+              final south = seatMap[0];
+              final east = seatMap[1];
+              final north = seatMap[2];
+              final west = seatMap[3];
+
+              return Stack(
+                children: [
+                  // North Placard (Top Center)
+                  if (north != null)
+                    Align(
+                      alignment: const Alignment(0.0, -0.72),
+                      child: _buildSeatPlacard(north),
+                    ),
+
+                  // East Placard (Right Center)
+                  if (east != null)
+                    Align(
+                      alignment: const Alignment(0.92, -0.05),
+                      child: _buildSeatPlacard(east),
+                    ),
+
+                  // West Placard (Left Center)
+                  if (west != null)
+                    Align(
+                      alignment: const Alignment(-0.92, -0.05),
+                      child: _buildSeatPlacard(west),
+                    ),
+
+                  // South Placard (Bottom Center)
+                  if (south != null)
+                    Align(
+                      alignment: const Alignment(0.0, 0.44),
+                      child: _buildSeatPlacard(south),
+                    ),
+                ],
+              );
+            },
+          ),
+
+          // 3. High-Level Flutter Overlay HUD
           SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -134,20 +252,36 @@ class _GameScreenState extends State<GameScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // App Brand & Game Mode Selector Tabs
+                      // Back to Lobby + Brand + Game Mode Tabs
                       Row(
                         children: [
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xF21C0A0D),
+                              foregroundColor: const Color(0xFFD4AF37),
+                              side: const BorderSide(color: Color(0xFFD4AF37), width: 1.0),
+                              padding: const EdgeInsets.all(6),
+                              minimumSize: const Size(32, 32),
+                            ),
+                            icon: const Icon(Icons.arrow_back, size: 16),
+                            tooltip: 'Return to Lobby',
+                            onPressed: () => notifier.goToLobby(),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Brand Mark
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: const Color(0xF2170B09),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                                color: const Color(0xFFD4AF37).withValues(alpha: 0.6),
                               ),
                             ),
                             child: const Text(
                               'ހޮޅުއަށި',
+                              textDirection: TextDirection.rtl,
                               style: TextStyle(
                                 color: Color(0xFFD4AF37),
                                 fontWeight: FontWeight.bold,
@@ -158,21 +292,26 @@ class _GameScreenState extends State<GameScreen> {
                           const SizedBox(width: 8),
 
                           // Mode Tabs: DIGU, DHIHAEH, BONDI
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xE6140705),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFF3B192C)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildModeTab('DIGU', HolhuashiGameMode.digu),
-                                _buildModeTab('DHIHAEH (10s)', HolhuashiGameMode.dhihaeh),
-                                _buildModeTab('BONDI', HolhuashiGameMode.bondi),
-                              ],
-                            ),
+                          ValueListenableBuilder<HolhuashiGameMode>(
+                            valueListenable: _gameTable.activeModeNotifier,
+                            builder: (context, activeMode, _) {
+                              return Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xE6140705),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFF3B192C)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildModeTab('DIGU', HolhuashiGameMode.digu, activeMode),
+                                    _buildModeTab('DHIHAEH (10s)', HolhuashiGameMode.dhihaeh, activeMode),
+                                    _buildModeTab('BONDI', HolhuashiGameMode.bondi, activeMode),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -216,7 +355,7 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
 
-                      // Score & Restart Button
+                      // Score, Shuffle & Deal, and Settings Buttons
                       Row(
                         children: [
                           Container(
@@ -237,6 +376,8 @@ class _GameScreenState extends State<GameScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
+
+                          // Shuffle & Deal Button
                           IconButton.filled(
                             style: IconButton.styleFrom(
                               backgroundColor: const Color(0xFFD4AF37),
@@ -244,11 +385,26 @@ class _GameScreenState extends State<GameScreen> {
                               padding: const EdgeInsets.all(6),
                               minimumSize: const Size(32, 32),
                             ),
-                            icon: const Icon(Icons.refresh, size: 18),
-                            tooltip: 'Restart Deal',
+                            icon: const Icon(Icons.shuffle, size: 18),
+                            tooltip: 'Shuffle & Deal Round',
                             onPressed: () {
                               _gameTable.dealNewRound();
                             },
+                          ),
+                          const SizedBox(width: 6),
+
+                          // Settings Button
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFF260A0D),
+                              foregroundColor: const Color(0xFFF7F0EA),
+                              side: const BorderSide(color: Color(0xFF380C10), width: 1.0),
+                              padding: const EdgeInsets.all(6),
+                              minimumSize: const Size(32, 32),
+                            ),
+                            icon: const Icon(Icons.settings, size: 18),
+                            tooltip: 'Settings',
+                            onPressed: () => SettingsModal.show(context),
                           ),
                         ],
                       ),
@@ -256,85 +412,90 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
 
-                // Floating Hand Status Bar (Clean layout: Sort buttons removed)
+                // Floating Hand Status Bar & Actions (Clean layout: NO sort buttons)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 120.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Status / Deadwood Meter Pill
-                      ValueListenableBuilder<int>(
-                        valueListenable: _gameTable.deadwoodPointsNotifier,
-                        builder: (context, deadwood, _) {
-                          final isZero = deadwood == 0;
-                          final isDhihaeh = _activeMode == HolhuashiGameMode.dhihaeh;
-                          final isBondi = _activeMode == HolhuashiGameMode.bondi;
+                      // Status / Deadwood / 10s Meter Pill
+                      ValueListenableBuilder<HolhuashiGameMode>(
+                        valueListenable: _gameTable.activeModeNotifier,
+                        builder: (context, activeMode, _) {
+                          return ValueListenableBuilder<int>(
+                            valueListenable: _gameTable.deadwoodPointsNotifier,
+                            builder: (context, deadwood, _) {
+                              final isZero = deadwood == 0;
+                              final isDhihaeh = activeMode == HolhuashiGameMode.dhihaeh;
+                              final isBondi = activeMode == HolhuashiGameMode.bondi;
 
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xF2170B09),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
-                              ),
-                              boxShadow: isZero
-                                  ? [
-                                      const BoxShadow(
-                                        color: Color(0x66E5C378),
-                                        blurRadius: 15,
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xF2170B09),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
+                                  ),
+                                  boxShadow: isZero
+                                      ? [
+                                          const BoxShadow(
+                                            color: Color(0x66E5C378),
+                                            blurRadius: 15,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      isDhihaeh
+                                          ? 'TRUMP: ♠ SPADES • 10s: '
+                                          : isBondi
+                                              ? 'SHED CARDS: '
+                                              : 'DEADWOOD ',
+                                      style: const TextStyle(
+                                        color: Color(0xB2F7F0EA),
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w900,
+                                        fontFamily: 'monospace',
+                                        letterSpacing: 1.0,
                                       ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  isDhihaeh
-                                      ? 'TRUMP: ♠ SPADES • 10s: '
-                                      : isBondi
-                                          ? 'SHED CARDS: '
-                                          : 'DEADWOOD ',
-                                  style: const TextStyle(
-                                    color: Color(0xB2F7F0EA),
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w900,
-                                    fontFamily: 'monospace',
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: isZero ? const Color(0xFF301A14) : const Color(0xFF0D0605),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
                                     ),
-                                  ),
-                                  child: Text(
-                                    isDhihaeh
-                                        ? '0 / 4'
-                                        : isBondi
-                                            ? 'ACTIVE'
-                                            : '$deadwood / 10',
-                                    style: TextStyle(
-                                      color: isZero ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'monospace',
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isZero ? const Color(0xFF301A14) : const Color(0xFF0D0605),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: isZero ? const Color(0xFFE5C378) : const Color(0xFF301A14),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        isDhihaeh
+                                            ? '0 / 4'
+                                            : isBondi
+                                                ? 'ACTIVE'
+                                                : '$deadwood / 10',
+                                        style: TextStyle(
+                                          color: isZero ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w900,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         },
                       ),
                       const SizedBox(width: 14),
 
-                      // Contextual Gin Slam / Discard Button
+                      // Contextual Action Button: SLAM GIN! or DISCARD / PLAY
                       ValueListenableBuilder<GameTurnPhase>(
                         valueListenable: _gameTable.phaseNotifier,
                         builder: (context, phase, _) {
@@ -351,6 +512,7 @@ class _GameScreenState extends State<GameScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
                                     ),
+                                    elevation: 6,
                                   ),
                                   onPressed: () {
                                     _gameTable.declareGinSlam();
@@ -363,24 +525,29 @@ class _GameScreenState extends State<GameScreen> {
                                 );
                               }
 
-                              return ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFC84B31),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                onPressed: canAct && _gameTable.selectedCard != null
-                                    ? () {
-                                        _gameTable.discardSelectedCard();
-                                      }
-                                    : null,
-                                child: const Text(
-                                  'DISCARD SELECTED',
-                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
-                                ),
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: _gameTable.hasSelectedCardNotifier,
+                                builder: (context, hasSelected, _) {
+                                  return ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFC84B31),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    onPressed: canAct && hasSelected
+                                        ? () {
+                                            _gameTable.playSelectedCard();
+                                          }
+                                        : null,
+                                    child: const Text(
+                                      'DISCARD / PLAY',
+                                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+                                    ),
+                                  );
+                                },
                               );
                             },
                           );
@@ -392,13 +559,88 @@ class _GameScreenState extends State<GameScreen> {
               ],
             ),
           ),
+
+          // 4. Floating Quick-Chat Overlay (Maldivian Thaana/Latin + Speech Bubbles)
+          const QuickChatOverlay(),
+
+          // 5. Match Start 3-2-1 Countdown Overlay
+          if (_showCountdown)
+            _MatchStartCountdown(
+              onComplete: () {
+                if (mounted) {
+                  setState(() {
+                    _showCountdown = false;
+                  });
+                }
+              },
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildModeTab(String title, HolhuashiGameMode mode) {
-    final isSelected = _activeMode == mode;
+  Widget _buildSeatPlacard(SeatInfo seat) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: seat.isActiveTurn ? const Color(0xEE2A0E12) : const Color(0xD9140607),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: seat.isActiveTurn ? const Color(0xFFD4AF37) : const Color(0xFF380C10),
+          width: seat.isActiveTurn ? 1.6 : 0.9,
+        ),
+        boxShadow: seat.isActiveTurn
+            ? [
+                BoxShadow(
+                  color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                  blurRadius: 10,
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: seat.isActiveTurn ? const Color(0xFFD4AF37) : const Color(0xFF260A0D),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              seat.compassLabel,
+              style: TextStyle(
+                color: seat.isActiveTurn ? const Color(0xFF0D0605) : const Color(0xFFE5C378),
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            seat.name,
+            style: const TextStyle(
+              color: Color(0xFFF7F0EA),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '• ${seat.cardCount}c',
+            style: const TextStyle(
+              color: Color(0x99F7F0EA),
+              fontSize: 9.5,
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(String title, HolhuashiGameMode mode, HolhuashiGameMode activeMode) {
+    final isSelected = activeMode == mode;
     return GestureDetector(
       onTap: () => _switchGameMode(mode),
       child: Container(
@@ -415,6 +657,93 @@ class _GameScreenState extends State<GameScreen> {
             fontSize: 10,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 3-2-1 Dramatic Match Start Overlay.
+class _MatchStartCountdown extends StatefulWidget {
+  final VoidCallback onComplete;
+
+  const _MatchStartCountdown({required this.onComplete});
+
+  @override
+  State<_MatchStartCountdown> createState() => _MatchStartCountdownState();
+}
+
+class _MatchStartCountdownState extends State<_MatchStartCountdown> {
+  int _count = 3;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(milliseconds: 650), (t) {
+      if (!mounted) return;
+      if (_count > 1) {
+        setState(() {
+          _count--;
+        });
+      } else {
+        t.cancel();
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (mounted) widget.onComplete();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: widget.onComplete,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.40),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: Text(
+                  '$_count',
+                  key: ValueKey<int>(_count),
+                  style: const TextStyle(
+                    fontSize: 72,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFD4AF37),
+                    shadows: [
+                      Shadow(
+                        color: Color(0xFFD4AF37),
+                        blurRadius: 30,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'ފަށާ • START!',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFF7F0EA),
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
           ),
         ),
       ),

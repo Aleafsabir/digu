@@ -8,10 +8,14 @@ class FlameCardComponent extends PositionComponent
     with DragCallbacks, TapCallbacks {
   PlayingCard card;
   final void Function(FlameCardComponent comp)? onTap;
+  final void Function(FlameCardComponent comp, Vector2 currentPos)? onDragMoved;
   final void Function(FlameCardComponent comp, Vector2 globalPos)? onDrop;
 
   bool isSelected = false;
   bool isDragging = false;
+  bool isPlayable = true;
+  bool isWinnerHighlight = false;
+  bool isDraggable = true;
   bool isAceStranded = false;
   String? meldType;
 
@@ -19,13 +23,24 @@ class FlameCardComponent extends PositionComponent
   double restingAngle;
   int basePriority;
 
+  // Physics state for velocity drag tilt & spring return
+  double _dragVelocityX = 0.0;
+  bool _isSpringing = false;
+  Vector2 _springVelocity = Vector2.zero();
+  double _angleVelocity = 0.0;
+  double _invalidShakeTimer = 0.0;
+
   FlameCardComponent({
     required this.card,
     required Vector2 position,
     required Vector2 size,
     this.restingAngle = 0.0,
     this.basePriority = 10,
+    this.isPlayable = true,
+    this.isWinnerHighlight = false,
+    this.isDraggable = true,
     this.onTap,
+    this.onDragMoved,
     this.onDrop,
   })  : restingPos = position.clone(),
         super(
@@ -41,16 +56,22 @@ class FlameCardComponent extends PositionComponent
     required Vector2 newPos,
     required double newAngle,
     required int newPriority,
-    bool animated = false,
+    bool animated = true,
   }) {
     restingPos = newPos.clone();
     restingAngle = newAngle;
     basePriority = newPriority;
 
     if (!isDragging) {
-      position = newPos.clone();
-      angle = isSelected ? 0.0 : newAngle;
       priority = isSelected ? 200 : newPriority;
+      if (animated) {
+        _isSpringing = true;
+      } else {
+        _isSpringing = false;
+        position = newPos.clone();
+        angle = isSelected ? 0.0 : newAngle;
+        scale = Vector2.all(1.0);
+      }
     }
   }
 
@@ -58,10 +79,74 @@ class FlameCardComponent extends PositionComponent
     isSelected = selected;
     if (isSelected) {
       priority = 200; // Above overlapping cards in hand
-      angle = 0.0;
+      _isSpringing = true;
     } else {
       priority = basePriority;
-      angle = restingAngle;
+      _isSpringing = true;
+    }
+  }
+
+  /// Smoothly springs the card back to its resting hand slot, angle, and scale.
+  void springReturnToResting() {
+    isDragging = false;
+    _dragVelocityX = 0.0;
+    priority = isSelected ? 200 : basePriority;
+    _isSpringing = true;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    final clampedDt = dt.clamp(0.0, 0.05);
+
+    if (_invalidShakeTimer > 0) {
+      _invalidShakeTimer = (_invalidShakeTimer - clampedDt).clamp(0.0, 1.0);
+      final shakePhase = _invalidShakeTimer * 48.0;
+      position.x = restingPos.x +
+          (shakePhase.abs() > 0 ? (_invalidShakeTimer * 24.0) * (shakePhase % 2 < 1 ? 1 : -1) : 0.0);
+      if (_invalidShakeTimer == 0.0) {
+        position = restingPos.clone();
+      }
+      return;
+    }
+
+    if (isDragging) {
+      // Smoothly decay velocity tilt when pointer pauses mid-drag
+      _dragVelocityX *= (1.0 - (clampedDt * 12.0)).clamp(0.0, 1.0);
+      final targetTilt = (_dragVelocityX * 0.025).clamp(-0.28, 0.28);
+      angle += (targetTilt - angle) * (clampedDt * 16.0).clamp(0.0, 1.0);
+      final targetScale = Vector2.all(1.06);
+      scale += (targetScale - scale) * (clampedDt * 14.0).clamp(0.0, 1.0);
+      return;
+    }
+
+    if (_isSpringing) {
+      final targetAngle = isSelected ? 0.0 : restingAngle;
+      // Critically damped spring step
+      const stiffness = 240.0;
+      const damping = 26.0;
+
+      final posDelta = restingPos - position;
+      _springVelocity += (posDelta * stiffness - _springVelocity * damping) * clampedDt;
+      position += _springVelocity * clampedDt;
+
+      final angleDelta = targetAngle - angle;
+      _angleVelocity += (angleDelta * stiffness - _angleVelocity * damping) * clampedDt;
+      angle += _angleVelocity * clampedDt;
+
+      final targetScale = Vector2.all(1.0);
+      scale += (targetScale - scale) * (clampedDt * 14.0).clamp(0.0, 1.0);
+
+      if (posDelta.length2 < 0.35 &&
+          _springVelocity.length2 < 2.0 &&
+          angleDelta.abs() < 0.004) {
+        position = restingPos.clone();
+        angle = targetAngle;
+        scale = Vector2.all(1.0);
+        _springVelocity = Vector2.zero();
+        _angleVelocity = 0.0;
+        _isSpringing = false;
+      }
     }
   }
 
@@ -84,6 +169,8 @@ class FlameCardComponent extends PositionComponent
     final painter = CardPainter(
       card: card,
       isSelected: isSelected,
+      isPlayable: isPlayable,
+      isWinnerHighlight: isWinnerHighlight,
       isAceStranded: isAceStranded,
       meldType: meldType,
     );
@@ -93,27 +180,40 @@ class FlameCardComponent extends PositionComponent
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (!isPlayable && onTap != null) {
+      _invalidShakeTimer = 0.18;
+      return;
+    }
     onTap?.call(this);
   }
 
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (!isDraggable || onDrop == null) return;
+    if (!isPlayable) {
+      _invalidShakeTimer = 0.18;
+      return;
+    }
     isDragging = true;
+    _isSpringing = false;
+    _dragVelocityX = 0.0;
+    _springVelocity = Vector2.zero();
     priority = 1000; // Bring to absolute front while dragging
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
+    if (!isDragging) return;
     position += event.localDelta;
-    // Dynamic tilt based on horizontal drag delta
-    final tilt = (event.localDelta.x * 0.035).clamp(-0.25, 0.25);
-    angle = tilt;
+    _dragVelocityX = (_dragVelocityX * 0.55) + (event.localDelta.x * 0.45);
+    onDragMoved?.call(this, position);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    if (!isDragging) return;
     isDragging = false;
     onDrop?.call(this, position);
   }
@@ -121,9 +221,7 @@ class FlameCardComponent extends PositionComponent
   @override
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
-    isDragging = false;
-    position = restingPos.clone();
-    angle = isSelected ? 0.0 : restingAngle;
-    priority = isSelected ? 200 : basePriority;
+    if (!isDragging) return;
+    springReturnToResting();
   }
 }

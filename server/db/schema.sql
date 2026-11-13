@@ -145,6 +145,40 @@ CREATE TABLE IF NOT EXISTS match_invitations (
 );
 
 -- ============================================================================
+-- 8. Player Mode Ratings & Mode-Specific Milestones (Digu, Dhihaeh, Bondi)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS player_ratings (
+    profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    game_mode VARCHAR(20) NOT NULL, -- 'DIGU' | 'DHIHAEH' | 'BONDI'
+    elo INT NOT NULL DEFAULT 1200 CHECK (elo >= 100),
+    matches_played INT NOT NULL DEFAULT 0 CHECK (matches_played >= 0),
+    wins INT NOT NULL DEFAULT 0 CHECK (wins >= 0),
+    baggas_captured INT NOT NULL DEFAULT 0 CHECK (baggas_captured >= 0),
+    haasbaggas_captured INT NOT NULL DEFAULT 0 CHECK (haasbaggas_captured >= 0),
+    thousand_point_runs INT NOT NULL DEFAULT 0 CHECK (thousand_point_runs >= 0),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (profile_id, game_mode)
+);
+
+-- ============================================================================
+-- 9. Round Records (Per-Round Telemetry, Score Deltas & Action Logs)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS round_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    match_id UUID NOT NULL REFERENCES match_records(id) ON DELETE CASCADE,
+    round_number INT NOT NULL DEFAULT 1 CHECK (round_number >= 1),
+    winner_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    scores_delta JSONB NOT NULL DEFAULT '{}'::jsonb,
+    logs_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Ensure game_rooms supports 6-char alphanumeric codes, custom rules, and spectators
+ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS turn_timer_seconds INT NOT NULL DEFAULT 15;
+ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS fill_empty_seats_with_bots BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS spectators JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+-- ============================================================================
 -- Indexes for High Concurrency Performance
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_profiles_coins ON profiles(coins);
@@ -158,6 +192,8 @@ CREATE INDEX IF NOT EXISTS idx_match_records_completed ON match_records(complete
 CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id, status);
 CREATE INDEX IF NOT EXISTS idx_match_invites_receiver ON match_invitations(receiver_id, status, expires_at);
+CREATE INDEX IF NOT EXISTS idx_player_ratings_leaderboard ON player_ratings(game_mode, elo DESC);
+CREATE INDEX IF NOT EXISTS idx_round_records_match ON round_records(match_id, round_number ASC);
 
 -- ============================================================================
 -- Stored Procedures: ACID Currency Operations & Room Lifecycle
@@ -402,6 +438,146 @@ BEGIN
 END;
 $$;
 
+-- D. Atomic Match Recording, Round Telemetry & ELO Rating Update
+CREATE OR REPLACE FUNCTION record_match_and_elo_update(
+    p_room_id UUID,
+    p_game_mode VARCHAR(20),
+    p_winning_seat_or_team VARCHAR(20),
+    p_winner_profile_ids UUID[],
+    p_loser_profile_ids UUID[],
+    p_pot_total BIGINT DEFAULT 0,
+    p_total_rounds INT DEFAULT 1,
+    p_duration_seconds INT DEFAULT 0,
+    p_scores JSONB DEFAULT '{}'::jsonb,
+    p_rounds_json JSONB DEFAULT '[]'::jsonb,
+    p_baggas_captured INT DEFAULT 0,
+    p_haasbaggas_captured INT DEFAULT 0,
+    p_thousand_point_runs INT DEFAULT 0,
+    p_k_factor INT DEFAULT 32
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_match_id UUID;
+    v_house_rake BIGINT;
+    v_winner_id UUID;
+    v_loser_id UUID;
+    v_winner_avg_elo NUMERIC := 1200;
+    v_loser_avg_elo NUMERIC := 1200;
+    v_expected_win NUMERIC;
+    v_elo_delta INT;
+    v_round_item JSONB;
+BEGIN
+    v_house_rake := (p_pot_total * 5) / 100;
+
+    -- 1. Insert master match record
+    INSERT INTO match_records (
+        room_id,
+        mode,
+        winning_seat_or_team,
+        pot_total,
+        house_rake,
+        total_rounds,
+        duration_seconds,
+        scores
+    ) VALUES (
+        p_room_id,
+        p_game_mode,
+        p_winning_seat_or_team,
+        p_pot_total,
+        v_house_rake,
+        p_total_rounds,
+        p_duration_seconds,
+        p_scores
+    ) RETURNING id INTO v_match_id;
+
+    -- 2. Insert individual round_records if provided in p_rounds_json
+    IF p_rounds_json IS NOT NULL AND jsonb_typeof(p_rounds_json) = 'array' THEN
+        FOR v_round_item IN SELECT * FROM jsonb_array_elements(p_rounds_json)
+        LOOP
+            INSERT INTO round_records (
+                match_id,
+                round_number,
+                winner_id,
+                scores_delta,
+                logs_json
+            ) VALUES (
+                v_match_id,
+                COALESCE((v_round_item->>'round_number')::INT, 1),
+                 NULLIF(v_round_item->>'winner_id', '')::UUID,
+                COALESCE(v_round_item->'scores_delta', '{}'::jsonb),
+                COALESCE(v_round_item->'logs_json', '[]'::jsonb)
+            );
+        END LOOP;
+    END IF;
+
+    -- 3. Ensure player_ratings rows exist for all participants
+    IF p_winner_profile_ids IS NOT NULL THEN
+        FOREACH v_winner_id IN ARRAY p_winner_profile_ids
+        LOOP
+            INSERT INTO player_ratings (profile_id, game_mode, elo)
+            VALUES (v_winner_id, p_game_mode, 1200)
+            ON CONFLICT (profile_id, game_mode) DO NOTHING;
+        END LOOP;
+
+        SELECT COALESCE(AVG(elo), 1200) INTO v_winner_avg_elo
+        FROM player_ratings
+        WHERE profile_id = ANY(p_winner_profile_ids) AND game_mode = p_game_mode;
+    END IF;
+
+    IF p_loser_profile_ids IS NOT NULL THEN
+        FOREACH v_loser_id IN ARRAY p_loser_profile_ids
+        LOOP
+            INSERT INTO player_ratings (profile_id, game_mode, elo)
+            VALUES (v_loser_id, p_game_mode, 1200)
+            ON CONFLICT (profile_id, game_mode) DO NOTHING;
+        END LOOP;
+
+        SELECT COALESCE(AVG(elo), 1200) INTO v_loser_avg_elo
+        FROM player_ratings
+        WHERE profile_id = ANY(p_loser_profile_ids) AND game_mode = p_game_mode;
+    END IF;
+
+    -- 4. Compute standard ELO delta
+    v_expected_win := 1.0 / (1.0 + power(10.0, (v_loser_avg_elo - v_winner_avg_elo) / 400.0));
+    v_elo_delta := GREATEST(1, ROUND(p_k_factor * (1.0 - v_expected_win))::INT);
+
+    -- 5. Apply ELO gain and milestone stats to winners
+    IF p_winner_profile_ids IS NOT NULL THEN
+        UPDATE player_ratings
+        SET elo = elo + v_elo_delta,
+            matches_played = matches_played + 1,
+            wins = wins + 1,
+            baggas_captured = baggas_captured + p_baggas_captured,
+            haasbaggas_captured = haasbaggas_captured + p_haasbaggas_captured,
+            thousand_point_runs = thousand_point_runs + p_thousand_point_runs,
+            updated_at = now()
+        WHERE profile_id = ANY(p_winner_profile_ids)
+          AND game_mode = p_game_mode;
+    END IF;
+
+    -- 6. Apply ELO deduction to losers (floor at 100 ELO)
+    IF p_loser_profile_ids IS NOT NULL THEN
+        UPDATE player_ratings
+        SET elo = GREATEST(100, elo - v_elo_delta),
+            matches_played = matches_played + 1,
+            updated_at = now()
+        WHERE profile_id = ANY(p_loser_profile_ids)
+          AND game_mode = p_game_mode;
+    END IF;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'match_id', v_match_id,
+        'game_mode', p_game_mode,
+        'elo_delta', v_elo_delta,
+        'winner_avg_elo_before', ROUND(v_winner_avg_elo),
+        'loser_avg_elo_before', ROUND(v_loser_avg_elo)
+    );
+END;
+$$;
+
 -- ============================================================================
 -- Row Level Security (RLS) - Security Baseline
 -- ============================================================================
@@ -410,11 +586,15 @@ ALTER TABLE currency_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_seats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE match_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE player_ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE round_records ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read for game rooms and seats (matchmaking & lobby visibility)
 CREATE POLICY "Public read game_rooms" ON game_rooms FOR SELECT USING (true);
 CREATE POLICY "Public read room_seats" ON room_seats FOR SELECT USING (true);
 CREATE POLICY "Public read match_records" ON match_records FOR SELECT USING (true);
+CREATE POLICY "Public read player_ratings" ON player_ratings FOR SELECT USING (true);
+CREATE POLICY "Public read round_records" ON round_records FOR SELECT USING (true);
 
 -- Allow authenticated/guest players to read and update their own profile
 CREATE POLICY "Users read own profile" ON profiles FOR SELECT USING (auth.uid() = id OR id IS NOT NULL);

@@ -7,12 +7,16 @@ import '../../core/models/card_models.dart';
 class CardPainter extends CustomPainter {
   final PlayingCard card;
   final bool isSelected;
+  final bool isPlayable;
+  final bool isWinnerHighlight;
   final bool isAceStranded;
   final String? meldType;
 
   const CardPainter({
     required this.card,
     this.isSelected = false,
+    this.isPlayable = true,
+    this.isWinnerHighlight = false,
     this.isAceStranded = false,
     this.meldType,
   });
@@ -27,11 +31,46 @@ class CardPainter extends CustomPainter {
 
     if (card.isFaceDown) {
       _paintCardBack(canvas);
+    } else if (!isPlayable) {
+      // Opaque dark backing prevents underlying fanned cards from bleeding through
+      const cardRect = Rect.fromLTWH(0, 0, 100, 148);
+      final cardRRect = RRect.fromRectAndRadius(cardRect, const Radius.circular(10.0));
+      canvas.drawRRect(cardRRect, Paint()..color = const Color(0xFF140807));
+
+      // Dim non-playable card to 50% opacity
+      canvas.saveLayer(
+        cardRect,
+        Paint()..color = const Color.fromRGBO(255, 255, 255, 0.5),
+      );
+      _paintCardFront(canvas);
+      canvas.restore();
     } else {
       _paintCardFront(canvas);
     }
 
+    if (isWinnerHighlight && !card.isFaceDown) {
+      _paintWinnerRimHighlight(canvas);
+    }
+
     canvas.restore();
+  }
+
+  void _paintWinnerRimHighlight(Canvas canvas) {
+    const cardRect = Rect.fromLTWH(0, 0, 100, 148);
+    final cardRRect = RRect.fromRectAndRadius(cardRect, const Radius.circular(10.0));
+
+    final outerGlow = Paint()
+      ..color = const Color(0xFFE5C378).withValues(alpha: 0.85)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.0;
+    canvas.drawRRect(cardRRect, outerGlow);
+
+    final rimPaint = Paint()
+      ..color = const Color(0xFFFFE082)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.4;
+    canvas.drawRRect(cardRRect, rimPaint);
   }
 
   void _paintCardFront(Canvas canvas) {
@@ -382,6 +421,8 @@ class CardPainter extends CustomPainter {
     return oldDelegate.card.id != card.id ||
         oldDelegate.card.isFaceDown != card.isFaceDown ||
         oldDelegate.isSelected != isSelected ||
+        oldDelegate.isPlayable != isPlayable ||
+        oldDelegate.isWinnerHighlight != isWinnerHighlight ||
         oldDelegate.isAceStranded != isAceStranded ||
         oldDelegate.meldType != meldType;
   }
