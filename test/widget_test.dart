@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:holhuashi_client/core/audio/sensory_service.dart';
 import 'package:holhuashi_client/core/models/card_models.dart';
+import 'package:holhuashi_client/core/services/update_service.dart';
+import 'package:holhuashi_client/data/local_persistence.dart';
 import 'package:holhuashi_client/game/rendering/card_painter.dart';
 import 'package:holhuashi_client/game/table_canvas.dart';
 import 'package:holhuashi_client/main.dart';
 import 'package:holhuashi_client/state/game_session_provider.dart';
+import 'package:holhuashi_client/ui/modals/update_prompt_modal.dart';
+import 'package:holhuashi_client/ui/screens/auth_screen.dart';
 
 void main() {
   setUp(() {
@@ -20,7 +25,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  testWidgets('HolhuashiApp launches into Auth Gateway screen with Google, Apple, and Guest options',
+  testWidgets('HolhuashiApp launches into clean Auth Gateway screen without prohibited strings',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -33,15 +38,115 @@ void main() {
 
     // Verify Brand Identity on Auth Gateway
     expect(find.text('ހޮޅުއަށި'), findsOneWidget);
-    expect(find.text('HOLHUASHI: Maldivian Card Suite'), findsOneWidget);
+    expect(find.text('HOLHUASHI'), findsOneWidget);
+    expect(find.text('Maldivian Card Suite • ޑިގު • ދިހައެއް • ބޮނޑި'), findsOneWidget);
 
     // Verify 3 Auth Gateway Options
     expect(find.byKey(const Key('btn_sign_in_google')), findsOneWidget);
     expect(find.byKey(const Key('btn_sign_in_apple')), findsOneWidget);
     expect(find.byKey(const Key('btn_sign_in_guest')), findsOneWidget);
 
-    // Verify Backend Status Footer
-    expect(find.textContaining('Supabase Cloud Sync'), findsOneWidget);
+    // Verify ZERO prohibited developer / framework strings appear on screen
+    expect(find.textContaining('Supabase'), findsNothing);
+    expect(find.textContaining('Flame Engine'), findsNothing);
+    expect(find.textContaining('SharedPreferences'), findsNothing);
+    expect(find.textContaining('Endpoint:'), findsNothing);
+    expect(find.textContaining('ދިގު'), findsNothing);
+  });
+
+  testWidgets('AuthScreen displays dismissible error banner when auth error occurs',
+      (WidgetTester tester) async {
+    configureLandscape(tester);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          gameSessionProvider.overrideWith((ref) {
+            final persistence = ref.watch(localPersistenceProvider);
+            final sensory = ref.watch(sensoryServiceProvider);
+            final notifier = GameSessionNotifier(
+              persistence: persistence,
+              sensory: sensory,
+            );
+            notifier.state = notifier.state.copyWith(
+              authErrorMessage: 'Could not connect to Google Services.',
+              screenState: AppScreenState.auth,
+            );
+            return notifier;
+          }),
+        ],
+        child: const HolhuashiApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Error banner should be visible with close icon
+    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.text('Could not connect to Google Services.'), findsOneWidget);
+
+    // Tapping close icon clears the error banner
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.error_outline), findsNothing);
+  });
+
+  testWidgets('AuthScreen surfaces Save Conflict dialog with comparison and 3 resolution buttons',
+      (WidgetTester tester) async {
+    configureLandscape(tester);
+
+    final conflict = CloudProfileConflict(
+      cloudProfile: const CloudPlayerProfile(
+        id: 'c_001',
+        displayName: 'Ahmed (Cloud)',
+        coins: 10000,
+        level: 5,
+      ),
+      localProfile: const CloudPlayerProfile(
+        id: 'local_001',
+        displayName: 'Raaveriyaa (Local)',
+        coins: 2450,
+        level: 1,
+      ),
+    );
+
+    late GameSessionNotifier capturedNotifier;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          gameSessionProvider.overrideWith((ref) {
+            final persistence = ref.watch(localPersistenceProvider);
+            final sensory = ref.watch(sensoryServiceProvider);
+            capturedNotifier = GameSessionNotifier(
+              persistence: persistence,
+              sensory: sensory,
+            );
+            return capturedNotifier;
+          }),
+        ],
+        child: const MaterialApp(
+          home: AuthScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Trigger state change so ref.listen fires
+    capturedNotifier.state = capturedNotifier.state.copyWith(
+      pendingCloudConflict: conflict,
+    );
+    await tester.pumpAndSettle();
+
+    // Verify Conflict Dialog Title & Content
+    expect(find.textContaining('SAVE CONFLICT'), findsOneWidget);
+    expect(find.text('Keep Cloud Save'), findsOneWidget);
+    expect(find.text('Merge Chips & Sync'), findsOneWidget);
+    expect(find.text('Keep Local Save'), findsOneWidget);
+
+    // Tap 'Keep Cloud Save' to dismiss and resolve
+    await tester.tap(find.text('Keep Cloud Save'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('SAVE CONFLICT'), findsNothing);
   });
 
   testWidgets('Auth Screen signs in as Guest into Minimum-Tap Lobby',
@@ -86,7 +191,7 @@ void main() {
     expect(find.byKey(const Key('play_solo_bondi')), findsOneWidget);
   });
 
-  testWidgets('Lobby Cloud Sync Modal opens and shows account details',
+  testWidgets('Lobby Cloud Sync Modal opens from profile capsule without framework internals',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -105,11 +210,16 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_profile_sync')));
     await tester.pumpAndSettle();
 
-    // Verify Modal Header & Details
+    // Verify Modal Header & Clean User-Facing Rows
     expect(find.text('PROFILE & CLOUD SYNC'), findsOneWidget);
     expect(find.text('Account Provider'), findsOneWidget);
-    expect(find.text('Local Cache'), findsOneWidget);
-    expect(find.text('Cloud Backend'), findsOneWidget);
+    expect(find.text('Cloud Save'), findsOneWidget);
+    expect(find.text('Friend Code'), findsOneWidget);
+    expect(find.text('Storage Status'), findsOneWidget);
+
+    // Zero internal developer strings
+    expect(find.textContaining('Supabase'), findsNothing);
+    expect(find.textContaining('SharedPreferences'), findsNothing);
 
     // Close Modal
     await tester.tap(find.byIcon(Icons.close));
@@ -157,7 +267,7 @@ void main() {
         equals(HolhuashiGameMode.digu));
   });
 
-  testWidgets('Waiting Room displays 4 compass seats, room code, and controls',
+  testWidgets('Quick Play enters 15s Ready Gate in WaitingRoomScreen before launching GameScreen',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -172,37 +282,76 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
     await tester.pumpAndSettle();
 
-    // Navigate to Waiting Room via DIGU private table button
-    await tester.tap(find.byKey(const Key('private_table_digu')));
+    // Tap Quick Play (1 TAP)
+    await tester.tap(find.byKey(const Key('btn_quick_play')));
     await tester.pumpAndSettle();
 
-    // Verify Room Code Header and Controls
-    expect(find.text('ROOM: '), findsOneWidget);
-    expect(find.text('COPY LINK'), findsOneWidget);
-    expect(find.text('LOBBY'), findsOneWidget);
+    // Must be in Waiting Room with Ready Gate (NOT GameScreen directly!)
+    expect(find.byKey(const Key('btn_confirm_ready')), findsOneWidget);
+    expect(find.textContaining('READY CHECK'), findsOneWidget);
 
-    // Verify 4 Compass Seat Placards
-    expect(find.text('S'), findsOneWidget);
-    expect(find.text('N'), findsOneWidget);
-    expect(find.text('E'), findsOneWidget);
-    expect(find.text('W'), findsOneWidget);
+    // Tap Confirm Ready
+    await tester.tap(find.byKey(const Key('btn_confirm_ready')));
+    // Wait for bots to stagger-ready and gate to complete
+    await tester.pump(const Duration(seconds: 2));
 
-    // Verify Match Rules Controls
-    expect(find.text('MATCH RULES'), findsOneWidget);
-    expect(find.text('TARGET SCORE'), findsOneWidget);
-    expect(find.text('TURN CLOCK'), findsOneWidget);
-    expect(find.text('Fill Empty Seats'), findsOneWidget);
+    // Dismiss dramatic 3-2-1 countdown overlay if visible
+    if (find.textContaining('START').evaluate().isNotEmpty) {
+      await tester.tap(find.textContaining('START'));
+      await tester.pump(const Duration(milliseconds: 400));
+    }
 
-    // Verify Start Match Action
-    expect(find.text('ފަށާ • START MATCH'), findsOneWidget);
+    // Verify Table Canvas & Active Mode Badge with authentic Thaana spelling (ޑިގު • DIGU)
+    expect(find.byIcon(Icons.shuffle), findsOneWidget);
+    expect(find.byTooltip('Return to Lobby'), findsOneWidget);
+    expect(find.text('ޑިގު • DIGU'), findsOneWidget);
 
     // Return to Lobby
-    await tester.tap(find.text('LOBBY'));
+    await tester.tap(find.byTooltip('Return to Lobby'));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
     expect(find.text('• HOLHUASHI'), findsOneWidget);
   });
 
-  testWidgets('Settings Modal opens from Lobby and presents sliders & switches',
+  testWidgets('UpdatePromptModal renders version transition, changelog, and download action',
+      (WidgetTester tester) async {
+    configureLandscape(tester);
+
+    const testInfo = AppUpdateInfo(
+      tagName: 'v0.8.5',
+      version: '0.8.5',
+      releaseName: 'Holhuashi v0.8.5',
+      releaseNotes: 'Fixed Maldivian quick chat and ready check countdown',
+      apkUrl: 'https://example.com/app-release.apk',
+      apkSizeBytes: 14500000,
+      htmlUrl: 'https://github.com/Aleafsabir/digu/releases/v0.8.5',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: const Scaffold(
+          body: UpdatePromptModal(updateInfo: testInfo),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify Modal Header & Version Transition
+    expect(find.text('New Update Available!'), findsOneWidget);
+    expect(find.text('އައު އަޕްޑޭޓެއް ލިބެން އެބައޮތް!'), findsOneWidget);
+    expect(find.text('v0.8.0'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
+    expect(find.text('v0.8.5'), findsOneWidget);
+    expect(find.text('WHAT\'S NEW • އައު ބަދަލުތައް'), findsOneWidget);
+    expect(find.textContaining('Fixed Maldivian quick chat'), findsOneWidget);
+
+    // Verify Action Buttons
+    expect(find.byKey(const Key('btn_download_update')), findsOneWidget);
+    expect(find.text('LATER • ފަހުން'), findsOneWidget);
+  });
+
+  testWidgets('SettingsModal presents controls, update check button, and build version v0.8.0',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -232,51 +381,15 @@ void main() {
     expect(find.text('Tactile Haptics'), findsOneWidget);
     expect(find.text('Screen Shake'), findsOneWidget);
     expect(find.text('Deal Speed'), findsOneWidget);
-    expect(find.textContaining('Guest Profile'), findsOneWidget);
+
+    // Verify Application Updates Section & Button
+    expect(find.byKey(const Key('btn_check_updates')), findsOneWidget);
+    expect(find.textContaining('Current Build: v0.8.0'), findsOneWidget);
 
     // Close Settings Modal
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
     expect(find.text('SETTINGS'), findsNothing);
-  });
-
-  testWidgets('Quick Play launches GameScreen with table canvas, countdown, and active mode badge',
-      (WidgetTester tester) async {
-    configureLandscape(tester);
-
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: HolhuashiApp(),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    // Enter Lobby
-    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
-    await tester.pumpAndSettle();
-
-    // Tap Quick Play (1 TAP)
-    await tester.tap(find.byKey(const Key('btn_quick_play')));
-    await tester.pump(const Duration(milliseconds: 100));
-
-    // Dismiss dramatic 3-2-1 countdown overlay if visible
-    if (find.textContaining('START').evaluate().isNotEmpty) {
-      await tester.tap(find.textContaining('START'));
-      await tester.pump(const Duration(milliseconds: 400));
-    }
-
-    // Verify Table Canvas Elements and Controls
-    expect(find.byIcon(Icons.shuffle), findsOneWidget);
-    expect(find.byTooltip('Return to Lobby'), findsOneWidget);
-
-    // Verify Active Mode Badge with authentic Thaana spelling (ޑިގު • DIGU)
-    expect(find.text('ޑިގު • DIGU'), findsOneWidget);
-
-    // Return to Lobby
-    await tester.tap(find.byTooltip('Return to Lobby'));
-    await tester.pump(const Duration(milliseconds: 200));
-    await tester.pumpAndSettle();
-    expect(find.text('• HOLHUASHI'), findsOneWidget);
   });
 
   test('CardPainter and RoundOverData dual scoring unit validation', () {

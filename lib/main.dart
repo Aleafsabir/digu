@@ -25,6 +25,8 @@ void main() async {
 
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+  unawaited(SensoryService.instance.init());
+
   runApp(
     const ProviderScope(
       child: HolhuashiApp(),
@@ -32,12 +34,68 @@ void main() async {
   );
 }
 
-class HolhuashiApp extends ConsumerWidget {
+class HolhuashiApp extends ConsumerStatefulWidget {
   const HolhuashiApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final screenState = ref.watch(gameSessionProvider.select((s) => s.screenState));
+  ConsumerState<HolhuashiApp> createState() => _HolhuashiAppState();
+}
+
+class _HolhuashiAppState extends ConsumerState<HolhuashiApp>
+    with WidgetsBindingObserver {
+  AppScreenState? _lastScreenState;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(SensoryService.instance.init());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      SensoryService.instance.onAppBackgrounded();
+    } else if (state == AppLifecycleState.resumed) {
+      SensoryService.instance.onAppForegrounded();
+    }
+  }
+
+  void _syncBgmForScreen(AppScreenState screen) {
+    if (_lastScreenState == screen) return;
+    _lastScreenState = screen;
+
+    switch (screen) {
+      case AppScreenState.lobby:
+      case AppScreenState.waitingRoom:
+        SensoryService.instance.playLobbyBgm();
+        break;
+      case AppScreenState.inGame:
+        SensoryService.instance.playTableBgm();
+        break;
+      case AppScreenState.auth:
+        SensoryService.instance.stopBgm();
+        break;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenState =
+        ref.watch(gameSessionProvider.select((s) => s.screenState));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncBgmForScreen(screenState);
+    });
 
     Widget activeView;
     switch (screenState) {
@@ -55,13 +113,16 @@ class HolhuashiApp extends ConsumerWidget {
         break;
     }
 
-    return MaterialApp(
-      title: 'Holhuashi: Maldivian Rummy & Cards',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0D14),
+    return Listener(
+      onPointerDown: (_) => SensoryService.instance.tryUnlockWebAudio(),
+      child: MaterialApp(
+        title: 'Holhuashi: Maldivian Rummy & Cards',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.dark().copyWith(
+          scaffoldBackgroundColor: const Color(0xFF0A0D14),
+        ),
+        home: activeView,
       ),
-      home: activeView,
     );
   }
 }
@@ -95,6 +156,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _gameTable.onTrickSweepSound = sensory.playTrickSweep;
     _gameTable.onGinSlamSound = sensory.playGinSlam;
     _gameTable.onFanfareSound = sensory.playFanfare;
+
+    // Additional sensory & table interaction callbacks
+    _gameTable.onCardSelectHaptic = sensory.playCardSelect;
+    _gameTable.onFanReorderTickSound = sensory.playFanReorderTick;
+    _gameTable.onDiscardPickupSound = sensory.playDiscardPickup;
+    _gameTable.onCardDiscardSound = sensory.playCardDiscard;
+    _gameTable.onGinReadyChimeSound = sensory.playGinReadyChime;
 
     // Apply sensory settings
     final session = ref.read(gameSessionProvider);
@@ -194,7 +262,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. The 60/120 FPS Flame Engine Canvas
+          // 1. The 60/120 FPS Real-Time Tabletop Canvas
           GameWidget<DiguGameTable>.controlled(
             gameFactory: () => _gameTable,
           ),

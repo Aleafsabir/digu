@@ -174,6 +174,7 @@ class DiguGameTable extends FlameGame {
   bool fastDealSpeed = false;
 
   int _roundToken = 0;
+  bool _wasGinReady = false;
   Suit? _trumpSuit;
   int _trickNumber = 0;
   int _trickLeaderSeat = 0;
@@ -214,6 +215,11 @@ class DiguGameTable extends FlameGame {
   VoidCallback? onShuffleSound;
   VoidCallback? onCardDealSound;
   VoidCallback? onCardSnapSound;
+  VoidCallback? onCardSelectHaptic;
+  VoidCallback? onFanReorderTickSound;
+  VoidCallback? onDiscardPickupSound;
+  VoidCallback? onCardDiscardSound;
+  VoidCallback? onGinReadyChimeSound;
   VoidCallback? onTrickSweepSound;
   VoidCallback? onGinSlamSound;
   VoidCallback? onFanfareSound;
@@ -397,6 +403,7 @@ class DiguGameTable extends FlameGame {
     _burnedCards.clear();
 
     _trumpSuit = null;
+    _wasGinReady = false;
     _trickNumber = 0;
     _trickLeaderSeat = 0;
     _trickStepIndex = 0;
@@ -859,7 +866,7 @@ class DiguGameTable extends FlameGame {
         endAngle: dest.angle,
         flightDuration: 0.24 * _speedScale,
         flipOnArrival: false,
-        onLaunch: () => onCardSnapSound?.call(),
+        onLaunch: () => (onDiscardPickupSound ?? onCardSnapSound)?.call(),
         onArrived: () {
           if (token != _roundToken || !isMounted) return;
           currentHand.add(drawn);
@@ -920,7 +927,7 @@ class DiguGameTable extends FlameGame {
 
     selectedCard = null;
     hasSelectedCardNotifier.value = false;
-    onCardSnapSound?.call();
+    (onCardDiscardSound ?? onCardSnapSound)?.call();
 
     _recalculateAnalysisAndLayoutHand();
     _publishSeats();
@@ -1446,7 +1453,9 @@ class DiguGameTable extends FlameGame {
         flightDuration: 0.22 * _speedScale,
         flipDuration: 0.12 * _speedScale,
         flipOnArrival: seat != 0,
-        onLaunch: () => onCardSnapSound?.call(),
+        onLaunch: () => seat == 0
+            ? (onCardDiscardSound ?? onCardSnapSound)?.call()
+            : onCardSnapSound?.call(),
         onArrived: () {
           if (!completer.isCompleted) completer.complete();
         },
@@ -1873,12 +1882,21 @@ class DiguGameTable extends FlameGame {
         canSlam = currentHand.any(_canCardTriggerGinSlam);
       }
 
+      if (canSlam &&
+          !_wasGinReady &&
+          phase != GameTurnPhase.dealing &&
+          phase != GameTurnPhase.roundOver) {
+        onGinReadyChimeSound?.call();
+      }
+      _wasGinReady = canSlam;
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         deadwoodPointsNotifier.value = analysis.debtScore;
         canGinNotifier.value = canSlam;
         handCountNotifier.value = currentHand.length;
       });
     } else {
+      _wasGinReady = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         deadwoodPointsNotifier.value = 0;
         canGinNotifier.value = false;
@@ -1944,6 +1962,7 @@ class DiguGameTable extends FlameGame {
   void _handleCardTap(FlameCardComponent tappedComp) {
     if (phase == GameTurnPhase.dealing || phase == GameTurnPhase.roundOver) return;
 
+    onCardSelectHaptic?.call();
     if (selectedCard == tappedComp) {
       selectedCard = null;
       hasSelectedCardNotifier.value = false;
@@ -1981,6 +2000,7 @@ class DiguGameTable extends FlameGame {
           targetIdx = targetIdx.clamp(0, n - 1);
 
           if (targetIdx != currentIdx) {
+            onFanReorderTickSound?.call();
             final movedCard = currentHand.removeAt(currentIdx);
             currentHand.insert(targetIdx, movedCard);
 

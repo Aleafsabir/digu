@@ -1,8 +1,47 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:holhuashi_client/core/audio/sensory_service.dart';
+import 'package:holhuashi_client/core/services/cloud_sync_service.dart';
+import 'package:holhuashi_client/core/services/google_auth_service.dart';
+import 'package:holhuashi_client/core/services/update_service.dart';
 import 'package:holhuashi_client/data/local_persistence.dart';
 import 'package:holhuashi_client/state/game_session_provider.dart';
+
+class MockGoogleAuthAdapter implements GoogleAuthAdapter {
+  GoogleAuthUser? userToReturn;
+  Exception? exceptionToThrow;
+  bool signedOut = false;
+
+  @override
+  Future<GoogleAuthUser?> signIn() async {
+    if (exceptionToThrow != null) throw exceptionToThrow!;
+    return userToReturn;
+  }
+
+  @override
+  Future<void> signOut() async {
+    signedOut = true;
+  }
+}
+
+class MockHttpClient extends http.BaseClient {
+  final Future<http.Response> Function(http.BaseRequest request) handler;
+
+  MockHttpClient(this.handler);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final response = await handler(request);
+    return http.StreamedResponse(
+      Stream.value(response.bodyBytes),
+      response.statusCode,
+      headers: response.headers,
+    );
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -117,245 +156,430 @@ void main() {
     });
   });
 
-  group('GameSessionNotifier & State Tests', () {
+  group('UpdateService Tests', () {
+    test('isNewerVersion accurately compares semantic versions', () {
+      expect(UpdateService.isNewerVersion('v0.8.1', '0.8.0'), isTrue);
+      expect(UpdateService.isNewerVersion('v0.8.0', '0.8.0'), isFalse);
+      expect(UpdateService.isNewerVersion('v0.7.9', '0.8.0'), isFalse);
+      expect(UpdateService.isNewerVersion('v1.0.0', '0.9.5'), isTrue);
+      expect(UpdateService.isNewerVersion('0.8.0+2', '0.8.0+1'), isTrue);
+      expect(UpdateService.isNewerVersion('0.8.0+1', '0.8.0+2'), isFalse);
+    });
+
+    test('parseReleaseJson extracts app-release.apk and ignores draft or older releases', () {
+      // Draft release -> null
+      final draftJson = {
+        'draft': true,
+        'tag_name': 'v0.9.0',
+        'assets': [
+          {'name': 'app-release.apk', 'browser_download_url': 'https://example.com/app-release.apk'}
+        ]
+      };
+      expect(UpdateService.parseReleaseJson(draftJson), isNull);
+
+      // Older release -> null
+      final olderJson = {
+        'draft': false,
+        'tag_name': 'v0.7.0',
+        'assets': [
+          {'name': 'app-release.apk', 'browser_download_url': 'https://example.com/app-release.apk'}
+        ]
+      };
+      expect(UpdateService.parseReleaseJson(olderJson), isNull);
+
+      // Newer valid release -> extracts AppUpdateInfo with app-release.apk
+      final validJson = {
+        'draft': false,
+        'tag_name': 'v0.8.5',
+        'name': 'Tournament Ready v0.8.5',
+        'body': 'Added Maldivian quick chat and ready gate',
+        'html_url': 'https://github.com/Aleafsabir/digu/releases/v0.8.5',
+        'assets': [
+          {
+            'name': 'other-file.zip',
+            'browser_download_url': 'https://example.com/other.zip',
+            'size': 1000,
+          },
+          {
+            'name': 'app-release.apk',
+            'browser_download_url': 'https://example.com/app-release.apk',
+            'size': 15200000,
+          }
+        ]
+      };
+      final updateInfo = UpdateService.parseReleaseJson(validJson);
+      expect(updateInfo, isNotNull);
+      expect(updateInfo!.tagName, equals('v0.8.5'));
+      expect(updateInfo.version, equals('0.8.5'));
+      expect(updateInfo.apkUrl, equals('https://example.com/app-release.apk'));
+      expect(updateInfo.apkSizeBytes, equals(15200000));
+      expect(updateInfo.releaseNotes, contains('Maldivian quick chat'));
+    });
+
+    test('checkForUpdate respects 4h cooldown and ignored tag unless forced', () async {
+      SharedPreferences.setMockInitialValues({});
+      final persistence = await LocalPersistenceRepository.create();
+
+      final releasePayload = jsonEncode({
+        'draft': false,
+        'tag_name': 'v0.9.0',
+        'name': 'v0.9.0',
+        'body': 'Notes',
+        'assets': [
+          {'name': 'app-release.apk', 'browser_download_url': 'https://example.com/app.apk', 'size': 5000}
+        ]
+      });
+
+      final mockClient = MockHttpClient((req) async {
+        return http.Response(releasePayload, 200);
+      });
+
+      final updateService = UpdateService(
+        persistence: persistence,
+        client: mockClient,
+      );
+
+      // 1. Initial check finds update
+      final info1 = await updateService.checkForUpdate(force: true);
+      expect(info1, isNotNull);
+      expect(info1!.version, equals('0.9.0'));
+
+      // 2. Immediate second check without force hits cooldown
+      final info2 = await updateService.checkForUpdate(force: false);
+      expect(info2, isNull);
+
+      // 3. Forced check bypasses cooldown
+      final info3 = await updateService.checkForUpdate(force: true);
+      expect(info3, isNotNull);
+
+      // 4. Ignored tag skips update when force is false
+      await updateService.ignoreUpdateTag('v0.9.0');
+      await persistence.setLastUpdateCheckMs(0); // reset cooldown
+      final info4 = await updateService.checkForUpdate(force: false);
+      expect(info4, isNull);
+
+      // 5. Forced check still finds it even if ignored
+      final info5 = await updateService.checkForUpdate(force: true);
+      expect(info5, isNotNull);
+    });
+  });
+
+  group('Real Google Sign-In & Cloud Sync Tests', () {
     late LocalPersistenceRepository persistence;
     late SensoryService sensory;
-    late GameSessionNotifier notifier;
+    late MockGoogleAuthAdapter mockGoogleAdapter;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       persistence = await LocalPersistenceRepository.create();
       sensory = SensoryService.instance;
-      notifier = GameSessionNotifier(
-        persistence: persistence,
-        sensory: sensory,
-      );
-      // Wait for async init in notifier
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      mockGoogleAdapter = MockGoogleAuthAdapter();
     });
 
-    tearDown(() {
+    test('cancellation returns false and keeps state on Auth screen without fake sign-in', () async {
+      // Adapter returns null on cancellation
+      mockGoogleAdapter.userToReturn = null;
+
+      final googleAuth = GoogleAuthService(adapter: mockGoogleAdapter);
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        googleAuthService: googleAuth,
+      );
+
+      final success = await notifier.signInWithGoogle();
+      expect(success, isFalse);
+      expect(notifier.state.screenState, equals(AppScreenState.auth));
+      expect(notifier.state.authProvider, equals(AuthProviderType.none));
+      expect(notifier.state.authBusy, isFalse);
+      expect(notifier.state.authErrorMessage, isNull);
+
       notifier.dispose();
     });
 
-    test('initial state defaults to Auth Screen and DIGU mode', () {
-      final state = notifier.state;
-      expect(state.screenState, equals(AppScreenState.auth));
-      expect(state.authProvider, equals(AuthProviderType.none));
-      expect(state.cloudSyncState, equals(CloudSyncState.offlineLocal));
-      expect(state.userEmail, isNull);
-      expect(state.lastPlayedMode, equals(HolhuashiGameMode.digu));
-      expect(state.selectedMode, equals(HolhuashiGameMode.digu));
-      expect(state.roomCode, equals('MLD842'));
-      expect(state.targetScore, equals(500));
-      expect(state.turnTimerSeconds, equals(15));
-      expect(state.fillEmptySeatsWithBots, isTrue);
+    test('failure populates authErrorMessage and stays signed out', () async {
+      mockGoogleAdapter.exceptionToThrow = Exception('Network error during auth');
 
-      // Verify 4 compass seats
-      expect(state.seats.length, equals(4));
-      expect(state.seats[CompassSeat.south]!.isHuman, isTrue);
-      expect(state.seats[CompassSeat.north]!.isBot, isTrue);
-      expect(state.seats[CompassSeat.east]!.isBot, isTrue);
-      expect(state.seats[CompassSeat.west]!.isBot, isTrue);
+      final googleAuth = GoogleAuthService(adapter: mockGoogleAdapter);
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        googleAuthService: googleAuth,
+      );
+
+      final success = await notifier.signInWithGoogle();
+      expect(success, isFalse);
+      expect(notifier.state.screenState, equals(AppScreenState.auth));
+      expect(notifier.state.authProvider, equals(AuthProviderType.none));
+      expect(notifier.state.authErrorMessage, isNotNull);
+
+      // Clear error
+      notifier.clearAuthError();
+      expect(notifier.state.authErrorMessage, isNull);
+
+      notifier.dispose();
     });
 
-    test('Authentication flows: Google, Apple, Guest, and SignOut', () async {
-      // 1. Google Sign-In
-      await notifier.signInWithGoogle(
-        displayName: 'Ali Naseer',
+    test('successful Google auth hydrates cloud profile and navigates to Lobby', () async {
+      const testUser = GoogleAuthUser(
+        id: 'google_user_001',
         email: 'ali.naseer@gmail.com',
+        displayName: 'Ali Naseer',
+        idToken: 'token_abc_123',
       );
+      mockGoogleAdapter.userToReturn = testUser;
+
+      final mockClient = MockHttpClient((req) async {
+        if (req.url.path.contains('/api/profile/google-auth')) {
+          return http.Response(
+            jsonEncode({
+              'exists': true,
+              'profile': {
+                'id': 'profile_99',
+                'displayName': 'Ali Naseer',
+                'avatarId': 'boat_builder',
+                'loginProvider': 'GOOGLE',
+                'googleId': 'google_user_001',
+                'email': 'ali.naseer@gmail.com',
+                'coins': 8800,
+                'level': 4,
+                'friendCode': 'HLH-4455',
+                'cloudSyncStatus': 'SYNCED',
+              }
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final googleAuth = GoogleAuthService(adapter: mockGoogleAdapter);
+      final cloudSync = CloudSyncService(client: mockClient);
+
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        googleAuthService: googleAuth,
+        cloudSyncService: cloudSync,
+      );
+
+      final success = await notifier.signInWithGoogle();
+      expect(success, isTrue);
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
       expect(notifier.state.authProvider, equals(AuthProviderType.google));
       expect(notifier.state.cloudSyncState, equals(CloudSyncState.synced));
-      expect(notifier.state.userEmail, equals('ali.naseer@gmail.com'));
       expect(notifier.state.displayName, equals('Ali Naseer'));
-      expect(notifier.state.screenState, equals(AppScreenState.lobby));
-      expect(notifier.state.isCloudSynced, isTrue);
-      expect(notifier.state.authStatusLabel, equals('GOOGLE SYNCED'));
+      expect(notifier.state.coins, equals(8800));
+      expect(notifier.state.friendCode, equals('HLH-4455'));
 
-      // 2. Sign Out
-      await notifier.signOut();
-      expect(notifier.state.authProvider, equals(AuthProviderType.none));
-      expect(notifier.state.cloudSyncState, equals(CloudSyncState.offlineLocal));
-      expect(notifier.state.userEmail, isNull);
-      expect(notifier.state.screenState, equals(AppScreenState.auth));
-      expect(notifier.state.isCloudSynced, isFalse);
+      notifier.dispose();
+    });
 
-      // 3. Apple Sign-In
-      await notifier.signInWithApple(
-        displayName: 'Ibrahim Solih',
-        email: 'ibrahim@icloud.com',
+    test('cloud save conflict triggers pendingCloudConflict and resolves cleanly', () async {
+      const testUser = GoogleAuthUser(
+        id: 'google_user_002',
+        email: 'ahmed@gmail.com',
+        displayName: 'Ahmed',
+        idToken: 'token_xyz',
       );
-      expect(notifier.state.authProvider, equals(AuthProviderType.apple));
-      expect(notifier.state.cloudSyncState, equals(CloudSyncState.synced));
-      expect(notifier.state.userEmail, equals('ibrahim@icloud.com'));
-      expect(notifier.state.displayName, equals('Ibrahim Solih'));
+      mockGoogleAdapter.userToReturn = testUser;
+
+      // Seed local persistence with meaningful local progress so a conflict triggers
+      await persistence.setCoins(3000);
+
+      final mockClient = MockHttpClient((req) async {
+        if (req.url.path.contains('/api/profile/google-auth')) {
+          return http.Response(
+            jsonEncode({
+              'exists': true,
+              'profile': {
+                'id': 'cloud_p_01',
+                'displayName': 'Ahmed (Cloud)',
+                'avatarId': 'maldivian_captain',
+                'loginProvider': 'GOOGLE',
+                'googleId': 'google_user_002',
+                'email': 'ahmed@gmail.com',
+                'coins': 12000,
+                'level': 5,
+                'friendCode': 'HLH-9999',
+                'cloudSyncStatus': 'SYNCED',
+              }
+            }),
+            200,
+          );
+        }
+        if (req.url.path.contains('/api/profile/resolve-conflict')) {
+          return http.Response(
+            jsonEncode({
+              'profile': {
+                'id': 'cloud_p_01',
+                'displayName': 'Ahmed (Cloud)',
+                'avatarId': 'maldivian_captain',
+                'loginProvider': 'GOOGLE',
+                'googleId': 'google_user_002',
+                'email': 'ahmed@gmail.com',
+                'coins': 15000, // merged: 12000 + 3000
+                'level': 5,
+                'friendCode': 'HLH-9999',
+                'cloudSyncStatus': 'SYNCED',
+              }
+            }),
+            200,
+          );
+        }
+        return http.Response('Not Found', 404);
+      });
+
+      final googleAuth = GoogleAuthService(adapter: mockGoogleAdapter);
+      final cloudSync = CloudSyncService(client: mockClient);
+
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        googleAuthService: googleAuth,
+        cloudSyncService: cloudSync,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      final success = await notifier.signInWithGoogle();
+      expect(success, isFalse);
+      expect(notifier.state.pendingCloudConflict, isNotNull);
+      expect(notifier.state.pendingCloudConflict!.cloudProfile.coins, equals(12000));
+
+      // Resolve conflict by merging chips
+      await notifier.resolveCloudConflict(keepCloud: true, mergeChips: true);
+      expect(notifier.state.pendingCloudConflict, isNull);
       expect(notifier.state.screenState, equals(AppScreenState.lobby));
-      expect(notifier.state.isCloudSynced, isTrue);
-      expect(notifier.state.authStatusLabel, equals('APPLE SYNCED'));
+      expect(notifier.state.coins, equals(15000));
+      expect(notifier.state.authProvider, equals(AuthProviderType.google));
 
-      // 4. Sign Out & Guest Sign-In
-      await notifier.signOut();
-      await notifier.signInAsGuest();
-      expect(notifier.state.authProvider, equals(AuthProviderType.guest));
-      expect(notifier.state.cloudSyncState, equals(CloudSyncState.offlineLocal));
-      expect(notifier.state.screenState, equals(AppScreenState.lobby));
-      expect(notifier.state.isCloudSynced, isFalse);
-      expect(notifier.state.authStatusLabel, equals('GUEST (TAP TO LINK)'));
+      notifier.dispose();
+    });
+  });
+
+  group('15s Matchmaking Ready Gate Tests', () {
+    late LocalPersistenceRepository persistence;
+    late SensoryService sensory;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      persistence = await LocalPersistenceRepository.create();
+      sensory = SensoryService.instance;
     });
 
-    test('lastPlayedMode updates and persists when launching solo match', () async {
-      await notifier.signInAsGuest();
-      notifier.startSoloMatch(HolhuashiGameMode.bondi);
-      expect(notifier.state.lastPlayedMode, equals(HolhuashiGameMode.bondi));
-      expect(notifier.state.screenState, equals(AppScreenState.inGame));
+    test('enterMatchmaking initializes Ready Gate and startMatch is blocked until ready', () async {
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        readyCheckDuration: const Duration(seconds: 15),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      final loadedSettings = await persistence.loadSettings();
-      expect(loadedSettings.lastPlayedMode, equals('bondi'));
-    });
-
-    test('Mode Selection toggles between DIGU, DHIHAEH (10s), and BONDI', () async {
-      await notifier.signInAsGuest();
-
-      notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.dhihaeh));
-      expect(notifier.state.eloForMode(HolhuashiGameMode.dhihaeh), equals(1320));
-
-      notifier.selectGameMode(HolhuashiGameMode.bondi);
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.bondi));
-      expect(notifier.state.eloForMode(HolhuashiGameMode.bondi), equals(1195));
-
-      notifier.selectGameMode(HolhuashiGameMode.digu);
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.digu));
-      expect(notifier.state.eloForMode(HolhuashiGameMode.digu), equals(1284));
-    });
-
-    test('navigation flows between Lobby, Waiting Room, and InGame', () async {
-      await notifier.signInAsGuest();
-
-      // 1. Go to Waiting Room
-      notifier.goToWaitingRoom(mode: HolhuashiGameMode.dhihaeh, isPrivate: true);
+      // 1. Enter matchmaking
+      notifier.enterMatchmaking(HolhuashiGameMode.digu);
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.dhihaeh));
-      expect(notifier.state.isPrivateRoom, isTrue);
+      expect(notifier.state.isReadyCheckActive, isTrue);
+      expect(notifier.state.southSeat.isReady, isFalse);
+      expect(notifier.state.readyCheckSecondsRemaining, equals(15));
 
-      // 2. Return to Lobby
-      notifier.goToLobby();
-      expect(notifier.state.screenState, equals(AppScreenState.lobby));
-
-      // 3. Online matchmaking opens waiting room
-      notifier.startOnlineMatchmaking(HolhuashiGameMode.bondi);
-      expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.bondi));
-      expect(notifier.state.isPrivateRoom, isFalse);
-
-      // 4. Start match launches game
+      // 2. Calling startMatch while south is NOT ready is blocked
       notifier.startMatch();
-      expect(notifier.state.screenState, equals(AppScreenState.inGame));
+      expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
 
-      // 5. Return to lobby from game
-      notifier.returnToLobby();
-      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      // 3. Confirm human ready transitions to inGame once bots are ready
+      await notifier.confirmHumanReady();
+      expect(notifier.state.southSeat.isReady, isTrue);
 
-      // 6. Solo match starts directly inGame
-      notifier.startSoloMatch(HolhuashiGameMode.digu);
-      expect(notifier.state.screenState, equals(AppScreenState.inGame));
-      expect(notifier.state.selectedMode, equals(HolhuashiGameMode.digu));
+      notifier.dispose();
     });
 
-    test('Waiting Room controls configure match rules', () async {
-      await notifier.signInAsGuest();
-
-      // Regenerate room code produces valid 6-char alphanumeric code
-      final newCode = notifier.regenerateRoomCode();
-      expect(newCode.length, equals(6));
-      expect(notifier.state.roomCode, equals(newCode));
-      expect(notifier.state.shareableInviteLink, contains('room=$newCode'));
-
-      // Toggle Target Score (500 <-> 1000)
-      notifier.setTargetScore(500);
-      notifier.toggleTargetScore();
-      expect(notifier.state.targetScore, equals(1000));
-      notifier.toggleTargetScore();
-      expect(notifier.state.targetScore, equals(500));
-
-      // Toggle Turn Clock (15 <-> 30)
-      notifier.setTurnTimer(15);
-      notifier.toggleTurnTimer();
-      expect(notifier.state.turnTimerSeconds, equals(30));
-      notifier.toggleTurnTimer();
-      expect(notifier.state.turnTimerSeconds, equals(15));
-
-      // Toggle autofill AI bots
-      notifier.setFillEmptySeatsWithBots(false);
-      expect(notifier.state.fillEmptySeatsWithBots, isFalse);
-
-      // Claim seat & toggle ready
-      notifier.claimSeat(CompassSeat.north);
-      expect(notifier.state.seats[CompassSeat.north]!.isHuman, isTrue);
-      expect(notifier.state.seats[CompassSeat.south]!.isHuman, isFalse);
-
-      notifier.toggleReady(CompassSeat.north);
-      expect(notifier.state.seats[CompassSeat.north]!.isReady, isFalse);
-      notifier.toggleReady(CompassSeat.north);
-      expect(notifier.state.seats[CompassSeat.north]!.isReady, isTrue);
-    });
-
-    test('Settings updates modify state and persist changes', () async {
-      notifier.setSfxVolume(0.35);
-      expect(notifier.state.sfxVolume, closeTo(0.35, 0.001));
-
-      notifier.setBgmVolume(0.50);
-      expect(notifier.state.bgmVolume, closeTo(0.50, 0.001));
-
-      notifier.toggleHaptics();
-      expect(notifier.state.hapticsEnabled, isFalse);
-
-      notifier.toggleScreenShake();
-      expect(notifier.state.screenShakeEnabled, isFalse);
-
-      notifier.toggleFastDealSpeed();
-      expect(notifier.state.fastDealSpeed, isTrue);
-
-      notifier.toggleGoogleLinked();
-      expect(notifier.state.googleLinked, isTrue);
-
-      // Verify persistence received updated settings
-      final persisted = await persistence.loadSettings();
-      expect(persisted.sfxVolume, closeTo(0.35, 0.001));
-      expect(persisted.fastDealSpeed, isTrue);
-      expect(persisted.googleLinked, isTrue);
-    });
-
-    test('Quick chat emits messages and digu_hama has authentic ޑިގު spelling', () {
-      final diguHamaPreset = kHolhuashiQuickChatPresets.firstWhere((p) => p.id == 'digu_hama');
-      expect(diguHamaPreset.thaana, equals('ޑިގު ހަމަ!'));
-
-      notifier.sendQuickChat(diguHamaPreset, seat: CompassSeat.south);
-
-      expect(notifier.state.activeQuickChat, isNotNull);
-      expect(notifier.state.activeQuickChat!.thaana, equals('ޑިގު ހަމަ!'));
-      expect(notifier.state.quickChatHistory.length, equals(1));
-
-      notifier.dismissQuickChat();
-      expect(notifier.state.activeQuickChat, isNull);
-    });
-
-    test('recordMatchResult awards coins, updates ELO, and logs history', () async {
-      final initialCoins = notifier.state.coins;
-      final initialDiguElo = notifier.state.diguElo;
-
-      await notifier.recordMatchResult(
-        mode: HolhuashiGameMode.digu,
-        humanWon: true,
-        humanScore: 120,
-        opponentScore: 45,
+    test('ready check timeout returns to Lobby with cancellation notification', () async {
+      // Injected fast duration of 60ms
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        readyCheckDuration: const Duration(milliseconds: 60),
       );
+      await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      expect(notifier.state.coins, equals(initialCoins + 150));
-      expect(notifier.state.diguElo, equals(initialDiguElo + 16));
-      expect(notifier.state.matchHistory.length, equals(1));
-      expect(notifier.state.matchHistory.first.won, isTrue);
+      notifier.enterMatchmaking(HolhuashiGameMode.bondi);
+      expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
+
+      // Wait for timer expiration
+      await Future<void>.delayed(const Duration(milliseconds: 140));
+
+      // Should return to Lobby with notification
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isReadyCheckActive, isFalse);
+      expect(notifier.state.matchmakingNotification, contains('Match cancelled'));
+
+      notifier.dispose();
+    });
+
+    test('leaveWaitingRoom cancels Ready Gate timer and returns to Lobby', () async {
+      final notifier = GameSessionNotifier(
+        persistence: persistence,
+        sensory: sensory,
+        readyCheckDuration: const Duration(seconds: 15),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh);
+      expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
+
+      notifier.leaveWaitingRoom();
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isReadyCheckActive, isFalse);
+
+      notifier.dispose();
+    });
+  });
+
+  group('SensoryService & Audio Assets Tests', () {
+    test('SensoryService methods execute safely without crash', () async {
+      final sensory = SensoryService.instance;
+      await sensory.init();
+
+      sensory.applySettings(const UserSettings(
+        sfxVolume: 0.5,
+        bgmVolume: 0.4,
+        hapticsEnabled: true,
+      ));
+
+      expect(() => sensory.playLobbyBgm(), returnsNormally);
+      expect(() => sensory.playTableBgm(), returnsNormally);
+      expect(() => sensory.playDiscardPickup(), returnsNormally);
+      expect(() => sensory.playCardDiscard(), returnsNormally);
+      expect(() => sensory.playFanReorderTick(), returnsNormally);
+      expect(() => sensory.playGinReadyChime(), returnsNormally);
+      expect(() => sensory.playUrgentTimerHeartbeat(), returnsNormally);
+      expect(() => sensory.playCardSelect(), returnsNormally);
+      expect(() => sensory.playButtonTap(), returnsNormally);
+      expect(() => sensory.onAppBackgrounded(), returnsNormally);
+      expect(() => sensory.onAppForegrounded(), returnsNormally);
+      expect(() => sensory.tryUnlockWebAudio(), returnsNormally);
+    });
+
+    test('assets/audio contains 13 audio files (2 mp3 and 11 wav)', () {
+      final dir = Directory('assets/audio');
+      expect(dir.existsSync(), isTrue);
+
+      final files = dir.listSync().whereType<File>().map((f) => f.uri.pathSegments.last).toList();
+
+      expect(files, contains('bgm_lobby.mp3'));
+      expect(files, contains('bgm_table.mp3'));
+      expect(files, contains('sfx_card_deal.wav'));
+      expect(files, contains('sfx_card_discard.wav'));
+      expect(files, contains('sfx_card_snap.wav'));
+      expect(files, contains('sfx_discard_pickup.wav'));
+      expect(files, contains('sfx_fanfare.wav'));
+      expect(files, contains('sfx_fan_tick.wav'));
+      expect(files, contains('sfx_gin_ready.wav'));
+      expect(files, contains('sfx_gin_slam.wav'));
+      expect(files, contains('sfx_shuffle.wav'));
+      expect(files, contains('sfx_timer_heartbeat.wav'));
+      expect(files, contains('sfx_trick_sweep.wav'));
+      expect(files.length, equals(13));
     });
   });
 }

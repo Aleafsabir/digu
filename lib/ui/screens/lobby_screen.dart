@@ -1,20 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/sensory_service.dart';
+import '../../core/services/update_service.dart';
 import '../../state/game_session_provider.dart';
 import '../modals/settings_modal.dart';
+import '../modals/update_prompt_modal.dart';
 
 /// Main Holhuashi Lobby Screen reworked for Minimum Taps.
 ///
 /// Features:
-/// - Fast Re-Entry Pill (1-Tap Quick Play for last played mode).
-/// - Interactive Profile & Cloud Sync Capsule (Google, Apple, Supabase status).
+/// - Fast Re-Entry Pill (1-Tap Quick Play routing to 15s Ready-Check Gate).
+/// - Interactive Profile & Cloud Sync Capsule (Cloud Save Synced vs Device Save Only).
 /// - 3-Column Minimum-Tap Hero Mode Cards with in-card Play Solo & Private Table actions.
-/// - Authentic Maldivian Rosewood & Gold Lacquer visual language.
-class LobbyScreen extends ConsumerWidget {
-  const LobbyScreen({super.key});
+/// - Sleek dismissible matchmaking notifications banner.
+/// - Automatic, non-blocking check for application updates on launch.
+class LobbyScreen extends ConsumerStatefulWidget {
+  final UpdateService? updateService;
+
+  const LobbyScreen({
+    super.key,
+    this.updateService,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LobbyScreen> createState() => _LobbyScreenState();
+}
+
+class _LobbyScreenState extends ConsumerState<LobbyScreen> {
+  bool _hasCheckedForUpdates = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasCheckedForUpdates && mounted) {
+        _hasCheckedForUpdates = true;
+        _checkForAppUpdates();
+      }
+    });
+  }
+
+  Future<void> _checkForAppUpdates() async {
+    try {
+      final service = widget.updateService ?? UpdateService();
+      final info = await service.checkForUpdate();
+      if (info != null && mounted) {
+        await UpdatePromptModal.show(context, updateInfo: info, updateService: service);
+      }
+    } catch (_) {
+      // Non-blocking guard for test environments and offline boots
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(gameSessionProvider);
     final notifier = ref.read(gameSessionProvider.notifier);
 
@@ -37,7 +76,7 @@ class LobbyScreen extends ConsumerWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 1. Top Navigation Bar: Brand, Quick-Play Pill, Profile Sync Capsule, Actions
+              // 1. Top Navigation Bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
@@ -87,11 +126,15 @@ class LobbyScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 10),
 
-                    // Fast Re-Entry Pill (1 TAP)
+                    // Fast Re-Entry Pill (1 TAP Quick Play through Ready Gate)
                     InkWell(
                       key: const Key('btn_quick_play'),
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => notifier.startSoloMatch(session.lastPlayedMode),
+                      onTap: () {
+                        SensoryService.instance.playButtonTap();
+                        SensoryService.instance.tryUnlockWebAudio();
+                        notifier.enterMatchmaking(session.lastPlayedMode);
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -146,11 +189,14 @@ class LobbyScreen extends ConsumerWidget {
 
                     const Spacer(),
 
-                    // Interactive Profile & Sync Capsule
+                    // Interactive Profile & Cloud Sync Capsule
                     InkWell(
                       key: const Key('btn_profile_sync'),
                       borderRadius: BorderRadius.circular(20),
-                      onTap: () => _showCloudSyncModal(context, session, notifier),
+                      onTap: () {
+                        SensoryService.instance.playButtonTap();
+                        _showCloudSyncModal(context, session, notifier);
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -253,7 +299,11 @@ class LobbyScreen extends ConsumerWidget {
                       ),
                       icon: const Icon(Icons.vpn_key_rounded, size: 16),
                       tooltip: 'Private Table',
-                      onPressed: () => notifier.openWaitingRoom(),
+                      onPressed: () {
+                        SensoryService.instance.playButtonTap();
+                        SensoryService.instance.tryUnlockWebAudio();
+                        notifier.enterMatchmaking(session.selectedMode, isPrivateRoom: true);
+                      },
                     ),
                     const SizedBox(width: 6),
 
@@ -267,7 +317,10 @@ class LobbyScreen extends ConsumerWidget {
                       ),
                       icon: const Icon(Icons.settings, size: 16),
                       tooltip: 'Settings',
-                      onPressed: () => SettingsModal.show(context),
+                      onPressed: () {
+                        SensoryService.instance.playButtonTap();
+                        SettingsModal.show(context);
+                      },
                     ),
                     const SizedBox(width: 6),
 
@@ -281,11 +334,57 @@ class LobbyScreen extends ConsumerWidget {
                       ),
                       icon: const Icon(Icons.logout, size: 16),
                       tooltip: 'Switch Account / Sign Out',
-                      onPressed: () => notifier.signOut(),
+                      onPressed: () {
+                        SensoryService.instance.playButtonTap();
+                        notifier.signOut();
+                      },
                     ),
                   ],
                 ),
               ),
+
+              // Matchmaking Notification Banner (if any)
+              if (session.matchmakingNotification != null)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xEE2A0D11),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFD4AF37), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 16, color: Color(0xFFE5C378)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          session.matchmakingNotification!,
+                          style: const TextStyle(
+                            color: Color(0xFFF7F0EA),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 16, color: Color(0xAAF7F0EA)),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          SensoryService.instance.playButtonTap();
+                          notifier.dismissMatchmakingNotification();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
 
               // 2. Main Content: 3 Minimum-Tap Hero Mode Cards
               Expanded(
@@ -305,9 +404,20 @@ class LobbyScreen extends ConsumerWidget {
                           chips: const ['10 Cards', 'Runs & Sets', '1,000pt 7-Run', 'Gin Slam'],
                           elo: session.diguElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.digu,
-                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.digu),
-                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.digu),
-                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.digu),
+                          onCardTap: () {
+                            SensoryService.instance.playButtonTap();
+                            notifier.selectGameMode(HolhuashiGameMode.digu);
+                          },
+                          onPlaySolo: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.digu, isPrivateRoom: false);
+                          },
+                          onPrivateTable: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.digu, isPrivateRoom: true);
+                          },
                           iconBadge: '🎴',
                         ),
                       ),
@@ -324,9 +434,20 @@ class LobbyScreen extends ConsumerWidget {
                           chips: const ['4 Players (2v2)', '5-4-4 Batch Deal', 'Trump Cut', 'Haasbagga'],
                           elo: session.dhihaehElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.dhihaeh,
-                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.dhihaeh),
-                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.dhihaeh),
-                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.dhihaeh),
+                          onCardTap: () {
+                            SensoryService.instance.playButtonTap();
+                            notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
+                          },
+                          onPlaySolo: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh, isPrivateRoom: false);
+                          },
+                          onPrivateTable: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh, isPrivateRoom: true);
+                          },
                           iconBadge: '🔟',
                         ),
                       ),
@@ -343,9 +464,20 @@ class LobbyScreen extends ConsumerWidget {
                           chips: const ['Trick Shed', '♠A Mandatory Lead', 'Burn Pile', 'Fast Elimination'],
                           elo: session.bondiElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.bondi,
-                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.bondi),
-                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.bondi),
-                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.bondi),
+                          onCardTap: () {
+                            SensoryService.instance.playButtonTap();
+                            notifier.selectGameMode(HolhuashiGameMode.bondi);
+                          },
+                          onPlaySolo: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.bondi, isPrivateRoom: false);
+                          },
+                          onPrivateTable: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.enterMatchmaking(HolhuashiGameMode.bondi, isPrivateRoom: true);
+                          },
                           iconBadge: '🔥',
                         ),
                       ),
@@ -673,27 +805,31 @@ class LobbyScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
 
-                // User Identifier Tile
+                // Cloud Save Tile
                 _buildSyncInfoRow(
-                  'User Identifier',
-                  session.userEmail ?? session.guestUuid,
+                  'Cloud Save',
+                  session.isCloudSynced
+                      ? 'Cloud Save Synced (${session.userEmail ?? session.displayName})'
+                      : 'Device Save Only (Guest)',
+                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFFE5C378),
+                ),
+                const SizedBox(height: 6),
+
+                // Friend Code / User Identifier Tile
+                _buildSyncInfoRow(
+                  'Friend Code',
+                  session.guestUuid.length >= 8
+                      ? session.guestUuid.substring(0, 8).toUpperCase()
+                      : session.guestUuid.toUpperCase(),
                   const Color(0xFFF7F0EA),
                 ),
                 const SizedBox(height: 6),
 
-                // Local Cache Tile
+                // Storage Backup Tile
                 _buildSyncInfoRow(
-                  'Local Cache',
-                  'SharedPreferences / Offline Sync Ready',
-                  const Color(0xFFE5C378),
-                ),
-                const SizedBox(height: 6),
-
-                // Cloud Backend Tile
-                _buildSyncInfoRow(
-                  'Cloud Backend',
-                  'Supabase (${session.cloudSyncState.name.toUpperCase()})',
-                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFF99F7F0),
+                  'Storage Status',
+                  'Secure Offline Cache Active',
+                  const Color(0xFF00E676),
                 ),
 
                 const SizedBox(height: 18),
@@ -717,6 +853,7 @@ class LobbyScreen extends ConsumerWidget {
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                         ),
                         onPressed: () {
+                          SensoryService.instance.playButtonTap();
                           notifier.signInWithGoogle();
                           Navigator.of(ctx).pop();
                         },
@@ -740,6 +877,7 @@ class LobbyScreen extends ConsumerWidget {
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                         ),
                         onPressed: () {
+                          SensoryService.instance.playButtonTap();
                           notifier.signInWithApple();
                           Navigator.of(ctx).pop();
                         },
@@ -756,6 +894,7 @@ class LobbyScreen extends ConsumerWidget {
                         ),
                       ),
                       onPressed: () {
+                        SensoryService.instance.playButtonTap();
                         notifier.signOut();
                         Navigator.of(ctx).pop();
                       },

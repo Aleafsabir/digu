@@ -2,10 +2,16 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/audio/sensory_service.dart';
+import '../core/services/cloud_sync_service.dart';
+import '../core/services/google_auth_service.dart';
 import '../data/local_persistence.dart';
 import '../game/table_canvas.dart' show HolhuashiGameMode;
 import '../network/ws_client.dart';
 
+export '../core/services/cloud_sync_service.dart'
+    show CloudPlayerProfile, CloudProfileConflict, GoogleAuthSyncResult;
+export '../core/services/google_auth_service.dart'
+    show GoogleAuthOutcome, GoogleAuthStatus, GoogleAuthUser;
 export '../game/table_canvas.dart' show HolhuashiGameMode;
 
 /// Top-level navigation state for the Holhuashi application shell.
@@ -207,7 +213,14 @@ class GameSessionState {
   final AuthProviderType authProvider;
   final CloudSyncState cloudSyncState;
   final String? userEmail;
+  final String? friendCode;
   final HolhuashiGameMode lastPlayedMode;
+  final int readyCheckSecondsRemaining;
+  final bool isReadyCheckActive;
+  final String? matchmakingNotification;
+  final bool authBusy;
+  final String? authErrorMessage;
+  final CloudProfileConflict? pendingCloudConflict;
 
   const GameSessionState({
     this.screenState = AppScreenState.auth,
@@ -232,7 +245,14 @@ class GameSessionState {
     this.authProvider = AuthProviderType.none,
     this.cloudSyncState = CloudSyncState.offlineLocal,
     this.userEmail,
+    this.friendCode,
     this.lastPlayedMode = HolhuashiGameMode.digu,
+    this.readyCheckSecondsRemaining = 15,
+    this.isReadyCheckActive = false,
+    this.matchmakingNotification,
+    this.authBusy = false,
+    this.authErrorMessage,
+    this.pendingCloudConflict,
   });
 
   factory GameSessionState.initial({
@@ -257,8 +277,10 @@ class GameSessionState {
 
   static Map<CompassSeat, SeatOccupant> defaultSeatsForPlayer(
     String playerName,
-    int playerElo,
-  ) {
+    int playerElo, {
+    bool southReady = false,
+    bool botsReady = true,
+  }) {
     return {
       CompassSeat.south: SeatOccupant(
         seat: CompassSeat.south,
@@ -266,37 +288,37 @@ class GameSessionState {
         subtitle: 'YOU • HOST',
         isHuman: true,
         isBot: false,
-        isReady: true,
+        isReady: southReady,
         elo: playerElo,
         avatarId: 'maldivian_captain',
       ),
-      CompassSeat.north: const SeatOccupant(
+      CompassSeat.north: SeatOccupant(
         seat: CompassSeat.north,
         displayName: 'Aishath',
         subtitle: 'PARTNER • AI',
         isHuman: false,
         isBot: true,
-        isReady: true,
+        isReady: botsReady,
         elo: 1310,
         avatarId: 'partner_island',
       ),
-      CompassSeat.east: const SeatOccupant(
+      CompassSeat.east: SeatOccupant(
         seat: CompassSeat.east,
         displayName: 'Hussain',
         subtitle: 'EAST • AI',
         isHuman: false,
         isBot: true,
-        isReady: true,
+        isReady: botsReady,
         elo: 1290,
         avatarId: 'east_island',
       ),
-      CompassSeat.west: const SeatOccupant(
+      CompassSeat.west: SeatOccupant(
         seat: CompassSeat.west,
         displayName: 'Ibrahim',
         subtitle: 'WEST • AI',
         isHuman: false,
         isBot: true,
-        isReady: true,
+        isReady: botsReady,
         elo: 1265,
         avatarId: 'west_island',
       ),
@@ -352,6 +374,18 @@ class GameSessionState {
   SeatOccupant get northSeat => seats[CompassSeat.north]!;
   SeatOccupant get westSeat => seats[CompassSeat.west]!;
 
+  bool get allFilledSeatsReady {
+    for (final occupant in seats.values) {
+      if (!occupant.isHuman && !fillEmptySeatsWithBots) {
+        continue;
+      }
+      if (!occupant.isReady) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   GameSessionState copyWith({
     AppScreenState? screenState,
     HolhuashiGameMode? selectedMode,
@@ -377,7 +411,17 @@ class GameSessionState {
     CloudSyncState? cloudSyncState,
     String? userEmail,
     bool clearUserEmail = false,
+    String? friendCode,
     HolhuashiGameMode? lastPlayedMode,
+    int? readyCheckSecondsRemaining,
+    bool? isReadyCheckActive,
+    String? matchmakingNotification,
+    bool clearMatchmakingNotification = false,
+    bool? authBusy,
+    String? authErrorMessage,
+    bool clearAuthErrorMessage = false,
+    CloudProfileConflict? pendingCloudConflict,
+    bool clearPendingCloudConflict = false,
   }) {
     return GameSessionState(
       screenState: screenState ?? this.screenState,
@@ -404,7 +448,21 @@ class GameSessionState {
       authProvider: authProvider ?? this.authProvider,
       cloudSyncState: cloudSyncState ?? this.cloudSyncState,
       userEmail: clearUserEmail ? null : (userEmail ?? this.userEmail),
+      friendCode: friendCode ?? this.friendCode,
       lastPlayedMode: lastPlayedMode ?? this.lastPlayedMode,
+      readyCheckSecondsRemaining:
+          readyCheckSecondsRemaining ?? this.readyCheckSecondsRemaining,
+      isReadyCheckActive: isReadyCheckActive ?? this.isReadyCheckActive,
+      matchmakingNotification: clearMatchmakingNotification
+          ? null
+          : (matchmakingNotification ?? this.matchmakingNotification),
+      authBusy: authBusy ?? this.authBusy,
+      authErrorMessage: clearAuthErrorMessage
+          ? null
+          : (authErrorMessage ?? this.authErrorMessage),
+      pendingCloudConflict: clearPendingCloudConflict
+          ? null
+          : (pendingCloudConflict ?? this.pendingCloudConflict),
     );
   }
 }
@@ -418,16 +476,27 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   final LocalPersistenceRepository _persistence;
   final SensoryService _sensory;
   final HolhuashiWsClient _wsClient;
+  final GoogleAuthService _googleAuthService;
+  final CloudSyncService _cloudSyncService;
+  final Duration _readyCheckDuration;
   Timer? _quickChatDismissTimer;
+  Timer? _readyCheckTimer;
+  final List<Timer> _botStaggerTimers = [];
 
   GameSessionNotifier({
     LocalPersistenceRepository? persistence,
     SensoryService? sensory,
     HolhuashiWsClient? wsClient,
+    GoogleAuthService? googleAuthService,
+    CloudSyncService? cloudSyncService,
+    Duration readyCheckDuration = const Duration(seconds: 15),
     GameSessionState? initialState,
   })  : _persistence = persistence ?? LocalPersistenceRepository(),
         _sensory = sensory ?? SensoryService.instance,
         _wsClient = wsClient ?? HolhuashiWsClient(autoReconnect: false),
+        _googleAuthService = googleAuthService ?? GoogleAuthService(),
+        _cloudSyncService = cloudSyncService ?? CloudSyncService(),
+        _readyCheckDuration = readyCheckDuration,
         super(initialState ?? GameSessionState.initial()) {
     _hydrateFromStorage();
   }
@@ -435,6 +504,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   HolhuashiWsClient get wsClient => _wsClient;
   LocalPersistenceRepository get persistence => _persistence;
   SensoryService get sensory => _sensory;
+  GoogleAuthService get googleAuthService => _googleAuthService;
+  CloudSyncService get cloudSyncService => _cloudSyncService;
 
   Future<void> _hydrateFromStorage() async {
     try {
@@ -472,6 +543,7 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         avatarId: profile.avatarId,
         coins: profile.coins,
         eloByMode: profile.eloByMode,
+        friendCode: profile.friendCode,
         settings: settings,
         seats: updatedSeats,
         matchHistory: history,
@@ -517,13 +589,38 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   // Authentication & Cloud Sync
   // ---------------------------------------------------------------------------
 
-  Future<void> signInWithGoogle({
-    String displayName = 'Ali Naseer',
-    String email = 'ali.naseer@gmail.com',
+  CloudPlayerProfile _buildLocalCloudProfileSnapshot() {
+    final totalGames = state.matchHistory.length;
+    final totalWins = state.matchHistory.where((m) => m.won).length;
+    return CloudPlayerProfile(
+      id: state.guestUuid,
+      displayName: state.displayName,
+      avatarId: state.avatarId,
+      loginProvider:
+          state.authProvider == AuthProviderType.google ? 'GOOGLE' : 'GUEST',
+      email: state.userEmail,
+      coins: state.coins,
+      friendCode: state.friendCode,
+      stats: {
+        'gamesPlayed': totalGames,
+        'gamesWon': totalWins,
+      },
+      cloudSyncStatus: state.isCloudSynced ? 'SYNCED' : 'OFFLINE',
+    );
+  }
+
+  Future<void> _applySyncedCloudProfile(
+    CloudPlayerProfile profile, {
+    required String fallbackEmail,
   }) async {
-    _sensory.lightImpact();
-    final resolvedName =
-        displayName.trim().isEmpty ? 'Ali Naseer' : displayName.trim();
+    final resolvedName = profile.displayName.trim().isNotEmpty
+        ? profile.displayName.trim()
+        : state.displayName;
+    final resolvedEmail =
+        (profile.email != null && profile.email!.trim().isNotEmpty)
+            ? profile.email!.trim()
+            : fallbackEmail;
+
     final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
     final south = updatedSeats[CompassSeat.south];
     if (south != null) {
@@ -535,9 +632,15 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     state = state.copyWith(
       authProvider: AuthProviderType.google,
       cloudSyncState: CloudSyncState.synced,
-      userEmail: email,
+      userEmail: resolvedEmail,
       displayName: resolvedName,
+      avatarId: profile.avatarId,
+      coins: profile.coins,
+      friendCode: profile.friendCode ?? state.friendCode,
       seats: updatedSeats,
+      authBusy: false,
+      clearAuthErrorMessage: true,
+      clearPendingCloudConflict: true,
       screenState: AppScreenState.lobby,
     );
 
@@ -545,12 +648,137 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       state.settings.copyWith(
         googleLinked: true,
         authProvider: 'google',
-        userEmail: email,
+        userEmail: resolvedEmail,
       ),
     );
     try {
       await _persistence.setDisplayName(resolvedName);
+      await _persistence.setAvatarId(profile.avatarId);
+      await _persistence.setCoins(profile.coins);
+      if (profile.friendCode != null) {
+        await _persistence.setFriendCode(profile.friendCode);
+      }
     } catch (_) {}
+  }
+
+  Future<bool> signInWithGoogle() async {
+    if (state.authBusy) return false;
+    _sensory.lightImpact();
+
+    state = state.copyWith(
+      authBusy: true,
+      clearAuthErrorMessage: true,
+      clearPendingCloudConflict: true,
+    );
+
+    final outcome = await _googleAuthService.signIn();
+    if (!mounted) return false;
+
+    if (outcome.isCancelled) {
+      state = state.copyWith(authBusy: false);
+      return false;
+    }
+
+    if (outcome.isFailure || outcome.user == null) {
+      state = state.copyWith(
+        authBusy: false,
+        authErrorMessage:
+            outcome.errorMessage ?? 'Google Sign-In failed. Please try again.',
+      );
+      return false;
+    }
+
+    final googleUser = outcome.user!;
+    state = state.copyWith(cloudSyncState: CloudSyncState.syncing);
+
+    try {
+      final localSnapshot = _buildLocalCloudProfileSnapshot();
+      final syncResult = await _cloudSyncService.authenticateWithGoogle(
+        googleUser: googleUser,
+        localProfile: localSnapshot,
+      );
+      if (!mounted) return false;
+
+      if (syncResult.hasConflict) {
+        state = state.copyWith(
+          authBusy: false,
+          cloudSyncState: CloudSyncState.offlineLocal,
+          userEmail: googleUser.email,
+          pendingCloudConflict: syncResult.conflict,
+        );
+        return false;
+      }
+
+      await _applySyncedCloudProfile(
+        syncResult.profile,
+        fallbackEmail: googleUser.email,
+      );
+      return true;
+    } on CloudSyncException catch (e) {
+      if (!mounted) return false;
+      state = state.copyWith(
+        authBusy: false,
+        cloudSyncState: CloudSyncState.offlineLocal,
+        authErrorMessage: e.message,
+      );
+      return false;
+    } catch (_) {
+      if (!mounted) return false;
+      state = state.copyWith(
+        authBusy: false,
+        cloudSyncState: CloudSyncState.offlineLocal,
+        authErrorMessage:
+            'Could not reach cloud profile service. Please try again.',
+      );
+      return false;
+    }
+  }
+
+  Future<void> resolveCloudConflict({
+    required bool keepCloud,
+    required bool mergeChips,
+  }) async {
+    final conflict = state.pendingCloudConflict;
+    if (conflict == null || state.authBusy) return;
+
+    state = state.copyWith(
+      authBusy: true,
+      cloudSyncState: CloudSyncState.syncing,
+      clearAuthErrorMessage: true,
+    );
+
+    try {
+      final resolvedProfile = await _cloudSyncService.resolveConflict(
+        choice: keepCloud ? 'cloud' : 'local',
+        mergeChips: mergeChips,
+        cloudProfile: conflict.cloudProfile,
+        localProfile: conflict.localProfile,
+      );
+      if (!mounted) return;
+
+      await _applySyncedCloudProfile(
+        resolvedProfile,
+        fallbackEmail: conflict.cloudProfile.email ?? state.userEmail ?? '',
+      );
+    } on CloudSyncException catch (e) {
+      if (!mounted) return;
+      state = state.copyWith(
+        authBusy: false,
+        cloudSyncState: CloudSyncState.offlineLocal,
+        authErrorMessage: e.message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      state = state.copyWith(
+        authBusy: false,
+        cloudSyncState: CloudSyncState.offlineLocal,
+        authErrorMessage: 'Failed to resolve save conflict. Please try again.',
+      );
+    }
+  }
+
+  void clearAuthError() {
+    state = state.copyWith(clearAuthErrorMessage: true);
   }
 
   Future<void> signInWithApple({
@@ -574,6 +802,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       userEmail: email,
       displayName: resolvedName,
       seats: updatedSeats,
+      clearAuthErrorMessage: true,
+      clearPendingCloudConflict: true,
       screenState: AppScreenState.lobby,
     );
 
@@ -606,6 +836,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       cloudSyncState: CloudSyncState.offlineLocal,
       displayName: hasCustomName ? trimmed : state.displayName,
       seats: updatedSeats,
+      clearAuthErrorMessage: true,
+      clearPendingCloudConflict: true,
       screenState: AppScreenState.lobby,
     );
 
@@ -621,10 +853,18 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
 
   Future<void> signOut() async {
     _sensory.selectionClick();
+    _cancelReadyGateTimers();
+    await _googleAuthService.signOut();
+    if (!mounted) return;
+
     state = state.copyWith(
       authProvider: AuthProviderType.none,
       cloudSyncState: CloudSyncState.offlineLocal,
       clearUserEmail: true,
+      authBusy: false,
+      clearAuthErrorMessage: true,
+      clearPendingCloudConflict: true,
+      isReadyCheckActive: false,
       screenState: AppScreenState.auth,
     );
 
@@ -646,8 +886,38 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   }
 
   // ---------------------------------------------------------------------------
-  // Navigation & Mode Selection
+  // Navigation, Mode Selection & 15s Matchmaking Ready Gate
   // ---------------------------------------------------------------------------
+
+  int get _initialReadyCheckSeconds =>
+      _readyCheckDuration.inSeconds >= 1 ? _readyCheckDuration.inSeconds : 1;
+
+  void _cancelReadyGateTimers() {
+    _readyCheckTimer?.cancel();
+    _readyCheckTimer = null;
+    for (final timer in _botStaggerTimers) {
+      timer.cancel();
+    }
+    _botStaggerTimers.clear();
+  }
+
+  void _tryCompleteReadyGate() {
+    if (!mounted) return;
+    if (!state.isReadyCheckActive ||
+        state.screenState != AppScreenState.waitingRoom) {
+      return;
+    }
+    if (!state.southSeat.isReady || !state.allFilledSeatsReady) {
+      return;
+    }
+    _cancelReadyGateTimers();
+    _sensory.mediumImpact();
+    _wsClient.startMatch(roomCode: state.roomCode);
+    state = state.copyWith(
+      isReadyCheckActive: false,
+      screenState: AppScreenState.inGame,
+    );
+  }
 
   void selectGameMode(HolhuashiGameMode mode) {
     _sensory.selectionClick();
@@ -666,27 +936,154 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
 
   void goToLobby() {
     _sensory.selectionClick();
-    state = state.copyWith(screenState: AppScreenState.lobby);
+    _cancelReadyGateTimers();
+    state = state.copyWith(
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      screenState: AppScreenState.lobby,
+    );
   }
 
   void returnToLobby() => goToLobby();
+
+  void enterMatchmaking(
+    HolhuashiGameMode mode, {
+    bool isPrivateRoom = false,
+  }) {
+    _sensory.lightImpact();
+    _cancelReadyGateTimers();
+
+    final seats = GameSessionState.defaultSeatsForPlayer(
+      state.displayName,
+      state.eloForMode(mode),
+      southReady: false,
+      botsReady: !state.fillEmptySeatsWithBots,
+    );
+    final initialSeconds = _initialReadyCheckSeconds;
+
+    state = state.copyWith(
+      selectedMode: mode,
+      lastPlayedMode: mode,
+      isPrivateRoom: isPrivateRoom,
+      seats: seats,
+      screenState: AppScreenState.waitingRoom,
+      isReadyCheckActive: true,
+      readyCheckSecondsRemaining: initialSeconds,
+      clearMatchmakingNotification: true,
+    );
+
+    unawaited(
+      _updateSettings(
+        state.settings.copyWith(lastPlayedMode: mode.name),
+      ),
+    );
+
+    if (state.fillEmptySeatsWithBots) {
+      final totalMs = _readyCheckDuration.inMilliseconds;
+      final botOrder = [
+        CompassSeat.north,
+        CompassSeat.east,
+        CompassSeat.west,
+      ];
+      for (var i = 0; i < botOrder.length; i++) {
+        final seat = botOrder[i];
+        final proportionalMs = ((totalMs * 0.15) * (i + 1)).round();
+        final delayMs = math.max(10, math.min(350 * (i + 1), proportionalMs));
+        final timer = Timer(Duration(milliseconds: delayMs), () {
+          if (!mounted ||
+              !state.isReadyCheckActive ||
+              state.screenState != AppScreenState.waitingRoom) {
+            return;
+          }
+          final currentBot = state.seats[seat];
+          if (currentBot == null) return;
+          final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
+          updated[seat] = currentBot.copyWith(isReady: true);
+          state = state.copyWith(seats: updated);
+          _tryCompleteReadyGate();
+        });
+        _botStaggerTimers.add(timer);
+      }
+    }
+
+    final tickInterval = _readyCheckDuration.inSeconds >= 1
+        ? const Duration(seconds: 1)
+        : _readyCheckDuration;
+
+    _readyCheckTimer = Timer.periodic(tickInterval, (_) {
+      if (!mounted) {
+        _cancelReadyGateTimers();
+        return;
+      }
+      if (!state.isReadyCheckActive ||
+          state.screenState != AppScreenState.waitingRoom) {
+        _cancelReadyGateTimers();
+        return;
+      }
+
+      final nextSeconds = state.readyCheckSecondsRemaining - 1;
+      if (nextSeconds <= 0) {
+        _cancelReadyGateTimers();
+        if (!state.southSeat.isReady) {
+          state = state.copyWith(
+            readyCheckSecondsRemaining: 0,
+            isReadyCheckActive: false,
+            matchmakingNotification:
+                'Match cancelled — tap Ready within 15 seconds to enter the table.',
+            screenState: AppScreenState.lobby,
+          );
+        } else {
+          state = state.copyWith(readyCheckSecondsRemaining: 0);
+        }
+      } else {
+        state = state.copyWith(readyCheckSecondsRemaining: nextSeconds);
+      }
+    });
+  }
+
+  Future<void> confirmHumanReady() async {
+    _sensory.selectionClick();
+    if (state.screenState != AppScreenState.waitingRoom) return;
+    final current = state.seats[CompassSeat.south];
+    if (current == null) return;
+
+    if (!current.isReady) {
+      final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
+      updated[CompassSeat.south] = current.copyWith(isReady: true);
+      state = state.copyWith(seats: updated);
+      _wsClient.toggleReady(roomCode: state.roomCode, isReady: true);
+    }
+
+    _tryCompleteReadyGate();
+  }
+
+  void leaveWaitingRoom() {
+    _sensory.selectionClick();
+    _cancelReadyGateTimers();
+    state = state.copyWith(
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      screenState: AppScreenState.lobby,
+    );
+  }
+
+  void dismissMatchmakingNotification() {
+    state = state.copyWith(clearMatchmakingNotification: true);
+  }
 
   void goToWaitingRoom({
     HolhuashiGameMode? mode,
     String? roomCode,
     bool isPrivate = true,
   }) {
-    _sensory.lightImpact();
     final nextMode = mode ?? state.selectedMode;
     final nextCode = (roomCode != null && roomCode.trim().isNotEmpty)
         ? roomCode.trim().toUpperCase()
         : state.roomCode;
-    state = state.copyWith(
-      selectedMode: nextMode,
-      roomCode: nextCode,
-      isPrivateRoom: isPrivate,
-      screenState: AppScreenState.waitingRoom,
-    );
+    if (nextCode != state.roomCode) {
+      state = state.copyWith(roomCode: nextCode);
+    }
+    enterMatchmaking(nextMode, isPrivateRoom: isPrivate);
   }
 
   void openWaitingRoom({HolhuashiGameMode? mode, String? roomCode}) {
@@ -702,24 +1099,20 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   }
 
   void startSoloMatch([HolhuashiGameMode? mode]) {
-    _sensory.mediumImpact();
-    final targetMode = mode ?? state.selectedMode;
-    state = state.copyWith(
-      selectedMode: targetMode,
-      lastPlayedMode: targetMode,
-      screenState: AppScreenState.inGame,
-    );
-    unawaited(
-      _updateSettings(
-        state.settings.copyWith(lastPlayedMode: targetMode.name),
-      ),
-    );
+    enterMatchmaking(mode ?? state.selectedMode, isPrivateRoom: false);
   }
 
   void startMatch() {
+    if (!state.southSeat.isReady || !state.allFilledSeatsReady) {
+      return;
+    }
+    _cancelReadyGateTimers();
     _sensory.mediumImpact();
     _wsClient.startMatch(roomCode: state.roomCode);
-    state = state.copyWith(screenState: AppScreenState.inGame);
+    state = state.copyWith(
+      isReadyCheckActive: false,
+      screenState: AppScreenState.inGame,
+    );
   }
 
   void enterGame([HolhuashiGameMode? mode]) {
@@ -777,6 +1170,12 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     updated[seat] = current.copyWith(isReady: nextReady);
     state = state.copyWith(seats: updated);
     _wsClient.toggleReady(roomCode: state.roomCode, isReady: nextReady);
+    if (nextReady &&
+        seat == CompassSeat.south &&
+        state.isReadyCheckActive &&
+        state.screenState == AppScreenState.waitingRoom) {
+      _tryCompleteReadyGate();
+    }
   }
 
   void claimSeat(CompassSeat targetSeat) {
@@ -957,11 +1356,20 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       await _persistence.setCoins(updatedCoins);
       await _persistence.appendMatchRecord(record);
     } catch (_) {}
+
+    if (state.authProvider == AuthProviderType.google && state.isCloudSynced) {
+      unawaited(
+        _cloudSyncService
+            .syncProfile(_buildLocalCloudProfileSnapshot())
+            .catchError((_) => false),
+      );
+    }
   }
 
   @override
   void dispose() {
     _quickChatDismissTimer?.cancel();
+    _cancelReadyGateTimers();
     super.dispose();
   }
 }

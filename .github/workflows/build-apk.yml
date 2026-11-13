@@ -56,11 +56,17 @@ jobs:
       - name: Build Flutter Web Release
         run: flutter build web --release
 
+      - name: Print Android Keystore Fingerprint
+        run: |
+          if [ -f "android/debug.keystore" ]; then
+            keytool -list -v -keystore android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep -E "Alias name:|SHA1:|SHA256:" || true
+          fi
+
       - name: Build Android Debug APK
-        run: flutter build apk --debug --android-skip-build-dependency-validation
+        run: flutter build apk --debug --android-skip-build-dependency-validation --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
 
       - name: Build Android Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: flutter build apk --release --android-skip-build-dependency-validation --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4

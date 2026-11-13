@@ -1,7 +1,7 @@
 name: holhuashi_client
 description: "Holhuashi: Authentic Maldivian Card Games (Digu, Bondi, Dhihaeh) built with Flutter and Flame Engine."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.8.0+21
 
 environment:
   sdk: ^3.5.0
@@ -23,6 +23,10 @@ dependencies:
 
   # Local preferences & settings
   shared_preferences: ^2.3.2
+
+  # Google Sign-In & HTTP networking
+  google_sign_in: ^6.2.1
+  http: ^1.2.2
 
   # Icons & Utilities
   cupertino_icons: ^1.0.8

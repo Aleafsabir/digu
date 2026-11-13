@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/audio/sensory_service.dart';
+import '../../core/services/update_service.dart';
 import '../../state/game_session_provider.dart';
+import 'update_prompt_modal.dart';
 
 class SettingsModal extends ConsumerWidget {
-  const SettingsModal({super.key});
+  final UpdateService? updateService;
 
-  static Future<void> show(BuildContext context) {
+  const SettingsModal({
+    super.key,
+    this.updateService,
+  });
+
+  static Future<void> show(
+    BuildContext context, {
+    UpdateService? updateService,
+  }) {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => const SettingsModal(),
+      builder: (ctx) => SettingsModal(updateService: updateService),
     );
   }
 
@@ -355,6 +366,101 @@ class SettingsModal extends ConsumerWidget {
                         ],
                       ),
                     ),
+
+                    const Divider(color: Color(0xFF380C10), height: 22),
+
+                    // Section: Application Updates
+                    _buildSectionHeader('APPLICATION UPDATES', 'އައު އަޕްޑޭޓްތައް'),
+                    const SizedBox(height: 8),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B0B0C),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF380C10)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF380C10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.system_update_rounded,
+                              color: Color(0xFFD4AF37),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Current Build: v${UpdateService.currentVersion}',
+                                  style: const TextStyle(
+                                    color: Color(0xFFF7F0EA),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const Text(
+                                  'Check online releases & tournament sync',
+                                  style: TextStyle(
+                                    color: Color(0x99F7F0EA),
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            key: const Key('btn_check_updates'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD4AF37),
+                              foregroundColor: const Color(0xFF0D0605),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: const Size(90, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: () async {
+                              SensoryService.instance.playButtonTap();
+                              final service = updateService ?? UpdateService();
+                              final updateInfo = await service.checkForUpdate(force: true);
+                              if (context.mounted) {
+                                if (updateInfo != null) {
+                                  await UpdatePromptModal.show(
+                                    context,
+                                    updateInfo: updateInfo,
+                                    updateService: service,
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('You are on the latest version (v${UpdateService.currentVersion}).'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text(
+                              'CHECK UPDATES',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -376,9 +482,9 @@ class SettingsModal extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Holhuashi Engine v0.1.0 • Male\', Maldives',
-                    style: TextStyle(
+                  Text(
+                    'Holhuashi v${UpdateService.currentVersion} • Male\', Maldives',
+                    style: const TextStyle(
                       color: Color(0x66F7F0EA),
                       fontSize: 10,
                       fontFamily: 'monospace',
@@ -394,7 +500,10 @@ class SettingsModal extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      SensoryService.instance.playButtonTap();
+                      Navigator.of(context).pop();
+                    },
                     child: const Text(
                       'DONE',
                       style: TextStyle(

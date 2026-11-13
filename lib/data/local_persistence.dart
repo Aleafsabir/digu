@@ -15,6 +15,8 @@ class UserSettings {
   final String authProvider;
   final String? userEmail;
   final String lastPlayedMode;
+  final int lastUpdateCheckMs;
+  final String? ignoredUpdateTag;
 
   const UserSettings({
     this.sfxVolume = 0.85,
@@ -27,6 +29,8 @@ class UserSettings {
     this.authProvider = 'none',
     this.userEmail,
     this.lastPlayedMode = 'digu',
+    this.lastUpdateCheckMs = 0,
+    this.ignoredUpdateTag,
   });
 
   UserSettings copyWith({
@@ -41,6 +45,9 @@ class UserSettings {
     String? userEmail,
     bool clearUserEmail = false,
     String? lastPlayedMode,
+    int? lastUpdateCheckMs,
+    String? ignoredUpdateTag,
+    bool clearIgnoredUpdateTag = false,
   }) {
     return UserSettings(
       sfxVolume: sfxVolume ?? this.sfxVolume,
@@ -53,6 +60,10 @@ class UserSettings {
       authProvider: authProvider ?? this.authProvider,
       userEmail: clearUserEmail ? null : (userEmail ?? this.userEmail),
       lastPlayedMode: lastPlayedMode ?? this.lastPlayedMode,
+      lastUpdateCheckMs: lastUpdateCheckMs ?? this.lastUpdateCheckMs,
+      ignoredUpdateTag: clearIgnoredUpdateTag
+          ? null
+          : (ignoredUpdateTag ?? this.ignoredUpdateTag),
     );
   }
 
@@ -67,6 +78,8 @@ class UserSettings {
         'authProvider': authProvider,
         'userEmail': userEmail,
         'lastPlayedMode': lastPlayedMode,
+        'lastUpdateCheckMs': lastUpdateCheckMs,
+        'ignoredUpdateTag': ignoredUpdateTag,
       };
 
   factory UserSettings.fromJson(Map<String, dynamic> json) {
@@ -81,6 +94,8 @@ class UserSettings {
       authProvider: json['authProvider'] as String? ?? 'none',
       userEmail: json['userEmail'] as String?,
       lastPlayedMode: json['lastPlayedMode'] as String? ?? 'digu',
+      lastUpdateCheckMs: (json['lastUpdateCheckMs'] as num?)?.toInt() ?? 0,
+      ignoredUpdateTag: json['ignoredUpdateTag'] as String?,
     );
   }
 }
@@ -136,6 +151,7 @@ class LocalPlayerProfile {
   final String avatarId;
   final int coins;
   final Map<String, int> eloByMode;
+  final String? friendCode;
 
   const LocalPlayerProfile({
     required this.uuid,
@@ -143,6 +159,7 @@ class LocalPlayerProfile {
     this.avatarId = 'maldivian_captain',
     this.coins = 2450,
     this.eloByMode = LocalPersistenceRepository.defaultEloMap,
+    this.friendCode,
   });
 
   LocalPlayerProfile copyWith({
@@ -151,6 +168,7 @@ class LocalPlayerProfile {
     String? avatarId,
     int? coins,
     Map<String, int>? eloByMode,
+    String? friendCode,
   }) {
     return LocalPlayerProfile(
       uuid: uuid ?? this.uuid,
@@ -158,6 +176,7 @@ class LocalPlayerProfile {
       avatarId: avatarId ?? this.avatarId,
       coins: coins ?? this.coins,
       eloByMode: eloByMode ?? this.eloByMode,
+      friendCode: friendCode ?? this.friendCode,
     );
   }
 }
@@ -173,6 +192,9 @@ class LocalPersistenceRepository {
   static const String keyUserSettings = 'holhuashi.user_settings';
   static const String keyMatchHistory = 'holhuashi.match_history';
   static const String keyActiveMatchSnapshot = 'holhuashi.active_match_snapshot';
+  static const String keyFriendCode = 'holhuashi.friend_code';
+  static const String keyLastUpdateCheckMs = 'holhuashi.last_update_check_ms';
+  static const String keyIgnoredUpdateTag = 'holhuashi.ignored_update_tag';
 
   static const Map<String, int> defaultEloMap = {
     'digu': 1284,
@@ -240,6 +262,7 @@ class LocalPersistenceRepository {
     final avatarId = prefs.getString(keyAvatarId) ?? 'maldivian_captain';
     final coins = prefs.getInt(keyCoins) ?? 2450;
     final eloMap = await loadEloMap();
+    final friendCode = prefs.getString(keyFriendCode);
 
     return LocalPlayerProfile(
       uuid: uuid,
@@ -247,6 +270,7 @@ class LocalPersistenceRepository {
       avatarId: avatarId,
       coins: coins,
       eloByMode: eloMap,
+      friendCode: friendCode,
     );
   }
 
@@ -395,6 +419,44 @@ class LocalPersistenceRepository {
   Future<void> clearActiveMatchSnapshot() async {
     final prefs = await _getPrefs();
     await prefs.remove(keyActiveMatchSnapshot);
+  }
+
+  Future<String?> getFriendCode() async {
+    final prefs = await _getPrefs();
+    return prefs.getString(keyFriendCode);
+  }
+
+  Future<void> setFriendCode(String? friendCode) async {
+    final prefs = await _getPrefs();
+    if (friendCode == null || friendCode.trim().isEmpty) {
+      await prefs.remove(keyFriendCode);
+    } else {
+      await prefs.setString(keyFriendCode, friendCode.trim());
+    }
+  }
+
+  Future<int> getLastUpdateCheckMs() async {
+    final prefs = await _getPrefs();
+    return prefs.getInt(keyLastUpdateCheckMs) ?? 0;
+  }
+
+  Future<void> setLastUpdateCheckMs(int timestampMs) async {
+    final prefs = await _getPrefs();
+    await prefs.setInt(keyLastUpdateCheckMs, timestampMs);
+  }
+
+  Future<String?> getIgnoredUpdateTag() async {
+    final prefs = await _getPrefs();
+    return prefs.getString(keyIgnoredUpdateTag);
+  }
+
+  Future<void> setIgnoredUpdateTag(String? tag) async {
+    final prefs = await _getPrefs();
+    if (tag == null || tag.trim().isEmpty) {
+      await prefs.remove(keyIgnoredUpdateTag);
+    } else {
+      await prefs.setString(keyIgnoredUpdateTag, tag.trim());
+    }
   }
 }
 
