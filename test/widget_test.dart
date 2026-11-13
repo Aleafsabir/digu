@@ -168,10 +168,12 @@ void main() {
     expect(find.text('ހޮޅުއަށި'), findsOneWidget);
     expect(find.text('• HOLHUASHI'), findsOneWidget);
 
-    // Verify Fast Re-Entry Pill (1 TAP)
+    // Verify Quick Play, Friends & Mode Action Pills
     expect(find.byKey(const Key('btn_quick_play')), findsOneWidget);
-    expect(find.text('1 TAP'), findsOneWidget);
-    expect(find.textContaining('Quick Play:'), findsOneWidget);
+    expect(find.text('⚡ DIGU'), findsOneWidget);
+    expect(find.byKey(const Key('btn_friends')), findsOneWidget);
+    expect(find.byKey(const Key('find_match_digu')), findsOneWidget);
+    expect(find.byKey(const Key('play_solo_digu')), findsOneWidget);
 
     // Verify Profile & Sync Capsule
     expect(find.byKey(const Key('btn_profile_sync')), findsOneWidget);
@@ -210,12 +212,10 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_profile_sync')));
     await tester.pumpAndSettle();
 
-    // Verify Modal Header & Clean User-Facing Rows
-    expect(find.text('PROFILE & CLOUD SYNC'), findsOneWidget);
-    expect(find.text('Account Provider'), findsOneWidget);
-    expect(find.text('Cloud Save'), findsOneWidget);
-    expect(find.text('Friend Code'), findsOneWidget);
-    expect(find.text('Storage Status'), findsOneWidget);
+    // Verify Modal Header & Concise User-Facing Rows
+    expect(find.text('PROFILE'), findsOneWidget);
+    expect(find.text('Account'), findsOneWidget);
+    expect(find.text('UID'), findsOneWidget);
 
     // Zero internal developer strings
     expect(find.textContaining('Supabase'), findsNothing);
@@ -224,7 +224,7 @@ void main() {
     // Close Modal
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
-    expect(find.text('PROFILE & CLOUD SYNC'), findsNothing);
+    expect(find.text('PROFILE'), findsNothing);
   });
 
   testWidgets('Mode Selection switches selected mode on hero card tap',
@@ -267,7 +267,7 @@ void main() {
         equals(HolhuashiGameMode.digu));
   });
 
-  testWidgets('Quick Play enters 15s Ready Gate in WaitingRoomScreen before launching GameScreen',
+  testWidgets('VS AI launches Digu GameScreen and Return to Lobby exits cleanly',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -282,17 +282,9 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
     await tester.pumpAndSettle();
 
-    // Tap Quick Play (1 TAP)
-    await tester.tap(find.byKey(const Key('btn_quick_play')));
-    await tester.pumpAndSettle();
-
-    // Must be in Waiting Room with Ready Gate (NOT GameScreen directly!)
-    expect(find.byKey(const Key('btn_confirm_ready')), findsOneWidget);
-    expect(find.textContaining('READY CHECK'), findsOneWidget);
-
-    // Tap Confirm Ready
-    await tester.tap(find.byKey(const Key('btn_confirm_ready')));
-    // Wait for bots to stagger-ready and gate to complete
+    // Tap VS AI on Digu mode card (launches instant offline GameScreen)
+    await tester.tap(find.byKey(const Key('play_solo_digu')));
+    await tester.pump();
     await tester.pump(const Duration(seconds: 2));
 
     // Dismiss dramatic 3-2-1 countdown overlay if visible
@@ -340,7 +332,7 @@ void main() {
     // Verify Modal Header & Version Transition
     expect(find.text('New Update Available!'), findsOneWidget);
     expect(find.text('އައު އަޕްޑޭޓެއް ލިބެން އެބައޮތް!'), findsOneWidget);
-    expect(find.text('v0.8.1'), findsOneWidget);
+    expect(find.text('v0.8.2'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
     expect(find.text('v0.8.5'), findsOneWidget);
     expect(find.text('WHAT\'S NEW • އައު ބަދަލުތައް'), findsOneWidget);
@@ -384,7 +376,7 @@ void main() {
 
     // Verify Application Updates Section & Button
     expect(find.byKey(const Key('btn_check_updates')), findsOneWidget);
-    expect(find.textContaining('Current Build: v0.8.1'), findsOneWidget);
+    expect(find.textContaining('Current Build: v0.8.2'), findsOneWidget);
 
     // Close Settings Modal
     await tester.tap(find.byIcon(Icons.close));
@@ -446,8 +438,9 @@ void main() {
     await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
     await tester.pumpAndSettle();
 
-    // Verify 10-Run chip & inline variant/format pills in Lobby
-    expect(find.text('1,000pt 10-Run'), findsOneWidget);
+    // Verify inline variant/format pills & action buttons in concise Lobby
+    expect(find.byKey(const Key('find_match_digu')), findsOneWidget);
+    expect(find.byKey(const Key('play_solo_digu')), findsOneWidget);
     expect(find.text('1v1'), findsOneWidget);
     expect(find.text('2v2 Partners'), findsOneWidget);
     expect(find.text('4P FFA'), findsOneWidget);
@@ -456,16 +449,10 @@ void main() {
     expect(find.text('Standard'), findsOneWidget);
     expect(find.text('Suit Bondi'), findsOneWidget);
 
-    // Select 1v1 Digu format & enter matchmaking
+    // Select 1v1 Digu format and verify session state updates cleanly
     await tester.tap(find.text('1v1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('play_solo_digu')));
-    await tester.pumpAndSettle();
-
-    // Verify Waiting Room updates cleanly with 1v1 (S & N seats visible, E & W hidden)
-    expect(find.text('S'), findsOneWidget);
-    expect(find.text('N'), findsOneWidget);
-    expect(find.text('E'), findsNothing);
-    expect(find.text('W'), findsNothing);
+    final container = ProviderScope.containerOf(tester.element(find.text('1v1')));
+    expect(container.read(gameSessionProvider).diguFormat, equals(DiguTableFormat.duel1v1));
   });
 }

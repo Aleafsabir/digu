@@ -10,6 +10,7 @@ import 'state/game_session_provider.dart';
 import 'ui/modals/round_score_modal.dart';
 import 'ui/modals/settings_modal.dart';
 import 'ui/modals/trump_declaration_modal.dart';
+import 'ui/overlays/match_invite_toast.dart';
 import 'ui/overlays/quick_chat_overlay.dart';
 import 'ui/screens/auth_screen.dart';
 import 'ui/screens/lobby_screen.dart';
@@ -121,7 +122,12 @@ class _HolhuashiAppState extends ConsumerState<HolhuashiApp>
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: const Color(0xFF0A0D14),
         ),
-        home: activeView,
+        home: Stack(
+          children: [
+            activeView,
+            const MatchInviteToast(),
+          ],
+        ),
       ),
     );
   }

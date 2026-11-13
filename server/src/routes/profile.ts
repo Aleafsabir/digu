@@ -1,11 +1,138 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db.js';
-import { upsertProfile, getProfileById } from '../firestore.js';
+import {
+  upsertProfile,
+  getProfileById,
+  getProfileByGoogleOrEmail,
+  normalizeHandle,
+  updateProfileHandle,
+  isHandleAvailableInFirestore,
+  StoredProfile,
+} from '../firestore.js';
 
 export const profileRouter = Router();
 
 // In-memory fallback map for offline dev or environments where PostgreSQL is not running
 const memoryProfiles = new Map<string, any>();
+
+/**
+ * Generates a valid sanitized handle base from a display name or email.
+ */
+function buildDefaultHandleBase(displayName?: string, email?: string): string {
+  const raw = (displayName || email?.split('@')[0] || 'player')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '');
+  let clean = raw.slice(0, 14);
+  if (!clean) clean = 'player';
+  while (clean.length < 3) {
+    clean += '0';
+  }
+  return clean;
+}
+
+/**
+ * Checks whether a normalized lowercase handle is free across PG, Firestore, and memory fallback.
+ */
+async function isHandleFree(usernameLower: string, excludeProfileId?: string): Promise<boolean> {
+  for (const p of memoryProfiles.values()) {
+    if (
+      p?.username &&
+      String(p.username).toLowerCase() === usernameLower &&
+      p.id !== excludeProfileId
+    ) {
+      return false;
+    }
+  }
+
+  try {
+    const pgCheck = await query(
+      `SELECT id FROM profiles WHERE username_lower = $1 AND ($2::text IS NULL OR id::text != $2) LIMIT 1`,
+      [usernameLower, excludeProfileId || null]
+    );
+    if (pgCheck?.rows?.length > 0) {
+      return false;
+    }
+  } catch {
+    // PG offline; rely on Firestore + memory check
+  }
+
+  return isHandleAvailableInFirestore(usernameLower, excludeProfileId);
+}
+
+/**
+ * Finds and claims an available unique @handle for a Google-synced profile.
+ */
+async function assignDefaultHandle(
+  profileId: string,
+  preferred?: string,
+  displayName?: string,
+  email?: string
+): Promise<string> {
+  const preferredParsed = preferred ? normalizeHandle(preferred) : null;
+  if (preferredParsed && (await isHandleFree(preferredParsed.usernameLower, profileId))) {
+    const claim = await updateProfileHandle(profileId, preferredParsed.username);
+    if (claim.ok && claim.username) return claim.username;
+  }
+
+  const base = buildDefaultHandleBase(displayName, email);
+  const candidates = [base];
+  for (let i = 0; i < 8; i++) {
+    const suffix = Math.floor(1000 + Math.random() * 9000);
+    candidates.push(`${base.slice(0, 15)}_${suffix}`);
+  }
+
+  for (const candidate of candidates) {
+    if (await isHandleFree(candidate.toLowerCase(), profileId)) {
+      const claim = await updateProfileHandle(profileId, candidate);
+      if (claim.ok && claim.username) return claim.username;
+    }
+  }
+
+  const fallback = `player_${Date.now().toString(36).slice(-6)}`;
+  await updateProfileHandle(profileId, fallback).catch(() => {});
+  return fallback;
+}
+
+function mapStoredToUserProfile(row: StoredProfile): any {
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    username: row.username || undefined,
+    avatarId: row.avatar_id || 'sultan',
+    loginProvider: row.login_provider || 'GOOGLE',
+    googleId: row.google_id || undefined,
+    email: row.email || undefined,
+    coins: Number(row.coins) || 10000,
+    gems: Number(row.gems) || 50,
+    level: Number(row.level) || 1,
+    xp: 0,
+    xpNextLevel: 500,
+    stats: row.stats || {},
+    friendCode: row.friend_code,
+    cloudSyncStatus: 'SYNCED',
+    presenceStatus: row.presence_status || 'IN_LOBBY',
+    lastSyncedAt: row.updated_at || new Date().toISOString(),
+    createdAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+function syncProfileToFirestoreAsync(p: any): void {
+  upsertProfile({
+    id: p.id,
+    display_name: p.displayName,
+    username: p.username,
+    avatar_id: p.avatarId,
+    friend_code: p.friendCode,
+    google_id: p.googleId,
+    email: p.email,
+    level: p.level,
+    coins: p.coins,
+    gems: p.gems,
+    login_provider: p.loginProvider,
+    stats: p.stats,
+    presence_status: p.presenceStatus || 'IN_LOBBY',
+  }).catch(() => {});
+}
 
 /**
  * Verify Google ID token via Google TokenInfo endpoint.
@@ -33,6 +160,7 @@ function mapRowToUserProfile(row: any): any {
   return {
     id: row.id,
     displayName: row.display_name,
+    username: row.username || undefined,
     avatarId: row.avatar_id || 'sultan',
     loginProvider: row.login_provider || 'GOOGLE',
     googleId: row.google_id || undefined,
@@ -90,17 +218,19 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
 
     if (existing && existing.rows && existing.rows.length > 0) {
       const cloudProfile = mapRowToUserProfile(existing.rows[0]);
-      await upsertProfile({
-        id: cloudProfile.id,
-        display_name: cloudProfile.displayName,
-        avatar_id: cloudProfile.avatarId,
-        friend_code: cloudProfile.friendCode,
-        level: cloudProfile.level,
-        coins: cloudProfile.coins,
-        gems: cloudProfile.gems,
-        login_provider: cloudProfile.loginProvider,
-        stats: cloudProfile.stats,
-      }).catch(() => {});
+      if (!cloudProfile.username) {
+        cloudProfile.username = await assignDefaultHandle(
+          cloudProfile.id,
+          localProfile?.username,
+          cloudProfile.displayName,
+          verifiedEmail
+        );
+        await query(
+          `UPDATE profiles SET username = $1, username_lower = $2 WHERE id = $3`,
+          [cloudProfile.username, cloudProfile.username.toLowerCase(), cloudProfile.id]
+        ).catch(() => {});
+      }
+      syncProfileToFirestoreAsync(cloudProfile);
       return res.json({
         exists: true,
         profile: cloudProfile,
@@ -147,39 +277,58 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
     );
 
     const newProfile = mapRowToUserProfile(insertRes.rows[0]);
-    await upsertProfile({
-      id: newProfile.id,
-      display_name: newProfile.displayName,
-      avatar_id: newProfile.avatarId,
-      friend_code: newProfile.friendCode,
-      level: newProfile.level,
-      coins: newProfile.coins,
-      gems: newProfile.gems,
-      login_provider: newProfile.loginProvider,
-      stats: newProfile.stats,
-    }).catch(() => {});
+    newProfile.username = await assignDefaultHandle(
+      newProfile.id,
+      localProfile?.username,
+      newProfile.displayName,
+      verifiedEmail
+    );
+    await query(
+      `UPDATE profiles SET username = $1, username_lower = $2 WHERE id = $3`,
+      [newProfile.username, newProfile.username.toLowerCase(), newProfile.id]
+    ).catch(() => {});
+    syncProfileToFirestoreAsync(newProfile);
     return res.json({
       exists: false,
       profile: newProfile,
       message: 'New cloud profile registered.',
     });
   } catch (err: any) {
-    // Fallback to in-memory store if DB is unavailable
-    console.warn('[Profile Route] Database query failed, using in-memory adapter:', err.message);
+    // Fallback to Firestore & in-memory store if PG DB is unavailable
+    console.warn('[Profile Route] Database query failed, using Firestore/memory adapter:', err.message);
+
+    // Check Firestore first so Cloud Run restarts preserve existing Google profiles & handles
+    const fsExisting = await getProfileByGoogleOrEmail(verifiedGoogleId, verifiedEmail);
+    if (fsExisting) {
+      const p = mapStoredToUserProfile(fsExisting);
+      if (!p.username) {
+        p.username = await assignDefaultHandle(
+          p.id,
+          localProfile?.username,
+          p.displayName,
+          verifiedEmail
+        );
+      }
+      memoryProfiles.set(lookupKey, p);
+      syncProfileToFirestoreAsync(p);
+      return res.json({
+        exists: true,
+        profile: p,
+        message: 'Existing cloud profile found.',
+      });
+    }
 
     if (memoryProfiles.has(lookupKey)) {
       const p = memoryProfiles.get(lookupKey);
-      await upsertProfile({
-        id: p.id,
-        display_name: p.displayName,
-        avatar_id: p.avatarId,
-        friend_code: p.friendCode,
-        level: p.level,
-        coins: p.coins,
-        gems: p.gems,
-        login_provider: p.loginProvider,
-        stats: p.stats,
-      }).catch(() => {});
+      if (!p.username) {
+        p.username = await assignDefaultHandle(
+          p.id,
+          localProfile?.username,
+          p.displayName,
+          verifiedEmail
+        );
+      }
+      syncProfileToFirestoreAsync(p);
       return res.json({
         exists: true,
         profile: p,
@@ -187,9 +336,19 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
       });
     }
 
+    const memoryId = `usr_${Date.now().toString(36)}`;
+    const memoryDisplayName = displayName || localProfile?.displayName || 'Player';
+    const assignedUsername = await assignDefaultHandle(
+      memoryId,
+      localProfile?.username,
+      memoryDisplayName,
+      verifiedEmail
+    );
+
     const memoryProfile = {
-      id: `usr_${Date.now().toString(36)}`,
-      displayName: displayName || localProfile?.displayName || 'Player',
+      id: memoryId,
+      displayName: memoryDisplayName,
+      username: assignedUsername,
       avatarId: localProfile?.avatarId || 'sultan',
       loginProvider: 'GOOGLE',
       googleId: verifiedGoogleId,
@@ -216,17 +375,7 @@ profileRouter.post('/google-auth', async (req: Request, res: Response) => {
     };
 
     memoryProfiles.set(lookupKey, memoryProfile);
-    await upsertProfile({
-      id: memoryProfile.id,
-      display_name: memoryProfile.displayName,
-      avatar_id: memoryProfile.avatarId,
-      friend_code: memoryProfile.friendCode,
-      level: memoryProfile.level,
-      coins: memoryProfile.coins,
-      gems: memoryProfile.gems,
-      login_provider: memoryProfile.loginProvider,
-      stats: memoryProfile.stats,
-    }).catch(() => {});
+    syncProfileToFirestoreAsync(memoryProfile);
     return res.json({
       exists: false,
       profile: memoryProfile,
@@ -250,8 +399,11 @@ profileRouter.post('/register', async (req: Request, res: Response) => {
     await upsertProfile({
       id: profile.id,
       display_name: profile.displayName || 'Player',
+      username: profile.username,
       avatar_id: profile.avatarId || 'sultan',
       friend_code: profile.friendCode || '',
+      google_id: profile.googleId,
+      email: profile.email,
       level: Number(profile.level) || 1,
       coins: Number(profile.coins) || 0,
       gems: Number(profile.gems) || 0,
@@ -264,6 +416,69 @@ profileRouter.post('/register', async (req: Request, res: Response) => {
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
+});
+
+/**
+ * POST /api/profile/update-handle
+ * Claims or updates a unique @handle for a Google/cloud-synced player.
+ */
+profileRouter.post('/update-handle', async (req: Request, res: Response) => {
+  const { profileId, username } = req.body;
+  if (!profileId || !username) {
+    return res.status(400).json({ error: 'profileId and username are required' });
+  }
+
+  const parsed = normalizeHandle(String(username));
+  if (!parsed) {
+    return res.status(400).json({
+      error: 'Handle must be 3-20 characters using letters, numbers, or underscores.',
+    });
+  }
+
+  // Enforce Google/Cloud-synced account requirement when provider is known
+  try {
+    const fsProfile = await getProfileById(profileId);
+    if (fsProfile?.login_provider === 'GUEST') {
+      return res.status(403).json({ error: 'Sign in with Google to set a @handle' });
+    }
+  } catch {}
+
+  if (!(await isHandleFree(parsed.usernameLower, profileId))) {
+    return res.status(409).json({ error: `@${parsed.username} is already taken` });
+  }
+
+  // Claim atomically in Firestore
+  const fsResult = await updateProfileHandle(profileId, parsed.username);
+  if (!fsResult.ok) {
+    const status = fsResult.error === 'HANDLE_TAKEN' ? 409 : 400;
+    return res.status(status).json({
+      error: fsResult.error === 'HANDLE_TAKEN' ? `@${parsed.username} is already taken` : fsResult.error,
+    });
+  }
+
+  // Persist to PostgreSQL if available
+  try {
+    await query(
+      `UPDATE profiles SET
+        username = $1,
+        username_lower = $2,
+        updated_at = NOW()
+       WHERE id::text = $3`,
+      [parsed.username, parsed.usernameLower, profileId]
+    );
+  } catch {}
+
+  // Update in-memory fallback map
+  for (const [k, v] of memoryProfiles.entries()) {
+    if (v?.id === profileId) {
+      memoryProfiles.set(k, { ...v, username: parsed.username });
+    }
+  }
+
+  return res.json({
+    success: true,
+    username: parsed.username,
+  });
 });
 
 /**
@@ -284,8 +499,11 @@ profileRouter.post('/sync', async (req: Request, res: Response) => {
     await upsertProfile({
       id: profile.id,
       display_name: profile.displayName,
+      username: profile.username,
       avatar_id: profile.avatarId,
       friend_code: profile.friendCode,
+      google_id: profile.googleId,
+      email: profile.email,
       level: profile.level,
       coins: profile.coins,
       gems: profile.gems,
@@ -299,6 +517,7 @@ profileRouter.post('/sync', async (req: Request, res: Response) => {
 
   try {
     const statsJson = JSON.stringify(profile.stats || {});
+    const parsedHandle = profile.username ? normalizeHandle(profile.username) : null;
     await query(
       `UPDATE profiles SET
         display_name = $1,
@@ -310,10 +529,12 @@ profileRouter.post('/sync', async (req: Request, res: Response) => {
         xp_next_level = $7,
         stats = $8,
         friend_code = $9,
+        username = COALESCE($10, username),
+        username_lower = COALESCE($11, username_lower),
         updated_at = NOW()
-       WHERE (google_id = $10 AND $10 IS NOT NULL)
-          OR (email = $11 AND $11 IS NOT NULL)
-          OR (id::text = $12)`,
+       WHERE (google_id = $12 AND $12 IS NOT NULL)
+          OR (email = $13 AND $13 IS NOT NULL)
+          OR (id::text = $14)`,
       [
         profile.displayName,
         profile.avatarId || 'sultan',
@@ -324,6 +545,8 @@ profileRouter.post('/sync', async (req: Request, res: Response) => {
         Number(profile.xpNextLevel) || 500,
         statsJson,
         profile.friendCode,
+        parsedHandle?.username || null,
+        parsedHandle?.usernameLower || null,
         profile.googleId || null,
         profile.email || null,
         profile.id,
@@ -376,11 +599,13 @@ profileRouter.post('/resolve-conflict', async (req: Request, res: Response) => {
       loginProvider: 'GOOGLE',
       googleId: cloudProfile.googleId || localProfile.googleId,
       email: cloudProfile.email || localProfile.email,
+      username: cloudProfile.username || localProfile.username,
     };
   }
 
   finalProfile.cloudSyncStatus = 'SYNCED';
   finalProfile.lastSyncedAt = new Date().toISOString();
+  syncProfileToFirestoreAsync(finalProfile);
 
   // Sync chosen profile to DB
   try {

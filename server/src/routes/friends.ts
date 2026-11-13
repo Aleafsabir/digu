@@ -3,14 +3,185 @@ import { query } from '../db.js';
 import { activeClients, inMemoryProfiles, inMemoryFriendships, MemoryFriendship } from '../ws/socketHandler.js';
 import {
   getProfileByFriendCode,
+  getProfileByHandle,
+  getProfileById,
   createFriendRequest,
   getAcceptedFriends,
   getFriendRequests,
   respondToRequest,
+  cancelFriendRequest,
+  removeFriendship,
 } from '../firestore.js';
 import { WebSocket } from 'ws';
 
 export const friendsRouter = Router();
+
+function resolveLivePresence(profileId: string, fallbackPresence?: string): string {
+  if (activeClients.has(profileId)) {
+    const live = inMemoryProfiles.get(profileId)?.presence_status;
+    if (live && live !== 'OFFLINE') return live;
+    if (fallbackPresence && fallbackPresence !== 'OFFLINE') return fallbackPresence;
+    return 'IN_LOBBY';
+  }
+  return fallbackPresence || 'OFFLINE';
+}
+
+async function isGuestAccount(profileId: string): Promise<boolean> {
+  if (!profileId) return true;
+  if (profileId.startsWith('guest_')) return true;
+  const mem = inMemoryProfiles.get(profileId);
+  if (mem?.login_provider === 'GUEST') return true;
+  try {
+    const fsProf = await getProfileById(profileId);
+    if (fsProf?.login_provider === 'GUEST') return true;
+  } catch {}
+  try {
+    const pgRes = await query(`SELECT login_provider FROM profiles WHERE id::text = $1 LIMIT 1`, [profileId]);
+    if (pgRes?.rows?.[0]?.login_provider === 'GUEST') return true;
+  } catch {}
+  return false;
+}
+
+interface ResolvedTarget {
+  id: string;
+  display_name: string;
+  username?: string;
+  avatar_id: string;
+  level: number;
+  friend_code: string;
+  presence_status?: string;
+  login_provider?: string;
+}
+
+async function resolvePlayerByIdentifier(rawInput: string): Promise<ResolvedTarget | null> {
+  const input = rawInput.trim();
+  if (!input) return null;
+
+  const isExplicitHandle = input.startsWith('@');
+  const handleCandidate = input.replace(/^@+/, '').trim();
+  const handleLower = handleCandidate.toLowerCase();
+  const upper = input.toUpperCase();
+  const strippedCode = upper.replace(/^HLH-|^DIGU-/, '').trim();
+
+  // Order lookup intelligently based on input shape:
+  // @handle -> handle only; HLH-/DIGU- -> friend code first; otherwise UID / handle / code.
+  const tryFirestoreHandle = async () => {
+    const p = await getProfileByHandle(handleCandidate);
+    return p ? {
+      id: p.id,
+      display_name: p.display_name,
+      username: p.username || '',
+      avatar_id: p.avatar_id,
+      level: p.level,
+      friend_code: p.friend_code,
+      presence_status: p.presence_status,
+      login_provider: p.login_provider,
+    } : null;
+  };
+
+  const tryFirestoreUid = async () => {
+    const p = await getProfileById(input);
+    return p ? {
+      id: p.id,
+      display_name: p.display_name,
+      username: p.username || '',
+      avatar_id: p.avatar_id,
+      level: p.level,
+      friend_code: p.friend_code,
+      presence_status: p.presence_status,
+      login_provider: p.login_provider,
+    } : null;
+  };
+
+  const tryFirestoreCode = async () => {
+    const p = await getProfileByFriendCode(upper);
+    return p ? {
+      id: p.id,
+      display_name: p.display_name,
+      username: p.username || '',
+      avatar_id: p.avatar_id,
+      level: p.level,
+      friend_code: p.friend_code,
+      presence_status: p.presence_status,
+      login_provider: p.login_provider,
+    } : null;
+  };
+
+  let target: ResolvedTarget | null = null;
+
+  try {
+    if (isExplicitHandle) {
+      target = await tryFirestoreHandle();
+    } else if (upper.startsWith('HLH-') || upper.startsWith('DIGU-')) {
+      target = (await tryFirestoreCode()) || (await tryFirestoreHandle());
+    } else {
+      target =
+        (await tryFirestoreUid()) ||
+        (await tryFirestoreHandle()) ||
+        (await tryFirestoreCode());
+    }
+  } catch {}
+
+  // Check PostgreSQL if not yet resolved
+  if (!target) {
+    try {
+      if (isExplicitHandle) {
+        const res = await query(
+          `SELECT id, display_name, username, avatar_id, level, friend_code, presence_status, login_provider
+           FROM profiles WHERE username_lower = $1 LIMIT 1`,
+          [handleLower]
+        );
+        if (res?.rows?.length > 0) target = res.rows[0];
+      } else {
+        const res = await query(
+          `SELECT id, display_name, username, avatar_id, level, friend_code, presence_status, login_provider
+           FROM profiles
+           WHERE id::text = $1
+              OR username_lower = $2
+              OR UPPER(friend_code) = $3
+              OR UPPER(friend_code) = $4
+              OR UPPER(friend_code) = $5
+              OR (length($6) >= 4 AND UPPER(friend_code) LIKE '%' || $6)
+           LIMIT 1`,
+          [input, handleLower, upper, `HLH-${strippedCode}`, `DIGU-${strippedCode}`, strippedCode]
+        );
+        if (res?.rows?.length > 0) target = res.rows[0];
+      }
+    } catch {}
+  }
+
+  // Check in-memory connected profiles fallback
+  if (!target) {
+    if (!isExplicitHandle && inMemoryProfiles.has(input)) {
+      target = inMemoryProfiles.get(input) ?? null;
+    } else {
+      for (const p of inMemoryProfiles.values()) {
+        const pUsernameLower = (p.username || '').toLowerCase();
+        const pCode = (p.friend_code || '').toUpperCase();
+        const pCodeSuffix = pCode.replace(/^HLH-|^DIGU-/, '').trim();
+
+        if (isExplicitHandle) {
+          if (pUsernameLower && pUsernameLower === handleLower) {
+            target = p;
+            break;
+          }
+        } else if (
+          p.id === input ||
+          (pUsernameLower && pUsernameLower === handleLower) ||
+          pCode === upper ||
+          pCode === `HLH-${strippedCode}` ||
+          pCode === `DIGU-${strippedCode}` ||
+          (strippedCode.length >= 4 && pCodeSuffix === strippedCode)
+        ) {
+          target = p;
+          break;
+        }
+      }
+    }
+  }
+
+  return target;
+}
 
 // 1. Fetch Friends with Live Presence
 friendsRouter.get('/', async (req: Request, res: Response) => {
@@ -23,11 +194,15 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const fsFriends = await getAcceptedFriends(profileId);
     if (fsFriends && fsFriends.length > 0) {
-      const friends = fsFriends.map(f => ({
-        ...f,
-        presenceStatus: activeClients.has(f.friendId) ? 'IN_LOBBY' : f.presenceStatus,
-        presence_status: activeClients.has(f.friendId) ? 'IN_LOBBY' : f.presenceStatus,
-      }));
+      const friends = fsFriends.map(f => {
+        const liveStatus = resolveLivePresence(f.friendId, f.presenceStatus);
+        return {
+          ...f,
+          presenceStatus: liveStatus,
+          presence_status: liveStatus,
+          currentMatchInfo: inMemoryProfiles.get(f.friendId)?.current_match_info ?? f.currentMatchInfo,
+        };
+      });
       return res.json({ friends });
     }
   } catch {}
@@ -40,6 +215,7 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
         f.created_at AS friends_since,
         p.id AS friend_id,
         p.display_name,
+        p.username,
         p.avatar_id,
         p.level,
         p.friend_code,
@@ -58,19 +234,23 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
     );
 
     if (result && result.rows && result.rows.length > 0) {
-      const friends = result.rows.map(r => ({
-        ...r,
-        friendshipId: r.friendship_id,
-        friendsSince: r.friends_since,
-        friendId: r.friend_id,
-        displayName: r.display_name,
-        avatarId: r.avatar_id,
-        level: r.level,
-        friendCode: r.friend_code,
-        presenceStatus: activeClients.has(r.friend_id) ? 'IN_LOBBY' : r.presence_status,
-        currentMatchInfo: r.current_match_info,
-        lastActiveAt: r.last_active_at,
-      }));
+      const friends = result.rows.map(r => {
+        const liveStatus = resolveLivePresence(r.friend_id, r.presence_status);
+        return {
+          ...r,
+          friendshipId: r.friendship_id,
+          friendsSince: r.friends_since,
+          friendId: r.friend_id,
+          displayName: r.display_name,
+          username: r.username || '',
+          avatarId: r.avatar_id,
+          level: r.level,
+          friendCode: r.friend_code,
+          presenceStatus: liveStatus,
+          currentMatchInfo: inMemoryProfiles.get(r.friend_id)?.current_match_info ?? r.current_match_info,
+          lastActiveAt: r.last_active_at,
+        };
+      });
       return res.json({ friends });
     }
   } catch {}
@@ -82,15 +262,18 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
 
   const friends = userFriendships.map(f => {
     const otherId = f.user_id === profileId ? f.friend_id : f.user_id;
-    const p = inMemoryProfiles.get(otherId) || {
+    const p: any = inMemoryProfiles.get(otherId) || {
       id: otherId,
       display_name: 'Player',
+      username: '',
       avatar_id: 'boduthakurufaanu',
       friend_code: `HLH-${Math.floor(10000 + Math.random() * 90000)}`,
       level: 1,
-      presence_status: activeClients.has(otherId) ? 'IN_LOBBY' : 'OFFLINE',
+      presence_status: resolveLivePresence(otherId),
+      current_match_info: null,
       last_active_at: new Date().toISOString(),
     };
+    const liveStatus = resolveLivePresence(p.id, p.presence_status);
     return {
       friendshipId: f.id,
       friendship_id: f.id,
@@ -100,13 +283,14 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
       friend_id: p.id,
       displayName: p.display_name,
       display_name: p.display_name,
+      username: p.username || '',
       avatarId: p.avatar_id,
       avatar_id: p.avatar_id,
       level: p.level,
       friendCode: p.friend_code,
       friend_code: p.friend_code,
-      presenceStatus: activeClients.has(p.id) ? 'IN_LOBBY' : p.presence_status,
-      presence_status: activeClients.has(p.id) ? 'IN_LOBBY' : p.presence_status,
+      presenceStatus: liveStatus,
+      presence_status: liveStatus,
       currentMatchInfo: p.current_match_info,
       current_match_info: p.current_match_info,
       lastActiveAt: p.last_active_at,
@@ -115,6 +299,66 @@ friendsRouter.get('/', async (req: Request, res: Response) => {
   });
 
   return res.json({ friends });
+});
+
+// 1b. Lookup Player by @handle, UID, or Friend Code before sending request
+friendsRouter.get('/lookup', async (req: Request, res: Response) => {
+  const q = String(req.query.q || req.query.identifier || '').trim();
+  const requesterId = String(req.query.requesterId || req.query.profileId || '').trim();
+  if (!q) {
+    return res.status(400).json({ error: 'Search query (q) is required' });
+  }
+
+  const target = await resolvePlayerByIdentifier(q);
+  if (!target) {
+    return res.status(404).json({ error: `No player found matching "${q}"` });
+  }
+
+  let relationStatus: 'SELF' | 'FRIEND' | 'OUTGOING_PENDING' | 'INCOMING_PENDING' | 'NONE' = 'NONE';
+  if (requesterId && target.id === requesterId) {
+    relationStatus = 'SELF';
+  } else if (requesterId) {
+    try {
+      const [accepted, pending] = await Promise.all([
+        getAcceptedFriends(requesterId),
+        getFriendRequests(requesterId),
+      ]);
+      if (accepted.some((f) => f.friendId === target.id)) {
+        relationStatus = 'FRIEND';
+      } else if (pending.outgoing.some((r) => r.receiverId === target.id)) {
+        relationStatus = 'OUTGOING_PENDING';
+      } else if (pending.incoming.some((r) => r.senderId === target.id)) {
+        relationStatus = 'INCOMING_PENDING';
+      }
+    } catch {}
+
+    if (relationStatus === 'NONE') {
+      const mem = inMemoryFriendships.find(
+        (f) =>
+          (f.user_id === requesterId && f.friend_id === target.id) ||
+          (f.user_id === target.id && f.friend_id === requesterId)
+      );
+      if (mem) {
+        if (mem.status === 'ACCEPTED') relationStatus = 'FRIEND';
+        else if (mem.status === 'PENDING') {
+          relationStatus = mem.sender_id === requesterId ? 'OUTGOING_PENDING' : 'INCOMING_PENDING';
+        }
+      }
+    }
+  }
+
+  return res.json({
+    target: {
+      id: target.id,
+      displayName: target.display_name,
+      username: target.username || '',
+      avatarId: target.avatar_id || 'sultan',
+      level: Number(target.level) || 1,
+      friendCode: target.friend_code || '',
+      presenceStatus: resolveLivePresence(target.id, target.presence_status),
+      relationStatus,
+    },
+  });
 });
 
 // 2. Fetch Pending Friend Requests
@@ -140,6 +384,7 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
         f.created_at,
         p.id AS sender_id,
         p.display_name,
+        p.username,
         p.avatar_id,
         p.level,
         p.friend_code
@@ -156,6 +401,7 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
         f.created_at,
         p.id AS receiver_id,
         p.display_name,
+        p.username,
         p.avatar_id,
         p.level,
         p.friend_code
@@ -174,6 +420,7 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
         senderId: isIncoming ? r.sender_id : undefined,
         receiverId: !isIncoming ? r.receiver_id : undefined,
         displayName: r.display_name,
+        username: r.username || '',
         avatarId: r.avatar_id,
         level: r.level,
         friendCode: r.friend_code,
@@ -200,6 +447,7 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
         sender_id: f.sender_id,
         displayName: p?.display_name || 'Player',
         display_name: p?.display_name || 'Player',
+        username: p?.username || '',
         avatarId: p?.avatar_id || 'boduthakurufaanu',
         avatar_id: p?.avatar_id || 'boduthakurufaanu',
         level: p?.level || 1,
@@ -221,6 +469,7 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
         receiver_id: f.friend_id,
         displayName: p?.display_name || 'Player',
         display_name: p?.display_name || 'Player',
+        username: p?.username || '',
         avatarId: p?.avatar_id || 'boduthakurufaanu',
         avatar_id: p?.avatar_id || 'boduthakurufaanu',
         level: p?.level || 1,
@@ -232,81 +481,48 @@ friendsRouter.get('/requests', async (req: Request, res: Response) => {
   return res.json({ incoming, outgoing });
 });
 
-// 3. Send Friend Request via Friend Code
+// 3. Send Friend Request via @handle, UID, or Friend Code
 friendsRouter.post('/request', async (req: Request, res: Response) => {
-  const { profileId, friendCode } = req.body;
-  if (!profileId || !friendCode) {
-    return res.status(400).json({ error: 'profileId and friendCode are required' });
+  const { profileId, identifier, friendCode } = req.body;
+  const queryValue = String(identifier ?? friendCode ?? '').trim();
+  if (!profileId || !queryValue) {
+    return res.status(400).json({ error: 'profileId and identifier are required' });
   }
 
-  const cleanCode = friendCode.trim().toUpperCase();
-  const digitsOnly = cleanCode.replace(/^HLH-|^DIGU-/, '').trim();
-
-  let targetUser: any = null;
-
-  // 1. Check Google Cloud Firestore index
-  try {
-    const fsTarget = await getProfileByFriendCode(cleanCode);
-    if (fsTarget) {
-      targetUser = {
-        id: fsTarget.id,
-        display_name: fsTarget.display_name,
-        avatar_id: fsTarget.avatar_id,
-        level: fsTarget.level,
-        friend_code: fsTarget.friend_code,
-      };
-    }
-  } catch {}
-
-  // 2. Check PostgreSQL
-  if (!targetUser) {
-    try {
-      const targetRes = await query(
-        `SELECT id, display_name, avatar_id, level, friend_code FROM profiles 
-         WHERE UPPER(friend_code) = $1 
-            OR UPPER(friend_code) = $2 
-            OR UPPER(friend_code) = $3
-            OR (length($4) >= 4 AND UPPER(friend_code) LIKE '%' || $4)`,
-        [cleanCode, `HLH-${digitsOnly}`, `DIGU-${digitsOnly}`, digitsOnly]
-      );
-      if (targetRes?.rows?.length > 0) {
-        targetUser = targetRes.rows[0];
-      }
-    } catch {}
+  if (await isGuestAccount(profileId)) {
+    return res.status(403).json({ error: 'Sign in with Google to add friends' });
   }
 
-  // 3. Search in-memory connected profiles
+  const targetUser = await resolvePlayerByIdentifier(queryValue);
   if (!targetUser) {
-    for (const p of inMemoryProfiles.values()) {
-      const pCode = (p.friend_code || '').toUpperCase();
-      const pDigits = pCode.replace(/^HLH-|^DIGU-/, '').trim();
-
-      if (
-        pCode === cleanCode ||
-        pCode === `HLH-${digitsOnly}` ||
-        pCode === `DIGU-${digitsOnly}` ||
-        (digitsOnly.length >= 4 && pDigits === digitsOnly)
-      ) {
-        targetUser = p;
-        break;
-      }
-    }
-  }
-
-  if (!targetUser) {
-    return res.status(404).json({ error: `Player with code ${cleanCode} not found` });
+    return res.status(404).json({ error: `Player "${queryValue}" not found` });
   }
 
   if (targetUser.id === profileId) {
-    return res.status(400).json({ error: 'You cannot add your own Friend Code' });
+    return res.status(400).json({ error: 'You cannot add yourself' });
   }
 
-  // Save to Google Cloud Firestore
+  if (targetUser.login_provider === 'GUEST' || String(targetUser.id).startsWith('guest_')) {
+    return res.status(400).json({ error: 'Only Google-synced players can be added as friends' });
+  }
+
+  // Check if friendship or request already exists in Firestore or memory
   try {
-    await createFriendRequest(profileId, targetUser.id);
+    const [accepted, pending] = await Promise.all([
+      getAcceptedFriends(profileId),
+      getFriendRequests(profileId),
+    ]);
+    if (accepted.some((f) => f.friendId === targetUser.id)) {
+      return res.status(400).json({ error: 'You are already friends with this player' });
+    }
+    if (
+      pending.outgoing.some((r) => r.receiverId === targetUser.id) ||
+      pending.incoming.some((r) => r.senderId === targetUser.id)
+    ) {
+      return res.status(400).json({ error: 'A friend request is already pending between you two' });
+    }
   } catch {}
 
-  // Check if friendship or request already exists in memory
   const existingMemory = inMemoryFriendships.find(
     f =>
       (f.user_id === profileId && f.friend_id === targetUser.id) ||
@@ -322,13 +538,24 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
     }
   }
 
+  // Save to Google Cloud Firestore first to get canonical request ID
+  let requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  let createdAt = new Date().toISOString();
+  try {
+    const fsRecord = await createFriendRequest(profileId, targetUser.id);
+    if (fsRecord) {
+      requestId = fsRecord.id;
+      createdAt = fsRecord.created_at;
+    }
+  } catch {}
+
   const newReq: MemoryFriendship = {
-    id: `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: requestId,
     user_id: profileId,
     friend_id: targetUser.id,
     sender_id: profileId,
     status: 'PENDING',
-    created_at: new Date().toISOString(),
+    created_at: createdAt,
   };
   inMemoryFriendships.push(newReq);
 
@@ -341,6 +568,7 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
   } catch {}
 
   // Notify recipient in real time if connected
+  const senderMem = inMemoryProfiles.get(profileId);
   const recipientSocket = activeClients.get(targetUser.id);
   if (recipientSocket && recipientSocket.readyState === WebSocket.OPEN) {
     recipientSocket.send(
@@ -349,7 +577,9 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
         payload: {
           requestId: newReq.id,
           senderId: profileId,
-          senderName: inMemoryProfiles.get(profileId)?.display_name || 'Player',
+          senderName: senderMem?.display_name || 'Player',
+          senderUsername: senderMem?.username || '',
+          avatarId: senderMem?.avatar_id || 'sultan',
         },
       })
     );
@@ -357,8 +587,16 @@ friendsRouter.post('/request', async (req: Request, res: Response) => {
 
   return res.json({
     success: true,
+    requestId: newReq.id,
     message: `Friend request sent to ${targetUser.display_name}!`,
-    target: targetUser,
+    target: {
+      id: targetUser.id,
+      displayName: targetUser.display_name,
+      username: targetUser.username || '',
+      avatarId: targetUser.avatar_id || 'sultan',
+      level: Number(targetUser.level) || 1,
+      friendCode: targetUser.friend_code || '',
+    },
   });
 });
 
@@ -372,20 +610,50 @@ friendsRouter.post('/respond', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'requestId and accept are required' });
   }
 
-  const status = accept ? 'ACCEPTED' : 'DECLINED';
+  const accepted = Boolean(accept);
+  const status = accepted ? 'ACCEPTED' : 'DECLINED';
+  let partnerId: string | undefined;
 
-  // 1. Update Firestore
-  try {
-    await respondToRequest(requestId, !!accept);
-  } catch {}
-
+  // Lookup partner before mutating so live WS notifications work even on Firestore/PG-only requests
   const idx = inMemoryFriendships.findIndex(f => f.id === requestId);
   if (idx >= 0) {
-    inMemoryFriendships[idx].status = status;
     const reqItem = inMemoryFriendships[idx];
-    const partnerId = reqItem.user_id === profileId ? reqItem.friend_id : reqItem.user_id;
+    partnerId = reqItem.user_id === profileId ? reqItem.friend_id : reqItem.user_id;
+    if (accepted) {
+      inMemoryFriendships[idx].status = 'ACCEPTED';
+    } else {
+      inMemoryFriendships.splice(idx, 1);
+    }
+  } else if (profileId) {
+    try {
+      const pending = await getFriendRequests(profileId);
+      const match = pending.incoming.find(r => r.requestId === requestId);
+      if (match) partnerId = match.senderId;
+    } catch {}
+  }
 
-    // Notify the other user in real time
+  // Update Firestore
+  try {
+    await respondToRequest(requestId, accepted);
+  } catch {}
+
+  try {
+    if (accepted) {
+      await query(
+        `UPDATE friendships 
+         SET status = 'ACCEPTED', updated_at = now()
+         WHERE id::text = $1 AND (friend_id = $2 OR user_id = $2)`,
+        [requestId, profileId]
+      );
+    } else {
+      await query(
+        `DELETE FROM friendships WHERE id::text = $1 AND (friend_id = $2 OR user_id = $2)`,
+        [requestId, profileId]
+      );
+    }
+  } catch {}
+
+  if (partnerId) {
     const otherSocket = activeClients.get(partnerId);
     if (otherSocket && otherSocket.readyState === WebSocket.OPEN) {
       otherSocket.send(
@@ -393,7 +661,7 @@ friendsRouter.post('/respond', async (req: Request, res: Response) => {
           type: 'FRIEND_REQUEST_RESOLVED',
           payload: {
             requestId,
-            accepted: accept,
+            accepted,
             friendId: profileId,
           },
         })
@@ -401,22 +669,46 @@ friendsRouter.post('/respond', async (req: Request, res: Response) => {
     }
   }
 
+  return res.json({ success: true, status });
+});
+
+// 4b. Cancel Outgoing Friend Request
+async function handleCancelRequest(req: Request, res: Response) {
+  const requestId = req.params.requestId || req.body?.requestId || req.body?.request_id;
+  const profileId = req.body?.profileId || req.body?.profile_id || (req.query?.profileId as string);
+
+  if (!requestId || !profileId) {
+    return res.status(400).json({ error: 'requestId and profileId are required' });
+  }
+
+  const idx = inMemoryFriendships.findIndex(
+    f => f.id === requestId && f.sender_id === profileId && f.status === 'PENDING'
+  );
+  if (idx >= 0) {
+    inMemoryFriendships.splice(idx, 1);
+  }
+
+  try {
+    await cancelFriendRequest(requestId, profileId);
+  } catch {}
+
   try {
     await query(
-      `UPDATE friendships 
-       SET status = $1, updated_at = now()
-       WHERE id = $2 AND (friend_id = $3 OR user_id = $3)`,
-      [status, requestId, profileId]
+      `DELETE FROM friendships WHERE id::text = $1 AND sender_id = $2 AND status = 'PENDING'`,
+      [requestId, profileId]
     );
   } catch {}
 
-  return res.json({ success: true, status });
-});
+  return res.json({ success: true });
+}
+
+friendsRouter.post('/cancel', handleCancelRequest);
+friendsRouter.delete('/request/:requestId', handleCancelRequest);
 
 // 5. Remove Friend
 friendsRouter.delete('/:friendId', async (req: Request, res: Response) => {
   const { friendId } = req.params;
-  const profileId = req.body.profileId || req.body.profile_id;
+  const profileId = req.body?.profileId || req.body?.profile_id || (req.query?.profileId as string);
 
   if (!profileId || !friendId) {
     return res.status(400).json({ error: 'profileId and friendId are required' });
@@ -430,12 +722,26 @@ friendsRouter.delete('/:friendId', async (req: Request, res: Response) => {
   inMemoryFriendships.push(...remaining);
 
   try {
+    await removeFriendship(profileId, friendId);
+  } catch {}
+
+  try {
     await query(
       `DELETE FROM friendships 
        WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)`,
       [profileId, friendId]
     );
   } catch {}
+
+  const friendSocket = activeClients.get(friendId);
+  if (friendSocket && friendSocket.readyState === WebSocket.OPEN) {
+    friendSocket.send(
+      JSON.stringify({
+        type: 'FRIEND_REMOVED',
+        payload: { friendId: profileId },
+      })
+    );
+  }
 
   return res.json({ success: true, message: 'Friend removed' });
 });

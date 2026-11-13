@@ -110,10 +110,10 @@ class CardPainter extends CustomPainter {
     const gold = Color(0xFFD4AF37);
 
     // 3. Top-Left Index (Rank + Mini Suit)
-    _drawIndex(canvas, 11, 21, 11, 32, ink, isTop: true);
+    _drawIndex(canvas, 12, 22, 12, 34, ink, isTop: true);
 
     // 4. Bottom-Right Inverted Index
-    _drawIndex(canvas, 89, 127, 89, 116, ink, isTop: false);
+    _drawIndex(canvas, 88, 126, 88, 114, ink, isTop: false);
 
     // 5. Center Artwork
     _drawCenterArtwork(canvas, ink, gold);
@@ -129,7 +129,7 @@ class CardPainter extends CustomPainter {
 
     // Rank text
     final rankText = card.rankLabel;
-    final fontSize = rankText == '10' ? 15.0 : 17.5;
+    final fontSize = rankText == '10' ? 16.5 : 19.0;
     final textPainter = TextPainter(
       text: TextSpan(
         text: rankText,
@@ -147,7 +147,7 @@ class CardPainter extends CustomPainter {
     textPainter.paint(canvas, Offset(textX - (textPainter.width / 2), textY - (textPainter.height / 2)));
 
     // Mini suit pip
-    _drawSuit(canvas, card.suit, suitX, suitY, 0.62, ink);
+    _drawSuit(canvas, card.suit, suitX, suitY, 0.68, ink);
 
     canvas.restore();
   }

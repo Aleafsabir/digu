@@ -6,6 +6,7 @@ import 'google_auth_service.dart';
 class CloudPlayerProfile {
   final String id;
   final String displayName;
+  final String? username;
   final String avatarId;
   final String loginProvider;
   final String? googleId;
@@ -23,6 +24,7 @@ class CloudPlayerProfile {
   const CloudPlayerProfile({
     required this.id,
     required this.displayName,
+    this.username,
     this.avatarId = 'maldivian_captain',
     this.loginProvider = 'GUEST',
     this.googleId,
@@ -38,9 +40,48 @@ class CloudPlayerProfile {
     this.lastSyncedAt,
   });
 
+  CloudPlayerProfile copyWith({
+    String? id,
+    String? displayName,
+    String? username,
+    String? avatarId,
+    String? loginProvider,
+    String? googleId,
+    String? email,
+    int? coins,
+    int? gems,
+    int? level,
+    int? xp,
+    int? xpNextLevel,
+    String? friendCode,
+    Map<String, dynamic>? stats,
+    String? cloudSyncStatus,
+    String? lastSyncedAt,
+  }) {
+    return CloudPlayerProfile(
+      id: id ?? this.id,
+      displayName: displayName ?? this.displayName,
+      username: username ?? this.username,
+      avatarId: avatarId ?? this.avatarId,
+      loginProvider: loginProvider ?? this.loginProvider,
+      googleId: googleId ?? this.googleId,
+      email: email ?? this.email,
+      coins: coins ?? this.coins,
+      gems: gems ?? this.gems,
+      level: level ?? this.level,
+      xp: xp ?? this.xp,
+      xpNextLevel: xpNextLevel ?? this.xpNextLevel,
+      friendCode: friendCode ?? this.friendCode,
+      stats: stats ?? this.stats,
+      cloudSyncStatus: cloudSyncStatus ?? this.cloudSyncStatus,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'displayName': displayName,
+        if (username != null) 'username': username,
         'avatarId': avatarId,
         'loginProvider': loginProvider,
         if (googleId != null) 'googleId': googleId,
@@ -61,6 +102,7 @@ class CloudPlayerProfile {
     return CloudPlayerProfile(
       id: json['id']?.toString() ?? '',
       displayName: json['displayName'] as String? ?? 'Player',
+      username: json['username'] as String?,
       avatarId: json['avatarId'] as String? ?? 'maldivian_captain',
       loginProvider: json['loginProvider'] as String? ?? 'GOOGLE',
       googleId: json['googleId'] as String?,
@@ -119,8 +161,9 @@ class CloudSyncException implements Exception {
 
 /// Client for synchronizing player profiles and resolving local/cloud save conflicts.
 class CloudSyncService {
-  static const String _baseUrl =
+  static const String defaultBaseUrl =
       'https://holhuashi-server-710897174854.us-central1.run.app';
+  static const String _baseUrl = defaultBaseUrl;
   static const Duration _requestTimeout = Duration(seconds: 12);
 
   final http.Client _client;
@@ -236,6 +279,37 @@ class CloudSyncService {
       throw const CloudSyncException('Invalid conflict resolution response.');
     }
     return CloudPlayerProfile.fromJson(rawProfile);
+  }
+
+  /// Claims or updates the player's unique `@handle` on the cloud backend.
+  Future<String> updateHandle({
+    required String profileId,
+    required String username,
+  }) async {
+    final clean = username.trim().replaceFirst(RegExp(r'^@+'), '');
+    final uri = Uri.parse('$_apiBaseUrl/api/profile/update-handle');
+    final response = await _client
+        .post(
+          uri,
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'profileId': profileId,
+            'username': clean,
+          }),
+        )
+        .timeout(_requestTimeout);
+
+    final decoded = response.body.isNotEmpty
+        ? jsonDecode(response.body) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw CloudSyncException(
+        decoded['error'] as String? ?? 'Failed to update handle (HTTP ${response.statusCode}).',
+      );
+    }
+
+    return decoded['username'] as String? ?? clean;
   }
 
   static bool _hasMeaningfulConflict(

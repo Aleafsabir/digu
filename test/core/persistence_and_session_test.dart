@@ -482,7 +482,7 @@ void main() {
       sensory = SensoryService.instance;
     });
 
-    test('enterMatchmaking initializes Ready Gate and startMatch is blocked until ready', () async {
+    test('enterOnlineQueue opens 0-bot room; Stage-2 Ready Check & Private Start Gate work cleanly', () async {
       final notifier = GameSessionNotifier(
         persistence: persistence,
         sensory: sensory,
@@ -490,25 +490,42 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      // 1. Enter matchmaking
-      notifier.enterMatchmaking(HolhuashiGameMode.digu);
+      // 1. Online queue waits for real players (0 AI bots, Ready Check inactive until table fills)
+      notifier.enterOnlineQueue(HolhuashiGameMode.digu);
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
+      expect(notifier.state.isPrivateRoom, isFalse);
+      expect(notifier.state.fillEmptySeatsWithBots, isFalse);
+      expect(notifier.state.isReadyCheckActive, isFalse);
+      expect(notifier.state.northSeat.isOpen, isTrue);
+
+      // 2. Stage-2 Ready Check activates 15s countdown when all seats fill
+      notifier.beginStage2ReadyCheck();
       expect(notifier.state.isReadyCheckActive, isTrue);
       expect(notifier.state.southSeat.isReady, isFalse);
       expect(notifier.state.readyCheckSecondsRemaining, equals(15));
 
-      // 2. Calling startMatch while south is NOT ready is blocked
+      // 3. Accepting Ready Check marks south seat ready; declining returns to Lobby
+      await notifier.acceptReadyCheck();
+      expect(notifier.state.southSeat.isReady, isTrue);
+      notifier.declineReadyCheck();
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isReadyCheckActive, isFalse);
+
+      // 4. Private room blocks startMatch until full of humans or AI bots toggled ON
+      notifier.createPrivateRoom(HolhuashiGameMode.digu);
+      expect(notifier.state.isPrivateRoom, isTrue);
+      expect(notifier.state.canStartPrivateMatch, isFalse);
       notifier.startMatch();
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
-
-      // 3. Confirm human ready transitions to inGame once bots are ready
-      await notifier.confirmHumanReady();
-      expect(notifier.state.southSeat.isReady, isTrue);
+      notifier.setFillEmptySeatsWithBots(true);
+      expect(notifier.state.canStartPrivateMatch, isTrue);
+      notifier.startMatch();
+      expect(notifier.state.screenState, equals(AppScreenState.inGame));
 
       notifier.dispose();
     });
 
-    test('ready check timeout returns to Lobby with cancellation notification', () async {
+    test('ready check timeout returns to Lobby with notification', () async {
       // Injected fast duration of 60ms
       final notifier = GameSessionNotifier(
         persistence: persistence,
@@ -517,8 +534,9 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      notifier.enterMatchmaking(HolhuashiGameMode.bondi);
+      notifier.enterOnlineQueue(HolhuashiGameMode.bondi);
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
+      notifier.beginStage2ReadyCheck();
 
       // Wait for timer expiration
       await Future<void>.delayed(const Duration(milliseconds: 140));
@@ -526,7 +544,7 @@ void main() {
       // Should return to Lobby with notification
       expect(notifier.state.screenState, equals(AppScreenState.lobby));
       expect(notifier.state.isReadyCheckActive, isFalse);
-      expect(notifier.state.matchmakingNotification, contains('Match cancelled'));
+      expect(notifier.state.matchmakingNotification, contains('Ready check expired'));
 
       notifier.dispose();
     });
@@ -539,7 +557,8 @@ void main() {
       );
       await Future<void>.delayed(const Duration(milliseconds: 30));
 
-      notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh);
+      notifier.enterOnlineQueue(HolhuashiGameMode.dhihaeh);
+      notifier.beginStage2ReadyCheck();
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
 
       notifier.leaveWaitingRoom();

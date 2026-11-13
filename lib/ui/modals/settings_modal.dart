@@ -140,7 +140,6 @@ class SettingsModal extends ConsumerWidget {
                     _buildVolumeTile(
                       icon: Icons.volume_up,
                       title: 'Sound Effects (SFX)',
-                      subtitle: 'Card swooshes, table snaps, and fanfare',
                       value: settings.sfxVolume,
                       onChanged: (v) => notifier.setSfxVolume(v),
                     ),
@@ -150,7 +149,6 @@ class SettingsModal extends ConsumerWidget {
                     _buildVolumeTile(
                       icon: Icons.music_note,
                       title: 'Background Music (BGM)',
-                      subtitle: 'Island ambient melodies & Holhuashi lounge',
                       value: settings.bgmVolume,
                       onChanged: (v) => notifier.setBgmVolume(v),
                     ),
@@ -165,7 +163,6 @@ class SettingsModal extends ConsumerWidget {
                     _buildSwitchTile(
                       icon: Icons.vibration,
                       title: 'Tactile Haptics',
-                      subtitle: 'Crisp phone vibration on card play & Gin slam',
                       value: settings.hapticsEnabled,
                       onChanged: (v) => notifier.toggleHaptics(),
                     ),
@@ -175,7 +172,6 @@ class SettingsModal extends ConsumerWidget {
                     _buildSegmentedTile(
                       icon: Icons.screen_rotation,
                       title: 'Screen Shake',
-                      subtitle: 'Impact shudder during Gin slam & trick sweeps',
                       optionLeft: 'NORMAL',
                       optionRight: 'REDUCED',
                       isLeftSelected: settings.screenShakeEnabled,
@@ -193,7 +189,6 @@ class SettingsModal extends ConsumerWidget {
                     _buildSegmentedTile(
                       icon: Icons.speed,
                       title: 'Deal Speed',
-                      subtitle: 'Traditional Maldivian pacing vs instant dealing',
                       optionLeft: 'AUTHENTIC',
                       optionRight: 'FAST',
                       isLeftSelected: !settings.fastDealSpeed,
@@ -551,7 +546,7 @@ class SettingsModal extends ConsumerWidget {
   Widget _buildVolumeTile({
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required double value,
     required ValueChanged<double> onChanged,
   }) {
@@ -593,13 +588,14 @@ class SettingsModal extends ConsumerWidget {
                     ),
                   ],
                 ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0x88F7F0EA),
-                    fontSize: 9.5,
+                if (subtitle != null && subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0x88F7F0EA),
+                      fontSize: 9.5,
+                    ),
                   ),
-                ),
                 SliderTheme(
                   data: SliderThemeData(
                     activeTrackColor: const Color(0xFFD4AF37),
@@ -627,7 +623,7 @@ class SettingsModal extends ConsumerWidget {
   Widget _buildSwitchTile({
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
@@ -654,13 +650,14 @@ class SettingsModal extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0x88F7F0EA),
-                    fontSize: 9.5,
+                if (subtitle != null && subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0x88F7F0EA),
+                      fontSize: 9.5,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -679,7 +676,7 @@ class SettingsModal extends ConsumerWidget {
   Widget _buildSegmentedTile({
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     required String optionLeft,
     required String optionRight,
     required bool isLeftSelected,
@@ -709,13 +706,14 @@ class SettingsModal extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0x88F7F0EA),
-                    fontSize: 9.5,
+                if (subtitle != null && subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Color(0x88F7F0EA),
+                      fontSize: 9.5,
+                    ),
                   ),
-                ),
               ],
             ),
           ),

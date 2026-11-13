@@ -173,6 +173,10 @@ CREATE TABLE IF NOT EXISTS round_records (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ensure profiles supports unique @handle (username / username_lower)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS username VARCHAR(32);
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS username_lower VARCHAR(32);
+
 -- Ensure game_rooms supports 6-char alphanumeric codes, custom rules, and spectators
 ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS turn_timer_seconds INT NOT NULL DEFAULT 15;
 ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS fill_empty_seats_with_bots BOOLEAN NOT NULL DEFAULT false;
@@ -181,6 +185,7 @@ ALTER TABLE game_rooms ADD COLUMN IF NOT EXISTS spectators JSONB NOT NULL DEFAUL
 -- ============================================================================
 -- Indexes for High Concurrency Performance
 -- ============================================================================
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username_lower ON profiles(username_lower) WHERE username_lower IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_profiles_coins ON profiles(coins);
 CREATE INDEX IF NOT EXISTS idx_profiles_friend_code ON profiles(friend_code);
 CREATE INDEX IF NOT EXISTS idx_profiles_presence ON profiles(presence_status);

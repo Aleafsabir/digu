@@ -148,6 +148,7 @@ class OfflineMatchRecord {
 class LocalPlayerProfile {
   final String uuid;
   final String displayName;
+  final String? username;
   final String avatarId;
   final int coins;
   final Map<String, int> eloByMode;
@@ -156,6 +157,7 @@ class LocalPlayerProfile {
   const LocalPlayerProfile({
     required this.uuid,
     this.displayName = 'Raaveriyaa',
+    this.username,
     this.avatarId = 'maldivian_captain',
     this.coins = 2450,
     this.eloByMode = LocalPersistenceRepository.defaultEloMap,
@@ -165,6 +167,7 @@ class LocalPlayerProfile {
   LocalPlayerProfile copyWith({
     String? uuid,
     String? displayName,
+    String? username,
     String? avatarId,
     int? coins,
     Map<String, int>? eloByMode,
@@ -173,6 +176,7 @@ class LocalPlayerProfile {
     return LocalPlayerProfile(
       uuid: uuid ?? this.uuid,
       displayName: displayName ?? this.displayName,
+      username: username ?? this.username,
       avatarId: avatarId ?? this.avatarId,
       coins: coins ?? this.coins,
       eloByMode: eloByMode ?? this.eloByMode,
@@ -185,7 +189,9 @@ class LocalPlayerProfile {
 /// user sensory settings, offline match history, and active match recovery snapshot.
 class LocalPersistenceRepository {
   static const String keyGuestUuid = 'holhuashi.guest_uuid';
+  static const String keyCloudProfileId = 'holhuashi.cloud_profile_id';
   static const String keyDisplayName = 'holhuashi.display_name';
+  static const String keyUsername = 'holhuashi.username';
   static const String keyAvatarId = 'holhuashi.avatar_id';
   static const String keyCoins = 'holhuashi.coins';
   static const String keyEloMap = 'holhuashi.elo_map';
@@ -259,6 +265,7 @@ class LocalPersistenceRepository {
       await prefs.setString(keyGuestUuid, uuid);
     }
     final displayName = prefs.getString(keyDisplayName) ?? 'Raaveriyaa';
+    final username = prefs.getString(keyUsername);
     final avatarId = prefs.getString(keyAvatarId) ?? 'maldivian_captain';
     final coins = prefs.getInt(keyCoins) ?? 2450;
     final eloMap = await loadEloMap();
@@ -267,6 +274,7 @@ class LocalPersistenceRepository {
     return LocalPlayerProfile(
       uuid: uuid,
       displayName: displayName,
+      username: username,
       avatarId: avatarId,
       coins: coins,
       eloByMode: eloMap,
@@ -287,6 +295,21 @@ class LocalPersistenceRepository {
   Future<void> setDisplayName(String name) async {
     final prefs = await _getPrefs();
     await prefs.setString(keyDisplayName, name.trim().isEmpty ? 'Raaveriyaa' : name.trim());
+  }
+
+  Future<String?> getUsername() async {
+    final prefs = await _getPrefs();
+    return prefs.getString(keyUsername);
+  }
+
+  Future<void> setUsername(String? username) async {
+    final prefs = await _getPrefs();
+    final clean = username?.trim().replaceFirst(RegExp(r'^@+'), '');
+    if (clean == null || clean.isEmpty) {
+      await prefs.remove(keyUsername);
+    } else {
+      await prefs.setString(keyUsername, clean);
+    }
   }
 
   Future<String> getAvatarId() async {
@@ -419,6 +442,20 @@ class LocalPersistenceRepository {
   Future<void> clearActiveMatchSnapshot() async {
     final prefs = await _getPrefs();
     await prefs.remove(keyActiveMatchSnapshot);
+  }
+
+  Future<String?> getCloudProfileId() async {
+    final prefs = await _getPrefs();
+    return prefs.getString(keyCloudProfileId);
+  }
+
+  Future<void> setCloudProfileId(String? profileId) async {
+    final prefs = await _getPrefs();
+    if (profileId == null || profileId.trim().isEmpty) {
+      await prefs.remove(keyCloudProfileId);
+    } else {
+      await prefs.setString(keyCloudProfileId, profileId.trim());
+    }
   }
 
   Future<String?> getFriendCode() async {

@@ -10,6 +10,27 @@ export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 // In-memory fallback cache so room operations stay functional even without Postgres/Redis
 export const memoryRooms: Record<string, any> = {};
+// Shared queueKey -> roomCode index for instant matchmaking even when Redis is unavailable
+export const publicQueueRooms = new Map<string, string>();
+
+// Hooks registered by socketHandler.ts so REST /queue can emit live WS events & start timers
+export const roomEventHooks: {
+  onRoomJoined?: (room: any, info: { profileId: string; displayName: string; seatIndex: number }) => void;
+  onStartReadyCheck?: (room: any) => void;
+} = {};
+
+export function resolveMaxPlayers(mode: string, variant?: string): number {
+  const v = (variant || '').toLowerCase();
+  if (mode === 'SOLO_2P' || mode === 'DIGU_1V1' || v === '1v1') {
+    return 2;
+  }
+  return 4;
+}
+
+export function buildQueueKey(mode: string, variant: string | undefined, stake: number): string {
+  const formatKey = (variant || (mode === 'SOLO_2P' ? '1v1' : 'default')).toLowerCase();
+  return `thaasbai:queue:${mode}:${formatKey}:${stake}`;
+}
 
 /**
  * Generates an unambiguous 6-character alphanumeric room code (e.g. MLD842).
@@ -107,21 +128,25 @@ export function applyBotsToEmptySeats(room: any): void {
 export function buildRoomObject(params: {
   hostProfile: any;
   mode: string;
+  variant?: string;
   roomCode?: string;
   stakeBuyIn?: number;
   targetScore?: number;
   turnTimerSeconds?: number;
   fillEmptySeatsWithBots?: boolean;
   isPrivate?: boolean;
+  initialHostReady?: boolean;
 }): any {
   const {
     hostProfile,
     mode,
+    variant,
     stakeBuyIn,
     targetScore,
     turnTimerSeconds,
     fillEmptySeatsWithBots,
     isPrivate,
+    initialHostReady,
   } = params;
 
   const requestedCode = params.roomCode ? normalizeRoomCode(params.roomCode) : '';
@@ -130,15 +155,26 @@ export function buildRoomObject(params: {
       ? requestedCode
       : generateRoomCode(6);
 
-  const maxPlayers = mode === 'SOLO_2P' ? 2 : 4;
+  const normalizedVariant = (variant || (mode === 'SOLO_2P' ? '1v1' : mode === 'DIGU' ? '2v2' : '4p')).toLowerCase();
+  const maxPlayers = resolveMaxPlayers(mode, normalizedVariant);
+  const isTeamMode =
+    mode !== 'SOLO_2P' &&
+    mode !== 'SOLO_4P' &&
+    normalizedVariant !== '1v1' &&
+    normalizedVariant !== '4p_solo' &&
+    mode === 'DIGU';
   const stake = Number(stakeBuyIn) || 1000;
   const target = Number(targetScore) || 1000;
   const timerSeconds = Number(turnTimerSeconds) === 30 ? 30 : 15;
-  const fillBots =
-    fillEmptySeatsWithBots !== undefined ? Boolean(fillEmptySeatsWithBots) : false;
+  // Strictly enforce zero AI bots in public matchmaking rooms
+  const effectivePrivate = isPrivate !== undefined ? Boolean(isPrivate) : true;
+  const fillBots = effectivePrivate && fillEmptySeatsWithBots !== undefined
+    ? Boolean(fillEmptySeatsWithBots)
+    : false;
+  const hostReady = initialHostReady !== undefined ? Boolean(initialHostReady) : effectivePrivate;
   const roomId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-  const compassLabels = ['SOUTH', 'EAST', 'NORTH', 'WEST'];
+  const compassLabels = maxPlayers === 2 ? ['SOUTH', 'NORTH'] : ['SOUTH', 'EAST', 'NORTH', 'WEST'];
 
   const hostSeat = {
     roomId,
@@ -149,14 +185,15 @@ export function buildRoomObject(params: {
     profileId: hostProfile.id,
     player_name: hostProfile.displayName || 'Player',
     playerName: hostProfile.displayName || 'Player',
+    username: hostProfile.username || '',
     avatar_id: hostProfile.avatarId || 'sultan',
     avatarId: hostProfile.avatarId || 'sultan',
-    team_id: mode === 'SOLO_4P' || mode === 'SOLO_2P' ? null : 'TEAM_A',
-    teamId: mode === 'SOLO_4P' || mode === 'SOLO_2P' ? null : 'TEAM_A',
+    team_id: isTeamMode ? 'TEAM_A' : null,
+    teamId: isTeamMode ? 'TEAM_A' : null,
     is_bot: false,
     isBot: false,
-    is_ready: true,
-    isReady: true,
+    is_ready: hostReady,
+    isReady: hostReady,
     is_connected: true,
     isConnected: true,
     cardCount: 0,
@@ -166,17 +203,12 @@ export function buildRoomObject(params: {
 
   const emptySeats: any[] = [];
   for (let i = 1; i < maxPlayers; i++) {
-    const teamId =
-      mode === 'SOLO_4P' || mode === 'SOLO_2P'
-        ? null
-        : i % 2 === 0
-        ? 'TEAM_A'
-        : 'TEAM_B';
+    const teamId = !isTeamMode ? null : i % 2 === 0 ? 'TEAM_A' : 'TEAM_B';
     emptySeats.push({
       roomId,
       seat_index: i,
       seatIndex: i,
-      compass: compassLabels[i % 4],
+      compass: compassLabels[i % compassLabels.length],
       profile_id: null,
       profileId: null,
       player_name: `Seat ${i + 1}`,
@@ -208,6 +240,7 @@ export function buildRoomObject(params: {
     room_code: roomCode,
     roomCode,
     mode,
+    variant: normalizedVariant,
     stake_buy_in: stake,
     stakeBuyIn: stake,
     target_score: target,
@@ -226,8 +259,8 @@ export function buildRoomObject(params: {
     currentPlayerCount: 1,
     pot_total: stake,
     potTotal: stake,
-    is_private: !!isPrivate,
-    isPrivate: !!isPrivate,
+    is_private: effectivePrivate,
+    isPrivate: effectivePrivate,
     seqId: 1,
     seats: [hostSeat, ...emptySeats],
     spectators: [] as RoomSpectator[],
@@ -249,6 +282,7 @@ roomsRouter.post('/create', async (req: Request, res: Response) => {
   const {
     hostProfile,
     mode,
+    variant,
     roomCode: requestedRoomCode,
     stakeBuyIn,
     targetScore,
@@ -265,12 +299,13 @@ roomsRouter.post('/create', async (req: Request, res: Response) => {
   const fullRoom = buildRoomObject({
     hostProfile,
     mode,
+    variant,
     roomCode: requestedRoomCode,
     stakeBuyIn,
     targetScore,
     turnTimerSeconds,
     fillEmptySeatsWithBots,
-    isPrivate,
+    isPrivate: isPrivate ?? true,
   });
 
   const roomCode = fullRoom.roomCode;
@@ -598,7 +633,7 @@ roomsRouter.post('/:roomCode/rules', async (req: Request, res: Response) => {
     room.turnTimerSeconds = Number(turnTimerSeconds);
     room.turn_timer_seconds = Number(turnTimerSeconds);
   }
-  if (fillEmptySeatsWithBots !== undefined) {
+  if (fillEmptySeatsWithBots !== undefined && (room.isPrivate ?? room.is_private)) {
     room.fillEmptySeatsWithBots = Boolean(fillEmptySeatsWithBots);
     room.fill_empty_seats_with_bots = Boolean(fillEmptySeatsWithBots);
     applyBotsToEmptySeats(room);
@@ -660,27 +695,35 @@ roomsRouter.post('/queue', async (req: Request, res: Response) => {
   const {
     profile,
     mode,
+    variant,
+    format,
     stakeBuyIn,
     targetScore,
     turnTimerSeconds,
-    fillEmptySeatsWithBots,
     sessionToken,
   } = req.body;
   if (!profile || !mode) {
     return res.status(400).json({ error: 'profile and mode are required' });
   }
 
+  const normalizedVariant = String(variant || format || (mode === 'SOLO_2P' ? '1v1' : 'default')).toLowerCase();
   const stake = Number(stakeBuyIn) || 1000;
-  const maxPlayers = mode === 'SOLO_2P' ? 2 : 4;
+  const maxPlayers = resolveMaxPlayers(mode, normalizedVariant);
+  const queueKey = buildQueueKey(mode, normalizedVariant, stake);
 
-  // Check Redis for any waiting public room with matching mode & stake
-  const queueKey = `thaasbai:queue:${mode}:${stake}`;
-  const waitingRoomCode = await RedisState.get<string>(queueKey);
+  // Check in-memory queue index & Redis for any waiting public room with matching mode, format & stake
+  const waitingRoomCode =
+    publicQueueRooms.get(queueKey) || (await RedisState.get<string>(queueKey));
 
   if (waitingRoomCode) {
     const existingRoom =
-      (await RedisState.getRoom(waitingRoomCode)) || memoryRooms[waitingRoomCode];
+      memoryRooms[waitingRoomCode] || (await RedisState.getRoom(waitingRoomCode));
     if (existingRoom && existingRoom.status === 'WAITING') {
+      // Strictly enforce zero AI bots in public queues
+      existingRoom.fillEmptySeatsWithBots = false;
+      existingRoom.fill_empty_seats_with_bots = false;
+      applyBotsToEmptySeats(existingRoom);
+
       const seats = existingRoom.seats || [];
       const alreadyIn = seats.find((s: any) => (s.profileId || s.profile_id) === profile.id);
       if (alreadyIn) {
@@ -693,24 +736,28 @@ roomsRouter.post('/queue', async (req: Request, res: Response) => {
       if (openSeat) {
         openSeat.profileId = profile.id;
         openSeat.profile_id = profile.id;
-        openSeat.playerName = profile.displayName;
-        openSeat.player_name = profile.displayName;
+        openSeat.playerName = profile.displayName || 'Player';
+        openSeat.player_name = profile.displayName || 'Player';
+        openSeat.username = profile.username || '';
         openSeat.avatarId = profile.avatarId || 'sultan';
         openSeat.avatar_id = profile.avatarId || 'sultan';
-        openSeat.isReady = true;
-        openSeat.is_ready = true;
+        openSeat.isReady = false;
+        openSeat.is_ready = false;
         openSeat.isConnected = true;
         openSeat.is_connected = true;
         openSeat.joinedAt = new Date().toISOString();
 
         existingRoom.currentPlayerCount = seats.filter(
-          (s: any) => s.isConnected || s.is_connected
+          (s: any) => (s.profileId || s.profile_id) && !s.isBot && !s.is_bot
         ).length;
         existingRoom.current_player_count = existingRoom.currentPlayerCount;
         existingRoom.seqId = (existingRoom.seqId || 1) + 1;
 
-        if (existingRoom.currentPlayerCount >= maxPlayers) {
-          existingRoom.status = 'STARTING';
+        const isFull = existingRoom.currentPlayerCount >= maxPlayers;
+        if (isFull) {
+          existingRoom.status = 'READY_CHECK';
+          existingRoom.readyCheckExpiresAt = Date.now() + 15000;
+          publicQueueRooms.delete(queueKey);
           await RedisState.del(queueKey);
         }
 
@@ -725,24 +772,37 @@ roomsRouter.post('/queue', async (req: Request, res: Response) => {
           });
         }
 
+        roomEventHooks.onRoomJoined?.(existingRoom, {
+          profileId: profile.id,
+          displayName: openSeat.playerName,
+          seatIndex: openSeat.seatIndex,
+        });
+        if (isFull) {
+          roomEventHooks.onStartReadyCheck?.(existingRoom);
+        }
+
         return res.json({ success: true, room: existingRoom, seatIndex: openSeat.seatIndex });
       }
     }
   }
 
-  // No waiting room available: create a new public room with a 6-character code
+  // No waiting room available: create a new public room with 0 bots & Stage-1 waiting state
   const newRoom = buildRoomObject({
     hostProfile: profile,
     mode,
+    variant: normalizedVariant,
     stakeBuyIn: stake,
     targetScore,
     turnTimerSeconds,
-    fillEmptySeatsWithBots,
+    fillEmptySeatsWithBots: false,
     isPrivate: false,
+    initialHostReady: false,
   });
+  newRoom.queueKey = queueKey;
 
   await RedisState.saveRoom(newRoom.roomCode, newRoom);
   memoryRooms[newRoom.roomCode] = newRoom;
+  publicQueueRooms.set(queueKey, newRoom.roomCode);
   await RedisState.set(queueKey, newRoom.roomCode, 300);
 
   if (sessionToken) {

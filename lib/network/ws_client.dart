@@ -16,6 +16,9 @@ enum WsConnectionState {
 /// and typed protocol dispatchers (`ROOM_CREATE`, `ROOM_JOIN`, `READY_TOGGLE`,
 /// `ACTION_SUBMIT`, `SYNC_RECONCILE`, `QUICK_CHAT_EMOTE`).
 class HolhuashiWsClient {
+  static const String defaultServerUrl =
+      'wss://holhuashi-server-710897174854.us-central1.run.app/ws';
+
   final String serverUrl;
   final bool autoReconnect;
   final int maxReconnectAttempts;
@@ -31,6 +34,7 @@ class HolhuashiWsClient {
   bool _manualDisconnect = false;
   String? _activeRoomCode;
   String? _activeProfileId;
+  Map<String, dynamic>? _lastAuthPayload;
 
   final ValueNotifier<WsConnectionState> connectionStateNotifier =
       ValueNotifier<WsConnectionState>(WsConnectionState.disconnected);
@@ -39,7 +43,7 @@ class HolhuashiWsClient {
       StreamController<Map<String, dynamic>>.broadcast();
 
   HolhuashiWsClient({
-    this.serverUrl = 'ws://localhost:8080/ws',
+    this.serverUrl = defaultServerUrl,
     this.autoReconnect = true,
     this.maxReconnectAttempts = 8,
   });
@@ -85,6 +89,10 @@ class HolhuashiWsClient {
       );
 
       _startHeartbeat();
+
+      if (_lastAuthPayload != null) {
+        sendTyped('AUTH_INIT', _lastAuthPayload!);
+      }
 
       // Automatically reconcile state on reconnect if bound to an active room
       if (_activeRoomCode != null && _lastReceivedSeqId > 0) {
@@ -177,30 +185,156 @@ class HolhuashiWsClient {
     } catch (_) {}
   }
 
+  /// Sends a canonical `{type, clientReqId, seqId, payload}` envelope matching the backend server.
+  void sendTyped(String type, Map<String, dynamic> payload) {
+    sendRaw({
+      'type': type,
+      'payload': payload,
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Holhuashi Protocol Actions
   // ---------------------------------------------------------------------------
+
+  /// Registers the player identity on the active WebSocket and broadcasts online presence.
+  void authenticate({
+    required String profileId,
+    required String displayName,
+    String? username,
+    String? loginProvider,
+    String avatarId = 'sultan',
+    String? friendCode,
+    int level = 1,
+    String? sessionToken,
+  }) {
+    _activeProfileId = profileId;
+    final authPayload = <String, dynamic>{
+      'profileId': profileId,
+      'displayName': displayName,
+      if (username != null && username.isNotEmpty) 'username': username,
+      if (loginProvider != null) 'loginProvider': loginProvider,
+      'avatarId': avatarId,
+      if (friendCode != null && friendCode.isNotEmpty) 'friendCode': friendCode,
+      'level': level,
+      if (sessionToken != null) 'sessionToken': sessionToken,
+    };
+    _lastAuthPayload = authPayload;
+    if (isConnected) {
+      sendTyped('AUTH_INIT', authPayload);
+    }
+  }
+
+  /// Joins the public matchmaking queue for [mode] + [variant] + [stakeBuyIn] (zero bots).
+  void matchmakeJoin({
+    required Map<String, dynamic> profile,
+    required String mode,
+    String? variant,
+    int stakeBuyIn = 1000,
+    int targetScore = 1000,
+    int turnTimerSeconds = 15,
+    String? sessionToken,
+  }) {
+    _activeProfileId = profile['id']?.toString() ?? _activeProfileId;
+    sendTyped('MATCHMAKE_JOIN', {
+      'profile': profile,
+      'mode': mode,
+      if (variant != null) 'variant': variant,
+      'stakeBuyIn': stakeBuyIn,
+      'targetScore': targetScore,
+      'turnTimerSeconds': turnTimerSeconds,
+      if (sessionToken != null) 'sessionToken': sessionToken,
+    });
+  }
+
+  /// Cancels active public matchmaking or leaves a pre-game queue room cleanly.
+  void matchmakeCancel({String? roomCode, String? profileId}) {
+    final code = roomCode ?? _activeRoomCode;
+    sendTyped('MATCHMAKE_CANCEL', {
+      if (code != null) 'roomCode': code,
+      'profileId': profileId ?? _activeProfileId,
+    });
+    _activeRoomCode = null;
+  }
+
+  /// Broadcasts player presence (`IN_LOBBY`, `IN_QUEUE`, `IN_ROOM`, `IN_MATCH`).
+  void updatePresence({
+    required String status,
+    Map<String, dynamic>? matchInfo,
+  }) {
+    if (!isConnected) return;
+    sendTyped('UPDATE_PRESENCE', {
+      'status': status,
+      if (matchInfo != null) 'matchInfo': matchInfo,
+    });
+  }
+
+  /// Sends a live match invitation to an online friend.
+  void sendMatchInvite({
+    required String friendId,
+    required String roomCode,
+    String? roomId,
+    required String mode,
+    String? format,
+    int stakeBuyIn = 1000,
+    int targetScore = 1000,
+  }) {
+    sendTyped('SEND_MATCH_INVITE', {
+      'friendId': friendId,
+      if (roomId != null) 'roomId': roomId,
+      'roomCode': roomCode,
+      'mode': mode,
+      if (format != null) 'format': format,
+      'stakeBuyIn': stakeBuyIn,
+      'targetScore': targetScore,
+    });
+  }
+
+  /// Accepts or declines an incoming match invitation.
+  void respondMatchInvite({
+    required String inviteId,
+    required bool accept,
+  }) {
+    sendTyped('RESPOND_MATCH_INVITE', {
+      'inviteId': inviteId,
+      'accept': accept,
+    });
+  }
 
   /// Sends `ROOM_CREATE` to initialize a private or matchmaking table.
   void createRoom({
     required String profileId,
     required String displayName,
-    String gameMode = 'digu',
-    int targetScore = 500,
+    String? username,
+    String avatarId = 'sultan',
+    String mode = 'DIGU',
+    String? variant,
+    int stakeBuyIn = 1000,
+    int targetScore = 1000,
     int turnTimerSeconds = 15,
-    bool fillEmptySeatsWithBots = true,
+    bool fillEmptySeatsWithBots = false,
+    bool isPrivate = true,
     String? preferredRoomCode,
   }) {
     _activeProfileId = profileId;
     if (preferredRoomCode != null) _activeRoomCode = preferredRoomCode;
-    sendRaw({
-      'type': 'ROOM_CREATE',
+    sendTyped('ROOM_CREATE', {
+      'hostProfile': {
+        'id': profileId,
+        'displayName': displayName,
+        if (username != null) 'username': username,
+        'avatarId': avatarId,
+      },
       'profileId': profileId,
       'displayName': displayName,
-      'gameMode': gameMode,
+      'mode': mode,
+      'gameMode': mode.toLowerCase(),
+      if (variant != null) 'variant': variant,
+      'stakeBuyIn': stakeBuyIn,
       'targetScore': targetScore,
       'turnTimerSeconds': turnTimerSeconds,
       'fillEmptySeatsWithBots': fillEmptySeatsWithBots,
+      'isPrivate': isPrivate,
       if (preferredRoomCode != null) 'roomCode': preferredRoomCode,
     });
   }
@@ -210,13 +344,20 @@ class HolhuashiWsClient {
     required String roomCode,
     required String profileId,
     required String displayName,
+    String? username,
+    String avatarId = 'sultan',
     bool asSpectator = false,
   }) {
     _activeRoomCode = roomCode.toUpperCase();
     _activeProfileId = profileId;
-    sendRaw({
-      'type': 'ROOM_JOIN',
+    sendTyped('ROOM_JOIN', {
       'roomCode': _activeRoomCode,
+      'profile': {
+        'id': profileId,
+        'displayName': displayName,
+        if (username != null) 'username': username,
+        'avatarId': avatarId,
+      },
       'profileId': profileId,
       'displayName': displayName,
       'asSpectator': asSpectator,
@@ -227,8 +368,7 @@ class HolhuashiWsClient {
   void leaveRoom({String? roomCode}) {
     final code = roomCode ?? _activeRoomCode;
     if (code != null) {
-      sendRaw({
-        'type': 'ROOM_LEAVE',
+      sendTyped('ROOM_LEAVE', {
         'roomCode': code,
         if (_activeProfileId != null) 'profileId': _activeProfileId,
       });
@@ -242,33 +382,44 @@ class HolhuashiWsClient {
     required int seatIndex,
     String? profileId,
   }) {
-    sendRaw({
-      'type': 'SEAT_ASSIGN',
+    sendTyped('SEAT_ASSIGN', {
       'roomCode': roomCode,
       'seatIndex': seatIndex,
       'profileId': profileId ?? _activeProfileId,
     });
   }
 
-  /// Sends `READY_TOGGLE` to mark player ready/unready in the waiting room.
+  /// Sends `READY_TOGGLE` to accept/decline Ready Check or update private room toggles.
   void toggleReady({
     required String roomCode,
     required bool isReady,
+    bool? accept,
+    bool? fillEmptySeatsWithBots,
+    int? targetScore,
+    int? turnTimerSeconds,
     String? profileId,
   }) {
-    sendRaw({
-      'type': 'READY_TOGGLE',
+    sendTyped('READY_TOGGLE', {
       'roomCode': roomCode,
       'isReady': isReady,
+      if (accept != null) 'accept': accept,
+      if (fillEmptySeatsWithBots != null)
+        'fillEmptySeatsWithBots': fillEmptySeatsWithBots,
+      if (targetScore != null) 'targetScore': targetScore,
+      if (turnTimerSeconds != null) 'turnTimerSeconds': turnTimerSeconds,
       'profileId': profileId ?? _activeProfileId,
     });
   }
 
   /// Sends `MATCH_START` from the room host.
-  void startMatch({required String roomCode}) {
-    sendRaw({
-      'type': 'MATCH_START',
+  void startMatch({
+    required String roomCode,
+    bool? fillEmptySeatsWithBots,
+  }) {
+    sendTyped('MATCH_START', {
       'roomCode': roomCode,
+      if (fillEmptySeatsWithBots != null)
+        'fillEmptySeatsWithBots': fillEmptySeatsWithBots,
     });
   }
 
@@ -278,8 +429,7 @@ class HolhuashiWsClient {
     required String actionType,
     Map<String, dynamic> actionData = const {},
   }) {
-    sendRaw({
-      'type': 'ACTION_SUBMIT',
+    sendTyped('ACTION_SUBMIT', {
       'roomCode': roomCode,
       'actionType': actionType,
       'payload': actionData,
@@ -292,8 +442,7 @@ class HolhuashiWsClient {
     required String roomCode,
     int? lastSeqId,
   }) {
-    sendRaw({
-      'type': 'SYNC_RECONCILE',
+    sendTyped('SYNC_RECONCILE', {
       'roomCode': roomCode,
       'lastSeqId': lastSeqId ?? _lastReceivedSeqId,
     });
@@ -307,8 +456,7 @@ class HolhuashiWsClient {
     String? thaanaText,
     String? senderName,
   }) {
-    sendRaw({
-      'type': 'QUICK_CHAT_EMOTE',
+    sendTyped('QUICK_CHAT_EMOTE', {
       'roomCode': roomCode,
       'emoteId': emoteId,
       'text': text,

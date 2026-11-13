@@ -137,13 +137,13 @@ class DiguGameTable extends FlameGame {
   static const double virtualWidth = 1920.0;
   static const double virtualHeight = 1080.0;
 
-  static final Vector2 handCardSize = Vector2(150.0, 210.0);
-  static final Vector2 tableCardSize = Vector2(136.0, 190.0);
-  static final Vector2 opponentCardSize = Vector2(110.0, 163.0);
+  static final Vector2 handCardSize = Vector2(178.0, 264.0);
+  static final Vector2 tableCardSize = Vector2(156.0, 230.0);
+  static final Vector2 opponentCardSize = Vector2(122.0, 180.0);
 
-  static Vector2 get _tableCenter => Vector2(virtualWidth / 2, virtualHeight * 0.42);
-  static Vector2 get _stockPos => Vector2(_tableCenter.x - 140.0, _tableCenter.y);
-  static Vector2 get _discardPos => Vector2(_tableCenter.x + 140.0, _tableCenter.y);
+  static Vector2 get _tableCenter => Vector2(virtualWidth / 2, virtualHeight * 0.40);
+  static Vector2 get _stockPos => Vector2(_tableCenter.x - 155.0, _tableCenter.y);
+  static Vector2 get _discardPos => Vector2(_tableCenter.x + 155.0, _tableCenter.y);
   static Vector2 get _ginPortalPos => _tableCenter.clone();
   static Vector2 get _burnPilePos => Vector2(virtualWidth - 190.0, virtualHeight - 170.0);
 
@@ -2191,10 +2191,10 @@ class DiguGameTable extends FlameGame {
 
   List<({Vector2 pos, double angle})> _computeSouthFanTargets(int n) {
     if (n <= 0) return const [];
-    final cardStepX = n > 10 ? 92.0 : 106.0;
+    final cardStepX = n > 10 ? 108.0 : 122.0;
     final totalWidth = ((n - 1) * cardStepX) + handCardSize.x;
     final startX = (virtualWidth / 2) - (totalWidth / 2) + (handCardSize.x / 2);
-    const baseY = virtualHeight - 145.0;
+    const baseY = virtualHeight - 155.0;
     final midIndex = (n - 1) / 2.0;
 
     return List.generate(n, (i) {
@@ -2209,8 +2209,8 @@ class DiguGameTable extends FlameGame {
 
   List<Vector2> _computeNorthOppTargets(int n) {
     if (n <= 0) return const [];
-    const oppY = 72.0;
-    const oppStepX = 40.0;
+    const oppY = 82.0;
+    const oppStepX = 44.0;
     final totalWidth = ((n - 1) * oppStepX) + opponentCardSize.x;
     final startX =
         (virtualWidth / 2) - (totalWidth / 2) + (opponentCardSize.x / 2);
@@ -2653,11 +2653,11 @@ class DiguGameTable extends FlameGame {
   ({Vector2 pos, double angle}) _seatAnchor(int seat) {
     switch (seat) {
       case 0:
-        return (pos: Vector2(virtualWidth / 2, virtualHeight - 145.0), angle: 0.0);
+        return (pos: Vector2(virtualWidth / 2, virtualHeight - 155.0), angle: 0.0);
       case 1:
         return (pos: Vector2(virtualWidth - 110.0, _tableCenter.y), angle: -math.pi / 2);
       case 2:
-        return (pos: Vector2(virtualWidth / 2, 72.0), angle: 0.0);
+        return (pos: Vector2(virtualWidth / 2, 82.0), angle: 0.0);
       case 3:
       default:
         return (pos: Vector2(110.0, _tableCenter.y), angle: math.pi / 2);
@@ -2667,14 +2667,14 @@ class DiguGameTable extends FlameGame {
   Vector2 _trickSlotPos(int seat) {
     switch (seat) {
       case 0:
-        return Vector2(_tableCenter.x, _tableCenter.y + 115.0);
+        return Vector2(_tableCenter.x, _tableCenter.y + 130.0);
       case 1:
-        return Vector2(_tableCenter.x + 150.0, _tableCenter.y);
+        return Vector2(_tableCenter.x + 175.0, _tableCenter.y);
       case 2:
-        return Vector2(_tableCenter.x, _tableCenter.y - 115.0);
+        return Vector2(_tableCenter.x, _tableCenter.y - 130.0);
       case 3:
       default:
-        return Vector2(_tableCenter.x - 150.0, _tableCenter.y);
+        return Vector2(_tableCenter.x - 175.0, _tableCenter.y);
     }
   }
 
@@ -2900,7 +2900,7 @@ class _TableSurfaceComponent extends PositionComponent {
     );
 
     const centerX = DiguGameTable.virtualWidth / 2;
-    const centerY = DiguGameTable.virtualHeight * 0.42;
+    const centerY = DiguGameTable.virtualHeight * 0.40;
 
     final watermarkCircle = Paint()
       ..color = const Color(0xFFD4AF37).withValues(alpha: 0.05)
@@ -2934,7 +2934,7 @@ class _TableSurfaceComponent extends PositionComponent {
       if (_showDiscardZone) {
         _drawDropTargetRect(
           canvas,
-          Offset(centerX + 140.0, centerY),
+          Offset(centerX + 155.0, centerY),
           DiguGameTable.tableCardSize.x + 18,
           DiguGameTable.tableCardSize.y + 18,
           _discardActive ? const Color(0xFFE5C378) : const Color(0x88C84B31),
@@ -2960,15 +2960,15 @@ class _TableSurfaceComponent extends PositionComponent {
       }
     } else {
       // 4-Seat Trick Slots for Dhihaeh & Bondi
-      _drawTrickSlotMarker(canvas, Offset(centerX, centerY + 115.0));
-      _drawTrickSlotMarker(canvas, Offset(centerX + 150.0, centerY));
-      _drawTrickSlotMarker(canvas, Offset(centerX, centerY - 115.0));
-      _drawTrickSlotMarker(canvas, Offset(centerX - 150.0, centerY));
+      _drawTrickSlotMarker(canvas, Offset(centerX, centerY + 130.0));
+      _drawTrickSlotMarker(canvas, Offset(centerX + 175.0, centerY));
+      _drawTrickSlotMarker(canvas, Offset(centerX, centerY - 130.0));
+      _drawTrickSlotMarker(canvas, Offset(centerX - 175.0, centerY));
 
       if (_showSouthTrickSlot) {
         _drawDropTargetRect(
           canvas,
-          Offset(centerX, centerY + 115.0),
+          Offset(centerX, centerY + 130.0),
           DiguGameTable.tableCardSize.x + 20,
           DiguGameTable.tableCardSize.y + 20,
           _trickSlotActive ? const Color(0xFFE5C378) : const Color(0x88E5C378),

@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/audio/sensory_service.dart';
 import '../../core/services/update_service.dart';
 import '../../state/game_session_provider.dart';
+import '../modals/friends_modal.dart';
 import '../modals/settings_modal.dart';
 import '../modals/update_prompt_modal.dart';
 
-/// Main Holhuashi Lobby Screen reworked for Minimum Taps.
-///
-/// Features:
-/// - Fast Re-Entry Pill (1-Tap Quick Play routing to 15s Ready-Check Gate).
-/// - Interactive Profile & Cloud Sync Capsule (Cloud Save Synced vs Device Save Only).
-/// - 3-Column Minimum-Tap Hero Mode Cards with in-card Play Solo & Private Table actions.
-/// - Sleek dismissible matchmaking notifications banner.
-/// - Automatic, non-blocking check for application updates on launch.
+/// Main Holhuashi Lobby Screen.
 class LobbyScreen extends ConsumerStatefulWidget {
   final UpdateService? updateService;
 
@@ -28,6 +23,7 @@ class LobbyScreen extends ConsumerStatefulWidget {
 
 class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   bool _hasCheckedForUpdates = false;
+  final TextEditingController _roomCodeController = TextEditingController();
 
   @override
   void initState() {
@@ -40,25 +36,56 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _roomCodeController.dispose();
+    super.dispose();
+  }
+
   Future<void> _checkForAppUpdates() async {
     try {
       final service = widget.updateService ?? UpdateService();
       final info = await service.checkForUpdate();
       if (info != null && mounted) {
-        await UpdatePromptModal.show(context, updateInfo: info, updateService: service);
+        await UpdatePromptModal.show(
+          context,
+          updateInfo: info,
+          updateService: service,
+        );
       }
     } catch (_) {
       // Non-blocking guard for test environments and offline boots
     }
   }
 
+  String _formatStakeChip(int amount) {
+    if (amount >= 1000 && amount % 1000 == 0) {
+      return '${amount ~/ 1000}K';
+    }
+    return '$amount';
+  }
+
+  void _joinByRoomCode(GameSessionNotifier notifier) {
+    final code = _roomCodeController.text.trim().toUpperCase();
+    if (code.length < 4) return;
+    SensoryService.instance.playButtonTap();
+    SensoryService.instance.tryUnlockWebAudio();
+    FocusScope.of(context).unfocus();
+    notifier.joinPrivateRoomByCode(code);
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(gameSessionProvider);
     final notifier = ref.read(gameSessionProvider.notifier);
+    final handleOrStatus =
+        (session.username != null && session.username!.isNotEmpty)
+            ? '@${session.username}'
+            : session.authStatusLabel;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0605),
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
@@ -78,12 +105,15 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             children: [
               // 1. Top Navigation Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                 child: Row(
                   children: [
-                    // Brand Mark: Thaana + English
+                    // Brand Mark
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xF21C0A0D),
                         borderRadius: BorderRadius.circular(16),
@@ -91,12 +121,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           color: const Color(0xFFD4AF37),
                           width: 1.4,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
-                            blurRadius: 10,
-                          ),
-                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -108,7 +132,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               color: Color(0xFFD4AF37),
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
-                              letterSpacing: 0.5,
                             ),
                           ),
                           SizedBox(width: 6),
@@ -126,17 +149,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Fast Re-Entry Pill (1 TAP Quick Play through Ready Gate)
+                    // Fast Queue Re-Entry Pill
                     InkWell(
                       key: const Key('btn_quick_play'),
                       borderRadius: BorderRadius.circular(16),
                       onTap: () {
                         SensoryService.instance.playButtonTap();
                         SensoryService.instance.tryUnlockWebAudio();
-                        notifier.enterMatchmaking(session.lastPlayedMode);
+                        notifier.enterOnlineQueue(session.lastPlayedMode);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFFC84B31), Color(0xFF8B1E2B)],
@@ -146,59 +172,34 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                             color: const Color(0xFFE5C378),
                             width: 1.2,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFC84B31).withValues(alpha: 0.35),
-                              blurRadius: 8,
-                            ),
-                          ],
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '⚡ Quick Play: ${session.lastPlayedMode.name.toUpperCase()}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD4AF37),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                '1 TAP',
-                                style: TextStyle(
-                                  color: Color(0xFF0D0605),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 9,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '⚡ ${session.lastPlayedMode.name.toUpperCase()}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                            letterSpacing: 0.6,
+                          ),
                         ),
                       ),
                     ),
 
                     const Spacer(),
 
-                    // Interactive Profile & Cloud Sync Capsule
+                    // Interactive Profile & @handle Capsule
                     InkWell(
                       key: const Key('btn_profile_sync'),
                       borderRadius: BorderRadius.circular(20),
                       onTap: () {
                         SensoryService.instance.playButtonTap();
-                        _showCloudSyncModal(context, session, notifier);
+                        _showCloudSyncModal(context, notifier);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xF2170809),
                           borderRadius: BorderRadius.circular(20),
@@ -219,7 +220,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                   : const Color(0xFFD4AF37),
                               child: Text(
                                 session.displayName.isNotEmpty
-                                    ? session.displayName.substring(0, 1).toUpperCase()
+                                    ? session.displayName
+                                        .substring(0, 1)
+                                        .toUpperCase()
                                     : 'R',
                                 style: TextStyle(
                                   fontSize: 11,
@@ -244,7 +247,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                   ),
                                 ),
                                 Text(
-                                  session.authStatusLabel,
+                                  handleOrStatus,
                                   style: TextStyle(
                                     color: session.isCloudSynced
                                         ? const Color(0xFF81C784)
@@ -257,14 +260,17 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               ],
                             ),
                             const SizedBox(width: 8),
-                            // Coins pill
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF0D0405),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                                  color: const Color(0xFFD4AF37)
+                                      .withValues(alpha: 0.4),
                                 ),
                               ),
                               child: Row(
@@ -289,30 +295,66 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                     ),
                     const SizedBox(width: 8),
 
-                    // Private Table Button
-                    IconButton.filled(
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFF260A0D),
-                        foregroundColor: const Color(0xFFD4AF37),
-                        side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                        minimumSize: const Size(36, 36),
-                      ),
-                      icon: const Icon(Icons.vpn_key_rounded, size: 16),
-                      tooltip: 'Private Table',
-                      onPressed: () {
-                        SensoryService.instance.playButtonTap();
-                        SensoryService.instance.tryUnlockWebAudio();
-                        notifier.enterMatchmaking(session.selectedMode, isPrivateRoom: true);
-                      },
+                    // Friends Button + Badge
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton.filled(
+                          key: const Key('btn_friends'),
+                          style: IconButton.styleFrom(
+                            backgroundColor: const Color(0xFF260A0D),
+                            foregroundColor: const Color(0xFFD4AF37),
+                            side: const BorderSide(
+                              color: Color(0xFFD4AF37),
+                              width: 1.2,
+                            ),
+                            minimumSize: const Size(36, 36),
+                          ),
+                          icon: const Icon(Icons.people_alt_rounded, size: 17),
+                          tooltip: 'Friends',
+                          onPressed: () {
+                            SensoryService.instance.playButtonTap();
+                            FriendsModal.show(context);
+                          },
+                        ),
+                        if (session.pendingFriendRequestCount > 0)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC84B31),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFF0D0605),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Text(
+                                '${session.pendingFriendRequestCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(width: 6),
 
                     // Settings Button
                     IconButton.filled(
+                      key: const Key('btn_settings'),
                       style: IconButton.styleFrom(
                         backgroundColor: const Color(0xFF260A0D),
                         foregroundColor: const Color(0xFFF7F0EA),
-                        side: const BorderSide(color: Color(0xFF380C10), width: 1.0),
+                        side: const BorderSide(color: Color(0xFF380C10)),
                         minimumSize: const Size(36, 36),
                       ),
                       icon: const Icon(Icons.settings, size: 16),
@@ -326,14 +368,15 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
                     // Sign Out Button
                     IconButton.filled(
+                      key: const Key('btn_sign_out'),
                       style: IconButton.styleFrom(
                         backgroundColor: const Color(0xFF1E080A),
                         foregroundColor: const Color(0xFFFFA07A),
-                        side: const BorderSide(color: Color(0xFF380C10), width: 1.0),
+                        side: const BorderSide(color: Color(0xFF380C10)),
                         minimumSize: const Size(36, 36),
                       ),
                       icon: const Icon(Icons.logout, size: 16),
-                      tooltip: 'Switch Account / Sign Out',
+                      tooltip: 'Sign Out',
                       onPressed: () {
                         SensoryService.instance.playButtonTap();
                         notifier.signOut();
@@ -343,29 +386,29 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 ),
               ),
 
-              // Matchmaking Notification Banner (if any)
+              // Notification Banner (if active)
               if (session.matchmakingNotification != null)
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xEE2A0D11),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFD4AF37), width: 1.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFD4AF37).withValues(alpha: 0.2),
-                        blurRadius: 8,
-                      ),
-                    ],
+                    border: Border.all(color: const Color(0xFFD4AF37)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 16, color: Color(0xFFE5C378)),
+                      const Icon(
+                        Icons.info_outline,
+                        size: 15,
+                        color: Color(0xFFE5C378),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           session.matchmakingNotification!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Color(0xFFF7F0EA),
                             fontSize: 11,
@@ -374,7 +417,11 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, size: 16, color: Color(0xAAF7F0EA)),
+                        icon: const Icon(
+                          Icons.close,
+                          size: 15,
+                          color: Color(0xAAF7F0EA),
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () {
@@ -386,22 +433,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   ),
                 ),
 
-              // 2. Main Content: 3 Minimum-Tap Hero Mode Cards
+              // 2. Main 3 Game Mode Cards
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Mode 1: DIGU (Spelling: ޑިގު)
+                      // Mode 1: DIGU
                       Expanded(
                         child: _buildHeroModeCard(
-                          context: context,
                           mode: HolhuashiGameMode.digu,
                           thaanaTitle: 'ޑިގު',
                           englishTitle: 'DIGU',
-                          tagline: 'Authentic 10-Card Maldivian Rummy with Ace-restricted runs and Gin Slam.',
-                          chips: const ['10 Cards', 'Runs & Sets', '1,000pt 10-Run', 'Gin Slam'],
+                          iconBadge: '🎴',
                           elo: session.diguElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.digu,
                           selectorRow: _buildVariantSelectorRow<DiguTableFormat>(
@@ -418,17 +463,21 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.digu);
                           },
-                          onPlaySolo: () {
+                          onFindMatch: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.digu, isPrivateRoom: false);
+                            notifier.enterOnlineQueue(HolhuashiGameMode.digu);
                           },
-                          onPrivateTable: () {
+                          onVsAi: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.digu, isPrivateRoom: true);
+                            notifier.startOfflineAiMatch(HolhuashiGameMode.digu);
                           },
-                          iconBadge: '🎴',
+                          onPrivateRoom: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.createPrivateRoom(HolhuashiGameMode.digu);
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -436,14 +485,13 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                       // Mode 2: DHIHAEH (10s)
                       Expanded(
                         child: _buildHeroModeCard(
-                          context: context,
                           mode: HolhuashiGameMode.dhihaeh,
                           thaanaTitle: 'ދިހައެއް',
                           englishTitle: 'DHIHAEH (10s)',
-                          tagline: '4-Player 2v2 Partnership trick-taking. Dynamic trump cut & 10s capture.',
-                          chips: const ['4 Players (2v2)', '5-4-4 Batch Deal', 'Trump Cut', 'Haasbagga'],
+                          iconBadge: '🔟',
                           elo: session.dhihaehElo,
-                          isSelected: session.selectedMode == HolhuashiGameMode.dhihaeh,
+                          isSelected:
+                              session.selectedMode == HolhuashiGameMode.dhihaeh,
                           selectorRow: _buildVariantSelectorRow<DhihaehVariant>(
                             values: DhihaehVariant.values,
                             selected: session.dhihaehVariant,
@@ -460,17 +508,21 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
                           },
-                          onPlaySolo: () {
+                          onFindMatch: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh, isPrivateRoom: false);
+                            notifier.enterOnlineQueue(HolhuashiGameMode.dhihaeh);
                           },
-                          onPrivateTable: () {
+                          onVsAi: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.dhihaeh, isPrivateRoom: true);
+                            notifier.startOfflineAiMatch(HolhuashiGameMode.dhihaeh);
                           },
-                          iconBadge: '🔟',
+                          onPrivateRoom: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.createPrivateRoom(HolhuashiGameMode.dhihaeh);
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -478,12 +530,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                       // Mode 3: BONDI
                       Expanded(
                         child: _buildHeroModeCard(
-                          context: context,
                           mode: HolhuashiGameMode.bondi,
                           thaanaTitle: 'ބޮނޑި',
                           englishTitle: 'BONDI',
-                          tagline: 'Fast-paced 4-player trick-shedder. Mandatory ♠A lead & immediate Bondi cuts.',
-                          chips: const ['Trick Shed', '♠A Mandatory Lead', 'Immediate Cut', 'Last Standing'],
+                          iconBadge: '🔥',
                           elo: session.bondiElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.bondi,
                           selectorRow: _buildVariantSelectorRow<BondiVariant>(
@@ -502,17 +552,21 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.bondi);
                           },
-                          onPlaySolo: () {
+                          onFindMatch: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.bondi, isPrivateRoom: false);
+                            notifier.enterOnlineQueue(HolhuashiGameMode.bondi);
                           },
-                          onPrivateTable: () {
+                          onVsAi: () {
                             SensoryService.instance.playButtonTap();
                             SensoryService.instance.tryUnlockWebAudio();
-                            notifier.enterMatchmaking(HolhuashiGameMode.bondi, isPrivateRoom: true);
+                            notifier.startOfflineAiMatch(HolhuashiGameMode.bondi);
                           },
-                          iconBadge: '🔥',
+                          onPrivateRoom: () {
+                            SensoryService.instance.playButtonTap();
+                            SensoryService.instance.tryUnlockWebAudio();
+                            notifier.createPrivateRoom(HolhuashiGameMode.bondi);
+                          },
                         ),
                       ),
                     ],
@@ -520,7 +574,159 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 ),
               ),
 
-              const SizedBox(height: 6),
+              // 3. Bottom Bar: Stake Selector + Room Code Join
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                child: Row(
+                  children: [
+                    // Stake selector
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xF2140506),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF380C10)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'STAKE',
+                            style: TextStyle(
+                              color: Color(0x99F7F0EA),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          for (final stake in const [100, 500, 1000, 5000, 10000])
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: InkWell(
+                                key: Key('stake_$stake'),
+                                onTap: () {
+                                  SensoryService.instance.playButtonTap();
+                                  notifier.setStakeBuyIn(stake);
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: session.stakeBuyIn == stake
+                                        ? const Color(0xFFD4AF37)
+                                        : const Color(0xFF0D0405),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: session.stakeBuyIn == stake
+                                          ? const Color(0xFFE5C378)
+                                          : const Color(0xFF380C10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _formatStakeChip(stake),
+                                    style: TextStyle(
+                                      color: session.stakeBuyIn == stake
+                                          ? const Color(0xFF0D0605)
+                                          : const Color(0xCCF7F0EA),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    // Quick Join by Room Code
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xF2140506),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF380C10)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 112,
+                            height: 28,
+                            child: TextField(
+                              key: const Key('input_join_room_code'),
+                              controller: _roomCodeController,
+                              textCapitalization: TextCapitalization.characters,
+                              maxLength: 8,
+                              style: const TextStyle(
+                                color: Color(0xFFF7F0EA),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                fontFamily: 'monospace',
+                              ),
+                              decoration: const InputDecoration(
+                                counterText: '',
+                                isDense: true,
+                                hintText: 'Room Code',
+                                hintStyle: TextStyle(
+                                  color: Color(0x66F7F0EA),
+                                  fontSize: 10.5,
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                              onSubmitted: (_) => _joinByRoomCode(notifier),
+                            ),
+                          ),
+                          ElevatedButton(
+                            key: const Key('btn_join_room_code'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF260A0D),
+                              foregroundColor: const Color(0xFFE5C378),
+                              side: const BorderSide(
+                                color: Color(0xFFD4AF37),
+                                width: 1.0,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              minimumSize: const Size(52, 28),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                            ),
+                            onPressed: () => _joinByRoomCode(notifier),
+                            child: const Text(
+                              'Join',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -544,7 +750,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               onTap: () => onSelected(v),
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                height: 25,
+                height: 26,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSel
@@ -561,7 +767,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: isSel ? const Color(0xFFE5C378) : const Color(0xB3F7F0EA),
+                    color: isSel
+                        ? const Color(0xFFE5C378)
+                        : const Color(0xB3F7F0EA),
                     fontSize: 9.5,
                     fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
                   ),
@@ -575,19 +783,17 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   }
 
   Widget _buildHeroModeCard({
-    required BuildContext context,
     required HolhuashiGameMode mode,
     required String thaanaTitle,
     required String englishTitle,
-    required String tagline,
-    required List<String> chips,
+    required String iconBadge,
     required int elo,
     required bool isSelected,
-    Widget? selectorRow,
+    required Widget selectorRow,
     required VoidCallback onCardTap,
-    required VoidCallback onPlaySolo,
-    required VoidCallback onPrivateTable,
-    required String iconBadge,
+    required VoidCallback onFindMatch,
+    required VoidCallback onVsAi,
+    required VoidCallback onPrivateRoom,
   }) {
     return GestureDetector(
       onTap: onCardTap,
@@ -599,15 +805,15 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isSelected
-                ? [
-                    const Color(0xFF3B1015),
-                    const Color(0xFF23090B),
-                    const Color(0xFF140506),
+                ? const [
+                    Color(0xFF3B1015),
+                    Color(0xFF23090B),
+                    Color(0xFF140506),
                   ]
-                : [
-                    const Color(0xFF1B0709),
-                    const Color(0xFF110405),
-                    const Color(0xFF0D0304),
+                : const [
+                    Color(0xFF1B0709),
+                    Color(0xFF110405),
+                    Color(0xFF0D0304),
                   ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -618,18 +824,13 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
-                    blurRadius: 22,
-                    spreadRadius: 2,
-                  ),
-                  const BoxShadow(
-                    color: Colors.black87,
-                    blurRadius: 14,
-                    offset: Offset(0, 6),
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.30),
+                    blurRadius: 20,
+                    spreadRadius: 1,
                   ),
                 ]
-              : [
-                  const BoxShadow(
+              : const [
+                  BoxShadow(
                     color: Colors.black54,
                     blurRadius: 8,
                     offset: Offset(0, 4),
@@ -640,7 +841,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Header: Emoji Badge + ELO Pill
+            // Header row: Badge + ELO pill
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -660,7 +861,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   child: Text(iconBadge, style: const TextStyle(fontSize: 17)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFFD4AF37)
@@ -675,7 +879,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   child: Text(
                     'ELO $elo',
                     style: TextStyle(
-                      color: isSelected ? const Color(0xFF0D0605) : const Color(0xFFE5C378),
+                      color: isSelected
+                          ? const Color(0xFF0D0605)
+                          : const Color(0xFFE5C378),
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                       fontFamily: 'monospace',
@@ -684,9 +890,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
-            // Titles: Thaana & English
+            // Title row
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
@@ -695,125 +901,121 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   thaanaTitle,
                   textDirection: TextDirection.rtl,
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
+                    color: isSelected
+                        ? const Color(0xFFE5C378)
+                        : const Color(0xFFF7F0EA),
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  englishTitle,
-                  style: TextStyle(
-                    color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFFF7F0EA),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.1,
+                Flexible(
+                  child: Text(
+                    englishTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isSelected
+                          ? const Color(0xFFD4AF37)
+                          : const Color(0xFFF7F0EA),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
 
-            // Concise Tagline
-            Text(
-              tagline,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xB3F7F0EA),
-                fontSize: 10.5,
-                height: 1.25,
-                fontWeight: FontWeight.w500,
+            // Format / Variant selector pills
+            selectorRow,
+
+            const Spacer(),
+
+            // Action 1: Primary Online Find Match
+            SizedBox(
+              width: double.infinity,
+              height: 36,
+              child: ElevatedButton.icon(
+                key: Key('find_match_${mode.name}'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD4AF37),
+                  foregroundColor: const Color(0xFF0D0605),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  elevation: 3,
+                ),
+                onPressed: onFindMatch,
+                icon: const Icon(Icons.public, size: 15),
+                label: const Text(
+                  'Find Match',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Compact Badge Chips Wrap
-            Expanded(
-              child: Wrap(
-                spacing: 5,
-                runSpacing: 5,
-                children: chips.map((chip) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D0405),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
-                            : const Color(0xFF380C10),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      chip,
-                      style: const TextStyle(
-                        color: Color(0xCCF7F0EA),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-
             const SizedBox(height: 6),
 
-            if (selectorRow != null) ...[
-              selectorRow,
-              const SizedBox(height: 6),
-            ],
-
-            // In-Card Direct Action Footer: [▶ PLAY SOLO] + [👥 Private Table]
+            // Action 2 & 3: VS AI + Private Room
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     key: Key('play_solo_${mode.name}'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD4AF37),
-                      foregroundColor: const Color(0xFF0D0605),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF380C10)),
+                      backgroundColor: const Color(0xFF140506),
+                      foregroundColor: const Color(0xFFF7F0EA),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      minimumSize: const Size(0, 32),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      elevation: 4,
                     ),
-                    onPressed: onPlaySolo,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.play_arrow_rounded, size: 18),
-                        SizedBox(width: 4),
-                        Text(
-                          'PLAY SOLO',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
+                    onPressed: onVsAi,
+                    child: const Text(
+                      'VS AI',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  key: Key('private_table_${mode.name}'),
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF260A0D),
-                    foregroundColor: const Color(0xFFD4AF37),
-                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                    minimumSize: const Size(40, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: OutlinedButton(
+                    key: Key('private_table_${mode.name}'),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                        color: Color(0xFFD4AF37),
+                        width: 1.0,
+                      ),
+                      backgroundColor: const Color(0xFF260A0D),
+                      foregroundColor: const Color(0xFFE5C378),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      minimumSize: const Size(0, 32),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: onPrivateRoom,
+                    child: const Text(
+                      'Private Room',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                  icon: const Icon(Icons.group_add, size: 18),
-                  tooltip: 'Private Table (${mode.name.toUpperCase()})',
-                  onPressed: onPrivateTable,
                 ),
               ],
             ),
@@ -825,181 +1027,353 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
   void _showCloudSyncModal(
     BuildContext context,
-    GameSessionState session,
     GameSessionNotifier notifier,
   ) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 480),
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              color: const Color(0xF9160708),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFD4AF37), width: 1.8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.9),
-                  blurRadius: 32,
-                  spreadRadius: 4,
+      builder: (_) => _ProfileIdentityDialog(notifier: notifier),
+    );
+  }
+}
+
+class _ProfileIdentityDialog extends ConsumerStatefulWidget {
+  final GameSessionNotifier notifier;
+
+  const _ProfileIdentityDialog({required this.notifier});
+
+  @override
+  ConsumerState<_ProfileIdentityDialog> createState() =>
+      _ProfileIdentityDialogState();
+}
+
+class _ProfileIdentityDialogState
+    extends ConsumerState<_ProfileIdentityDialog> {
+  final TextEditingController _handleController = TextEditingController();
+  bool _editingHandle = false;
+  bool _savingHandle = false;
+  String? _feedback;
+  bool _isError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _handleController.text = ref.read(gameSessionProvider).username ?? '';
+  }
+
+  @override
+  void dispose() {
+    _handleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveHandle() async {
+    final raw = _handleController.text.trim();
+    if (raw.isEmpty) return;
+    setState(() {
+      _savingHandle = true;
+      _feedback = null;
+    });
+    try {
+      final saved = await widget.notifier.updateHandle(raw);
+      if (!mounted) return;
+      setState(() {
+        _savingHandle = false;
+        _editingHandle = false;
+        _handleController.text = saved;
+        _feedback = '@$saved saved';
+        _isError = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _savingHandle = false;
+        _feedback = e.toString();
+        _isError = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = ref.watch(gameSessionProvider);
+    final notifier = widget.notifier;
+    final uidText = session.effectiveProfileId;
+    final codeText = session.friendCode;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 460),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xF9160708),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFD4AF37), width: 1.8),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.badge_outlined, color: Color(0xFFD4AF37), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'PROFILE',
+                        style: TextStyle(
+                          color: Color(0xFFF7F0EA),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(color: Color(0xFF380C10), height: 18),
+
+              // @handle editor row (cloud accounts)
+              if (session.isCloudSynced) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D0405),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF380C10)),
+                  ),
+                  child: _editingHandle
+                      ? Row(
+                          children: [
+                            const Text(
+                              '@',
+                              style: TextStyle(
+                                color: Color(0xFFD4AF37),
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: TextField(
+                                controller: _handleController,
+                                autofocus: true,
+                                style: const TextStyle(
+                                  color: Color(0xFFF7F0EA),
+                                  fontSize: 12,
+                                ),
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                  hintText: 'handle',
+                                ),
+                                onSubmitted: (_) => _saveHandle(),
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFD4AF37),
+                                foregroundColor: const Color(0xFF0D0605),
+                                minimumSize: Size.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                              ),
+                              onPressed: _savingHandle ? null : _saveHandle,
+                              child: Text(
+                                _savingHandle ? '...' : 'Save',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Handle',
+                              style: TextStyle(
+                                color: Color(0x99F7F0EA),
+                                fontSize: 11,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => setState(() => _editingHandle = true),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    (session.username != null &&
+                                            session.username!.isNotEmpty)
+                                        ? '@${session.username}'
+                                        : 'Set @handle',
+                                    style: const TextStyle(
+                                      color: Color(0xFFE5C378),
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w800,
+                                      fontFamily: 'monospace',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Icon(
+                                    Icons.edit,
+                                    size: 13,
+                                    color: Color(0xFFD4AF37),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 6),
+              ],
+
+              _buildInfoRow(
+                'Account',
+                session.isCloudSynced
+                    ? (session.userEmail ?? session.authProvider.name.toUpperCase())
+                    : 'Guest (Local)',
+                session.isCloudSynced
+                    ? const Color(0xFF81C784)
+                    : const Color(0xFFD4AF37),
+              ),
+              const SizedBox(height: 6),
+
+              _buildCopyableRow('UID', uidText),
+              const SizedBox(height: 6),
+              if (codeText != null && codeText.isNotEmpty)
+                _buildCopyableRow('Code', codeText),
+
+              if (_feedback != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _feedback!,
+                  style: TextStyle(
+                    color: _isError
+                        ? const Color(0xFFFFA07A)
+                        : const Color(0xFF81C784),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(Icons.cloud_sync, color: Color(0xFFD4AF37), size: 22),
-                        SizedBox(width: 8),
-                        Text(
-                          'PROFILE & CLOUD SYNC',
-                          style: TextStyle(
-                            color: Color(0xFFF7F0EA),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
-                const Divider(color: Color(0xFF380C10), height: 20),
 
-                // Account Provider Info Tile
-                _buildSyncInfoRow(
-                  'Account Provider',
-                  session.authProvider.name.toUpperCase(),
-                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFFD4AF37),
-                ),
-                const SizedBox(height: 6),
+              const SizedBox(height: 16),
 
-                // Cloud Save Tile
-                _buildSyncInfoRow(
-                  'Cloud Save',
-                  session.isCloudSynced
-                      ? 'Cloud Save Synced (${session.userEmail ?? session.displayName})'
-                      : 'Device Save Only (Guest)',
-                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFFE5C378),
-                ),
-                const SizedBox(height: 6),
-
-                // Friend Code / User Identifier Tile
-                _buildSyncInfoRow(
-                  'Friend Code',
-                  session.guestUuid.length >= 8
-                      ? session.guestUuid.substring(0, 8).toUpperCase()
-                      : session.guestUuid.toUpperCase(),
-                  const Color(0xFFF7F0EA),
-                ),
-                const SizedBox(height: 6),
-
-                // Storage Backup Tile
-                _buildSyncInfoRow(
-                  'Storage Status',
-                  'Secure Offline Cache Active',
-                  const Color(0xFF00E676),
-                ),
-
-                const SizedBox(height: 18),
-
-                // Auth Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFFFFF),
-                          foregroundColor: const Color(0xFF1F1F1F),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        icon: const Icon(Icons.g_mobiledata, size: 22, color: Color(0xFF4285F4)),
-                        label: const Text(
-                          'Link Google',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-                        ),
-                        onPressed: () {
-                          SensoryService.instance.playButtonTap();
-                          notifier.signInWithGoogle();
-                          Navigator.of(ctx).pop();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E0B0E),
-                          foregroundColor: const Color(0xFFF7F0EA),
-                          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.0),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        icon: const Icon(Icons.apple, size: 18, color: Color(0xFFD4AF37)),
-                        label: const Text(
-                          'Link Apple',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-                        ),
-                        onPressed: () {
-                          SensoryService.instance.playButtonTap();
-                          notifier.signInWithApple();
-                          Navigator.of(ctx).pop();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFC84B31)),
-                        foregroundColor: const Color(0xFFFFA07A),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1F1F1F),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      icon: const Icon(
+                        Icons.g_mobiledata,
+                        size: 22,
+                        color: Color(0xFF4285F4),
+                      ),
+                      label: const Text(
+                        'Google',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       onPressed: () {
                         SensoryService.instance.playButtonTap();
-                        notifier.signOut();
-                        Navigator.of(ctx).pop();
+                        notifier.signInWithGoogle();
+                        Navigator.of(context).pop();
                       },
-                      child: const Text(
-                        'Sign Out',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E0B0E),
+                        foregroundColor: const Color(0xFFF7F0EA),
+                        side: const BorderSide(color: Color(0xFFD4AF37)),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.apple,
+                        size: 18,
+                        color: Color(0xFFD4AF37),
+                      ),
+                      label: const Text(
+                        'Apple',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      onPressed: () {
+                        SensoryService.instance.playButtonTap();
+                        notifier.signInWithApple();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFC84B31)),
+                      foregroundColor: const Color(0xFFFFA07A),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                    onPressed: () {
+                      SensoryService.instance.playButtonTap();
+                      notifier.signOut();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Sign Out',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  static Widget _buildSyncInfoRow(String label, String value, Color valColor) {
+  Widget _buildInfoRow(String label, String value, Color valColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -1012,12 +1386,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0x99F7F0EA),
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(color: Color(0x99F7F0EA), fontSize: 11),
           ),
+          const SizedBox(width: 12),
           Flexible(
             child: Text(
               value,
@@ -1032,6 +1403,60 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCopyableRow(String label, String value) {
+    return InkWell(
+      onTap: () {
+        SensoryService.instance.playButtonTap();
+        Clipboard.setData(ClipboardData(text: value));
+        setState(() {
+          _feedback = 'Copied $label';
+          _isError = false;
+        });
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0D0405),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFF380C10)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(color: Color(0x99F7F0EA), fontSize: 11),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFF7F0EA),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.copy, size: 12, color: Color(0xFFD4AF37)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

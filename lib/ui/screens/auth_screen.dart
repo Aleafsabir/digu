@@ -77,7 +77,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Cloud profile does not match your local progress. Choose which save to keep:',
+                  'Choose save to keep:',
                   style: TextStyle(
                     color: Color(0xBBF7F0EA),
                     fontSize: 11.5,
@@ -516,7 +516,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             SizedBox(width: 8),
                             Flexible(
                               child: Text(
-                                'Continue as Guest (Local Offline)',
+                                'Continue as Guest',
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12.5,

@@ -6,6 +6,7 @@ import '../core/bondi/bondi_engine.dart' show BondiVariant;
 import '../core/dhihaeh/dhihaeh_engine.dart' show DhihaehVariant;
 import '../core/digu/digu_resolver.dart' show DiguTableFormat;
 import '../core/services/cloud_sync_service.dart';
+import '../core/services/friends_service.dart';
 import '../core/services/google_auth_service.dart';
 import '../data/local_persistence.dart';
 import '../game/table_canvas.dart' show HolhuashiGameMode;
@@ -16,6 +17,15 @@ export '../core/dhihaeh/dhihaeh_engine.dart' show DhihaehVariant;
 export '../core/digu/digu_resolver.dart' show DiguTableFormat;
 export '../core/services/cloud_sync_service.dart'
     show CloudPlayerProfile, CloudProfileConflict, GoogleAuthSyncResult;
+export '../core/services/friends_service.dart'
+    show
+        FriendEntry,
+        FriendRequestEntry,
+        FriendRequestsBundle,
+        FriendsService,
+        FriendsServiceException,
+        MatchInviteEntry,
+        PlayerLookupResult;
 export '../core/services/google_auth_service.dart'
     show GoogleAuthOutcome, GoogleAuthStatus, GoogleAuthUser;
 export '../game/table_canvas.dart' show HolhuashiGameMode;
@@ -78,7 +88,9 @@ enum CompassSeat {
 /// Occupant state for a single compass seat in the Waiting Room & Table HUD.
 class SeatOccupant {
   final CompassSeat seat;
+  final String? profileId;
   final String displayName;
+  final String? username;
   final String subtitle;
   final bool isHuman;
   final bool isBot;
@@ -88,18 +100,40 @@ class SeatOccupant {
 
   const SeatOccupant({
     required this.seat,
+    this.profileId,
     required this.displayName,
+    this.username,
     required this.subtitle,
     this.isHuman = false,
-    this.isBot = true,
-    this.isReady = true,
+    this.isBot = false,
+    this.isReady = false,
     this.elo = 1250,
     this.avatarId = 'bot_island',
   });
 
+  bool get isOpen => !isHuman && !isBot;
+
+  factory SeatOccupant.open(
+    CompassSeat seat, {
+    String subtitle = 'OPEN SEAT',
+  }) {
+    return SeatOccupant(
+      seat: seat,
+      displayName: 'Open Seat',
+      subtitle: subtitle,
+      isHuman: false,
+      isBot: false,
+      isReady: false,
+      elo: 1200,
+      avatarId: 'open_seat',
+    );
+  }
+
   SeatOccupant copyWith({
     CompassSeat? seat,
+    String? profileId,
     String? displayName,
+    String? username,
     String? subtitle,
     bool? isHuman,
     bool? isBot,
@@ -109,7 +143,9 @@ class SeatOccupant {
   }) {
     return SeatOccupant(
       seat: seat ?? this.seat,
+      profileId: profileId ?? this.profileId,
       displayName: displayName ?? this.displayName,
+      username: username ?? this.username,
       subtitle: subtitle ?? this.subtitle,
       isHuman: isHuman ?? this.isHuman,
       isBot: isBot ?? this.isBot,
@@ -200,9 +236,12 @@ class GameSessionState {
   final AppScreenState screenState;
   final HolhuashiGameMode selectedMode;
   final String guestUuid;
+  final String? cloudProfileId;
   final String displayName;
+  final String? username;
   final String avatarId;
   final int coins;
+  final int stakeBuyIn;
   final Map<String, int> eloByMode;
   final String roomCode;
   final bool isPrivateRoom;
@@ -230,21 +269,30 @@ class GameSessionState {
   final DiguTableFormat diguFormat;
   final BondiVariant bondiVariant;
   final DhihaehVariant dhihaehVariant;
+  final List<FriendEntry> friends;
+  final List<FriendRequestEntry> incomingFriendRequests;
+  final List<FriendRequestEntry> outgoingFriendRequests;
+  final bool friendsLoading;
+  final String? friendsError;
+  final MatchInviteEntry? pendingMatchInvite;
 
   const GameSessionState({
     this.screenState = AppScreenState.auth,
     this.selectedMode = HolhuashiGameMode.digu,
     this.guestUuid = 'guest-local-0001',
+    this.cloudProfileId,
     this.displayName = 'Raaveriyaa',
+    this.username,
     this.avatarId = 'maldivian_captain',
     this.coins = 2450,
+    this.stakeBuyIn = 1000,
     this.eloByMode = LocalPersistenceRepository.defaultEloMap,
     this.roomCode = 'MLD842',
     this.isPrivateRoom = true,
-    this.targetScore = 500,
+    this.targetScore = 1000,
     this.turnTimerSeconds = 15,
-    this.fillEmptySeatsWithBots = true,
-    this.spectatorCount = 2,
+    this.fillEmptySeatsWithBots = false,
+    this.spectatorCount = 0,
     required this.seats,
     this.settings = const UserSettings(),
     this.activeQuickChat,
@@ -265,7 +313,50 @@ class GameSessionState {
     this.diguFormat = DiguTableFormat.partners2v2,
     this.bondiVariant = BondiVariant.standard,
     this.dhihaehVariant = DhihaehVariant.dynamicCut,
+    this.friends = const [],
+    this.incomingFriendRequests = const [],
+    this.outgoingFriendRequests = const [],
+    this.friendsLoading = false,
+    this.friendsError,
+    this.pendingMatchInvite,
   });
+
+  String get effectiveProfileId =>
+      (cloudProfileId != null && cloudProfileId!.isNotEmpty)
+          ? cloudProfileId!
+          : guestUuid;
+
+  int get requiredSeatCount =>
+      (selectedMode == HolhuashiGameMode.digu &&
+              diguFormat == DiguTableFormat.duel1v1)
+          ? 2
+          : 4;
+
+  List<CompassSeat> get activeCompassOrder => requiredSeatCount == 2
+      ? const [CompassSeat.south, CompassSeat.north]
+      : const [
+          CompassSeat.south,
+          CompassSeat.east,
+          CompassSeat.north,
+          CompassSeat.west,
+        ];
+
+  int get humanSeatCount =>
+      activeCompassOrder.where((s) => seats[s]?.isHuman == true).length;
+
+  int get filledSeatCount =>
+      activeCompassOrder.where((s) => !(seats[s]?.isOpen ?? true)).length;
+
+  bool get isTableFullOfHumans => humanSeatCount >= requiredSeatCount;
+
+  bool get canStartPrivateMatch =>
+      isPrivateRoom &&
+      southSeat.isReady &&
+      (fillEmptySeatsWithBots
+          ? allFilledSeatsReady
+          : isTableFullOfHumans && allFilledSeatsReady);
+
+  int get pendingFriendRequestCount => incomingFriendRequests.length;
 
   factory GameSessionState.initial({
     String? initialRoomCode,
@@ -283,57 +374,69 @@ class GameSessionState {
     return GameSessionState(
       screenState: screen,
       roomCode: room,
-      seats: defaultSeatsForPlayer('Raaveriyaa', 1284),
+      seats: defaultSeatsForPlayer('Raaveriyaa', 1284, fillBots: false),
     );
   }
 
   static Map<CompassSeat, SeatOccupant> defaultSeatsForPlayer(
     String playerName,
     int playerElo, {
+    String? profileId,
+    String? username,
+    String avatarId = 'maldivian_captain',
     bool southReady = false,
     bool botsReady = true,
+    bool fillBots = false,
   }) {
     return {
       CompassSeat.south: SeatOccupant(
         seat: CompassSeat.south,
+        profileId: profileId,
         displayName: playerName,
+        username: username,
         subtitle: 'YOU • HOST',
         isHuman: true,
         isBot: false,
         isReady: southReady,
         elo: playerElo,
-        avatarId: 'maldivian_captain',
+        avatarId: avatarId,
       ),
-      CompassSeat.north: SeatOccupant(
-        seat: CompassSeat.north,
-        displayName: 'Aishath',
-        subtitle: 'PARTNER • AI',
-        isHuman: false,
-        isBot: true,
-        isReady: botsReady,
-        elo: 1310,
-        avatarId: 'partner_island',
-      ),
-      CompassSeat.east: SeatOccupant(
-        seat: CompassSeat.east,
-        displayName: 'Hussain',
-        subtitle: 'EAST • AI',
-        isHuman: false,
-        isBot: true,
-        isReady: botsReady,
-        elo: 1290,
-        avatarId: 'east_island',
-      ),
-      CompassSeat.west: SeatOccupant(
-        seat: CompassSeat.west,
-        displayName: 'Ibrahim',
-        subtitle: 'WEST • AI',
-        isHuman: false,
-        isBot: true,
-        isReady: botsReady,
-        elo: 1265,
-        avatarId: 'west_island',
-      ),
+      CompassSeat.north: fillBots
+          ? SeatOccupant(
+              seat: CompassSeat.north,
+              displayName: 'Aishath',
+              subtitle: 'NORTH • AI',
+              isHuman: false,
+              isBot: true,
+              isReady: botsReady,
+              elo: 1310,
+              avatarId: 'partner_island',
+            )
+          : SeatOccupant.open(CompassSeat.north),
+      CompassSeat.east: fillBots
+          ? SeatOccupant(
+              seat: CompassSeat.east,
+              displayName: 'Hussain',
+              subtitle: 'EAST • AI',
+              isHuman: false,
+              isBot: true,
+              isReady: botsReady,
+              elo: 1290,
+              avatarId: 'east_island',
+            )
+          : SeatOccupant.open(CompassSeat.east),
+      CompassSeat.west: fillBots
+          ? SeatOccupant(
+              seat: CompassSeat.west,
+              displayName: 'Ibrahim',
+              subtitle: 'WEST • AI',
+              isHuman: false,
+              isBot: true,
+              isReady: botsReady,
+              elo: 1265,
+              avatarId: 'west_island',
+            )
+          : SeatOccupant.open(CompassSeat.west),
     };
   }
 
@@ -362,7 +465,7 @@ class GameSessionState {
       ? 'GOOGLE SYNCED'
       : authProvider == AuthProviderType.apple
           ? 'APPLE SYNCED'
-          : 'GUEST (TAP TO LINK)';
+          : 'GUEST (LOCAL ONLY)';
 
   int get diguElo => eloByMode['digu'] ?? 1284;
   int get dhihaehElo => eloByMode['dhihaeh'] ?? 1320;
@@ -387,9 +490,11 @@ class GameSessionState {
   SeatOccupant get westSeat => seats[CompassSeat.west]!;
 
   bool get allFilledSeatsReady {
-    for (final occupant in seats.values) {
-      if (!occupant.isHuman && !fillEmptySeatsWithBots) {
-        continue;
+    for (final seatKey in activeCompassOrder) {
+      final occupant = seats[seatKey];
+      if (occupant == null || occupant.isOpen) {
+        if (!fillEmptySeatsWithBots) continue;
+        return false;
       }
       if (!occupant.isReady) {
         return false;
@@ -402,9 +507,14 @@ class GameSessionState {
     AppScreenState? screenState,
     HolhuashiGameMode? selectedMode,
     String? guestUuid,
+    String? cloudProfileId,
+    bool clearCloudProfileId = false,
     String? displayName,
+    String? username,
+    bool clearUsername = false,
     String? avatarId,
     int? coins,
+    int? stakeBuyIn,
     Map<String, int>? eloByMode,
     String? roomCode,
     bool? isPrivateRoom,
@@ -437,14 +547,26 @@ class GameSessionState {
     DiguTableFormat? diguFormat,
     BondiVariant? bondiVariant,
     DhihaehVariant? dhihaehVariant,
+    List<FriendEntry>? friends,
+    List<FriendRequestEntry>? incomingFriendRequests,
+    List<FriendRequestEntry>? outgoingFriendRequests,
+    bool? friendsLoading,
+    String? friendsError,
+    bool clearFriendsError = false,
+    MatchInviteEntry? pendingMatchInvite,
+    bool clearPendingMatchInvite = false,
   }) {
     return GameSessionState(
       screenState: screenState ?? this.screenState,
       selectedMode: selectedMode ?? this.selectedMode,
       guestUuid: guestUuid ?? this.guestUuid,
+      cloudProfileId:
+          clearCloudProfileId ? null : (cloudProfileId ?? this.cloudProfileId),
       displayName: displayName ?? this.displayName,
+      username: clearUsername ? null : (username ?? this.username),
       avatarId: avatarId ?? this.avatarId,
       coins: coins ?? this.coins,
+      stakeBuyIn: stakeBuyIn ?? this.stakeBuyIn,
       eloByMode: eloByMode ?? this.eloByMode,
       roomCode: roomCode ?? this.roomCode,
       isPrivateRoom: isPrivateRoom ?? this.isPrivateRoom,
@@ -481,6 +603,17 @@ class GameSessionState {
       diguFormat: diguFormat ?? this.diguFormat,
       bondiVariant: bondiVariant ?? this.bondiVariant,
       dhihaehVariant: dhihaehVariant ?? this.dhihaehVariant,
+      friends: friends ?? this.friends,
+      incomingFriendRequests:
+          incomingFriendRequests ?? this.incomingFriendRequests,
+      outgoingFriendRequests:
+          outgoingFriendRequests ?? this.outgoingFriendRequests,
+      friendsLoading: friendsLoading ?? this.friendsLoading,
+      friendsError:
+          clearFriendsError ? null : (friendsError ?? this.friendsError),
+      pendingMatchInvite: clearPendingMatchInvite
+          ? null
+          : (pendingMatchInvite ?? this.pendingMatchInvite),
     );
   }
 }
@@ -494,11 +627,15 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   final LocalPersistenceRepository _persistence;
   final SensoryService _sensory;
   final HolhuashiWsClient _wsClient;
+  final bool _ownsWsClient;
   final GoogleAuthService _googleAuthService;
   final CloudSyncService _cloudSyncService;
+  final FriendsService _friendsService;
   final Duration _readyCheckDuration;
   Timer? _quickChatDismissTimer;
   Timer? _readyCheckTimer;
+  Timer? _inviteExpiryTimer;
+  StreamSubscription<Map<String, dynamic>>? _wsSub;
   final List<Timer> _botStaggerTimers = [];
 
   GameSessionNotifier({
@@ -507,15 +644,19 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     HolhuashiWsClient? wsClient,
     GoogleAuthService? googleAuthService,
     CloudSyncService? cloudSyncService,
+    FriendsService? friendsService,
     Duration readyCheckDuration = const Duration(seconds: 15),
     GameSessionState? initialState,
   })  : _persistence = persistence ?? LocalPersistenceRepository(),
         _sensory = sensory ?? SensoryService.instance,
-        _wsClient = wsClient ?? HolhuashiWsClient(autoReconnect: false),
+        _ownsWsClient = wsClient == null,
+        _wsClient = wsClient ?? HolhuashiWsClient(autoReconnect: true),
         _googleAuthService = googleAuthService ?? GoogleAuthService(),
         _cloudSyncService = cloudSyncService ?? CloudSyncService(),
+        _friendsService = friendsService ?? FriendsService(),
         _readyCheckDuration = readyCheckDuration,
         super(initialState ?? GameSessionState.initial()) {
+    _bindWsListeners();
     _hydrateFromStorage();
   }
 
@@ -524,24 +665,112 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   SensoryService get sensory => _sensory;
   GoogleAuthService get googleAuthService => _googleAuthService;
   CloudSyncService get cloudSyncService => _cloudSyncService;
+  FriendsService get friendsService => _friendsService;
+
+  void _bindWsListeners() {
+    _wsClient.connectionStateNotifier.addListener(_onWsConnectionChanged);
+    _wsSub = _wsClient.messages.listen(_handleWsMessage);
+  }
+
+  void _onWsConnectionChanged() {
+    if (!mounted) return;
+    final next = _wsClient.connectionStateNotifier.value;
+    if (next != state.wsConnectionState) {
+      state = state.copyWith(wsConnectionState: next);
+    }
+    if (next == WsConnectionState.connected &&
+        state.authProvider != AuthProviderType.none) {
+      _wsClient.authenticate(
+        profileId: state.effectiveProfileId,
+        displayName: state.displayName,
+        username: state.username,
+        loginProvider: state.authProvider == AuthProviderType.google
+            ? 'GOOGLE'
+            : state.authProvider == AuthProviderType.apple
+                ? 'APPLE'
+                : 'GUEST',
+        avatarId: state.avatarId,
+        friendCode: state.friendCode,
+      );
+    }
+  }
+
+  Future<void> _ensureWsAuthenticated() async {
+    if (!_wsClient.isConnected) {
+      await _wsClient.connect(profileId: state.effectiveProfileId);
+    }
+    if (!mounted) return;
+    if (_wsClient.isConnected) {
+      _wsClient.authenticate(
+        profileId: state.effectiveProfileId,
+        displayName: state.displayName,
+        username: state.username,
+        loginProvider: state.authProvider == AuthProviderType.google
+            ? 'GOOGLE'
+            : state.authProvider == AuthProviderType.apple
+                ? 'APPLE'
+                : 'GUEST',
+        avatarId: state.avatarId,
+        friendCode: state.friendCode,
+      );
+    }
+  }
+
+  String _currentVariantWireKey(HolhuashiGameMode mode) {
+    switch (mode) {
+      case HolhuashiGameMode.digu:
+        switch (state.diguFormat) {
+          case DiguTableFormat.duel1v1:
+            return '1v1';
+          case DiguTableFormat.partners2v2:
+            return '2v2';
+          case DiguTableFormat.freeForAll4p:
+            return '4p_solo';
+        }
+      case HolhuashiGameMode.bondi:
+        return state.bondiVariant.name;
+      case HolhuashiGameMode.dhihaeh:
+        return state.dhihaehVariant.name;
+    }
+  }
+
+  String _serverModeWireKey(HolhuashiGameMode mode) {
+    switch (mode) {
+      case HolhuashiGameMode.digu:
+        return 'DIGU';
+      case HolhuashiGameMode.dhihaeh:
+        return 'DHIHAEH';
+      case HolhuashiGameMode.bondi:
+        return 'BONDI';
+    }
+  }
+
+  Map<String, dynamic> _wsProfilePayload() {
+    return {
+      'id': state.effectiveProfileId,
+      'displayName': state.displayName,
+      if (state.username != null && state.username!.isNotEmpty)
+        'username': state.username,
+      'avatarId': state.avatarId,
+      'elo': state.eloForMode(state.selectedMode),
+    };
+  }
 
   Future<void> _hydrateFromStorage() async {
     try {
       final profile = await _persistence.ensureGuestProfileInitialized();
       final settings = await _persistence.loadSettings();
       final history = await _persistence.loadMatchHistory();
+      final storedCloudId = await _persistence.getCloudProfileId();
+      final storedUsername = profile.username ?? await _persistence.getUsername();
       _sensory.applySettings(settings);
 
       if (!mounted) return;
-      final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
-      final currentSouth = updatedSeats[CompassSeat.south];
-      if (currentSouth != null) {
-        updatedSeats[CompassSeat.south] = currentSouth.copyWith(
-          displayName: profile.displayName,
-          elo: profile.eloByMode[state.selectedMode.name] ?? 1284,
-        );
+      if (state.authProvider != AuthProviderType.none ||
+          state.screenState != AppScreenState.auth ||
+          state.isCloudSynced) {
+        return;
       }
-
       final parsedAuthProvider = _parseAuthProvider(settings.authProvider);
       final parsedLastPlayedMode = _parseGameMode(settings.lastPlayedMode);
       final isSignedIn = parsedAuthProvider != AuthProviderType.none;
@@ -555,9 +784,22 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
               ? AppScreenState.lobby
               : state.screenState;
 
+      final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+      final currentSouth = updatedSeats[CompassSeat.south];
+      if (currentSouth != null) {
+        updatedSeats[CompassSeat.south] = currentSouth.copyWith(
+          profileId: storedCloudId ?? profile.uuid,
+          displayName: profile.displayName,
+          username: storedUsername,
+          elo: profile.eloByMode[state.selectedMode.name] ?? 1284,
+        );
+      }
+
       state = state.copyWith(
         guestUuid: profile.uuid,
+        cloudProfileId: storedCloudId,
         displayName: profile.displayName,
+        username: storedUsername,
         avatarId: profile.avatarId,
         coins: profile.coins,
         eloByMode: profile.eloByMode,
@@ -572,6 +814,11 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         lastPlayedMode: parsedLastPlayedMode,
         screenState: nextScreenState,
       );
+
+      if (restoredCloudSync == CloudSyncState.synced) {
+        unawaited(_ensureWsAuthenticated());
+        unawaited(refreshFriendsAndRequests());
+      }
     } catch (_) {
       // Safe fallback in test environments where SharedPreferences mock is not yet set
     }
@@ -611,8 +858,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     final totalGames = state.matchHistory.length;
     final totalWins = state.matchHistory.where((m) => m.won).length;
     return CloudPlayerProfile(
-      id: state.guestUuid,
+      id: state.effectiveProfileId,
       displayName: state.displayName,
+      username: state.username,
       avatarId: state.avatarId,
       loginProvider:
           state.authProvider == AuthProviderType.google ? 'GOOGLE' : 'GUEST',
@@ -634,6 +882,12 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     final resolvedName = profile.displayName.trim().isNotEmpty
         ? profile.displayName.trim()
         : state.displayName;
+    final resolvedUsername =
+        (profile.username != null && profile.username!.trim().isNotEmpty)
+            ? profile.username!.trim()
+            : state.username;
+    final resolvedCloudId =
+        profile.id.trim().isNotEmpty ? profile.id.trim() : state.cloudProfileId;
     final resolvedEmail =
         (profile.email != null && profile.email!.trim().isNotEmpty)
             ? profile.email!.trim()
@@ -643,15 +897,19 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     final south = updatedSeats[CompassSeat.south];
     if (south != null) {
       updatedSeats[CompassSeat.south] = south.copyWith(
+        profileId: resolvedCloudId ?? state.effectiveProfileId,
         displayName: resolvedName,
+        username: resolvedUsername,
       );
     }
 
     state = state.copyWith(
       authProvider: AuthProviderType.google,
       cloudSyncState: CloudSyncState.synced,
+      cloudProfileId: resolvedCloudId,
       userEmail: resolvedEmail,
       displayName: resolvedName,
+      username: resolvedUsername,
       avatarId: profile.avatarId,
       coins: profile.coins,
       friendCode: profile.friendCode ?? state.friendCode,
@@ -670,6 +928,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       ),
     );
     try {
+      await _persistence.setCloudProfileId(resolvedCloudId);
+      await _persistence.setUsername(resolvedUsername);
       await _persistence.setDisplayName(resolvedName);
       await _persistence.setAvatarId(profile.avatarId);
       await _persistence.setCoins(profile.coins);
@@ -677,6 +937,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         await _persistence.setFriendCode(profile.friendCode);
       }
     } catch (_) {}
+
+    unawaited(_ensureWsAuthenticated());
+    unawaited(refreshFriendsAndRequests());
   }
 
   Future<bool> signInWithGoogle() async {
@@ -872,13 +1135,21 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   Future<void> signOut() async {
     _sensory.selectionClick();
     _cancelReadyGateTimers();
+    _inviteExpiryTimer?.cancel();
+    unawaited(_wsClient.disconnect());
     await _googleAuthService.signOut();
     if (!mounted) return;
 
     state = state.copyWith(
       authProvider: AuthProviderType.none,
       cloudSyncState: CloudSyncState.offlineLocal,
+      clearCloudProfileId: true,
+      clearUsername: true,
       clearUserEmail: true,
+      friends: const [],
+      incomingFriendRequests: const [],
+      outgoingFriendRequests: const [],
+      clearPendingMatchInvite: true,
       authBusy: false,
       clearAuthErrorMessage: true,
       clearPendingCloudConflict: true,
@@ -886,9 +1157,16 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
       screenState: AppScreenState.auth,
     );
 
+    try {
+      await _persistence.setCloudProfileId(null);
+      await _persistence.setUsername(null);
+    } catch (_) {}
+
     await _updateSettings(
       state.settings.copyWith(
         authProvider: 'none',
+        googleLinked: false,
+        appleLinked: false,
         clearUserEmail: true,
       ),
     );
@@ -919,22 +1197,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     _botStaggerTimers.clear();
   }
 
-  void _tryCompleteReadyGate() {
-    if (!mounted) return;
-    if (!state.isReadyCheckActive ||
-        state.screenState != AppScreenState.waitingRoom) {
-      return;
-    }
-    if (!state.southSeat.isReady || !state.allFilledSeatsReady) {
-      return;
-    }
-    _cancelReadyGateTimers();
-    _sensory.mediumImpact();
-    _wsClient.startMatch(roomCode: state.roomCode);
-    state = state.copyWith(
-      isReadyCheckActive: false,
-      screenState: AppScreenState.inGame,
-    );
+  void setStakeBuyIn(int stake) {
+    _sensory.selectionClick();
+    state = state.copyWith(stakeBuyIn: stake);
   }
 
   void selectGameMode(HolhuashiGameMode mode) {
@@ -955,6 +1220,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   void goToLobby() {
     _sensory.selectionClick();
     _cancelReadyGateTimers();
+    if (_wsClient.isConnected) {
+      _wsClient.updatePresence(status: 'IN_LOBBY');
+    }
     state = state.copyWith(
       isReadyCheckActive: false,
       readyCheckSecondsRemaining: _initialReadyCheckSeconds,
@@ -964,65 +1232,222 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
 
   void returnToLobby() => goToLobby();
 
-  void enterMatchmaking(
-    HolhuashiGameMode mode, {
-    bool isPrivateRoom = false,
-  }) {
+  /// Instant offline solo AI table launch (zero matchmaking queue delay).
+  void startOfflineAiMatch([HolhuashiGameMode? mode]) {
+    _sensory.mediumImpact();
+    _cancelReadyGateTimers();
+    final nextMode = mode ?? state.selectedMode;
+    final seats = GameSessionState.defaultSeatsForPlayer(
+      state.displayName,
+      state.eloForMode(nextMode),
+      profileId: state.effectiveProfileId,
+      username: state.username,
+      avatarId: state.avatarId,
+      southReady: true,
+      botsReady: true,
+      fillBots: true,
+    );
+
+    state = state.copyWith(
+      selectedMode: nextMode,
+      lastPlayedMode: nextMode,
+      isPrivateRoom: false,
+      fillEmptySeatsWithBots: true,
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      seats: seats,
+      clearMatchmakingNotification: true,
+      screenState: AppScreenState.inGame,
+    );
+
+    unawaited(
+      _updateSettings(
+        state.settings.copyWith(lastPlayedMode: nextMode.name),
+      ),
+    );
+    if (_wsClient.isConnected) {
+      _wsClient.updatePresence(
+        status: 'IN_MATCH',
+        matchInfo: {
+          'mode': _serverModeWireKey(nextMode),
+          'variant': _currentVariantWireKey(nextMode),
+        },
+      );
+    }
+  }
+
+  /// Stage-1 Online Public Queue: strictly 0 AI bots, real players only.
+  void enterOnlineQueue([HolhuashiGameMode? mode]) {
+    _sensory.lightImpact();
+    _cancelReadyGateTimers();
+    final nextMode = mode ?? state.selectedMode;
+    final seats = GameSessionState.defaultSeatsForPlayer(
+      state.displayName,
+      state.eloForMode(nextMode),
+      profileId: state.effectiveProfileId,
+      username: state.username,
+      avatarId: state.avatarId,
+      southReady: false,
+      fillBots: false,
+    );
+
+    state = state.copyWith(
+      selectedMode: nextMode,
+      lastPlayedMode: nextMode,
+      isPrivateRoom: false,
+      fillEmptySeatsWithBots: false,
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      seats: seats,
+      clearMatchmakingNotification: true,
+      screenState: AppScreenState.waitingRoom,
+    );
+
+    unawaited(
+      _updateSettings(
+        state.settings.copyWith(lastPlayedMode: nextMode.name),
+      ),
+    );
+    unawaited(_connectAndJoinPublicQueue(nextMode));
+  }
+
+  Future<void> _connectAndJoinPublicQueue(HolhuashiGameMode mode) async {
+    await _ensureWsAuthenticated();
+    if (!mounted ||
+        state.screenState != AppScreenState.waitingRoom ||
+        state.isPrivateRoom) {
+      return;
+    }
+    if (_wsClient.isConnected) {
+      _wsClient.matchmakeJoin(
+        profile: _wsProfilePayload(),
+        mode: _serverModeWireKey(mode),
+        variant: _currentVariantWireKey(mode),
+        stakeBuyIn: state.stakeBuyIn,
+        targetScore: state.targetScore,
+        turnTimerSeconds: state.turnTimerSeconds,
+      );
+    }
+  }
+
+  /// Creates a Private Room with open seats by default (AI fill opt-in only).
+  void createPrivateRoom([HolhuashiGameMode? mode]) {
+    _sensory.lightImpact();
+    _cancelReadyGateTimers();
+    final nextMode = mode ?? state.selectedMode;
+    final nextCode = generateRoomCode();
+    final seats = GameSessionState.defaultSeatsForPlayer(
+      state.displayName,
+      state.eloForMode(nextMode),
+      profileId: state.effectiveProfileId,
+      username: state.username,
+      avatarId: state.avatarId,
+      southReady: true,
+      fillBots: false,
+    );
+
+    state = state.copyWith(
+      selectedMode: nextMode,
+      lastPlayedMode: nextMode,
+      roomCode: nextCode,
+      isPrivateRoom: true,
+      fillEmptySeatsWithBots: false,
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      seats: seats,
+      clearMatchmakingNotification: true,
+      screenState: AppScreenState.waitingRoom,
+    );
+
+    unawaited(
+      _updateSettings(
+        state.settings.copyWith(lastPlayedMode: nextMode.name),
+      ),
+    );
+    unawaited(_connectAndCreatePrivateRoom(nextMode, nextCode));
+  }
+
+  Future<void> _connectAndCreatePrivateRoom(
+    HolhuashiGameMode mode,
+    String code,
+  ) async {
+    await _ensureWsAuthenticated();
+    if (!mounted ||
+        state.screenState != AppScreenState.waitingRoom ||
+        !state.isPrivateRoom) {
+      return;
+    }
+    if (_wsClient.isConnected) {
+      _wsClient.createRoom(
+        profileId: state.effectiveProfileId,
+        displayName: state.displayName,
+        username: state.username,
+        avatarId: state.avatarId,
+        mode: _serverModeWireKey(mode),
+        variant: _currentVariantWireKey(mode),
+        stakeBuyIn: state.stakeBuyIn,
+        targetScore: state.targetScore,
+        turnTimerSeconds: state.turnTimerSeconds,
+        fillEmptySeatsWithBots: state.fillEmptySeatsWithBots,
+        isPrivate: true,
+        preferredRoomCode: code,
+      );
+    }
+  }
+
+  /// Joins an existing Private Room by 4- or 6-character code.
+  Future<void> joinPrivateRoomByCode(String rawCode) async {
+    final cleaned = rawCode.trim().toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    if (cleaned.length < 4 || cleaned.length > 6) {
+      state = state.copyWith(
+        matchmakingNotification: 'Enter a valid 6-character room code.',
+      );
+      return;
+    }
     _sensory.lightImpact();
     _cancelReadyGateTimers();
 
     final seats = GameSessionState.defaultSeatsForPlayer(
       state.displayName,
-      state.eloForMode(mode),
-      southReady: false,
-      botsReady: !state.fillEmptySeatsWithBots,
+      state.eloForMode(state.selectedMode),
+      profileId: state.effectiveProfileId,
+      username: state.username,
+      avatarId: state.avatarId,
+      southReady: true,
+      fillBots: false,
     );
-    final initialSeconds = _initialReadyCheckSeconds;
 
     state = state.copyWith(
-      selectedMode: mode,
-      lastPlayedMode: mode,
-      isPrivateRoom: isPrivateRoom,
+      roomCode: cleaned,
+      isPrivateRoom: true,
+      fillEmptySeatsWithBots: false,
+      isReadyCheckActive: false,
       seats: seats,
-      screenState: AppScreenState.waitingRoom,
-      isReadyCheckActive: true,
-      readyCheckSecondsRemaining: initialSeconds,
       clearMatchmakingNotification: true,
+      screenState: AppScreenState.waitingRoom,
     );
 
-    unawaited(
-      _updateSettings(
-        state.settings.copyWith(lastPlayedMode: mode.name),
-      ),
-    );
-
-    if (state.fillEmptySeatsWithBots) {
-      final totalMs = _readyCheckDuration.inMilliseconds;
-      final botOrder = [
-        CompassSeat.north,
-        CompassSeat.east,
-        CompassSeat.west,
-      ];
-      for (var i = 0; i < botOrder.length; i++) {
-        final seat = botOrder[i];
-        final proportionalMs = ((totalMs * 0.15) * (i + 1)).round();
-        final delayMs = math.max(10, math.min(350 * (i + 1), proportionalMs));
-        final timer = Timer(Duration(milliseconds: delayMs), () {
-          if (!mounted ||
-              !state.isReadyCheckActive ||
-              state.screenState != AppScreenState.waitingRoom) {
-            return;
-          }
-          final currentBot = state.seats[seat];
-          if (currentBot == null) return;
-          final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
-          updated[seat] = currentBot.copyWith(isReady: true);
-          state = state.copyWith(seats: updated);
-          _tryCompleteReadyGate();
-        });
-        _botStaggerTimers.add(timer);
-      }
+    await _ensureWsAuthenticated();
+    if (!mounted || state.screenState != AppScreenState.waitingRoom) return;
+    if (_wsClient.isConnected) {
+      _wsClient.joinRoom(
+        roomCode: cleaned,
+        profileId: state.effectiveProfileId,
+        displayName: state.displayName,
+        username: state.username,
+        avatarId: state.avatarId,
+      );
     }
+  }
+
+  /// Starts Stage-2 Ready Check countdown for the current waiting table.
+  void beginStage2ReadyCheck({int? seconds}) {
+    _cancelReadyGateTimers();
+    final startSeconds = seconds ?? _initialReadyCheckSeconds;
+    state = state.copyWith(
+      isReadyCheckActive: true,
+      readyCheckSecondsRemaining: startSeconds,
+    );
 
     final tickInterval = _readyCheckDuration.inSeconds >= 1
         ? const Duration(seconds: 1)
@@ -1047,11 +1472,16 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
             readyCheckSecondsRemaining: 0,
             isReadyCheckActive: false,
             matchmakingNotification:
-                'Match cancelled — tap Ready within 15 seconds to enter the table.',
+                'Ready check expired. Returned to lobby.',
             screenState: AppScreenState.lobby,
           );
         } else {
-          state = state.copyWith(readyCheckSecondsRemaining: 0);
+          state = state.copyWith(
+            readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+            isReadyCheckActive: false,
+            matchmakingNotification:
+                'Opponent did not accept. Returned to queue.',
+          );
         }
       } else {
         state = state.copyWith(readyCheckSecondsRemaining: nextSeconds);
@@ -1059,25 +1489,85 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     });
   }
 
-  Future<void> confirmHumanReady() async {
+  /// Accepts Stage-2 Match Ready Check.
+  Future<void> acceptReadyCheck() async {
     _sensory.selectionClick();
     if (state.screenState != AppScreenState.waitingRoom) return;
     final current = state.seats[CompassSeat.south];
     if (current == null) return;
 
-    if (!current.isReady) {
-      final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
-      updated[CompassSeat.south] = current.copyWith(isReady: true);
-      state = state.copyWith(seats: updated);
-      _wsClient.toggleReady(roomCode: state.roomCode, isReady: true);
+    final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    updated[CompassSeat.south] = current.copyWith(isReady: true);
+    state = state.copyWith(seats: updated);
+
+    if (_wsClient.isConnected) {
+      _wsClient.toggleReady(
+        roomCode: state.roomCode,
+        isReady: true,
+        accept: true,
+        profileId: state.effectiveProfileId,
+      );
     }
 
-    _tryCompleteReadyGate();
+    if (state.isReadyCheckActive &&
+        state.isTableFullOfHumans &&
+        state.allFilledSeatsReady) {
+      _cancelReadyGateTimers();
+      _sensory.mediumImpact();
+      state = state.copyWith(
+        isReadyCheckActive: false,
+        screenState: AppScreenState.inGame,
+      );
+    }
+  }
+
+  /// Declines Stage-2 Match Ready Check and returns cleanly to Lobby.
+  void declineReadyCheck() {
+    _sensory.selectionClick();
+    _cancelReadyGateTimers();
+    if (_wsClient.isConnected) {
+      _wsClient.toggleReady(
+        roomCode: state.roomCode,
+        isReady: false,
+        accept: false,
+        profileId: state.effectiveProfileId,
+      );
+      _wsClient.updatePresence(status: 'IN_LOBBY');
+    }
+    state = state.copyWith(
+      isReadyCheckActive: false,
+      readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+      screenState: AppScreenState.lobby,
+    );
+  }
+
+  Future<void> confirmHumanReady() => acceptReadyCheck();
+
+  void enterMatchmaking(
+    HolhuashiGameMode mode, {
+    bool isPrivateRoom = false,
+  }) {
+    if (isPrivateRoom) {
+      createPrivateRoom(mode);
+    } else {
+      enterOnlineQueue(mode);
+    }
   }
 
   void leaveWaitingRoom() {
     _sensory.selectionClick();
     _cancelReadyGateTimers();
+    if (_wsClient.isConnected) {
+      if (state.isPrivateRoom) {
+        _wsClient.leaveRoom(roomCode: state.roomCode);
+      } else {
+        _wsClient.matchmakeCancel(
+          roomCode: state.roomCode,
+          profileId: state.effectiveProfileId,
+        );
+      }
+      _wsClient.updatePresence(status: 'IN_LOBBY');
+    }
     state = state.copyWith(
       isReadyCheckActive: false,
       readyCheckSecondsRemaining: _initialReadyCheckSeconds,
@@ -1095,13 +1585,16 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     bool isPrivate = true,
   }) {
     final nextMode = mode ?? state.selectedMode;
-    final nextCode = (roomCode != null && roomCode.trim().isNotEmpty)
-        ? roomCode.trim().toUpperCase()
-        : state.roomCode;
-    if (nextCode != state.roomCode) {
-      state = state.copyWith(roomCode: nextCode);
+    if (isPrivate) {
+      if (roomCode != null && roomCode.trim().isNotEmpty) {
+        state = state.copyWith(selectedMode: nextMode);
+        unawaited(joinPrivateRoomByCode(roomCode));
+      } else {
+        createPrivateRoom(nextMode);
+      }
+    } else {
+      enterOnlineQueue(nextMode);
     }
-    enterMatchmaking(nextMode, isPrivateRoom: isPrivate);
   }
 
   void openWaitingRoom({HolhuashiGameMode? mode, String? roomCode}) {
@@ -1109,24 +1602,25 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   }
 
   void startOnlineMatchmaking([HolhuashiGameMode? mode]) {
-    goToWaitingRoom(
-      mode: mode ?? state.selectedMode,
-      roomCode: state.roomCode,
-      isPrivate: false,
-    );
+    enterOnlineQueue(mode ?? state.selectedMode);
   }
 
   void startSoloMatch([HolhuashiGameMode? mode]) {
-    enterMatchmaking(mode ?? state.selectedMode, isPrivateRoom: false);
+    startOfflineAiMatch(mode ?? state.selectedMode);
   }
 
   void startMatch() {
-    if (!state.southSeat.isReady || !state.allFilledSeatsReady) {
+    if (!state.canStartPrivateMatch) {
       return;
     }
     _cancelReadyGateTimers();
     _sensory.mediumImpact();
-    _wsClient.startMatch(roomCode: state.roomCode);
+    if (_wsClient.isConnected) {
+      _wsClient.startMatch(
+        roomCode: state.roomCode,
+        fillEmptySeatsWithBots: state.fillEmptySeatsWithBots,
+      );
+    }
     state = state.copyWith(
       isReadyCheckActive: false,
       screenState: AppScreenState.inGame,
@@ -1134,7 +1628,7 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
   }
 
   void enterGame([HolhuashiGameMode? mode]) {
-    startSoloMatch(mode);
+    startOfflineAiMatch(mode);
   }
 
   // ---------------------------------------------------------------------------
@@ -1145,6 +1639,9 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     _sensory.selectionClick();
     final newCode = generateRoomCode();
     state = state.copyWith(roomCode: newCode);
+    if (state.isPrivateRoom && _wsClient.isConnected) {
+      unawaited(_connectAndCreatePrivateRoom(state.selectedMode, newCode));
+    }
     return newCode;
   }
 
@@ -1158,6 +1655,13 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     if (score != 500 && score != 1000) return;
     _sensory.selectionClick();
     state = state.copyWith(targetScore: score);
+    if (state.isPrivateRoom && _wsClient.isConnected) {
+      _wsClient.toggleReady(
+        roomCode: state.roomCode,
+        isReady: state.southSeat.isReady,
+        targetScore: score,
+      );
+    }
   }
 
   void toggleTargetScore() {
@@ -1186,15 +1690,67 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     if (seconds != 15 && seconds != 30) return;
     _sensory.selectionClick();
     state = state.copyWith(turnTimerSeconds: seconds);
+    if (state.isPrivateRoom && _wsClient.isConnected) {
+      _wsClient.toggleReady(
+        roomCode: state.roomCode,
+        isReady: state.southSeat.isReady,
+        turnTimerSeconds: seconds,
+      );
+    }
   }
 
   void toggleTurnTimer() {
     setTurnTimer(state.turnTimerSeconds == 15 ? 30 : 15);
   }
 
+  /// Only applicable in Private Rooms: toggles AI bots in currently empty seats.
   void setFillEmptySeatsWithBots(bool enabled) {
+    if (!state.isPrivateRoom) return;
     _sensory.selectionClick();
-    state = state.copyWith(fillEmptySeatsWithBots: enabled);
+    const botNames = <CompassSeat, String>{
+      CompassSeat.north: 'Aishath',
+      CompassSeat.east: 'Hussain',
+      CompassSeat.west: 'Ibrahim',
+    };
+    const botAvatars = <CompassSeat, String>{
+      CompassSeat.north: 'partner_island',
+      CompassSeat.east: 'east_island',
+      CompassSeat.west: 'west_island',
+    };
+
+    final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    for (final compass in state.activeCompassOrder) {
+      if (compass == CompassSeat.south) continue;
+      final current = updatedSeats[compass];
+      if (current != null && current.isHuman) continue;
+      if (enabled) {
+        updatedSeats[compass] = SeatOccupant(
+          seat: compass,
+          displayName: botNames[compass] ?? 'Bot',
+          subtitle: '${compass.label} • AI',
+          isHuman: false,
+          isBot: true,
+          isReady: true,
+          elo: 1280,
+          avatarId: botAvatars[compass] ?? 'bot_island',
+        );
+      } else {
+        updatedSeats[compass] = SeatOccupant.open(compass);
+      }
+    }
+
+    state = state.copyWith(
+      fillEmptySeatsWithBots: enabled,
+      seats: updatedSeats,
+    );
+
+    if (_wsClient.isConnected) {
+      _wsClient.toggleReady(
+        roomCode: state.roomCode,
+        isReady: state.southSeat.isReady,
+        fillEmptySeatsWithBots: enabled,
+      );
+    }
   }
 
   void toggleReady([CompassSeat seat = CompassSeat.south]) {
@@ -1205,12 +1761,8 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     final updated = Map<CompassSeat, SeatOccupant>.from(state.seats);
     updated[seat] = current.copyWith(isReady: nextReady);
     state = state.copyWith(seats: updated);
-    _wsClient.toggleReady(roomCode: state.roomCode, isReady: nextReady);
-    if (nextReady &&
-        seat == CompassSeat.south &&
-        state.isReadyCheckActive &&
-        state.screenState == AppScreenState.waitingRoom) {
-      _tryCompleteReadyGate();
+    if (_wsClient.isConnected) {
+      _wsClient.toggleReady(roomCode: state.roomCode, isReady: nextReady);
     }
   }
 
@@ -1227,6 +1779,13 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         seat: CompassSeat.south,
       );
       state = state.copyWith(seats: updated);
+      if (_wsClient.isConnected) {
+        _wsClient.assignSeat(
+          roomCode: state.roomCode,
+          seatIndex: targetSeat.index,
+          profileId: state.effectiveProfileId,
+        );
+      }
     }
   }
 
@@ -1402,9 +1961,431 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // @handle, Friends Management & Match Invitations
+  // ---------------------------------------------------------------------------
+
+  Future<String> updateHandle(String rawHandle) async {
+    if (!state.isCloudSynced) {
+      throw const CloudSyncException('Sign in with Google to set a @handle.');
+    }
+    final saved = await _cloudSyncService.updateHandle(
+      profileId: state.effectiveProfileId,
+      username: rawHandle,
+    );
+    if (!mounted) return saved;
+
+    final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    final south = updatedSeats[CompassSeat.south];
+    if (south != null) {
+      updatedSeats[CompassSeat.south] = south.copyWith(username: saved);
+    }
+
+    state = state.copyWith(username: saved, seats: updatedSeats);
+    try {
+      await _persistence.setUsername(saved);
+    } catch (_) {}
+
+    if (_wsClient.isConnected) {
+      _wsClient.authenticate(
+        profileId: state.effectiveProfileId,
+        displayName: state.displayName,
+        username: saved,
+        loginProvider: 'GOOGLE',
+        avatarId: state.avatarId,
+        friendCode: state.friendCode,
+      );
+    }
+    return saved;
+  }
+
+  Future<void> refreshFriendsAndRequests() async {
+    if (!state.isCloudSynced) return;
+    state = state.copyWith(friendsLoading: true, clearFriendsError: true);
+    try {
+      final results = await Future.wait([
+        _friendsService.fetchFriends(state.effectiveProfileId),
+        _friendsService.fetchRequests(state.effectiveProfileId),
+      ]);
+      if (!mounted) return;
+      final friendsList = results[0] as List<FriendEntry>;
+      final bundle = results[1] as FriendRequestsBundle;
+      state = state.copyWith(
+        friends: friendsList,
+        incomingFriendRequests: bundle.incoming,
+        outgoingFriendRequests: bundle.outgoing,
+        friendsLoading: false,
+        clearFriendsError: true,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      state = state.copyWith(
+        friendsLoading: false,
+        friendsError: e.toString(),
+      );
+    }
+  }
+
+  Future<PlayerLookupResult?> lookupFriendCandidate(String query) {
+    return _friendsService.lookupPlayer(
+      query: query,
+      requesterId: state.effectiveProfileId,
+    );
+  }
+
+  Future<void> sendFriendRequest(String identifier) async {
+    await _friendsService.sendRequest(
+      profileId: state.effectiveProfileId,
+      identifier: identifier,
+    );
+    await refreshFriendsAndRequests();
+  }
+
+  Future<void> respondToFriendRequest({
+    required String requestId,
+    required bool accept,
+  }) async {
+    await _friendsService.respondToRequest(
+      requestId: requestId,
+      accept: accept,
+      profileId: state.effectiveProfileId,
+    );
+    await refreshFriendsAndRequests();
+  }
+
+  Future<void> cancelFriendRequest(String requestId) async {
+    await _friendsService.cancelOutgoingRequest(
+      requestId: requestId,
+      profileId: state.effectiveProfileId,
+    );
+    await refreshFriendsAndRequests();
+  }
+
+  Future<void> removeFriend(String friendId) async {
+    await _friendsService.removeFriend(
+      profileId: state.effectiveProfileId,
+      friendId: friendId,
+    );
+    await refreshFriendsAndRequests();
+  }
+
+  Future<void> inviteFriendToRoom(String friendId) async {
+    await _ensureWsAuthenticated();
+    if (!_wsClient.isConnected) return;
+    _wsClient.sendMatchInvite(
+      friendId: friendId,
+      roomCode: state.roomCode,
+      mode: _serverModeWireKey(state.selectedMode),
+      format: _currentVariantWireKey(state.selectedMode),
+      stakeBuyIn: state.stakeBuyIn,
+      targetScore: state.targetScore,
+    );
+  }
+
+  Future<void> respondToMatchInvite(bool accept) async {
+    final invite = state.pendingMatchInvite;
+    if (invite == null) return;
+    _inviteExpiryTimer?.cancel();
+    state = state.copyWith(clearPendingMatchInvite: true);
+
+    if (accept) {
+      await _ensureWsAuthenticated();
+    }
+    if (_wsClient.isConnected) {
+      _wsClient.respondMatchInvite(inviteId: invite.id, accept: accept);
+    }
+
+    if (accept) {
+      final mode = _parseGameMode(invite.mode);
+      var nextFormat = state.diguFormat;
+      if (mode == HolhuashiGameMode.digu) {
+        final fmt = (invite.format ?? '').toLowerCase();
+        if (fmt == '1v1') {
+          nextFormat = DiguTableFormat.duel1v1;
+        } else if (fmt == '4p_solo') {
+          nextFormat = DiguTableFormat.freeForAll4p;
+        } else {
+          nextFormat = DiguTableFormat.partners2v2;
+        }
+      }
+      state = state.copyWith(
+        selectedMode: mode,
+        diguFormat: nextFormat,
+        stakeBuyIn: invite.stakeBuyIn,
+      );
+      await joinPrivateRoomByCode(invite.roomCode);
+    }
+  }
+
+  void dismissMatchInvite() {
+    _inviteExpiryTimer?.cancel();
+    state = state.copyWith(clearPendingMatchInvite: true);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Authoritative WebSocket Event Handling
+  // ---------------------------------------------------------------------------
+
+  void _handleWsMessage(Map<String, dynamic> message) {
+    if (!mounted) return;
+    final type = message['type'] as String? ?? '';
+    final payload = message['payload'] is Map
+        ? Map<String, dynamic>.from(message['payload'] as Map)
+        : <String, dynamic>{};
+
+    switch (type) {
+      case 'AUTH_SUCCESS':
+        final serverFriendCode = payload['friendCode'] as String?;
+        final serverUsername = payload['username'] as String?;
+        state = state.copyWith(
+          friendCode: serverFriendCode ?? state.friendCode,
+          username: serverUsername ?? state.username,
+        );
+        if (state.isCloudSynced) {
+          unawaited(refreshFriendsAndRequests());
+        }
+        break;
+
+      case 'MATCHMAKE_JOINED':
+      case 'ROOM_CREATED':
+      case 'ROOM_JOINED':
+      case 'ROOM_LEFT':
+      case 'READY_UPDATED':
+      case 'SESSION_RESTORED':
+      case 'PLAYER_DISCONNECTED':
+        final roomRaw = payload['room'];
+        if (roomRaw is Map) {
+          _applyServerRoomSnapshot(Map<String, dynamic>.from(roomRaw));
+        }
+        break;
+
+      case 'READY_CHECK_STARTED':
+        final roomRaw = payload['room'];
+        if (roomRaw is Map) {
+          _applyServerRoomSnapshot(Map<String, dynamic>.from(roomRaw));
+        }
+        final expiresAtMs = (payload['expiresAt'] as num?)?.toInt();
+        var seconds = _initialReadyCheckSeconds;
+        if (expiresAtMs != null) {
+          final delta = ((expiresAtMs - DateTime.now().millisecondsSinceEpoch) / 1000).ceil();
+          seconds = delta.clamp(1, 30);
+        }
+        _sensory.mediumImpact();
+        beginStage2ReadyCheck(seconds: seconds);
+        break;
+
+      case 'READY_CHECK_TIMEOUT':
+        _cancelReadyGateTimers();
+        final roomRaw = payload['room'];
+        if (roomRaw is Map) {
+          _applyServerRoomSnapshot(Map<String, dynamic>.from(roomRaw));
+        }
+        state = state.copyWith(
+          isReadyCheckActive: false,
+          readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+          matchmakingNotification: payload['message'] as String?,
+        );
+        break;
+
+      case 'READY_CHECK_FAILED':
+        _cancelReadyGateTimers();
+        state = state.copyWith(
+          isReadyCheckActive: false,
+          readyCheckSecondsRemaining: _initialReadyCheckSeconds,
+          matchmakingNotification:
+              payload['reason'] as String? ?? 'Ready check cancelled.',
+          screenState: AppScreenState.lobby,
+        );
+        break;
+
+      case 'MATCH_STARTED':
+        _cancelReadyGateTimers();
+        final roomRaw = payload['room'];
+        if (roomRaw is Map) {
+          _applyServerRoomSnapshot(Map<String, dynamic>.from(roomRaw));
+        }
+        _sensory.mediumImpact();
+        state = state.copyWith(
+          isReadyCheckActive: false,
+          screenState: AppScreenState.inGame,
+        );
+        break;
+
+      case 'ROOM_ERROR':
+        state = state.copyWith(
+          matchmakingNotification:
+              payload['error'] as String? ?? 'Room action failed.',
+        );
+        break;
+
+      case 'FRIEND_PRESENCE_UPDATE':
+        final fid = payload['friendId'] as String?;
+        final nextStatus = payload['status'] as String?;
+        if (fid != null && nextStatus != null) {
+          final updated = state.friends
+              .map(
+                (f) => f.friendId == fid
+                    ? f.copyWith(
+                        presenceStatus: nextStatus,
+                        currentMatchInfo: payload['matchInfo'] is Map
+                            ? Map<String, dynamic>.from(
+                                payload['matchInfo'] as Map,
+                              )
+                            : f.currentMatchInfo,
+                      )
+                    : f,
+              )
+              .toList();
+          state = state.copyWith(friends: updated);
+        }
+        break;
+
+      case 'FRIEND_REQUEST_RECEIVED':
+      case 'FRIEND_REQUEST_RESOLVED':
+      case 'FRIEND_REMOVED':
+        unawaited(refreshFriendsAndRequests());
+        break;
+
+      case 'MATCH_INVITE_RECEIVED':
+        final invite = MatchInviteEntry.fromJson(payload);
+        _inviteExpiryTimer?.cancel();
+        _sensory.mediumImpact();
+        state = state.copyWith(pendingMatchInvite: invite);
+        _inviteExpiryTimer = Timer(const Duration(seconds: 20), () {
+          if (mounted && state.pendingMatchInvite?.id == invite.id) {
+            state = state.copyWith(clearPendingMatchInvite: true);
+          }
+        });
+        break;
+
+      case 'QUICK_CHAT_EMOTE':
+        final senderId = payload['senderId'] as String?;
+        if (senderId == state.effectiveProfileId) return;
+        final seatIdx = (payload['seatIndex'] as num?)?.toInt() ?? 0;
+        final seat = CompassSeat.values[seatIdx.clamp(0, 3)];
+        final msg = QuickChatMessage(
+          id: 'ws_qc_${DateTime.now().millisecondsSinceEpoch}',
+          senderName: payload['senderName'] as String? ?? 'Player',
+          seat: seat,
+          thaana: payload['thaanaText'] as String? ?? 'މަރުޙަބާ!',
+          latin: payload['text'] as String? ?? 'Maruhabaa!',
+          timestamp: DateTime.now(),
+        );
+        state = state.copyWith(
+          activeQuickChat: msg,
+          quickChatHistory: [msg, ...state.quickChatHistory].take(20).toList(),
+        );
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  void _applyServerRoomSnapshot(Map<String, dynamic> room) {
+    final code = (room['roomCode'] ?? room['room_code'])?.toString();
+    final isPrivate =
+        room['isPrivate'] as bool? ?? room['is_private'] as bool? ?? state.isPrivateRoom;
+    final fillBots = isPrivate &&
+        (room['fillEmptySeatsWithBots'] as bool? ??
+            room['fill_empty_seats_with_bots'] as bool? ??
+            false);
+    final rawSeats = room['seats'] as List<dynamic>? ?? const [];
+
+    // Locate viewer's seat so local player always anchors to CompassSeat.south
+    int viewerIndex = 0;
+    for (var i = 0; i < rawSeats.length; i++) {
+      final s = rawSeats[i];
+      if (s is Map) {
+        final pid = (s['profileId'] ?? s['profile_id'])?.toString();
+        if (pid == state.effectiveProfileId) {
+          viewerIndex = (s['seatIndex'] as num?)?.toInt() ?? i;
+          break;
+        }
+      }
+    }
+
+    final mappedSeats = <CompassSeat, SeatOccupant>{};
+    final compassOrder = state.activeCompassOrder;
+    for (var i = 0; i < compassOrder.length; i++) {
+      final compass = compassOrder[i];
+      if (rawSeats.isEmpty) {
+        mappedSeats[compass] = SeatOccupant.open(compass);
+        continue;
+      }
+      final serverIdx = (viewerIndex + i) % rawSeats.length;
+      final raw = rawSeats[serverIdx];
+      if (raw is! Map) {
+        mappedSeats[compass] = SeatOccupant.open(compass);
+        continue;
+      }
+      final pid = (raw['profileId'] ?? raw['profile_id'])?.toString();
+      final isBot = raw['isBot'] as bool? ?? raw['is_bot'] as bool? ?? false;
+      final isReady =
+          raw['isReady'] as bool? ?? raw['is_ready'] as bool? ?? false;
+      final name =
+          (raw['playerName'] ?? raw['player_name'] ?? 'Open Seat').toString();
+      final uname = raw['username']?.toString();
+      final avatar = (raw['avatarId'] ?? raw['avatar_id'] ?? 'sultan').toString();
+
+      if (pid == null || pid.isEmpty) {
+        mappedSeats[compass] = SeatOccupant.open(compass);
+      } else if (isBot) {
+        mappedSeats[compass] = SeatOccupant(
+          seat: compass,
+          profileId: pid,
+          displayName: name,
+          subtitle: '${compass.label} • AI',
+          isHuman: false,
+          isBot: true,
+          isReady: isReady,
+          elo: 1280,
+          avatarId: avatar,
+        );
+      } else {
+        final isSelf = pid == state.effectiveProfileId;
+        mappedSeats[compass] = SeatOccupant(
+          seat: compass,
+          profileId: pid,
+          displayName: name,
+          username: uname,
+          subtitle: isSelf ? 'YOU' : compass.label,
+          isHuman: true,
+          isBot: false,
+          isReady: isReady,
+          elo: state.eloForMode(state.selectedMode),
+          avatarId: avatar,
+        );
+      }
+    }
+
+    for (final seat in CompassSeat.values) {
+      mappedSeats.putIfAbsent(seat, () => SeatOccupant.open(seat));
+    }
+
+    final spectators = (room['spectators'] as List<dynamic>? ?? const []).length;
+    state = state.copyWith(
+      roomCode: code ?? state.roomCode,
+      isPrivateRoom: isPrivate,
+      fillEmptySeatsWithBots: fillBots,
+      spectatorCount: spectators,
+      seats: mappedSeats,
+      targetScore:
+          (room['targetScore'] as num?)?.toInt() ?? state.targetScore,
+      turnTimerSeconds:
+          (room['turnTimerSeconds'] as num?)?.toInt() ?? state.turnTimerSeconds,
+    );
+  }
+
   @override
   void dispose() {
+    _wsSub?.cancel();
+    _wsClient.connectionStateNotifier.removeListener(_onWsConnectionChanged);
+    if (_ownsWsClient) {
+      unawaited(_wsClient.dispose());
+    }
     _quickChatDismissTimer?.cancel();
+    _inviteExpiryTimer?.cancel();
     _cancelReadyGateTimers();
     super.dispose();
   }
