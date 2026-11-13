@@ -263,31 +263,37 @@ class DhihaehEngine {
     int t1Add = 0;
     int t2Add = 0;
 
-    if (team1Tens == 4) {
+    if (team1Tens == 4 && team1Tricks == 13) {
       outcome = DhihaehOutcome.haasbagga;
       handWinner = 'TEAM_1';
       t1Add = 1000;
-    } else if (team2Tens == 4) {
+    } else if (team2Tens == 4 && team2Tricks == 13) {
       outcome = DhihaehOutcome.haasbagga;
       handWinner = 'TEAM_2';
       t2Add = 1000;
+    } else if (team1Tens == 4) {
+      outcome = DhihaehOutcome.bagga;
+      handWinner = 'TEAM_1';
+      t1Add = 4;
+    } else if (team2Tens == 4) {
+      outcome = DhihaehOutcome.bagga;
+      handWinner = 'TEAM_2';
+      t2Add = 4;
     } else if (team1Tens == 3) {
       outcome = DhihaehOutcome.standard;
       handWinner = 'TEAM_1';
-      t1Add = team1Tricks >= 7 ? 2 : 1;
+      t1Add = 1;
     } else if (team2Tens == 3) {
       outcome = DhihaehOutcome.standard;
       handWinner = 'TEAM_2';
-      t2Add = team2Tricks >= 7 ? 2 : 1;
+      t2Add = 1;
     } else {
-      // 2 - 2 Tie breaker decided by trick count
+      // 2 - 2 Tie breaker: 0 points awarded; majority tricks wins the hand
       outcome = DhihaehOutcome.tieBreaker;
       if (team1Tricks > team2Tricks) {
         handWinner = 'TEAM_1';
-        t1Add = 1;
       } else if (team2Tricks > team1Tricks) {
         handWinner = 'TEAM_2';
-        t2Add = 1;
       } else {
         handWinner = 'DRAW';
       }

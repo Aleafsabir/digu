@@ -171,10 +171,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       fastDealSpeed: session.fastDealSpeed,
     );
 
-    // Initial mode sync (cards wait behind countdown before dealing)
+    // Initial mode & rules sync (cards wait behind countdown before dealing)
     if (_gameTable.activeMode != session.selectedMode) {
       _gameTable.setInitialMode(session.selectedMode);
     }
+    _gameTable.configureRules(
+      diguFormat: session.diguFormat,
+      bondiVariant: session.bondiVariant,
+      dhihaehVariant: session.dhihaehVariant,
+      targetScore: session.targetScore,
+    );
   }
 
   Future<Suit> _handleTrumpDeclaration(
@@ -212,7 +218,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final notifier = ref.read(gameSessionProvider.notifier);
 
     setState(() {
-      if (data.humanRoundScore > 0 || data.opponentRoundScore > 0) {
+      if (data.humanRoundScore != 0 || data.opponentRoundScore != 0) {
         _humanCumulativeScore += data.humanRoundScore;
         _botCumulativeScore += data.opponentRoundScore;
       } else if (data.humanWon) {
@@ -253,10 +259,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final session = ref.watch(gameSessionProvider);
     final notifier = ref.read(gameSessionProvider.notifier);
 
-    // Keep settings in sync
+    // Keep settings & rules in sync
     _gameTable.updateSettings(
       screenShakeEnabled: session.screenShakeEnabled,
       fastDealSpeed: session.fastDealSpeed,
+    );
+    _gameTable.configureRules(
+      diguFormat: session.diguFormat,
+      bondiVariant: session.bondiVariant,
+      dhihaehVariant: session.dhihaehVariant,
+      targetScore: session.targetScore,
     );
 
     return Scaffold(

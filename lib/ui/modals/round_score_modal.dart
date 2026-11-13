@@ -23,6 +23,12 @@ class RoundScoreModal extends StatelessWidget {
   final List<PlayingCard> burnedCards;
   final int humanRoundScore;
   final int opponentRoundScore;
+  final int zeroMeldPenalty;
+  final int consecutiveGinPenalty;
+  final bool isTeamMode;
+  final bool matchOver;
+  final int? bondiLoserSeat;
+  final String? dhihaehOutcomeLabel;
   final VoidCallback onNextRound;
   final VoidCallback? onReturnToLobby;
 
@@ -47,6 +53,12 @@ class RoundScoreModal extends StatelessWidget {
     this.burnedCards = const [],
     this.humanRoundScore = 0,
     this.opponentRoundScore = 0,
+    this.zeroMeldPenalty = 0,
+    this.consecutiveGinPenalty = 0,
+    this.isTeamMode = false,
+    this.matchOver = false,
+    this.bondiLoserSeat,
+    this.dhihaehOutcomeLabel,
     required this.onNextRound,
     this.onReturnToLobby,
   });
@@ -82,6 +94,12 @@ class RoundScoreModal extends StatelessWidget {
       burnedCards: data.burnedCards,
       humanRoundScore: humanRoundScore ?? data.humanRoundScore,
       opponentRoundScore: opponentRoundScore ?? data.opponentRoundScore,
+      zeroMeldPenalty: data.zeroMeldPenalty,
+      consecutiveGinPenalty: data.consecutiveGinPenalty,
+      isTeamMode: data.isTeamMode,
+      matchOver: data.matchOver,
+      bondiLoserSeat: data.bondiLoserSeat,
+      dhihaehOutcomeLabel: data.dhihaehOutcomeLabel,
       onNextRound: onNextRound,
       onReturnToLobby: onReturnToLobby,
     );
@@ -310,18 +328,32 @@ class RoundScoreModal extends StatelessWidget {
           ),
           child: Column(
             children: [
-              if (humanRoundScore > 0 || opponentRoundScore > 0) ...[
-                _buildScoreRow('Your Meld Points', '+$humanRoundScore pts', const Color(0xFFE5C378)),
-                _buildScoreRow('Opponent Round Points', '+$opponentRoundScore pts', const Color(0xFFFFA07A)),
+              if (humanRoundScore != 0 || opponentRoundScore != 0) ...[
+                _buildScoreRow(
+                  isTeamMode ? 'Your Team Round Net' : 'Your Round Net',
+                  '${humanRoundScore >= 0 ? '+' : ''}$humanRoundScore pts',
+                  humanRoundScore >= 0
+                      ? const Color(0xFFE5C378)
+                      : const Color(0xFFC84B31),
+                ),
+                _buildScoreRow(
+                  isTeamMode ? 'Opponents Team Net' : 'Opponent Round Net',
+                  '${opponentRoundScore >= 0 ? '+' : ''}$opponentRoundScore pts',
+                  const Color(0xFFFFA07A),
+                ),
               ],
               _buildScoreRow('Meld Points', '+$meldScore pts', const Color(0xFFE5C378)),
               if (ginBonus > 0)
                 _buildScoreRow('Gin Bonus', '+$ginBonus pts', const Color(0xFF00E5FF)),
               if (debtScore > 0)
                 _buildScoreRow('Deadwood Debt', '-$debtScore pts', const Color(0xFFC84B31)),
+              if (zeroMeldPenalty > 0)
+                _buildScoreRow('Zero-Meld Penalty', '-$zeroMeldPenalty pts', const Color(0xFFC84B31)),
+              if (consecutiveGinPenalty > 0)
+                _buildScoreRow('3x Gin Feeder Penalty', '-$consecutiveGinPenalty pts', const Color(0xFFC84B31)),
               const Divider(color: Color(0xFF380C10), height: 14),
               _buildScoreRow(
-                'Net Round Score',
+                matchOver ? 'Match Target Reached!' : 'Net Round Score',
                 '${netRoundScore > 0 ? '+' : ''}$netRoundScore pts',
                 humanWon ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
                 isBold: true,
@@ -350,13 +382,18 @@ class RoundScoreModal extends StatelessWidget {
           const Divider(color: Color(0xFF380C10), height: 14),
           _buildScoreRow(
             'Round Outcome',
-            team1Tens == 4
-                ? 'HAASBAGGA (+1,000 pts)'
-                : team2Tens == 4
-                    ? 'HAASBAGGA (Team B +1,000 pts)'
-                    : team1Tens > team2Tens
-                        ? 'BAGGA (+4 pts)'
-                        : 'BAGGA (Team B +4 pts)',
+            dhihaehOutcomeLabel ??
+                ((team1Tens == 4 && team1Tricks == 13)
+                    ? 'HAASBAGGA (+1,000 pts)'
+                    : (team2Tens == 4 && team2Tricks == 13)
+                        ? 'HAASBAGGA (Team B +1,000 pts)'
+                        : team1Tens == 4
+                            ? 'BAGGA (+4 pts)'
+                            : team2Tens == 4
+                                ? 'BAGGA (Team B +4 pts)'
+                                : team1Tens > team2Tens
+                                    ? '3 TENS (+1 pt)'
+                                    : '3 TENS (Team B +1 pt)'),
             humanWon ? const Color(0xFFE5C378) : const Color(0xFFF7F0EA),
             isBold: true,
           ),
@@ -366,6 +403,13 @@ class RoundScoreModal extends StatelessWidget {
   }
 
   Widget _buildBondiBreakdown() {
+    final loserLabel = switch (bondiLoserSeat) {
+      0 => 'You (South)',
+      1 => 'East AI',
+      2 => 'North AI',
+      3 => 'West AI',
+      _ => null,
+    };
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -375,6 +419,8 @@ class RoundScoreModal extends StatelessWidget {
       ),
       child: Column(
         children: [
+          if (loserLabel != null)
+            _buildScoreRow('The Bondi (Last Standing)', loserLabel, const Color(0xFFC84B31), isBold: true),
           _buildScoreRow('Player (South) Tricks Won', '$team1Tricks tricks', const Color(0xFFE5C378)),
           _buildScoreRow('Opponents Total Tricks Won', '$team2Tricks tricks', const Color(0xFFFFA07A)),
           if (burnedCards.isNotEmpty)

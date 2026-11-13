@@ -96,5 +96,54 @@ void main() {
 
       expect(choice.rank, equals(13)); // Sheds King of Hearts to escape danger
     });
+
+    test('Last-Player-Standing helpers skip emptied hands until 1 remains', () {
+      const card = PlayingCard(id: 'H-05', suit: Suit.hearts, rank: 5);
+      final twoLeft = [
+        <PlayingCard>[card],
+        <PlayingCard>[],
+        <PlayingCard>[card],
+        <PlayingCard>[],
+      ];
+      expect(BondiEngine.getActivePlayerCount(twoLeft), equals(2));
+      expect(BondiEngine.isMatchOver(twoLeft), isFalse);
+      expect(BondiEngine.getNextActiveSeat(0, twoLeft), equals(2));
+
+      final oneLeft = [
+        <PlayingCard>[],
+        <PlayingCard>[card],
+        <PlayingCard>[],
+        <PlayingCard>[],
+      ];
+      expect(BondiEngine.isMatchOver(oneLeft), isTrue);
+      expect(BondiEngine.getLoserSeat(oneLeft), equals(1));
+    });
+
+    test('Suit Bondi AI dumps entire matching off-suit group when void', () {
+      final hand = [
+        const PlayingCard(id: 'H-13', suit: Suit.hearts, rank: 13),
+        const PlayingCard(id: 'H-04', suit: Suit.hearts, rank: 4),
+        const PlayingCard(id: 'D-02', suit: Suit.diamonds, rank: 2),
+      ];
+      const trick = BondiTrick(
+        trickNumber: 2,
+        leadSuit: Suit.spades,
+        cards: [
+          BondiTrickCard(
+            card: PlayingCard(id: 'S-08', suit: Suit.spades, rank: 8),
+            playedBySeat: 0,
+          ),
+        ],
+      );
+
+      final play = BondiAI.selectPlay(
+        hand: hand,
+        currentTrick: trick,
+        variant: BondiVariant.suitBondi,
+        activePlayerCount: 4,
+      );
+      expect(play.cards.length, equals(2));
+      expect(play.cards.every((c) => c.suit == Suit.hearts), isTrue);
+    });
   });
 }

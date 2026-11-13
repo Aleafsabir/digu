@@ -216,45 +216,32 @@ export function isValidDiguRun(cards: ServerCard[]): boolean {
 
 /**
  * Special 1,000-Point Contiguous Run:
- * Supports both 7-card and 10-card contiguous suited runs including Ace:
+ * Strictly 10-card contiguous suited runs including Ace:
  * - 10-card Low Run: A-2-3-4-5-6-7-8-9-10 of the same suit
  * - 10-card High Run: 5-6-7-8-9-10-J-Q-K-A of the same suit
- * - 7-card Low Run: A-2-3-4-5-6-7 of the same suit
- * - 7-card High Run: 8-9-10-J-Q-K-A of the same suit
- * - Any 7+ card contiguous same-suit sequence in Digu (e.g., 7-card run)
  */
 export function isThousandPointRun(cards: ServerCard[]): boolean {
-  if (cards.length < 7 || cards.length > 10) return false;
+  if (cards.length !== 10) return false;
   const targetSuit = normalizeSuit(cards[0].suit);
   if (!cards.every((c) => normalizeSuit(c.suit) === targetSuit)) return false;
 
   const ranks = cards.map((c) => c.rank).sort((a, b) => a - b);
-  // Check uniqueness
   for (let i = 0; i < ranks.length - 1; i++) {
     if (ranks[i] === ranks[i + 1]) return false;
   }
 
-  const len = ranks.length;
-  // Case A: Contains Ace (rank 1)
-  if (ranks[0] === 1) {
-    // Low Ace run: 1, 2, ..., len
-    const isLowContiguous = ranks.every((r, idx) => r === idx + 1);
-    if (isLowContiguous) return true;
+  // Must contain Ace (rank 1)
+  if (ranks[0] !== 1) return false;
 
-    // High Ace run: 1 followed by (14 - len + 1) .. 13
-    const startHigh = 14 - (len - 1);
-    const isHighContiguous = ranks
-      .slice(1)
-      .every((r, idx) => r === startHigh + idx);
-    if (isHighContiguous) return true;
-    return false;
-  }
+  // Low Ace run: 1, 2, ..., 10
+  const isLowContiguous = ranks.every((r, idx) => r === idx + 1);
+  if (isLowContiguous) return true;
 
-  // Case B: 7+ card pure contiguous run without Ace
-  for (let i = 0; i < ranks.length - 1; i++) {
-    if (ranks[i + 1] !== ranks[i] + 1) return false;
-  }
-  return true;
+  // High Ace run: 1 followed by 5..13
+  const isHighContiguous = ranks
+    .slice(1)
+    .every((r, idx) => r === 5 + idx);
+  return isHighContiguous;
 }
 
 /**
@@ -748,9 +735,9 @@ export function resolveDhihaehTrickWinner(
 /**
  * Evaluates Dhihaeh round scoring:
  * - Haasbagga = 1000 pts (all 4 Tens captured with 13-trick sweep or Haasbagga slam)
- * - Bagga = 4 pts (all 4 Tens captured by one team)
- * - Standard 3 Tens = 2 pts (or 1 pt if tricks < 7)
- * - 2-2 Tens tiebreaker = 1 pt to team with more tricks
+ * - Bagga = 4 pts (all 4 Tens captured with <13 tricks)
+ * - Standard 3 Tens = 1 pt
+ * - 2-2 Tens tiebreaker = 0 pts (majority tricks breaks hand winner)
  */
 export function evaluateDhihaehRoundScore(params: {
   team1Tens: number;
@@ -803,19 +790,17 @@ export function evaluateDhihaehRoundScore(params: {
   } else if (team1Tens === 3) {
     outcomeType = 'standard';
     handWinnerTeam = 'TEAM_A';
-    team1Delta = team1Tricks >= 7 ? 2 : 1;
+    team1Delta = 1;
   } else if (team2Tens === 3) {
     outcomeType = 'standard';
     handWinnerTeam = 'TEAM_B';
-    team2Delta = team2Tricks >= 7 ? 2 : 1;
+    team2Delta = 1;
   } else {
     outcomeType = 'tieBreaker';
     if (team1Tricks > team2Tricks) {
       handWinnerTeam = 'TEAM_A';
-      team1Delta = 1;
     } else if (team2Tricks > team1Tricks) {
       handWinnerTeam = 'TEAM_B';
-      team2Delta = 1;
     } else {
       handWinnerTeam = 'DRAW';
     }
@@ -1307,27 +1292,98 @@ export function validateAndApplyAction(
       gs.discardPile.push({ ...finishCard, isFaceDown: true });
       gs.phase = 'ROUND_OVER';
 
-      // Calculate round scores (20-card team solver for 4P, individual for solo)
-      const teamAPool = [...(gs.hands[0] || []), ...(gs.hands[2] || [])];
-      const teamBPool = [...(gs.hands[1] || []), ...(gs.hands[3] || [])];
-      const teamAOpt = optimizeMergedHand(teamAPool);
-      const teamBOpt = optimizeMergedHand(teamBPool);
+      // Track consecutive Gins for -100 upstream feeder penalty
+      const prevGins: number[] = Array.isArray(gs.consecutiveGinsBySeat)
+        ? gs.consecutiveGinsBySeat
+        : [0, 0, 0, 0];
+      const nextGins = Array.from({ length: Math.max(4, seatCount) }, () => 0);
+      nextGins[seatIndex] = (prevGins[seatIndex] || 0) + 1;
+      gs.consecutiveGinsBySeat = nextGins;
+      const isThreeConsecutiveGins = nextGins[seatIndex] >= 3;
+      const feederSeat = (seatIndex - 1 + seatCount) % seatCount;
 
-      const winnerTeam = seatIndex % 2 === 0 ? 'TEAM_A' : 'TEAM_B';
-      const ginBonus = ginCheck.isThousandPointRun ? 1000 : 100;
-      const teamADelta =
-        (teamAOpt.melds.length === 0 ? -100 : teamAOpt.netScore) +
-        (winnerTeam === 'TEAM_A' ? ginBonus : 0);
-      const teamBDelta =
-        (teamBOpt.melds.length === 0 ? -100 : teamBOpt.netScore) +
-        (winnerTeam === 'TEAM_B' ? ginBonus : 0);
-
-      gs.teamScores.TEAM_A = (gs.teamScores.TEAM_A || 0) + teamADelta;
-      gs.teamScores.TEAM_B = (gs.teamScores.TEAM_B || 0) + teamBDelta;
+      const rawMode = String(room.mode || room.tableFormat || '').toUpperCase();
+      const isTeamMode =
+        seatCount === 4 &&
+        (rawMode === 'TEAM_4P' ||
+          (!rawMode.includes('SOLO') && !rawMode.includes('FFA')));
 
       const targetScore = Number(room.targetScore || room.target_score || 1000);
-      const matchEnded =
-        gs.teamScores.TEAM_A >= targetScore || gs.teamScores.TEAM_B >= targetScore;
+      let teamADelta = 0;
+      let teamBDelta = 0;
+      let matchEnded = false;
+      const winnerTeam = seatIndex % 2 === 0 ? 'TEAM_A' : 'TEAM_B';
+      gs.scoresBySeat = gs.scoresBySeat || Array.from({ length: seatCount }, () => 0);
+
+      if (isTeamMode) {
+        const teamAPool = [...(gs.hands[0] || []), ...(gs.hands[2] || [])];
+        const teamBPool = [...(gs.hands[1] || []), ...(gs.hands[3] || [])];
+        const teamAOpt = optimizeMergedHand(teamAPool);
+        const teamBOpt = optimizeMergedHand(teamBPool);
+
+        teamADelta =
+          winnerTeam === 'TEAM_A'
+            ? ginCheck.isThousandPointRun
+              ? 1000
+              : teamAOpt.netScore + 100
+            : isThreeConsecutiveGins
+              ? -100
+              : teamAOpt.melds.length === 0
+                ? -100
+                : teamAOpt.netScore;
+
+        teamBDelta =
+          winnerTeam === 'TEAM_B'
+            ? ginCheck.isThousandPointRun
+              ? 1000
+              : teamBOpt.netScore + 100
+            : isThreeConsecutiveGins
+              ? -100
+              : teamBOpt.melds.length === 0
+                ? -100
+                : teamBOpt.netScore;
+
+        gs.teamScores.TEAM_A = (gs.teamScores.TEAM_A || 0) + teamADelta;
+        gs.teamScores.TEAM_B = (gs.teamScores.TEAM_B || 0) + teamBDelta;
+
+        const shareA = Math.round(teamADelta / 2);
+        const shareB = Math.round(teamBDelta / 2);
+        gs.scoresBySeat[0] = (gs.scoresBySeat[0] || 0) + shareA;
+        gs.scoresBySeat[2] = (gs.scoresBySeat[2] || 0) + shareA;
+        gs.scoresBySeat[1] = (gs.scoresBySeat[1] || 0) + shareB;
+        gs.scoresBySeat[3] = (gs.scoresBySeat[3] || 0) + shareB;
+
+        matchEnded =
+          gs.teamScores.TEAM_A >= targetScore || gs.teamScores.TEAM_B >= targetScore;
+      } else {
+        const seatDeltas: number[] = [];
+        for (let s = 0; s < seatCount; s++) {
+          const opt = optimizeMergedHand(gs.hands[s] || []);
+          let delta = 0;
+          if (s === seatIndex) {
+            delta = ginCheck.isThousandPointRun ? 1000 : opt.meldScore + 100;
+          } else if (isThreeConsecutiveGins && s === feederSeat) {
+            delta = -100;
+          } else if (opt.melds.length === 0) {
+            delta = -100;
+          } else {
+            delta = opt.netScore;
+          }
+          seatDeltas.push(delta);
+          gs.scoresBySeat[s] = (gs.scoresBySeat[s] || 0) + delta;
+        }
+        teamADelta = seatDeltas[0] ?? 0;
+        const oppDeltas = seatDeltas.filter((_, idx) => idx !== 0);
+        teamBDelta = oppDeltas.length > 0 ? Math.max(...oppDeltas) : 0;
+        gs.teamScores.TEAM_A = gs.scoresBySeat[0] ?? 0;
+        const oppTotals = gs.scoresBySeat
+          .slice(0, seatCount)
+          .filter((_: number, idx: number) => idx !== 0);
+        gs.teamScores.TEAM_B = oppTotals.length > 0 ? Math.max(...oppTotals) : 0;
+        matchEnded = gs.scoresBySeat
+          .slice(0, seatCount)
+          .some((sc: number) => sc >= targetScore);
+      }
 
       return {
         valid: true,
@@ -1340,8 +1396,11 @@ export function validateAndApplyAction(
           finishCard,
           melds: ginCheck.melds,
           isThousandPointRun: ginCheck.isThousandPointRun,
+          consecutiveGinPenaltyApplied: isThreeConsecutiveGins,
+          feederSeat: isThreeConsecutiveGins ? feederSeat : null,
           teamADelta,
           teamBDelta,
+          scoresBySeat: gs.scoresBySeat,
           teamScores: gs.teamScores,
         },
       };

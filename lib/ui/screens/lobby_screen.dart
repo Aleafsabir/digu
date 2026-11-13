@@ -401,9 +401,19 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           thaanaTitle: 'ޑިގު',
                           englishTitle: 'DIGU',
                           tagline: 'Authentic 10-Card Maldivian Rummy with Ace-restricted runs and Gin Slam.',
-                          chips: const ['10 Cards', 'Runs & Sets', '1,000pt 7-Run', 'Gin Slam'],
+                          chips: const ['10 Cards', 'Runs & Sets', '1,000pt 10-Run', 'Gin Slam'],
                           elo: session.diguElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.digu,
+                          selectorRow: _buildVariantSelectorRow<DiguTableFormat>(
+                            values: DiguTableFormat.values,
+                            selected: session.diguFormat,
+                            labelFor: (v) => v.shortLabel,
+                            onSelected: (v) {
+                              SensoryService.instance.playButtonTap();
+                              notifier.selectGameMode(HolhuashiGameMode.digu);
+                              notifier.setDiguFormat(v);
+                            },
+                          ),
                           onCardTap: () {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.digu);
@@ -434,6 +444,18 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           chips: const ['4 Players (2v2)', '5-4-4 Batch Deal', 'Trump Cut', 'Haasbagga'],
                           elo: session.dhihaehElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.dhihaeh,
+                          selectorRow: _buildVariantSelectorRow<DhihaehVariant>(
+                            values: DhihaehVariant.values,
+                            selected: session.dhihaehVariant,
+                            labelFor: (v) => v == DhihaehVariant.dynamicCut
+                                ? 'Dynamic Cut'
+                                : 'Blind Reserve',
+                            onSelected: (v) {
+                              SensoryService.instance.playButtonTap();
+                              notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
+                              notifier.setDhihaehVariant(v);
+                            },
+                          ),
                           onCardTap: () {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
@@ -460,10 +482,22 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           mode: HolhuashiGameMode.bondi,
                           thaanaTitle: 'ބޮނޑި',
                           englishTitle: 'BONDI',
-                          tagline: 'Fast-paced 4-player trick-shedder. Mandatory ♠A lead & burn-pile sweeps.',
-                          chips: const ['Trick Shed', '♠A Mandatory Lead', 'Burn Pile', 'Fast Elimination'],
+                          tagline: 'Fast-paced 4-player trick-shedder. Mandatory ♠A lead & immediate Bondi cuts.',
+                          chips: const ['Trick Shed', '♠A Mandatory Lead', 'Immediate Cut', 'Last Standing'],
                           elo: session.bondiElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.bondi,
+                          selectorRow: _buildVariantSelectorRow<BondiVariant>(
+                            values: BondiVariant.values,
+                            selected: session.bondiVariant,
+                            labelFor: (v) => v == BondiVariant.standard
+                                ? 'Standard'
+                                : 'Suit Bondi',
+                            onSelected: (v) {
+                              SensoryService.instance.playButtonTap();
+                              notifier.selectGameMode(HolhuashiGameMode.bondi);
+                              notifier.setBondiVariant(v);
+                            },
+                          ),
                           onCardTap: () {
                             SensoryService.instance.playButtonTap();
                             notifier.selectGameMode(HolhuashiGameMode.bondi);
@@ -494,6 +528,52 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     );
   }
 
+  Widget _buildVariantSelectorRow<T>({
+    required List<T> values,
+    required T selected,
+    required String Function(T) labelFor,
+    required ValueChanged<T> onSelected,
+  }) {
+    return Row(
+      children: values.map((v) {
+        final isSel = v == selected;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: v == values.last ? 0 : 4),
+            child: InkWell(
+              onTap: () => onSelected(v),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                height: 25,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSel
+                      ? const Color(0xFFD4AF37).withValues(alpha: 0.22)
+                      : const Color(0xFF0D0405),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSel ? const Color(0xFFD4AF37) : const Color(0xFF380C10),
+                    width: isSel ? 1.2 : 0.8,
+                  ),
+                ),
+                child: Text(
+                  labelFor(v),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isSel ? const Color(0xFFE5C378) : const Color(0xB3F7F0EA),
+                    fontSize: 9.5,
+                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildHeroModeCard({
     required BuildContext context,
     required HolhuashiGameMode mode,
@@ -503,6 +583,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required List<String> chips,
     required int elo,
     required bool isSelected,
+    Widget? selectorRow,
     required VoidCallback onCardTap,
     required VoidCallback onPlaySolo,
     required VoidCallback onPrivateTable,
@@ -678,7 +759,12 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
+
+            if (selectorRow != null) ...[
+              selectorRow,
+              const SizedBox(height: 6),
+            ],
 
             // In-Card Direct Action Footer: [▶ PLAY SOLO] + [👥 Private Table]
             Row(

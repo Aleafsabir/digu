@@ -340,7 +340,7 @@ void main() {
     // Verify Modal Header & Version Transition
     expect(find.text('New Update Available!'), findsOneWidget);
     expect(find.text('އައު އަޕްޑޭޓެއް ލިބެން އެބައޮތް!'), findsOneWidget);
-    expect(find.text('v0.8.0'), findsOneWidget);
+    expect(find.text('v0.8.1'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
     expect(find.text('v0.8.5'), findsOneWidget);
     expect(find.text('WHAT\'S NEW • އައު ބަދަލުތައް'), findsOneWidget);
@@ -351,7 +351,7 @@ void main() {
     expect(find.text('LATER • ފަހުން'), findsOneWidget);
   });
 
-  testWidgets('SettingsModal presents controls, update check button, and build version v0.8.0',
+  testWidgets('SettingsModal presents controls, update check button, and build version v0.8.1',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -384,7 +384,7 @@ void main() {
 
     // Verify Application Updates Section & Button
     expect(find.byKey(const Key('btn_check_updates')), findsOneWidget);
-    expect(find.textContaining('Current Build: v0.8.0'), findsOneWidget);
+    expect(find.textContaining('Current Build: v0.8.1'), findsOneWidget);
 
     // Close Settings Modal
     await tester.tap(find.byIcon(Icons.close));
@@ -427,5 +427,45 @@ void main() {
     expect(roundData.humanRoundScore, equals(80));
     expect(roundData.opponentRoundScore, equals(1));
     expect(roundData.humanWon, isTrue);
+  });
+
+  testWidgets('Lobby inline format/variant selectors and 1v1 WaitingRoom compass',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: HolhuashiApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Sign in as Guest
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
+    // Verify 10-Run chip & inline variant/format pills in Lobby
+    expect(find.text('1,000pt 10-Run'), findsOneWidget);
+    expect(find.text('1v1'), findsOneWidget);
+    expect(find.text('2v2 Partners'), findsOneWidget);
+    expect(find.text('4P FFA'), findsOneWidget);
+    expect(find.text('Dynamic Cut'), findsOneWidget);
+    expect(find.text('Blind Reserve'), findsOneWidget);
+    expect(find.text('Standard'), findsOneWidget);
+    expect(find.text('Suit Bondi'), findsOneWidget);
+
+    // Select 1v1 Digu format & enter matchmaking
+    await tester.tap(find.text('1v1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('play_solo_digu')));
+    await tester.pumpAndSettle();
+
+    // Verify Waiting Room updates cleanly with 1v1 (S & N seats visible, E & W hidden)
+    expect(find.text('S'), findsOneWidget);
+    expect(find.text('N'), findsOneWidget);
+    expect(find.text('E'), findsNothing);
+    expect(find.text('W'), findsNothing);
   });
 }

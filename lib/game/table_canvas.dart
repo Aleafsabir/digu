@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import '../core/models/card_models.dart';
 import '../core/deck/deck_engine.dart';
+import '../core/digu/digu_resolver.dart';
 import '../core/digu/team_solver.dart';
 import '../core/digu/rummy_validator.dart';
 import '../core/digu/hand_sorter.dart';
@@ -92,6 +93,12 @@ class RoundOverData {
   final List<PlayingCard> burnedCards;
   final int humanRoundScore;
   final int opponentRoundScore;
+  final int zeroMeldPenalty;
+  final int consecutiveGinPenalty;
+  final bool isTeamMode;
+  final bool matchOver;
+  final int? bondiLoserSeat;
+  final String? dhihaehOutcomeLabel;
 
   const RoundOverData({
     required this.humanWon,
@@ -111,6 +118,12 @@ class RoundOverData {
     this.burnedCards = const [],
     this.humanRoundScore = 0,
     this.opponentRoundScore = 0,
+    this.zeroMeldPenalty = 0,
+    this.consecutiveGinPenalty = 0,
+    this.isTeamMode = false,
+    this.matchOver = false,
+    this.bondiLoserSeat,
+    this.dhihaehOutcomeLabel,
   });
 }
 
@@ -167,6 +180,10 @@ class DiguGameTable extends FlameGame {
   late final _TableSurfaceComponent _tableSurface;
 
   HolhuashiGameMode activeMode = HolhuashiGameMode.digu;
+  DiguTableFormat diguFormat = DiguTableFormat.partners2v2;
+  BondiVariant bondiVariant = BondiVariant.standard;
+  DhihaehVariant dhihaehVariant = DhihaehVariant.dynamicCut;
+  int targetScore = 1000;
   GameTurnPhase phase = GameTurnPhase.awaitDraw;
   HandSortMode currentSortMode = HandSortMode.melds;
 
@@ -175,6 +192,7 @@ class DiguGameTable extends FlameGame {
 
   int _roundToken = 0;
   bool _wasGinReady = false;
+  bool _resetMatchOnNextDeal = false;
   Suit? _trumpSuit;
   int _trickNumber = 0;
   int _trickLeaderSeat = 0;
@@ -182,8 +200,22 @@ class DiguGameTable extends FlameGame {
   Suit? _currentLeadSuit;
   int _team1Tricks = 0;
   int _team2Tricks = 0;
+  PlayingCard? _blindReserveCard;
+  int _blindReserveOwnerSeat = 0;
+  List<int> _activeTrickSeats = [0, 1, 2, 3];
+  final List<int> _bondiExitOrder = [];
+  final List<int> _diguCumulativeScores = [0, 0, 0, 0];
+  final List<int> _diguConsecutiveGins = [0, 0, 0, 0];
+  int _dhihaehTeam1Score = 0;
+  int _dhihaehTeam2Score = 0;
 
   // Notifiers for Flutter UI HUD
+  final ValueNotifier<DiguTableFormat> diguFormatNotifier =
+      ValueNotifier<DiguTableFormat>(DiguTableFormat.partners2v2);
+  final ValueNotifier<BondiVariant> bondiVariantNotifier =
+      ValueNotifier<BondiVariant>(BondiVariant.standard);
+  final ValueNotifier<DhihaehVariant> dhihaehVariantNotifier =
+      ValueNotifier<DhihaehVariant>(DhihaehVariant.dynamicCut);
   final ValueNotifier<int> deadwoodPointsNotifier = ValueNotifier<int>(0);
   final ValueNotifier<bool> canGinNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<int> handCountNotifier = ValueNotifier<int>(10);
@@ -265,6 +297,38 @@ class DiguGameTable extends FlameGame {
     }
   }
 
+  /// Configures format and variant rules across Digu, Bondi, and Dhihaeh.
+  void configureRules({
+    DiguTableFormat? diguFormat,
+    BondiVariant? bondiVariant,
+    DhihaehVariant? dhihaehVariant,
+    int? targetScore,
+    bool resetMatchScores = false,
+  }) {
+    if (diguFormat != null) {
+      this.diguFormat = diguFormat;
+      diguFormatNotifier.value = diguFormat;
+    }
+    if (bondiVariant != null) {
+      this.bondiVariant = bondiVariant;
+      bondiVariantNotifier.value = bondiVariant;
+    }
+    if (dhihaehVariant != null) {
+      this.dhihaehVariant = dhihaehVariant;
+      dhihaehVariantNotifier.value = dhihaehVariant;
+    }
+    if (targetScore != null) {
+      this.targetScore = targetScore;
+    }
+    if (resetMatchScores) {
+      _diguCumulativeScores.fillRange(0, 4, 0);
+      _diguConsecutiveGins.fillRange(0, 4, 0);
+      _dhihaehTeam1Score = 0;
+      _dhihaehTeam2Score = 0;
+      _resetMatchOnNextDeal = false;
+    }
+  }
+
   @override
   void onRemove() {
     _roundToken++;
@@ -292,6 +356,14 @@ class DiguGameTable extends FlameGame {
 
   Future<void> dealNewRound() async {
     final token = ++_roundToken;
+
+    if (_resetMatchOnNextDeal) {
+      _diguCumulativeScores.fillRange(0, 4, 0);
+      _diguConsecutiveGins.fillRange(0, 4, 0);
+      _dhihaehTeam1Score = 0;
+      _dhihaehTeam2Score = 0;
+      _resetMatchOnNextDeal = false;
+    }
 
     _clearTableComponents();
     _resetRoundState();
@@ -404,6 +476,10 @@ class DiguGameTable extends FlameGame {
 
     _trumpSuit = null;
     _wasGinReady = false;
+    _blindReserveCard = null;
+    _blindReserveOwnerSeat = 0;
+    _activeTrickSeats = [0, 1, 2, 3];
+    _bondiExitOrder.clear();
     _trickNumber = 0;
     _trickLeaderSeat = 0;
     _trickStepIndex = 0;
@@ -429,18 +505,52 @@ class DiguGameTable extends FlameGame {
   // STAGE 2: MODE-SPECIFIC DEAL SEQUENCES
   // ---------------------------------------------------------------------------
 
+  void _layoutDiguOpponents() {
+    if (diguFormat == DiguTableFormat.duel1v1) {
+      for (final list in _seatOpponentComponents) {
+        for (final c in list) {
+          c.removeFromParent();
+        }
+        list.clear();
+      }
+      _layoutOpponentHand();
+    } else {
+      for (final c in opponentCardComponents) {
+        c.removeFromParent();
+      }
+      opponentCardComponents.clear();
+      _layoutFourSeatOpponents();
+    }
+  }
+
   Future<void> _dealDiguRound(int token) async {
-    statusMessageNotifier.value = 'Dealing 10 cards each...';
+    statusMessageNotifier.value = 'Dealing 10 cards each (${diguFormat.shortLabel})...';
     final deck = DeckEngine.shuffle(DeckEngine.createStandardDeck());
+    final activeSeats = diguFormat.activeSeats;
+    final isDuel = diguFormat == DiguTableFormat.duel1v1;
 
-    final humanCards = deck.take(10).map((c) => c.copyWith(isFaceDown: false)).toList();
-    final oppCards = deck.skip(10).take(10).map((c) => c.copyWith(isFaceDown: true)).toList();
+    int offset = 0;
+    for (final seat in activeSeats) {
+      final slice = deck.skip(offset).take(10);
+      offset += 10;
+      if (seat == 0) {
+        final humanCards = slice.map((c) => c.copyWith(isFaceDown: false)).toList();
+        currentHand.addAll(humanCards);
+        _sortCurrentHand(currentSortMode);
+        _seatHands[0]
+          ..clear()
+          ..addAll(currentHand);
+      } else {
+        _seatHands[seat]
+          ..clear()
+          ..addAll(slice.map((c) => c.copyWith(isFaceDown: true)));
+      }
+    }
+    botHand
+      ..clear()
+      ..addAll(_seatHands[2]);
 
-    currentHand.addAll(humanCards);
-    _sortCurrentHand(currentSortMode);
-    botHand.addAll(oppCards);
-
-    stockPile.addAll(deck.skip(20));
+    stockPile.addAll(deck.skip(offset));
     final initialDiscard = stockPile.isNotEmpty
         ? stockPile.removeLast().copyWith(isFaceDown: false)
         : null;
@@ -450,9 +560,9 @@ class DiguGameTable extends FlameGame {
 
     _layoutStockOnly();
 
-    // Animate 10 cards to South (with 3D flip) & 10 to North Bot
+    // Animate 10 cards per active seat + initial discard
     final dealCompleter = Completer<void>();
-    int pending = 20 + (initialDiscard != null ? 1 : 0);
+    int pending = (activeSeats.length * 10) + (initialDiscard != null ? 1 : 0);
 
     void onOneArrived() {
       pending--;
@@ -461,58 +571,66 @@ class DiguGameTable extends FlameGame {
       }
     }
 
-    final stagger = 0.045 * _speedScale;
+    final stagger = (isDuel ? 0.045 : 0.025) * _speedScale;
     final flightDur = 0.25 * _speedScale;
     final flipDur = 0.15 * _speedScale;
 
     final southLayout = _computeSouthFanTargets(currentHand.length);
-    final oppLayout = _computeNorthOppTargets(botHand.length);
+    final oppLayout = _computeNorthOppTargets(_seatHands[2].length);
 
+    int waveIdx = 0;
     for (int i = 0; i < 10; i++) {
-      final sCard = currentHand[i];
-      final sTarget = southLayout[i];
-      gameWorld.add(
-        ParabolicDealCardComponent(
-          card: sCard.copyWith(isFaceDown: true),
-          startPos: _tableCenter,
-          endPos: sTarget.pos,
-          startSize: tableCardSize,
-          cardSize: handCardSize,
-          endAngle: sTarget.angle,
-          delay: (i * 2) * stagger,
-          flightDuration: flightDur,
-          flipDuration: flipDur,
-          flipOnArrival: true,
-          onLaunch: () => onCardDealSound?.call(),
-          onArrived: () {
-            if (token == _roundToken && isMounted) {
-              _spawnSingleHandCardAt(i, sCard, sTarget.pos, sTarget.angle);
-            }
-            onOneArrived();
-          },
-        ),
-      );
-
-      final nCard = botHand[i];
-      final nPos = oppLayout[i];
-      gameWorld.add(
-        ParabolicDealCardComponent(
-          card: nCard.copyWith(isFaceDown: true),
-          startPos: _tableCenter,
-          endPos: nPos,
-          startSize: tableCardSize,
-          cardSize: opponentCardSize,
-          delay: ((i * 2) + 1) * stagger,
-          flightDuration: flightDur,
-          flipOnArrival: false,
-          onArrived: () {
-            if (token == _roundToken && isMounted) {
-              _spawnSingleNorthCardAt(i, nCard, nPos);
-            }
-            onOneArrived();
-          },
-        ),
-      );
+      for (final seat in activeSeats) {
+        final order = waveIdx++;
+        if (seat == 0) {
+          final sCard = currentHand[i];
+          final sTarget = southLayout[i];
+          gameWorld.add(
+            ParabolicDealCardComponent(
+              card: sCard.copyWith(isFaceDown: true),
+              startPos: _tableCenter,
+              endPos: sTarget.pos,
+              startSize: tableCardSize,
+              cardSize: handCardSize,
+              endAngle: sTarget.angle,
+              delay: order * stagger,
+              flightDuration: flightDur,
+              flipDuration: flipDur,
+              flipOnArrival: true,
+              onLaunch: () => onCardDealSound?.call(),
+              onArrived: () {
+                if (token == _roundToken && isMounted) {
+                  _spawnSingleHandCardAt(i, sCard, sTarget.pos, sTarget.angle);
+                }
+                onOneArrived();
+              },
+            ),
+          );
+        } else {
+          final oppCard = _seatHands[seat][i];
+          final oppPos = seat == 2 ? oppLayout[i] : _seatAnchor(seat).pos;
+          final oppAngle = seat == 2 ? 0.0 : _seatAnchor(seat).angle;
+          gameWorld.add(
+            ParabolicDealCardComponent(
+              card: oppCard.copyWith(isFaceDown: true),
+              startPos: _tableCenter,
+              endPos: oppPos,
+              startSize: tableCardSize,
+              cardSize: opponentCardSize,
+              endAngle: oppAngle,
+              delay: order * stagger,
+              flightDuration: flightDur,
+              flipOnArrival: false,
+              onArrived: () {
+                if (token == _roundToken && isMounted && isDuel && seat == 2) {
+                  _spawnSingleNorthCardAt(i, oppCard, oppPos);
+                }
+                onOneArrived();
+              },
+            ),
+          );
+        }
+      }
     }
 
     if (initialDiscard != null) {
@@ -522,7 +640,7 @@ class DiguGameTable extends FlameGame {
           startPos: _stockPos,
           endPos: _discardPos,
           cardSize: tableCardSize,
-          delay: 20 * stagger,
+          delay: waveIdx * stagger,
           flightDuration: flightDur,
           flipDuration: flipDur,
           flipOnArrival: true,
@@ -538,7 +656,7 @@ class DiguGameTable extends FlameGame {
     activeSeatNotifier.value = 0;
     statusMessageNotifier.value = 'Your Turn: Draw 1 card from Stock or Discard';
     _layoutTablePiles();
-    _layoutOpponentHand();
+    _layoutDiguOpponents();
     _recalculateAnalysisAndLayoutHand();
     _publishSeats();
   }
@@ -548,7 +666,8 @@ class DiguGameTable extends FlameGame {
     final fullHands = DhihaehEngine.deal3PassBatch(shuffledDeck: deck, dealerSeat: 3);
 
     // Pass 1: 5 cards each, anti-clockwise (S=0 -> E=1 -> N=2 -> W=3)
-    statusMessageNotifier.value = 'Dhihaeh Pass 1: Dealing 5 cards each (S → E → N → W)...';
+    statusMessageNotifier.value =
+        'Dhihaeh Pass 1: Dealing 5 cards each (${dhihaehVariant == DhihaehVariant.dynamicCut ? "Dynamic Cut" : "Blind Reserve"})...';
     await _animateDhihaehPacketPass(
       token: token,
       cardCount: 5,
@@ -558,33 +677,22 @@ class DiguGameTable extends FlameGame {
     );
     if (token != _roundToken || !isMounted) return;
 
-    // Pause for Trump Declaration after Pass 1
-    _setPhase(GameTurnPhase.awaitTrump);
-    activeSeatNotifier.value = 0;
-    statusMessageNotifier.value = 'Pass 1 Dealt: Declare Trump Suit (Hukum)';
-    _publishSeats();
-
-    Suit chosenTrump;
-    if (onRequestTrumpDeclaration != null) {
-      chosenTrump = await onRequestTrumpDeclaration!(
-        List.unmodifiable(_seatHands[0]),
-        0,
-      );
+    if (dhihaehVariant == DhihaehVariant.blindReserve && _seatHands[0].isNotEmpty) {
+      // Blind Reserve: Seat 0 isolates 1 Pass-1 card face-down as Trump Reserve
+      _blindReserveOwnerSeat = 0;
+      _blindReserveCard = _seatHands[0].removeAt(0).copyWith(isFaceDown: true);
+      currentHand
+        ..clear()
+        ..addAll(_seatHands[0]);
+      _rebuildAllFourSeatVisuals();
+      statusMessageNotifier.value =
+          'Blind Reserve locked (1 card isolated) • Pass 2 (4 cards)...';
     } else {
-      await Future.delayed(Duration(milliseconds: fastDealSpeed ? 200 : 450));
-      chosenTrump = _pickBestSuitInHand(_seatHands[0]);
+      statusMessageNotifier.value =
+          'Dynamic Cut: First void off-suit sets Trump • Pass 2 (4 cards)...';
     }
-    if (token != _roundToken || !isMounted) return;
-
-    _trumpSuit = chosenTrump;
-    trumpSuitNotifier.value = chosenTrump;
-    _tableSurface.trumpSuit = chosenTrump;
-    onFanfareSound?.call();
 
     // Pass 2: 4 cards each (S -> E -> N -> W)
-    _setPhase(GameTurnPhase.dealing);
-    statusMessageNotifier.value =
-        'Trump: ${chosenTrump.symbol} ${chosenTrump.name.toUpperCase()} • Pass 2 (4 cards)...';
     await _animateDhihaehPacketPass(
       token: token,
       cardCount: 4,
@@ -595,7 +703,7 @@ class DiguGameTable extends FlameGame {
     if (token != _roundToken || !isMounted) return;
 
     // Pass 3: 4 cards each (S -> E -> N -> W)
-    statusMessageNotifier.value = 'Pass 3: Completing 13-card hands...';
+    statusMessageNotifier.value = 'Pass 3: Completing hands...';
     await _animateDhihaehPacketPass(
       token: token,
       cardCount: 4,
@@ -605,7 +713,7 @@ class DiguGameTable extends FlameGame {
     );
     if (token != _roundToken || !isMounted) return;
 
-    // Sort South's 13 cards cleanly by suit & strength
+    // Sort South's cards cleanly by suit & strength
     DhihaehEngine.sortHand(_seatHands[0]);
     currentHand
       ..clear()
@@ -746,22 +854,6 @@ class DiguGameTable extends FlameGame {
     statusMessageNotifier.value =
         '${_seatName(aceSpadesHolder)} holds ♠A and leads Trick 1!';
     _startTrick(leaderSeat: aceSpadesHolder, trickNum: 1, token: token);
-  }
-
-  Suit _pickBestSuitInHand(List<PlayingCard> hand) {
-    final counts = <Suit, int>{};
-    for (final c in hand) {
-      counts[c.suit] = (counts[c.suit] ?? 0) + 1;
-    }
-    Suit best = Suit.spades;
-    int bestCount = -1;
-    for (final entry in counts.entries) {
-      if (entry.value > bestCount) {
-        bestCount = entry.value;
-        best = entry.key;
-      }
-    }
-    return best;
   }
 
   // ---------------------------------------------------------------------------
@@ -923,6 +1015,9 @@ class DiguGameTable extends FlameGame {
 
     handCardComponents.removeAt(idx);
     final card = currentHand.removeAt(idx);
+    _seatHands[0]
+      ..clear()
+      ..addAll(currentHand);
     cardComp.removeFromParent();
 
     selectedCard = null;
@@ -933,8 +1028,9 @@ class DiguGameTable extends FlameGame {
     _publishSeats();
 
     final token = _roundToken;
+    final firstBotSeat = diguFormat == DiguTableFormat.duel1v1 ? 2 : 1;
     _setPhase(GameTurnPhase.botThinking);
-    statusMessageNotifier.value = 'North Bot is thinking...';
+    statusMessageNotifier.value = '${_seatName(firstBotSeat)} is thinking...';
 
     gameWorld.add(
       ParabolicDealCardComponent(
@@ -1001,15 +1097,15 @@ class DiguGameTable extends FlameGame {
     }
     comp.removeFromParent();
     currentHand.remove(finishCard);
+    _seatHands[0]
+      ..clear()
+      ..addAll(currentHand);
 
     selectedCard = null;
     hasSelectedCardNotifier.value = false;
 
     final faceUpHuman = currentHand.map((c) => c.copyWith(isFaceDown: false)).toList();
-    final faceUpBot = botHand.map((c) => c.copyWith(isFaceDown: false)).toList();
     final isThousandRun = RummyValidator.checkThousandPointRun(faceUpHuman);
-    final humanOpt = TeamHandOptimizer.optimizeMergedHand(faceUpHuman);
-    final botOpt = TeamHandOptimizer.optimizeMergedHand(faceUpBot);
 
     _setPhase(GameTurnPhase.roundOver);
     statusMessageNotifier.value =
@@ -1019,10 +1115,70 @@ class DiguGameTable extends FlameGame {
     _recalculateAnalysisAndLayoutHand();
     _publishSeats();
 
-    final meldScore = isThousandRun ? 1000 : humanOpt.meldScore;
-    final ginBonus = isThousandRun ? 0 : 100;
-    final humanRoundScore = meldScore + ginBonus;
-    final opponentRoundScore = botOpt.meldScore;
+    await _completeDiguRound(
+      token: token,
+      declaringSeat: 0,
+      finishCard: finishCard,
+      headlineOverride: isThousandRun
+          ? '1,000-Point Suited Run!'
+          : (diguFormat == DiguTableFormat.partners2v2
+              ? '20-Card Team Merge Gin Slam!'
+              : '0 Deadwood Gin Slam!'),
+    );
+  }
+
+  Future<void> _completeDiguRound({
+    required int token,
+    required int declaringSeat,
+    required PlayingCard finishCard,
+    String? headlineOverride,
+  }) async {
+    final hands = List<List<PlayingCard>>.generate(4, (s) {
+      if (s == 0) {
+        return currentHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+      }
+      if (s == 2 && diguFormat == DiguTableFormat.duel1v1) {
+        return botHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+      }
+      return _seatHands[s].map((c) => c.copyWith(isFaceDown: false)).toList();
+    });
+
+    final resolution = DiguRoundResolver.resolveRound(
+      format: diguFormat,
+      hands: hands,
+      declaringSeat: declaringSeat,
+      finishCard: finishCard,
+      previousCumulativeScores: _diguCumulativeScores,
+      previousConsecutiveGins: _diguConsecutiveGins,
+      targetScore: targetScore,
+      seatNames: {for (final s in diguFormat.activeSeats) s: _seatName(s)},
+    );
+
+    for (int i = 0; i < 4; i++) {
+      final ps = resolution.playerScores[i];
+      if (ps != null) {
+        _diguCumulativeScores[i] = ps.newCumulativeScore;
+      }
+      _diguConsecutiveGins[i] = resolution.updatedConsecutiveGins[i];
+    }
+    _resetMatchOnNextDeal = resolution.matchOver;
+
+    final isTeam = diguFormat == DiguTableFormat.partners2v2;
+    final humanScore = resolution.playerScores[0]!;
+    final declarerScore = resolution.playerScores[declaringSeat]!;
+    final humanWon = isTeam
+        ? resolution.winningTeamId == 'TEAM_A'
+        : declaringSeat == 0;
+    final winnerName = isTeam
+        ? (humanWon ? 'Team You & North' : 'Team East & West')
+        : declarerScore.name;
+    final humanRoundScore = isTeam ? resolution.team1RoundScore : humanScore.netRoundScore;
+    final opponentRoundScore = isTeam
+        ? resolution.team2RoundScore
+        : diguFormat.activeSeats
+            .where((s) => s != 0)
+            .map((s) => resolution.playerScores[s]!.netRoundScore)
+            .reduce(math.max);
 
     await Future.delayed(Duration(milliseconds: fastDealSpeed ? 650 : 1200));
     if (token != _roundToken || !isMounted) return;
@@ -1030,20 +1186,25 @@ class DiguGameTable extends FlameGame {
     onFanfareSound?.call();
     onRoundCompleted?.call(
       RoundOverData(
-        humanWon: true,
-        winnerName: 'You (South)',
-        winningMelds: isThousandRun ? [faceUpHuman] : humanOpt.melds,
-        deadwood: const [],
-        meldScore: meldScore,
-        debtScore: 0,
-        ginBonus: ginBonus,
-        netRoundScore: humanRoundScore,
+        humanWon: humanWon,
+        winnerName: winnerName,
+        winningMelds: declarerScore.melds,
+        deadwood: humanScore.deadwood,
+        meldScore: isTeam ? humanScore.meldScore : declarerScore.meldScore,
+        debtScore: humanScore.deadwoodDebt,
+        ginBonus: humanWon ? declarerScore.ginBonus + declarerScore.specialBonus : 0,
+        netRoundScore: isTeam ? humanRoundScore : declarerScore.netRoundScore,
         humanRoundScore: humanRoundScore,
         opponentRoundScore: opponentRoundScore,
+        zeroMeldPenalty: humanScore.zeroMeldPenalty,
+        consecutiveGinPenalty: humanScore.consecutiveGinPenalty,
+        isTeamMode: isTeam,
+        matchOver: resolution.matchOver,
         mode: HolhuashiGameMode.digu,
-        summaryHeadline: isThousandRun
-            ? '1,000-Point Suited Run!'
-            : '0 Deadwood Gin Slam!',
+        summaryHeadline: headlineOverride ??
+            (resolution.isThousandPointRun
+                ? '1,000-Point Suited Run!'
+                : '${declarerScore.name} Gin Slam!'),
       ),
     );
   }
@@ -1115,152 +1276,155 @@ class DiguGameTable extends FlameGame {
   // ---------------------------------------------------------------------------
 
   Future<void> _startBotTurn(int token) async {
-    if (token != _roundToken || !isMounted) return;
-    _setPhase(GameTurnPhase.botThinking);
-    activeSeatNotifier.value = 2;
-    _publishSeats();
-    statusMessageNotifier.value = 'North Bot is thinking...';
+    final botSeats =
+        diguFormat == DiguTableFormat.duel1v1 ? const [2] : const [1, 2, 3];
 
-    await Future.delayed(Duration(milliseconds: fastDealSpeed ? 450 : 1000));
-    if (token != _roundToken || !isMounted || phase != GameTurnPhase.botThinking) {
-      return;
-    }
+    for (final seat in botSeats) {
+      if (token != _roundToken || !isMounted || phase != GameTurnPhase.botThinking) {
+        return;
+      }
 
-    if (stockPile.isEmpty) {
-      _recycleDiscardIntoStock();
-    }
+      activeSeatNotifier.value = seat;
+      _publishSeats();
+      final seatLabel = _seatName(seat);
+      statusMessageNotifier.value = '$seatLabel is thinking...';
 
-    final topDiscard = discardPile.isNotEmpty ? discardPile.last : null;
-    final shouldDrawDiscard = DiguAI.shouldDrawDiscard(
-      botHand: botHand,
-      topDiscard: topDiscard,
-    );
+      final thinkMs = fastDealSpeed
+          ? (botSeats.length == 1 ? 450 : 240)
+          : (botSeats.length == 1 ? 1000 : 650);
+      await Future.delayed(Duration(milliseconds: thinkMs));
+      if (token != _roundToken || !isMounted || phase != GameTurnPhase.botThinking) {
+        return;
+      }
 
-    final oppAnchor = _seatAnchor(2).pos;
-    if (shouldDrawDiscard && discardPile.isNotEmpty) {
-      final drawn = discardPile.removeLast();
-      _layoutTablePiles();
-      statusMessageNotifier.value = 'North Bot drew from Discard pile';
+      if (stockPile.isEmpty) {
+        _recycleDiscardIntoStock();
+      }
 
-      final c = Completer<void>();
+      final seatHand = _seatHands[seat];
+      final topDiscard = discardPile.isNotEmpty ? discardPile.last : null;
+      final shouldDrawDiscard = DiguAI.shouldDrawDiscard(
+        botHand: seatHand,
+        topDiscard: topDiscard,
+      );
+
+      final oppAnchor = _seatAnchor(seat).pos;
+      final oppAngle = _seatAnchor(seat).angle;
+      if (shouldDrawDiscard && discardPile.isNotEmpty) {
+        final drawn = discardPile.removeLast();
+        _layoutTablePiles();
+        statusMessageNotifier.value = '$seatLabel drew from Discard pile';
+
+        final c = Completer<void>();
+        gameWorld.add(
+          ParabolicDealCardComponent(
+            card: drawn,
+            startPos: _discardPos,
+            endPos: oppAnchor,
+            startSize: tableCardSize,
+            cardSize: opponentCardSize,
+            endAngle: oppAngle,
+            flightDuration: 0.24 * _speedScale,
+            flipOnArrival: false,
+            onLaunch: () => onCardDealSound?.call(),
+            onArrived: () {
+              if (!c.isCompleted) c.complete();
+            },
+          ),
+        );
+        await c.future;
+        if (token != _roundToken || !isMounted) return;
+        seatHand.add(drawn.copyWith(isFaceDown: true));
+      } else if (stockPile.isNotEmpty) {
+        final drawn = stockPile.removeLast().copyWith(isFaceDown: true);
+        _layoutTablePiles();
+        statusMessageNotifier.value = '$seatLabel drew from Stock pile';
+
+        final c = Completer<void>();
+        gameWorld.add(
+          ParabolicDealCardComponent(
+            card: drawn,
+            startPos: _stockPos,
+            endPos: oppAnchor,
+            startSize: tableCardSize,
+            cardSize: opponentCardSize,
+            endAngle: oppAngle,
+            flightDuration: 0.24 * _speedScale,
+            flipOnArrival: false,
+            onLaunch: () => onCardDealSound?.call(),
+            onArrived: () {
+              if (!c.isCompleted) c.complete();
+            },
+          ),
+        );
+        await c.future;
+        if (token != _roundToken || !isMounted) return;
+        seatHand.add(drawn);
+      }
+
+      if (seat == 2) {
+        botHand
+          ..clear()
+          ..addAll(seatHand);
+      }
+      _layoutDiguOpponents();
+      _publishSeats();
+
+      final discardDelayMs = fastDealSpeed
+          ? (botSeats.length == 1 ? 380 : 200)
+          : (botSeats.length == 1 ? 850 : 520);
+      await Future.delayed(Duration(milliseconds: discardDelayMs));
+      if (token != _roundToken || !isMounted || phase != GameTurnPhase.botThinking) {
+        return;
+      }
+
+      final botDecision = DiguAI.chooseBestAction(seatHand);
+      seatHand.remove(botDecision.cardToDiscard);
+      if (seat == 2) {
+        botHand
+          ..clear()
+          ..addAll(seatHand);
+      }
+      _layoutDiguOpponents();
+
+      if (botDecision.isGinSlam) {
+        _setPhase(GameTurnPhase.roundOver);
+        statusMessageNotifier.value = '⚡ ${seatLabel.toUpperCase()} SLAMMED GIN!';
+        _slamFinishCard(botDecision.cardToDiscard, fromPos: oppAnchor);
+        await _completeDiguRound(
+          token: token,
+          declaringSeat: seat,
+          finishCard: botDecision.cardToDiscard,
+          headlineOverride: botDecision.reason ?? '$seatLabel Gin Slam',
+        );
+        return;
+      }
+
+      // Animate Bot discard card flying into Discard pile
+      final discardFlight = Completer<void>();
       gameWorld.add(
         ParabolicDealCardComponent(
-          card: drawn,
-          startPos: _discardPos,
-          endPos: oppAnchor,
-          startSize: tableCardSize,
-          cardSize: opponentCardSize,
+          card: botDecision.cardToDiscard.copyWith(isFaceDown: true),
+          startPos: oppAnchor,
+          endPos: _discardPos,
+          startSize: opponentCardSize,
+          cardSize: tableCardSize,
+          startAngle: oppAngle,
           flightDuration: 0.24 * _speedScale,
-          flipOnArrival: false,
-          onLaunch: () => onCardDealSound?.call(),
+          flipDuration: 0.13 * _speedScale,
+          flipOnArrival: true,
+          onLaunch: () => onCardSnapSound?.call(),
           onArrived: () {
-            if (!c.isCompleted) c.complete();
+            if (!discardFlight.isCompleted) discardFlight.complete();
           },
         ),
       );
-      await c.future;
+      await discardFlight.future;
       if (token != _roundToken || !isMounted) return;
-      botHand.add(drawn.copyWith(isFaceDown: true));
-    } else if (stockPile.isNotEmpty) {
-      final drawn = stockPile.removeLast().copyWith(isFaceDown: true);
+
+      discardPile.add(botDecision.cardToDiscard.copyWith(isFaceDown: false));
       _layoutTablePiles();
-      statusMessageNotifier.value = 'North Bot drew from Stock pile';
-
-      final c = Completer<void>();
-      gameWorld.add(
-        ParabolicDealCardComponent(
-          card: drawn,
-          startPos: _stockPos,
-          endPos: oppAnchor,
-          startSize: tableCardSize,
-          cardSize: opponentCardSize,
-          flightDuration: 0.24 * _speedScale,
-          flipOnArrival: false,
-          onLaunch: () => onCardDealSound?.call(),
-          onArrived: () {
-            if (!c.isCompleted) c.complete();
-          },
-        ),
-      );
-      await c.future;
-      if (token != _roundToken || !isMounted) return;
-      botHand.add(drawn);
     }
-
-    _layoutOpponentHand();
-    _publishSeats();
-
-    await Future.delayed(Duration(milliseconds: fastDealSpeed ? 380 : 850));
-    if (token != _roundToken || !isMounted || phase != GameTurnPhase.botThinking) {
-      return;
-    }
-
-    final botDecision = DiguAI.chooseBestAction(botHand);
-    botHand.remove(botDecision.cardToDiscard);
-    _layoutOpponentHand();
-
-    if (botDecision.isGinSlam) {
-      _setPhase(GameTurnPhase.roundOver);
-      statusMessageNotifier.value = '⚡ NORTH BOT SLAMMED GIN!';
-
-      _slamFinishCard(botDecision.cardToDiscard, fromPos: oppAnchor);
-      final faceUpBot = botHand.map((c) => c.copyWith(isFaceDown: false)).toList();
-      final faceUpHuman = currentHand.map((c) => c.copyWith(isFaceDown: false)).toList();
-      final isBotThousandRun = RummyValidator.checkThousandPointRun(faceUpBot);
-      final botOpt = TeamHandOptimizer.optimizeMergedHand(faceUpBot);
-      final humanOpt = TeamHandOptimizer.optimizeMergedHand(faceUpHuman);
-
-      final botMeldScore = isBotThousandRun ? 1000 : botOpt.meldScore;
-      final botGinBonus = isBotThousandRun ? 0 : 100;
-      final opponentRoundScore = botMeldScore + botGinBonus;
-      final humanRoundScore = humanOpt.meldScore;
-
-      await Future.delayed(Duration(milliseconds: fastDealSpeed ? 650 : 1200));
-      if (token != _roundToken || !isMounted) return;
-
-      onFanfareSound?.call();
-      onRoundCompleted?.call(
-        RoundOverData(
-          humanWon: false,
-          winnerName: 'North Bot',
-          winningMelds: isBotThousandRun ? [faceUpBot] : botOpt.melds,
-          deadwood: isBotThousandRun ? const [] : botOpt.deadwood,
-          meldScore: botMeldScore,
-          debtScore: isBotThousandRun ? 0 : botOpt.debtScore,
-          ginBonus: botGinBonus,
-          netRoundScore: opponentRoundScore,
-          humanRoundScore: humanRoundScore,
-          opponentRoundScore: opponentRoundScore,
-          mode: HolhuashiGameMode.digu,
-          summaryHeadline: botDecision.reason ?? 'North Bot Gin Slam',
-        ),
-      );
-      return;
-    }
-
-    // Animate Bot discard card flying into Discard pile
-    final discardFlight = Completer<void>();
-    gameWorld.add(
-      ParabolicDealCardComponent(
-        card: botDecision.cardToDiscard.copyWith(isFaceDown: true),
-        startPos: oppAnchor,
-        endPos: _discardPos,
-        startSize: opponentCardSize,
-        cardSize: tableCardSize,
-        flightDuration: 0.24 * _speedScale,
-        flipDuration: 0.13 * _speedScale,
-        flipOnArrival: true,
-        onLaunch: () => onCardSnapSound?.call(),
-        onArrived: () {
-          if (!discardFlight.isCompleted) discardFlight.complete();
-        },
-      ),
-    );
-    await discardFlight.future;
-    if (token != _roundToken || !isMounted) return;
-
-    discardPile.add(botDecision.cardToDiscard.copyWith(isFaceDown: false));
-    _layoutTablePiles();
 
     _setPhase(GameTurnPhase.awaitDraw);
     activeSeatNotifier.value = 0;
@@ -1284,6 +1448,32 @@ class DiguGameTable extends FlameGame {
     }
     _trickPlays.clear();
 
+    if (activeMode == HolhuashiGameMode.dhihaeh &&
+        trickNum >= 13 &&
+        _blindReserveCard != null) {
+      final revealed = _blindReserveCard!.copyWith(isFaceDown: false);
+      _revealBlindReserveToOwner(revealed);
+      if (_trumpSuit == null) {
+        _trumpSuit = revealed.suit;
+        trumpSuitNotifier.value = revealed.suit;
+        _tableSurface.trumpSuit = revealed.suit;
+        onFanfareSound?.call();
+      }
+    }
+
+    if (activeMode == HolhuashiGameMode.bondi) {
+      final ordered = [
+        for (int i = 0; i < 4; i++) (leaderSeat + i) % 4,
+      ].where((s) => _seatHands[s].isNotEmpty).toList();
+      if (BondiEngine.isMatchOver(_seatHands) || ordered.length <= 1) {
+        _finishBondiRound(loserSeat: BondiEngine.getLoserSeat(_seatHands));
+        return;
+      }
+      _activeTrickSeats = ordered;
+    } else {
+      _activeTrickSeats = [for (int i = 0; i < 4; i++) (leaderSeat + i) % 4];
+    }
+
     _trickNumber = trickNum;
     _trickLeaderSeat = leaderSeat;
     _trickStepIndex = 0;
@@ -1298,12 +1488,16 @@ class DiguGameTable extends FlameGame {
   Future<void> _advanceTrickStep(int token) async {
     if (token != _roundToken || !isMounted) return;
 
-    if (_trickStepIndex >= 4) {
+    final stepLimit =
+        activeMode == HolhuashiGameMode.bondi ? _activeTrickSeats.length : 4;
+    if (_trickStepIndex >= stepLimit) {
       await _resolveCompletedTrick(token);
       return;
     }
 
-    final seat = (_trickLeaderSeat + _trickStepIndex) % 4;
+    final seat = activeMode == HolhuashiGameMode.bondi
+        ? _activeTrickSeats[_trickStepIndex]
+        : (_trickLeaderSeat + _trickStepIndex) % 4;
     // Skip empty-handed seats in Bondi if a player already emptied out
     if (_seatHands[seat].isEmpty) {
       _trickStepIndex++;
@@ -1340,20 +1534,142 @@ class DiguGameTable extends FlameGame {
     await Future.delayed(Duration(milliseconds: fastDealSpeed ? 180 : 380));
     if (token != _roundToken || !isMounted) return;
 
-    final chosen = _selectAITrickCard(seat);
-    _seatHands[seat].remove(chosen);
+    final leadBefore = _currentLeadSuit;
+    final wasVoidBefore = leadBefore != null &&
+        !_seatHands[seat].any((c) => c.suit == leadBefore);
+
+    final List<PlayingCard> chosenCards;
+    if (activeMode == HolhuashiGameMode.bondi) {
+      chosenCards = BondiAI.selectPlay(
+        hand: _seatHands[seat],
+        currentTrick: _buildBondiTrick(),
+        variant: bondiVariant,
+        activePlayerCount: _activeTrickSeats.length,
+      ).cards;
+    } else {
+      chosenCards = [_selectAITrickCard(seat)];
+    }
+
+    final playedIds = chosenCards.map((c) => c.id).toSet();
+    _seatHands[seat].removeWhere((c) => playedIds.contains(c.id));
     _layoutFourSeatOpponents();
     _publishSeats();
 
     await _animateAndPlaceTrickCard(
       seat: seat,
-      card: chosen.copyWith(isFaceDown: false),
+      card: chosenCards.first.copyWith(isFaceDown: false),
       fromPos: _seatAnchor(seat).pos,
       fromAngle: _seatAnchor(seat).angle,
       fromSize: opponentCardSize,
       token: token,
     );
+
+    await _afterTrickCardPlaced(
+      seat: seat,
+      playedCards: chosenCards,
+      leadBefore: leadBefore,
+      wasVoidBefore: wasVoidBefore,
+      token: token,
+    );
+  }
+
+  void _revealBlindReserveToOwner(PlayingCard revealed) {
+    _blindReserveCard = null;
+    final owner = _blindReserveOwnerSeat;
+    final faceUp = owner == 0;
+    _seatHands[owner].add(revealed.copyWith(isFaceDown: !faceUp));
+    if (owner == 0) {
+      DhihaehEngine.sortHand(_seatHands[0]);
+      currentHand
+        ..clear()
+        ..addAll(_seatHands[0]);
+      _recalculateAnalysisAndLayoutHand();
+    } else {
+      _layoutFourSeatOpponents();
+    }
+    _publishSeats();
+  }
+
+  void _maybeTriggerDhihaehTrumpCut({
+    required int seat,
+    required PlayingCard playedCard,
+    required bool wasVoid,
+  }) {
+    if (_trumpSuit != null || !wasVoid) return;
+
+    if (dhihaehVariant == DhihaehVariant.blindReserve &&
+        _blindReserveCard != null) {
+      final revealed = _blindReserveCard!.copyWith(isFaceDown: false);
+      _revealBlindReserveToOwner(revealed);
+      _trumpSuit = revealed.suit;
+      trumpSuitNotifier.value = revealed.suit;
+      _tableSurface.trumpSuit = revealed.suit;
+      onFanfareSound?.call();
+      statusMessageNotifier.value =
+          'Blind Reserve Revealed: Trump is ${revealed.suit.symbol} ${revealed.suit.name.toUpperCase()}!';
+      return;
+    }
+
+    _trumpSuit = playedCard.suit;
+    trumpSuitNotifier.value = playedCard.suit;
+    _tableSurface.trumpSuit = playedCard.suit;
+    onFanfareSound?.call();
+    statusMessageNotifier.value =
+        'Dynamic Cut by ${_seatName(seat)}! Trump is ${playedCard.suit.symbol} ${playedCard.suit.name.toUpperCase()}';
+  }
+
+  void _placeExtraTrickCards({
+    required int seat,
+    required List<PlayingCard> extraCards,
+  }) {
+    final basePos = _trickSlotPos(seat);
+    for (int i = 0; i < extraCards.length; i++) {
+      final extra = extraCards[i].copyWith(isFaceDown: false);
+      final placed = FlameCardComponent(
+        card: extra,
+        position: basePos + Vector2((i + 1) * 18.0, (i + 1) * -6.0),
+        size: tableCardSize,
+        isDraggable: false,
+        basePriority: 60 + _trickPlays.length,
+      );
+      _trickPlays.add((seat: seat, card: extra, comp: placed));
+      gameWorld.add(placed);
+    }
+  }
+
+  Future<void> _afterTrickCardPlaced({
+    required int seat,
+    required List<PlayingCard> playedCards,
+    required Suit? leadBefore,
+    required bool wasVoidBefore,
+    required int token,
+  }) async {
     if (token != _roundToken || !isMounted) return;
+
+    if (playedCards.length > 1) {
+      _placeExtraTrickCards(
+        seat: seat,
+        extraCards: playedCards.skip(1).toList(),
+      );
+    }
+
+    if (activeMode == HolhuashiGameMode.dhihaeh) {
+      _maybeTriggerDhihaehTrumpCut(
+        seat: seat,
+        playedCard: playedCards.first,
+        wasVoid: wasVoidBefore,
+      );
+    }
+
+    // In Bondi, an off-suit cut immediately stops the trick; remaining seats do NOT play.
+    if (activeMode == HolhuashiGameMode.bondi &&
+        leadBefore != null &&
+        playedCards.first.suit != leadBefore) {
+      statusMessageNotifier.value =
+          '⚡ BONDI CUT by ${_seatName(seat)}! Trick stops immediately!';
+      await _resolveCompletedTrick(token);
+      return;
+    }
 
     _trickStepIndex++;
     await _advanceTrickStep(token);
@@ -1398,14 +1714,32 @@ class DiguGameTable extends FlameGame {
     final card = comp.card.copyWith(isFaceDown: false);
     final startPos = comp.position.clone();
     final startAngle = comp.angle;
+    final leadBefore = _currentLeadSuit;
+    final wasVoidBefore =
+        leadBefore != null && !_seatHands[0].any((c) => c.suit == leadBefore);
 
-    final idx = handCardComponents.indexOf(comp);
-    if (idx != -1) {
-      handCardComponents.removeAt(idx);
+    final cardsToPlay = <PlayingCard>[card];
+    if (activeMode == HolhuashiGameMode.bondi &&
+        bondiVariant == BondiVariant.suitBondi &&
+        leadBefore != null &&
+        card.suit != leadBefore) {
+      for (final other in _seatHands[0]) {
+        if (other.suit == card.suit && other.id != card.id) {
+          cardsToPlay.add(other.copyWith(isFaceDown: false));
+        }
+      }
     }
-    comp.removeFromParent();
-    _seatHands[0].remove(card);
-    currentHand.remove(card);
+
+    final playedIds = cardsToPlay.map((c) => c.id).toSet();
+    final toRemove = handCardComponents
+        .where((c) => playedIds.contains(c.card.id))
+        .toList();
+    for (final c in toRemove) {
+      handCardComponents.remove(c);
+      c.removeFromParent();
+    }
+    _seatHands[0].removeWhere((c) => playedIds.contains(c.id));
+    currentHand.removeWhere((c) => playedIds.contains(c.id));
 
     selectedCard = null;
     hasSelectedCardNotifier.value = false;
@@ -1423,9 +1757,13 @@ class DiguGameTable extends FlameGame {
         fromSize: handCardSize,
         token: token,
       ).then((_) async {
-        if (token != _roundToken || !isMounted) return;
-        _trickStepIndex++;
-        await _advanceTrickStep(token);
+        await _afterTrickCardPlaced(
+          seat: 0,
+          playedCards: cardsToPlay,
+          leadBefore: leadBefore,
+          wasVoidBefore: wasVoidBefore,
+          token: token,
+        );
       }),
     );
   }
@@ -1571,19 +1909,39 @@ class DiguGameTable extends FlameGame {
 
   void _finishDhihaehRound() {
     _setPhase(GameTurnPhase.roundOver);
+    final prevTeam1 = _dhihaehTeam1Score;
+    final prevTeam2 = _dhihaehTeam2Score;
     final score = DhihaehEngine.evaluateRoundScore(
       team1Tens: _team1Tens.length,
       team2Tens: _team2Tens.length,
       team1Tricks: _team1Tricks,
       team2Tricks: _team2Tricks,
-      team1PreviousScore: 0,
-      team2PreviousScore: 0,
+      team1PreviousScore: prevTeam1,
+      team2PreviousScore: prevTeam2,
     );
 
-    final team1Won = score.handWinnerTeam == 'TEAM_1';
+    final team1RoundDelta = score.team1Score - prevTeam1;
+    final team2RoundDelta = score.team2Score - prevTeam2;
+    _dhihaehTeam1Score = score.team1Score;
+    _dhihaehTeam2Score = score.team2Score;
+
     final isHaasbagga = score.outcomeType == DhihaehOutcome.haasbagga;
+    final matchOver = isHaasbagga ||
+        _dhihaehTeam1Score >= 7 ||
+        _dhihaehTeam2Score >= 7;
+    _resetMatchOnNextDeal = matchOver;
+
+    final outcomeLabel = switch (score.outcomeType) {
+      DhihaehOutcome.haasbagga => 'Haasbagga (1,000 pts)',
+      DhihaehOutcome.bagga => 'Bagga (+4 pts)',
+      DhihaehOutcome.standard => '3 Tens (+1 pt)',
+      DhihaehOutcome.tieBreaker => '2–2 Split (Tricks Tie-Break)',
+      null => 'Round Complete',
+    };
+
+    final team1Won = score.handWinnerTeam == 'TEAM_1';
     final headline = isHaasbagga
-        ? 'HAASBAGGA! All 4 Tens Captured (1,000 pts)!'
+        ? 'HAASBAGGA! All 4 Tens & 13 Tricks (1,000 pts)!'
         : team1Won
             ? 'Team South/North Won ($_team1Tricks tricks • ${_team1Tens.length} Tens)'
             : 'Team East/West Won ($_team2Tricks tricks • ${_team2Tens.length} Tens)';
@@ -1599,10 +1957,17 @@ class DiguGameTable extends FlameGame {
             ? [if (team1Won) _team1Tens else _team2Tens]
             : const [],
         deadwood: const [],
-        meldScore: isHaasbagga ? 1000 : (team1Won ? _team1Tens.length * 10 : _team2Tens.length * 10),
+        meldScore: isHaasbagga
+            ? 1000
+            : (team1Won ? _team1Tens.length * 10 : _team2Tens.length * 10),
         debtScore: 0,
-        ginBonus: team1Won ? score.team1Score : score.team2Score,
-        netRoundScore: team1Won ? score.team1Score : score.team2Score,
+        ginBonus: team1Won ? team1RoundDelta : team2RoundDelta,
+        netRoundScore: team1Won ? team1RoundDelta : team2RoundDelta,
+        humanRoundScore: team1RoundDelta,
+        opponentRoundScore: team2RoundDelta,
+        isTeamMode: true,
+        matchOver: matchOver,
+        dhihaehOutcomeLabel: outcomeLabel,
         mode: HolhuashiGameMode.dhihaeh,
         summaryHeadline: headline,
         team1Tens: _team1Tens.length,
@@ -1663,21 +2028,20 @@ class DiguGameTable extends FlameGame {
 
     _publishSeats();
 
-    // Check if any player emptied their hand (or safety cap)
-    final emptySeat = _seatHands.indexWhere((h) => h.isEmpty);
-    if (emptySeat != -1) {
-      _finishBondiRound(winnerSeat: emptySeat);
+    for (int s = 0; s < 4; s++) {
+      if (_seatHands[s].isEmpty && !_bondiExitOrder.contains(s)) {
+        _bondiExitOrder.add(s);
+      }
+    }
+
+    if (BondiEngine.isMatchOver(_seatHands)) {
+      _finishBondiRound(loserSeat: BondiEngine.getLoserSeat(_seatHands));
       return;
     }
 
-    int nextLeader = winnerSeat;
-    for (int i = 0; i < 4; i++) {
-      final candidate = (winnerSeat + i) % 4;
-      if (_seatHands[candidate].isNotEmpty) {
-        nextLeader = candidate;
-        break;
-      }
-    }
+    final nextLeader = _seatHands[winnerSeat].isNotEmpty
+        ? winnerSeat
+        : BondiEngine.getNextActiveSeat(winnerSeat, _seatHands);
 
     _startTrick(
       leaderSeat: nextLeader,
@@ -1686,13 +2050,20 @@ class DiguGameTable extends FlameGame {
     );
   }
 
-  void _finishBondiRound({required int winnerSeat}) {
+  void _finishBondiRound({int? loserSeat}) {
     _setPhase(GameTurnPhase.roundOver);
-    final humanWon = winnerSeat == 0;
-    final winnerName = _seatName(winnerSeat);
-    final headline = humanWon
-        ? 'You shed all cards first! (${_burnedCards.length} burned)'
-        : '$winnerName shed all cards first!';
+    final effectiveLoser = loserSeat ?? BondiEngine.getLoserSeat(_seatHands);
+    final humanLost = effectiveLoser == 0;
+    final humanWon = !humanLost;
+    final firstWinnerSeat = _bondiExitOrder.isNotEmpty
+        ? _bondiExitOrder.first
+        : (humanWon ? 0 : 1);
+    final winnerName = _seatName(firstWinnerSeat);
+    final loserName =
+        effectiveLoser != null ? _seatName(effectiveLoser) : 'Opponent';
+    final headline = humanLost
+        ? 'You are THE BONDI (last player with ${_seatHands[0].length} cards)!'
+        : '$loserName is THE BONDI! You escaped (${_burnedCards.length} burned).';
 
     statusMessageNotifier.value = headline;
     onFanfareSound?.call();
@@ -1710,6 +2081,10 @@ class DiguGameTable extends FlameGame {
         netRoundScore: humanWon
             ? 50 + (_burnedCards.length * 2)
             : math.max(10, 40 - remainingCount * 2),
+        humanRoundScore: humanWon ? 50 : 0,
+        opponentRoundScore: humanLost ? 50 : 0,
+        bondiLoserSeat: effectiveLoser,
+        matchOver: true,
         mode: HolhuashiGameMode.bondi,
         summaryHeadline: headline,
         burnedCards: List.unmodifiable(_burnedCards),
@@ -2304,7 +2679,8 @@ class DiguGameTable extends FlameGame {
   }
 
   String _seatName(int seat) {
-    if (activeMode == HolhuashiGameMode.digu) {
+    if (activeMode == HolhuashiGameMode.digu &&
+        diguFormat == DiguTableFormat.duel1v1) {
       return seat == 0 ? 'You (South)' : 'North Bot';
     }
     switch (seat) {
@@ -2313,9 +2689,12 @@ class DiguGameTable extends FlameGame {
       case 1:
         return 'East AI';
       case 2:
-        return activeMode == HolhuashiGameMode.dhihaeh
-            ? 'North Partner'
-            : 'North AI';
+        if (activeMode == HolhuashiGameMode.dhihaeh ||
+            (activeMode == HolhuashiGameMode.digu &&
+                diguFormat == DiguTableFormat.partners2v2)) {
+          return 'North Partner';
+        }
+        return activeMode == HolhuashiGameMode.digu ? 'North Bot' : 'North AI';
       case 3:
       default:
         return 'West AI';
@@ -2329,7 +2708,8 @@ class DiguGameTable extends FlameGame {
 
   void _publishSeats() {
     final active = activeSeatNotifier.value;
-    if (activeMode == HolhuashiGameMode.digu) {
+    if (activeMode == HolhuashiGameMode.digu &&
+        diguFormat == DiguTableFormat.duel1v1) {
       seatsNotifier.value = [
         SeatInfo(
           seatIndex: 0,
@@ -2350,14 +2730,18 @@ class DiguGameTable extends FlameGame {
     }
 
     const labels = ['S', 'E', 'N', 'W'];
+    final isPartnerMode = activeMode == HolhuashiGameMode.dhihaeh ||
+        (activeMode == HolhuashiGameMode.digu &&
+            diguFormat == DiguTableFormat.partners2v2);
     seatsNotifier.value = List.generate(4, (i) {
+      final count = i == 0 ? currentHand.length : _seatHands[i].length;
       return SeatInfo(
         seatIndex: i,
         name: _seatName(i),
         compassLabel: labels[i],
-        cardCount: _seatHands[i].length,
+        cardCount: count,
         isActiveTurn: active == i,
-        isPartner: activeMode == HolhuashiGameMode.dhihaeh && (i == 0 || i == 2),
+        isPartner: isPartnerMode && (i == 0 || i == 2),
         tricksWon: _seatTricksWon[i],
         capturedTens: _seatTensCaptured[i],
       );

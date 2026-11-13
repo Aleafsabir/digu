@@ -2,12 +2,18 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/audio/sensory_service.dart';
+import '../core/bondi/bondi_engine.dart' show BondiVariant;
+import '../core/dhihaeh/dhihaeh_engine.dart' show DhihaehVariant;
+import '../core/digu/digu_resolver.dart' show DiguTableFormat;
 import '../core/services/cloud_sync_service.dart';
 import '../core/services/google_auth_service.dart';
 import '../data/local_persistence.dart';
 import '../game/table_canvas.dart' show HolhuashiGameMode;
 import '../network/ws_client.dart';
 
+export '../core/bondi/bondi_engine.dart' show BondiVariant;
+export '../core/dhihaeh/dhihaeh_engine.dart' show DhihaehVariant;
+export '../core/digu/digu_resolver.dart' show DiguTableFormat;
 export '../core/services/cloud_sync_service.dart'
     show CloudPlayerProfile, CloudProfileConflict, GoogleAuthSyncResult;
 export '../core/services/google_auth_service.dart'
@@ -221,6 +227,9 @@ class GameSessionState {
   final bool authBusy;
   final String? authErrorMessage;
   final CloudProfileConflict? pendingCloudConflict;
+  final DiguTableFormat diguFormat;
+  final BondiVariant bondiVariant;
+  final DhihaehVariant dhihaehVariant;
 
   const GameSessionState({
     this.screenState = AppScreenState.auth,
@@ -253,6 +262,9 @@ class GameSessionState {
     this.authBusy = false,
     this.authErrorMessage,
     this.pendingCloudConflict,
+    this.diguFormat = DiguTableFormat.partners2v2,
+    this.bondiVariant = BondiVariant.standard,
+    this.dhihaehVariant = DhihaehVariant.dynamicCut,
   });
 
   factory GameSessionState.initial({
@@ -422,6 +434,9 @@ class GameSessionState {
     bool clearAuthErrorMessage = false,
     CloudProfileConflict? pendingCloudConflict,
     bool clearPendingCloudConflict = false,
+    DiguTableFormat? diguFormat,
+    BondiVariant? bondiVariant,
+    DhihaehVariant? dhihaehVariant,
   }) {
     return GameSessionState(
       screenState: screenState ?? this.screenState,
@@ -463,6 +478,9 @@ class GameSessionState {
       pendingCloudConflict: clearPendingCloudConflict
           ? null
           : (pendingCloudConflict ?? this.pendingCloudConflict),
+      diguFormat: diguFormat ?? this.diguFormat,
+      bondiVariant: bondiVariant ?? this.bondiVariant,
+      dhihaehVariant: dhihaehVariant ?? this.dhihaehVariant,
     );
   }
 }
@@ -1144,6 +1162,24 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
 
   void toggleTargetScore() {
     setTargetScore(state.targetScore == 500 ? 1000 : 500);
+  }
+
+  void setDiguFormat(DiguTableFormat format) {
+    _sensory.selectionClick();
+    state = state.copyWith(
+      diguFormat: format,
+      targetScore: format.defaultTargetScore,
+    );
+  }
+
+  void setBondiVariant(BondiVariant variant) {
+    _sensory.selectionClick();
+    state = state.copyWith(bondiVariant: variant);
+  }
+
+  void setDhihaehVariant(DhihaehVariant variant) {
+    _sensory.selectionClick();
+    state = state.copyWith(dhihaehVariant: variant);
   }
 
   void setTurnTimer(int seconds) {

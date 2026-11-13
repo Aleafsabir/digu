@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:holhuashi_client/core/models/card_models.dart';
 import 'package:holhuashi_client/core/deck/deck_engine.dart';
+import 'package:holhuashi_client/core/digu/digu_resolver.dart';
 import 'package:holhuashi_client/core/digu/rummy_validator.dart';
 import 'package:holhuashi_client/core/digu/team_solver.dart';
 
@@ -110,6 +111,91 @@ void main() {
       expect(result.deadwood.length, equals(1));
       expect(result.deadwood.first.rank, equals(1)); // Ace is deadwood
       expect(result.debtScore, equals(15));
+    });
+  });
+
+  group('DiguRoundResolver & Table Format Tests', () {
+    List<PlayingCard> validGinHand() => const [
+          PlayingCard(id: 'S-01', suit: Suit.spades, rank: 1),
+          PlayingCard(id: 'H-01', suit: Suit.hearts, rank: 1),
+          PlayingCard(id: 'D-01', suit: Suit.diamonds, rank: 1),
+          PlayingCard(id: 'C-01', suit: Suit.clubs, rank: 1),
+          PlayingCard(id: 'S-02', suit: Suit.spades, rank: 2),
+          PlayingCard(id: 'S-03', suit: Suit.spades, rank: 3),
+          PlayingCard(id: 'S-04', suit: Suit.spades, rank: 4),
+          PlayingCard(id: 'H-07', suit: Suit.hearts, rank: 7),
+          PlayingCard(id: 'H-08', suit: Suit.hearts, rank: 8),
+          PlayingCard(id: 'H-09', suit: Suit.hearts, rank: 9),
+        ];
+
+    List<PlayingCard> zeroMeldHand() => const [
+          PlayingCard(id: 'C-02', suit: Suit.clubs, rank: 2),
+          PlayingCard(id: 'D-04', suit: Suit.diamonds, rank: 4),
+          PlayingCard(id: 'H-06', suit: Suit.hearts, rank: 6),
+          PlayingCard(id: 'S-08', suit: Suit.spades, rank: 8),
+          PlayingCard(id: 'C-10', suit: Suit.clubs, rank: 10),
+          PlayingCard(id: 'D-12', suit: Suit.diamonds, rank: 12),
+          PlayingCard(id: 'H-03', suit: Suit.hearts, rank: 3),
+          PlayingCard(id: 'S-05', suit: Suit.spades, rank: 5),
+          PlayingCard(id: 'C-07', suit: Suit.clubs, rank: 7),
+          PlayingCard(id: 'D-09', suit: Suit.diamonds, rank: 9),
+        ];
+
+    test('Strictly rejects 7-card run for 1,000-point bonus', () {
+      final sevenCards = List.generate(
+        7,
+        (i) => PlayingCard(
+          id: 'H-0${i + 1}',
+          suit: Suit.hearts,
+          rank: i + 1,
+        ),
+      );
+      expect(RummyValidator.checkThousandPointRun(sevenCards), isFalse);
+    });
+
+    test('1v1 Duel applies Gin bonus (+100) and zero-meld -100 penalty', () {
+      final res = DiguRoundResolver.resolveRound(
+        format: DiguTableFormat.duel1v1,
+        hands: [validGinHand(), const [], zeroMeldHand(), const []],
+        declaringSeat: 0,
+        finishCard: const PlayingCard(id: 'D-02', suit: Suit.diamonds, rank: 2),
+        targetScore: 500,
+      );
+
+      expect(res.winnerSeat, equals(0));
+      expect(res.playerScores[0]!.ginBonus, equals(100));
+      expect(res.playerScores[2]!.zeroMeldPenalty, equals(-100));
+      expect(res.playerScores[2]!.netRoundScore, equals(-100));
+    });
+
+    test('2v2 Partners merges 20 cards across partners and splits half', () {
+      final res = DiguRoundResolver.resolveRound(
+        format: DiguTableFormat.partners2v2,
+        hands: [validGinHand(), zeroMeldHand(), zeroMeldHand(), zeroMeldHand()],
+        declaringSeat: 0,
+        finishCard: const PlayingCard(id: 'D-02', suit: Suit.diamonds, rank: 2),
+        targetScore: 1000,
+      );
+
+      expect(res.winningTeamId, equals('TEAM_A'));
+      // Teams merge (zero-meld partner cards count as deadwood against team or merge into melds)
+      expect(res.playerScores[0]!.netRoundScore, equals(res.playerScores[2]!.netRoundScore));
+    });
+
+    test('4P FFA applies -100 feeder penalty on 3 consecutive Gins', () {
+      final res = DiguRoundResolver.resolveRound(
+        format: DiguTableFormat.freeForAll4p,
+        hands: [validGinHand(), validGinHand(), zeroMeldHand(), validGinHand()],
+        declaringSeat: 0,
+        finishCard: const PlayingCard(id: 'D-02', suit: Suit.diamonds, rank: 2),
+        previousConsecutiveGins: [2, 0, 0, 0],
+        targetScore: 1000,
+      );
+
+      // Upstream feeder of seat 0 in 4P is seat 3
+      expect(res.updatedConsecutiveGins[0], equals(3));
+      expect(res.playerScores[3]!.consecutiveGinPenalty, equals(-100));
+      expect(res.playerScores[3]!.netRoundScore, equals(-100));
     });
   });
 }

@@ -52,8 +52,22 @@ void main() {
       expect(winnerWithTrump, equals(2)); // Seat 2 Ace of Hearts wins
     });
 
-    test('evaluateRoundScore correctly handles Haasbagga (all 4 Tens)', () {
-      final score = DhihaehEngine.evaluateRoundScore(
+    test('evaluateRoundScore handles Haasbagga (4 Tens + 13 tricks) & Bagga (4 Tens + <13 tricks)', () {
+      final haasbagga = DhihaehEngine.evaluateRoundScore(
+        team1Tens: 4,
+        team2Tens: 0,
+        team1Tricks: 13,
+        team2Tricks: 0,
+        team1PreviousScore: 0,
+        team2PreviousScore: 0,
+      );
+
+      expect(haasbagga.outcomeType, equals(DhihaehOutcome.haasbagga));
+      expect(haasbagga.handWinnerTeam, equals('TEAM_1'));
+      expect(haasbagga.team1Score, equals(1000));
+      expect(haasbagga.team2Score, equals(0));
+
+      final bagga = DhihaehEngine.evaluateRoundScore(
         team1Tens: 4,
         team2Tens: 0,
         team1Tricks: 8,
@@ -62,14 +76,26 @@ void main() {
         team2PreviousScore: 0,
       );
 
-      expect(score.outcomeType, equals(DhihaehOutcome.haasbagga));
-      expect(score.handWinnerTeam, equals('TEAM_1'));
-      expect(score.team1Score, equals(1000));
-      expect(score.team2Score, equals(0));
+      expect(bagga.outcomeType, equals(DhihaehOutcome.bagga));
+      expect(bagga.handWinnerTeam, equals('TEAM_1'));
+      expect(bagga.team1Score, equals(4));
+      expect(bagga.team2Score, equals(0));
     });
 
-    test('evaluateRoundScore handles 2-2 Tens tie breaker by tricks won', () {
-      final score = DhihaehEngine.evaluateRoundScore(
+    test('evaluateRoundScore handles 3 Tens (+1 pt) & 2-2 Tens tie breaker (0 pts)', () {
+      final standard = DhihaehEngine.evaluateRoundScore(
+        team1Tens: 3,
+        team2Tens: 1,
+        team1Tricks: 9,
+        team2Tricks: 4,
+        team1PreviousScore: 2,
+        team2PreviousScore: 1,
+      );
+      expect(standard.outcomeType, equals(DhihaehOutcome.standard));
+      expect(standard.handWinnerTeam, equals('TEAM_1'));
+      expect(standard.team1Score, equals(3));
+
+      final tieBreak = DhihaehEngine.evaluateRoundScore(
         team1Tens: 2,
         team2Tens: 2,
         team1Tricks: 8,
@@ -78,10 +104,10 @@ void main() {
         team2PreviousScore: 1,
       );
 
-      expect(score.outcomeType, equals(DhihaehOutcome.tieBreaker));
-      expect(score.handWinnerTeam, equals('TEAM_1'));
-      expect(score.team1Score, equals(2));
-      expect(score.team2Score, equals(1));
+      expect(tieBreak.outcomeType, equals(DhihaehOutcome.tieBreaker));
+      expect(tieBreak.handWinnerTeam, equals('TEAM_1'));
+      expect(tieBreak.team1Score, equals(1));
+      expect(tieBreak.team2Score, equals(1));
     });
   });
 
@@ -157,6 +183,42 @@ void main() {
       );
 
       expect(choice.rank, equals(10)); // AI dumps Ten to partner
+    });
+
+    test('AI executes Dynamic Cut with highest card in strongest suit when void and no trump', () {
+      const bot = DhihaehPlayer(
+        id: 'bot-1',
+        name: 'East AI',
+        seatIndex: 1,
+        teamId: 'TEAM_2',
+        isAI: true,
+        hand: [
+          PlayingCard(id: 'H-01', suit: Suit.hearts, rank: 1),
+          PlayingCard(id: 'H-13', suit: Suit.hearts, rank: 13),
+          PlayingCard(id: 'H-05', suit: Suit.hearts, rank: 5),
+          PlayingCard(id: 'D-02', suit: Suit.diamonds, rank: 2),
+        ],
+      );
+
+      const trick = DhihaehTrick(
+        trickNumber: 2,
+        leadSuit: Suit.spades,
+        cards: [
+          DhihaehTrickCard(
+            card: PlayingCard(id: 'S-12', suit: Suit.spades, rank: 12),
+            playedBySeat: 0,
+          ),
+        ],
+      );
+
+      final choice = DhihaehAI.selectCardToPlay(
+        bot: bot,
+        currentTrick: trick,
+        trumpSuit: null,
+        partnerSeat: 3,
+      );
+
+      expect(choice.suit, equals(Suit.hearts));
     });
   });
 }

@@ -270,20 +270,25 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                               // Middle Row: West Seat + Center Table Felt + East Seat
                               Expanded(
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      (session.selectedMode == HolhuashiGameMode.digu &&
+                                              session.diguFormat == DiguTableFormat.duel1v1)
+                                          ? MainAxisAlignment.center
+                                          : MainAxisAlignment.spaceBetween,
                                   children: [
-                                    // West Seat (Opponent AI)
-                                    _buildSeatCard(
-                                      occupant: session.westSeat,
-                                      compassTag: 'W',
-                                      isHumanHost: false,
-                                      onClaim: () => notifier.claimSeat(CompassSeat.west),
-                                      onToggleReady: () => notifier.toggleReady(CompassSeat.west),
-                                    ),
+                                    if (!(session.selectedMode == HolhuashiGameMode.digu &&
+                                        session.diguFormat == DiguTableFormat.duel1v1))
+                                      _buildSeatCard(
+                                        occupant: session.westSeat,
+                                        compassTag: 'W',
+                                        isHumanHost: false,
+                                        onClaim: () => notifier.claimSeat(CompassSeat.west),
+                                        onToggleReady: () => notifier.toggleReady(CompassSeat.west),
+                                      ),
 
                                     // Center Table Felt Emblem
                                     Container(
-                                      width: 140,
+                                      width: 148,
                                       height: 100,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFF0D0405),
@@ -327,14 +332,15 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                       ),
                                     ),
 
-                                    // East Seat (Opponent AI)
-                                    _buildSeatCard(
-                                      occupant: session.eastSeat,
-                                      compassTag: 'E',
-                                      isHumanHost: false,
-                                      onClaim: () => notifier.claimSeat(CompassSeat.east),
-                                      onToggleReady: () => notifier.toggleReady(CompassSeat.east),
-                                    ),
+                                    if (!(session.selectedMode == HolhuashiGameMode.digu &&
+                                        session.diguFormat == DiguTableFormat.duel1v1))
+                                      _buildSeatCard(
+                                        occupant: session.eastSeat,
+                                        compassTag: 'E',
+                                        isHumanHost: false,
+                                        onClaim: () => notifier.claimSeat(CompassSeat.east),
+                                        onToggleReady: () => notifier.toggleReady(CompassSeat.east),
+                                      ),
                                   ],
                                 ),
                               ),
@@ -384,7 +390,75 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                   fontSize: 9.5,
                                 ),
                               ),
-                              const Divider(color: Color(0xFF380C10), height: 16),
+                              const Divider(color: Color(0xFF380C10), height: 14),
+
+                              // Mode Format / Variant Toggle
+                              Text(
+                                session.selectedMode == HolhuashiGameMode.digu
+                                    ? 'TABLE FORMAT'
+                                    : 'RULE VARIANT',
+                                style: const TextStyle(
+                                  color: Color(0xBBF7F0EA),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              if (session.selectedMode == HolhuashiGameMode.digu)
+                                Row(
+                                  children: [
+                                    for (final fmt in DiguTableFormat.values) ...[
+                                      _buildRulePill(
+                                        label: fmt.shortLabel,
+                                        isSelected: session.diguFormat == fmt,
+                                        onTap: () => notifier.setDiguFormat(fmt),
+                                      ),
+                                      if (fmt != DiguTableFormat.values.last)
+                                        const SizedBox(width: 5),
+                                    ],
+                                  ],
+                                )
+                              else if (session.selectedMode == HolhuashiGameMode.dhihaeh)
+                                Row(
+                                  children: [
+                                    _buildRulePill(
+                                      label: 'DYNAMIC CUT',
+                                      isSelected: session.dhihaehVariant ==
+                                          DhihaehVariant.dynamicCut,
+                                      onTap: () => notifier.setDhihaehVariant(
+                                          DhihaehVariant.dynamicCut),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildRulePill(
+                                      label: 'BLIND RESERVE',
+                                      isSelected: session.dhihaehVariant ==
+                                          DhihaehVariant.blindReserve,
+                                      onTap: () => notifier.setDhihaehVariant(
+                                          DhihaehVariant.blindReserve),
+                                    ),
+                                  ],
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    _buildRulePill(
+                                      label: 'STANDARD',
+                                      isSelected: session.bondiVariant ==
+                                          BondiVariant.standard,
+                                      onTap: () => notifier.setBondiVariant(
+                                          BondiVariant.standard),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildRulePill(
+                                      label: 'SUIT BONDI',
+                                      isSelected: session.bondiVariant ==
+                                          BondiVariant.suitBondi,
+                                      onTap: () => notifier.setBondiVariant(
+                                          BondiVariant.suitBondi),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 10),
 
                               // Target Score Toggle
                               const Text(
@@ -395,7 +469,7 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 5),
                               Row(
                                 children: [
                                   _buildRulePill(
@@ -411,7 +485,7 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 10),
 
                               // Turn Clock Toggle
                               const Text(
@@ -422,7 +496,7 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 5),
                               Row(
                                 children: [
                                   _buildRulePill(
@@ -438,7 +512,7 @@ class _WaitingRoomScreenState extends ConsumerState<WaitingRoomScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 10),
 
                               // Fill Empty Seats with Bots Switch
                               Row(
