@@ -90,6 +90,8 @@ class RoundOverData {
   final int team1Tricks;
   final int team2Tricks;
   final List<PlayingCard> burnedCards;
+  final int humanRoundScore;
+  final int opponentRoundScore;
 
   const RoundOverData({
     required this.humanWon,
@@ -107,17 +109,23 @@ class RoundOverData {
     this.team1Tricks = 0,
     this.team2Tricks = 0,
     this.burnedCards = const [],
+    this.humanRoundScore = 0,
+    this.opponentRoundScore = 0,
   });
 }
 
 typedef HolhuashiGameTable = DiguGameTable;
 
 class DiguGameTable extends FlameGame {
+  final bool autoDealOnLoad;
+
+  DiguGameTable({this.autoDealOnLoad = true});
+
   static const double virtualWidth = 1920.0;
   static const double virtualHeight = 1080.0;
 
-  static final Vector2 handCardSize = Vector2(160.0, 238.0);
-  static final Vector2 tableCardSize = Vector2(142.0, 210.0);
+  static final Vector2 handCardSize = Vector2(150.0, 210.0);
+  static final Vector2 tableCardSize = Vector2(136.0, 190.0);
   static final Vector2 opponentCardSize = Vector2(110.0, 163.0);
 
   static Vector2 get _tableCenter => Vector2(virtualWidth / 2, virtualHeight * 0.42);
@@ -229,14 +237,26 @@ class DiguGameTable extends FlameGame {
     );
     camera.viewfinder.position = Vector2(virtualWidth / 2, virtualHeight / 2);
 
-    _tableSurface = _TableSurfaceComponent(size: Vector2(virtualWidth, virtualHeight));
+    _tableSurface = _TableSurfaceComponent(size: Vector2(virtualWidth, virtualHeight))
+      ..activeMode = activeMode;
     gameWorld.add(_tableSurface);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isMounted) {
-        unawaited(dealNewRound());
-      }
-    });
+    if (autoDealOnLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isMounted) {
+          unawaited(dealNewRound());
+        }
+      });
+    }
+  }
+
+  /// Configures the initial game mode prior to dealing (safe before [onLoad]).
+  void setInitialMode(HolhuashiGameMode mode) {
+    activeMode = mode;
+    activeModeNotifier.value = mode;
+    if (isLoaded) {
+      _tableSurface.activeMode = mode;
+    }
   }
 
   @override
@@ -952,19 +972,20 @@ class DiguGameTable extends FlameGame {
 
     // Prefer selectedCard if it yields valid Gin; otherwise scan all 11
     if (selectedCard != null && _canCardTriggerGinSlam(selectedCard!.card)) {
-      _executeHumanGinSlamWithCard(selectedCard!);
+      unawaited(_executeHumanGinSlamWithCard(selectedCard!));
       return;
     }
 
     for (final comp in handCardComponents) {
       if (_canCardTriggerGinSlam(comp.card)) {
-        _executeHumanGinSlamWithCard(comp);
+        unawaited(_executeHumanGinSlamWithCard(comp));
         return;
       }
     }
   }
 
-  void _executeHumanGinSlamWithCard(FlameCardComponent comp) {
+  Future<void> _executeHumanGinSlamWithCard(FlameCardComponent comp) async {
+    final token = _roundToken;
     final finishCard = comp.card;
     final startPos = comp.position.clone();
     final idx = handCardComponents.indexOf(comp);
@@ -977,8 +998,11 @@ class DiguGameTable extends FlameGame {
     selectedCard = null;
     hasSelectedCardNotifier.value = false;
 
-    final isThousandRun = RummyValidator.checkThousandPointRun(currentHand);
-    final winningOpt = TeamHandOptimizer.optimizeMergedHand(currentHand);
+    final faceUpHuman = currentHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+    final faceUpBot = botHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+    final isThousandRun = RummyValidator.checkThousandPointRun(faceUpHuman);
+    final humanOpt = TeamHandOptimizer.optimizeMergedHand(faceUpHuman);
+    final botOpt = TeamHandOptimizer.optimizeMergedHand(faceUpBot);
 
     _setPhase(GameTurnPhase.roundOver);
     statusMessageNotifier.value =
@@ -988,20 +1012,27 @@ class DiguGameTable extends FlameGame {
     _recalculateAnalysisAndLayoutHand();
     _publishSeats();
 
-    final meldScore = isThousandRun ? 1000 : winningOpt.meldScore;
+    final meldScore = isThousandRun ? 1000 : humanOpt.meldScore;
     final ginBonus = isThousandRun ? 0 : 100;
+    final humanRoundScore = meldScore + ginBonus;
+    final opponentRoundScore = botOpt.meldScore;
+
+    await Future.delayed(Duration(milliseconds: fastDealSpeed ? 650 : 1200));
+    if (token != _roundToken || !isMounted) return;
 
     onFanfareSound?.call();
     onRoundCompleted?.call(
       RoundOverData(
         humanWon: true,
         winnerName: 'You (South)',
-        winningMelds: isThousandRun ? [List.from(currentHand)] : winningOpt.melds,
+        winningMelds: isThousandRun ? [faceUpHuman] : humanOpt.melds,
         deadwood: const [],
         meldScore: meldScore,
         debtScore: 0,
         ginBonus: ginBonus,
-        netRoundScore: meldScore + ginBonus,
+        netRoundScore: humanRoundScore,
+        humanRoundScore: humanRoundScore,
+        opponentRoundScore: opponentRoundScore,
         mode: HolhuashiGameMode.digu,
         summaryHeadline: isThousandRun
             ? '1,000-Point Suited Run!'
@@ -1166,19 +1197,33 @@ class DiguGameTable extends FlameGame {
       statusMessageNotifier.value = '⚡ NORTH BOT SLAMMED GIN!';
 
       _slamFinishCard(botDecision.cardToDiscard, fromPos: oppAnchor);
-      final botOpt = TeamHandOptimizer.optimizeMergedHand(botHand);
+      final faceUpBot = botHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+      final faceUpHuman = currentHand.map((c) => c.copyWith(isFaceDown: false)).toList();
+      final isBotThousandRun = RummyValidator.checkThousandPointRun(faceUpBot);
+      final botOpt = TeamHandOptimizer.optimizeMergedHand(faceUpBot);
+      final humanOpt = TeamHandOptimizer.optimizeMergedHand(faceUpHuman);
+
+      final botMeldScore = isBotThousandRun ? 1000 : botOpt.meldScore;
+      final botGinBonus = isBotThousandRun ? 0 : 100;
+      final opponentRoundScore = botMeldScore + botGinBonus;
+      final humanRoundScore = humanOpt.meldScore;
+
+      await Future.delayed(Duration(milliseconds: fastDealSpeed ? 650 : 1200));
+      if (token != _roundToken || !isMounted) return;
 
       onFanfareSound?.call();
       onRoundCompleted?.call(
         RoundOverData(
           humanWon: false,
           winnerName: 'North Bot',
-          winningMelds: botOpt.melds,
-          deadwood: botOpt.deadwood,
-          meldScore: botOpt.meldScore,
-          debtScore: 0,
-          ginBonus: 100,
-          netRoundScore: botOpt.meldScore + 100,
+          winningMelds: isBotThousandRun ? [faceUpBot] : botOpt.melds,
+          deadwood: isBotThousandRun ? const [] : botOpt.deadwood,
+          meldScore: botMeldScore,
+          debtScore: isBotThousandRun ? 0 : botOpt.debtScore,
+          ginBonus: botGinBonus,
+          netRoundScore: opponentRoundScore,
+          humanRoundScore: humanRoundScore,
+          opponentRoundScore: opponentRoundScore,
           mode: HolhuashiGameMode.digu,
           summaryHeadline: botDecision.reason ?? 'North Bot Gin Slam',
         ),
@@ -1762,7 +1807,7 @@ class DiguGameTable extends FlameGame {
 
   List<({Vector2 pos, double angle})> _computeSouthFanTargets(int n) {
     if (n <= 0) return const [];
-    final cardStepX = n > 10 ? 60.0 : 72.0;
+    final cardStepX = n > 10 ? 92.0 : 106.0;
     final totalWidth = ((n - 1) * cardStepX) + handCardSize.x;
     final startX = (virtualWidth / 2) - (totalWidth / 2) + (handCardSize.x / 2);
     const baseY = virtualHeight - 145.0;
@@ -1770,10 +1815,10 @@ class DiguGameTable extends FlameGame {
 
     return List.generate(n, (i) {
       final distFromMid = (i - midIndex).abs();
-      final archDrop = distFromMid * distFromMid * (n > 10 ? 1.1 : 1.5);
+      final archDrop = distFromMid * distFromMid * (n > 10 ? 0.8 : 1.1);
       final y = baseY + archDrop;
       final x = startX + (i * cardStepX);
-      final angleDeg = (i - midIndex) * (n > 10 ? 1.2 : 1.5);
+      final angleDeg = (i - midIndex) * (n > 10 ? 0.9 : 1.2);
       return (pos: Vector2(x, y), angle: angleDeg * (math.pi / 180.0));
     });
   }
@@ -1913,7 +1958,66 @@ class DiguGameTable extends FlameGame {
   }
 
   void _handleCardDragMoved(FlameCardComponent comp, Vector2 currentPos) {
-    if (phase != GameTurnPhase.awaitAction) return;
+    if (phase == GameTurnPhase.dealing || phase == GameTurnPhase.roundOver) {
+      return;
+    }
+
+    if (currentPos.y >= virtualHeight * 0.65) {
+      _tableSurface.clearDropHighlights();
+      final n = currentHand.length;
+      if (n > 1) {
+        final currentIdx = handCardComponents.indexOf(comp);
+        if (currentIdx != -1) {
+          final targets = _computeSouthFanTargets(n);
+          int targetIdx = 0;
+          double bestDist = double.infinity;
+          for (int i = 0; i < targets.length; i++) {
+            final dist = (currentPos.x - targets[i].pos.x).abs();
+            if (dist < bestDist) {
+              bestDist = dist;
+              targetIdx = i;
+            }
+          }
+          targetIdx = targetIdx.clamp(0, n - 1);
+
+          if (targetIdx != currentIdx) {
+            final movedCard = currentHand.removeAt(currentIdx);
+            currentHand.insert(targetIdx, movedCard);
+
+            final movedComp = handCardComponents.removeAt(currentIdx);
+            handCardComponents.insert(targetIdx, movedComp);
+
+            if (activeMode != HolhuashiGameMode.digu &&
+                _seatHands[0].length == n) {
+              final movedSeatCard = _seatHands[0].removeAt(currentIdx);
+              _seatHands[0].insert(targetIdx, movedSeatCard);
+            }
+
+            for (int i = 0; i < n; i++) {
+              final c = handCardComponents[i];
+              final isCurSelected = selectedCard == c;
+              final t = targets[i];
+              final elevatedPos = Vector2(
+                t.pos.x,
+                t.pos.y - (isCurSelected ? 38.0 : 0.0),
+              );
+              c.updateRestingLayout(
+                newPos: elevatedPos,
+                newAngle: t.angle,
+                newPriority: i + 10,
+                animated: true,
+              );
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    if (phase != GameTurnPhase.awaitAction) {
+      _tableSurface.clearDropHighlights();
+      return;
+    }
 
     if (activeMode == HolhuashiGameMode.digu) {
       final canSlamThisCard = _canCardTriggerGinSlam(comp.card);
@@ -1949,15 +2053,17 @@ class DiguGameTable extends FlameGame {
   void _handleCardDrop(FlameCardComponent comp, Vector2 dropPos) {
     _tableSurface.clearDropHighlights();
 
-    if (phase != GameTurnPhase.awaitAction) {
+    if (dropPos.y >= virtualHeight * 0.65 || phase != GameTurnPhase.awaitAction) {
       comp.springReturnToResting();
+      _recalculateAnalysisAndLayoutHand();
+      onCardSnapSound?.call();
       return;
     }
 
     if (activeMode == HolhuashiGameMode.digu) {
       if (dropPos.distanceTo(_ginPortalPos) <= 135.0 &&
           _canCardTriggerGinSlam(comp.card)) {
-        _executeHumanGinSlamWithCard(comp);
+        unawaited(_executeHumanGinSlamWithCard(comp));
         return;
       }
 
@@ -1969,6 +2075,8 @@ class DiguGameTable extends FlameGame {
       }
 
       comp.springReturnToResting();
+      _recalculateAnalysisAndLayoutHand();
+      onCardSnapSound?.call();
       return;
     }
 
@@ -1981,6 +2089,8 @@ class DiguGameTable extends FlameGame {
     }
 
     comp.springReturnToResting();
+    _recalculateAnalysisAndLayoutHand();
+    onCardSnapSound?.call();
   }
 
   void _layoutStockOnly() {
@@ -2417,21 +2527,6 @@ class _TableSurfaceComponent extends PositionComponent {
     );
 
     if (activeMode == HolhuashiGameMode.digu) {
-      _drawPileLabel(
-        canvas,
-        'STOCK',
-        centerX - 140.0,
-        centerY - 128.0,
-        const Color(0xFFE5C378),
-      );
-      _drawPileLabel(
-        canvas,
-        'DISCARD',
-        centerX + 140.0,
-        centerY - 128.0,
-        const Color(0xFFC84B31),
-      );
-
       if (_showDiscardZone) {
         _drawDropTargetRect(
           canvas,
@@ -2461,10 +2556,10 @@ class _TableSurfaceComponent extends PositionComponent {
       }
     } else {
       // 4-Seat Trick Slots for Dhihaeh & Bondi
-      _drawTrickSlotMarker(canvas, Offset(centerX, centerY + 115.0), 'S');
-      _drawTrickSlotMarker(canvas, Offset(centerX + 150.0, centerY), 'E');
-      _drawTrickSlotMarker(canvas, Offset(centerX, centerY - 115.0), 'N');
-      _drawTrickSlotMarker(canvas, Offset(centerX - 150.0, centerY), 'W');
+      _drawTrickSlotMarker(canvas, Offset(centerX, centerY + 115.0));
+      _drawTrickSlotMarker(canvas, Offset(centerX + 150.0, centerY));
+      _drawTrickSlotMarker(canvas, Offset(centerX, centerY - 115.0));
+      _drawTrickSlotMarker(canvas, Offset(centerX - 150.0, centerY));
 
       if (_showSouthTrickSlot) {
         _drawDropTargetRect(
@@ -2489,7 +2584,7 @@ class _TableSurfaceComponent extends PositionComponent {
     }
   }
 
-  void _drawTrickSlotMarker(Canvas canvas, Offset center, String label) {
+  void _drawTrickSlotMarker(Canvas canvas, Offset center) {
     final rect = Rect.fromCenter(
       center: center,
       width: DiguGameTable.tableCardSize.x,
@@ -2501,14 +2596,6 @@ class _TableSurfaceComponent extends PositionComponent {
       ..strokeWidth = 1.2
       ..style = PaintingStyle.stroke;
     canvas.drawRRect(rrect, stroke);
-
-    _drawPileLabel(
-      canvas,
-      label,
-      center.dx,
-      center.dy - 8,
-      const Color(0x35E5C378),
-    );
   }
 
   void _drawDropTargetRect(

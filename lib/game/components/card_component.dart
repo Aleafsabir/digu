@@ -191,10 +191,6 @@ class FlameCardComponent extends PositionComponent
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
     if (!isDraggable || onDrop == null) return;
-    if (!isPlayable) {
-      _invalidShakeTimer = 0.18;
-      return;
-    }
     isDragging = true;
     _isSpringing = false;
     _dragVelocityX = 0.0;

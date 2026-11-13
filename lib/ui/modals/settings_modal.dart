@@ -274,6 +274,87 @@ class SettingsModal extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 8),
+
+                    // Apple Account Link Tile
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B0B0C),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF380C10)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: sessionState.appleLinked
+                                  ? const Color(0xFF2E7D32).withValues(alpha: 0.25)
+                                  : const Color(0xFF380C10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.apple,
+                              color: sessionState.appleLinked
+                                  ? const Color(0xFF81C784)
+                                  : const Color(0xFFD4AF37),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  sessionState.appleLinked
+                                      ? 'Apple ID Connected'
+                                      : 'Apple Account Sync',
+                                  style: const TextStyle(
+                                    color: Color(0xFFF7F0EA),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Text(
+                                  sessionState.appleLinked
+                                      ? 'Apple Keychain & Cloud save active'
+                                      : 'Cross-save via Apple Cloud',
+                                  style: const TextStyle(
+                                    color: Color(0x99F7F0EA),
+                                    fontSize: 10.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: sessionState.appleLinked
+                                  ? const Color(0xFF2E7D32)
+                                  : const Color(0xFF260A0D),
+                              foregroundColor: const Color(0xFFE5C378),
+                              side: const BorderSide(color: Color(0xFFD4AF37), width: 1.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: const Size(80, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: () => notifier.signInWithApple(),
+                            child: Text(
+                              sessionState.appleLinked ? 'LINKED ✓' : 'LINK APPLE',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

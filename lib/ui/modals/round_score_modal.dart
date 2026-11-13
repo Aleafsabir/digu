@@ -21,6 +21,8 @@ class RoundScoreModal extends StatelessWidget {
   final int team1Tricks;
   final int team2Tricks;
   final List<PlayingCard> burnedCards;
+  final int humanRoundScore;
+  final int opponentRoundScore;
   final VoidCallback onNextRound;
   final VoidCallback? onReturnToLobby;
 
@@ -43,6 +45,8 @@ class RoundScoreModal extends StatelessWidget {
     this.team1Tricks = 0,
     this.team2Tricks = 0,
     this.burnedCards = const [],
+    this.humanRoundScore = 0,
+    this.opponentRoundScore = 0,
     required this.onNextRound,
     this.onReturnToLobby,
   });
@@ -54,6 +58,8 @@ class RoundScoreModal extends StatelessWidget {
     required int botCumulativeScore,
     required VoidCallback onNextRound,
     VoidCallback? onReturnToLobby,
+    int? humanRoundScore,
+    int? opponentRoundScore,
   }) {
     return RoundScoreModal(
       key: key,
@@ -74,6 +80,8 @@ class RoundScoreModal extends StatelessWidget {
       team1Tricks: data.team1Tricks,
       team2Tricks: data.team2Tricks,
       burnedCards: data.burnedCards,
+      humanRoundScore: humanRoundScore ?? data.humanRoundScore,
+      opponentRoundScore: opponentRoundScore ?? data.opponentRoundScore,
       onNextRound: onNextRound,
       onReturnToLobby: onReturnToLobby,
     );
@@ -278,7 +286,8 @@ class RoundScoreModal extends StatelessWidget {
                           width: 38,
                           height: 56,
                           child: CustomPaint(
-                            painter: CardPainter(card: card),
+                            // Always force cards in winningMelds to render face-up
+                            painter: CardPainter(card: card.copyWith(isFaceDown: false)),
                           ),
                         ),
                       );
@@ -301,6 +310,10 @@ class RoundScoreModal extends StatelessWidget {
           ),
           child: Column(
             children: [
+              if (humanRoundScore > 0 || opponentRoundScore > 0) ...[
+                _buildScoreRow('Your Meld Points', '+$humanRoundScore pts', const Color(0xFFE5C378)),
+                _buildScoreRow('Opponent Round Points', '+$opponentRoundScore pts', const Color(0xFFFFA07A)),
+              ],
               _buildScoreRow('Meld Points', '+$meldScore pts', const Color(0xFFE5C378)),
               if (ginBonus > 0)
                 _buildScoreRow('Gin Bonus', '+$ginBonus pts', const Color(0xFF00E5FF)),

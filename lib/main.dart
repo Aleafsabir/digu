@@ -11,6 +11,7 @@ import 'ui/modals/round_score_modal.dart';
 import 'ui/modals/settings_modal.dart';
 import 'ui/modals/trump_declaration_modal.dart';
 import 'ui/overlays/quick_chat_overlay.dart';
+import 'ui/screens/auth_screen.dart';
 import 'ui/screens/lobby_screen.dart';
 import 'ui/screens/waiting_room_screen.dart';
 
@@ -40,6 +41,9 @@ class HolhuashiApp extends ConsumerWidget {
 
     Widget activeView;
     switch (screenState) {
+      case AppScreenState.auth:
+        activeView = const AuthScreen();
+        break;
       case AppScreenState.lobby:
         activeView = const LobbyScreen();
         break;
@@ -78,7 +82,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _gameTable = DiguGameTable();
+    _gameTable = DiguGameTable(autoDealOnLoad: false);
 
     // Bind Lifecycle & Sensory Callbacks
     _gameTable.onRoundCompleted = _showRoundScoreModal;
@@ -99,9 +103,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       fastDealSpeed: session.fastDealSpeed,
     );
 
-    // Initial mode sync
+    // Initial mode sync (cards wait behind countdown before dealing)
     if (_gameTable.activeMode != session.selectedMode) {
-      _gameTable.switchMode(session.selectedMode);
+      _gameTable.setInitialMode(session.selectedMode);
     }
   }
 
@@ -140,7 +144,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final notifier = ref.read(gameSessionProvider.notifier);
 
     setState(() {
-      if (data.humanWon) {
+      if (data.humanRoundScore > 0 || data.opponentRoundScore > 0) {
+        _humanCumulativeScore += data.humanRoundScore;
+        _botCumulativeScore += data.opponentRoundScore;
+      } else if (data.humanWon) {
         _humanCumulativeScore += data.netRoundScore;
       } else {
         _botCumulativeScore += data.netRoundScore;
@@ -173,11 +180,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  void _switchGameMode(HolhuashiGameMode mode) {
-    ref.read(gameSessionProvider.notifier).selectGameMode(mode);
-    _gameTable.switchMode(mode);
-  }
-
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(gameSessionProvider);
@@ -202,7 +204,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             valueListenable: _gameTable.seatsNotifier,
             builder: (context, seats, _) {
               final seatMap = {for (final s in seats) s.seatIndex: s};
-              final south = seatMap[0];
               final east = seatMap[1];
               final north = seatMap[2];
               final west = seatMap[3];
@@ -228,13 +229,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     Align(
                       alignment: const Alignment(-0.92, -0.05),
                       child: _buildSeatPlacard(west),
-                    ),
-
-                  // South Placard (Bottom Center)
-                  if (south != null)
-                    Align(
-                      alignment: const Alignment(0.0, 0.44),
-                      child: _buildSeatPlacard(south),
                     ),
                 ],
               );
@@ -291,24 +285,32 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           ),
                           const SizedBox(width: 8),
 
-                          // Mode Tabs: DIGU, DHIHAEH, BONDI
+                          // Active Mode Badge
                           ValueListenableBuilder<HolhuashiGameMode>(
                             valueListenable: _gameTable.activeModeNotifier,
                             builder: (context, activeMode, _) {
+                              final modeLabel = switch (activeMode) {
+                                HolhuashiGameMode.digu => 'ޑިގު • DIGU',
+                                HolhuashiGameMode.dhihaeh => 'ދިހައެއް • DHIHAEH',
+                                HolhuashiGameMode.bondi => 'ބޮނޑި • BONDI',
+                              };
                               return Container(
-                                padding: const EdgeInsets.all(2),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xE6140705),
+                                  color: const Color(0xE61C0A0D),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFF3B192C)),
+                                  border: Border.all(
+                                    color: const Color(0xFFD4AF37).withValues(alpha: 0.7),
+                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _buildModeTab('DIGU', HolhuashiGameMode.digu, activeMode),
-                                    _buildModeTab('DHIHAEH (10s)', HolhuashiGameMode.dhihaeh, activeMode),
-                                    _buildModeTab('BONDI', HolhuashiGameMode.bondi, activeMode),
-                                  ],
+                                child: Text(
+                                  modeLabel,
+                                  style: const TextStyle(
+                                    color: Color(0xFFE5C378),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                  ),
                                 ),
                               );
                             },
@@ -567,10 +569,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           if (_showCountdown)
             _MatchStartCountdown(
               onComplete: () {
-                if (mounted) {
+                if (mounted && _showCountdown) {
                   setState(() {
                     _showCountdown = false;
                   });
+                  _gameTable.dealNewRound();
                 }
               },
             ),
@@ -635,30 +638,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModeTab(String title, HolhuashiGameMode mode, HolhuashiGameMode activeMode) {
-    final isSelected = activeMode == mode;
-    return GestureDetector(
-      onTap: () => _switchGameMode(mode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFC84B31) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          border: isSelected ? Border.all(color: const Color(0xFFE5C378), width: 1.0) : null,
-        ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0x99F7F0EA),
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.5,
-          ),
-        ),
       ),
     );
   }

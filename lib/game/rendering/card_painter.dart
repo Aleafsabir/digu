@@ -235,38 +235,346 @@ class CardPainter extends CustomPainter {
 
       _drawSuit(canvas, card.suit, 50, 74, 1.55, ink);
     } else if (card.rank >= 11) {
-      // Double-Headed Royal Court Portrait Frame
-      final courtFrame = RRect.fromRectAndRadius(const Rect.fromLTWH(21, 15, 58, 118), const Radius.circular(3));
-      final courtBg = Paint()
+      _drawCourtArtwork(canvas, ink, gold);
+    } else {
+      _drawSpotPips(canvas, ink);
+    }
+  }
+
+  void _drawSpotPips(Canvas canvas, Color ink) {
+    final pips = <(double, double)>[];
+    switch (card.rank) {
+      case 2:
+        pips.addAll(const [(50, 32), (50, 116)]);
+        break;
+      case 3:
+        pips.addAll(const [(50, 32), (50, 74), (50, 116)]);
+        break;
+      case 4:
+        pips.addAll(const [(34, 32), (66, 32), (34, 116), (66, 116)]);
+        break;
+      case 5:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (50, 74),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+      case 6:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (34, 74),
+          (66, 74),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+      case 7:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (50, 46),
+          (34, 74),
+          (66, 74),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+      case 8:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (50, 46),
+          (34, 74),
+          (66, 74),
+          (50, 102),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+      case 9:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (34, 60),
+          (66, 60),
+          (50, 74),
+          (34, 88),
+          (66, 88),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+      case 10:
+        pips.addAll(const [
+          (34, 32),
+          (66, 32),
+          (50, 46),
+          (34, 60),
+          (66, 60),
+          (34, 88),
+          (66, 88),
+          (50, 102),
+          (34, 116),
+          (66, 116),
+        ]);
+        break;
+    }
+
+    for (final (px, py) in pips) {
+      if (py > 74) {
+        canvas.save();
+        canvas.translate(px, py);
+        canvas.rotate(math.pi);
+        _drawSuit(canvas, card.suit, 0, 0, 0.78, ink);
+        canvas.restore();
+      } else {
+        _drawSuit(canvas, card.suit, px, py, 0.78, ink);
+      }
+    }
+  }
+
+  void _drawCourtArtwork(Canvas canvas, Color ink, Color gold) {
+    const courtRect = Rect.fromLTWH(22, 16, 56, 116);
+    final courtRRect = RRect.fromRectAndRadius(courtRect, const Radius.circular(3));
+
+    canvas.drawRRect(
+      courtRRect,
+      Paint()
         ..color = const Color(0xFFFAF5E8)
-        ..style = PaintingStyle.fill;
-      final courtBorder = Paint()
+        ..style = PaintingStyle.fill,
+    );
+
+    canvas.save();
+    canvas.clipRRect(courtRRect);
+
+    // Subtle guilloché frame accent inside portrait box
+    canvas.drawRect(
+      courtRect.deflate(2.0),
+      Paint()
+        ..color = gold.withValues(alpha: 0.35)
+        ..strokeWidth = 0.6
+        ..style = PaintingStyle.stroke,
+    );
+
+    // Top upright royal half (clipped cleanly above diagonal split line)
+    final topClip = Path()
+      ..moveTo(22, 16)
+      ..lineTo(78, 16)
+      ..lineTo(78, 67)
+      ..lineTo(22, 81)
+      ..close();
+    canvas.save();
+    canvas.clipPath(topClip);
+    _drawRoyalCourtHalf(canvas, ink, gold);
+    canvas.restore();
+
+    // Bottom 180-deg rotated royal half (symmetrical around (50, 74))
+    canvas.save();
+    canvas.translate(50, 74);
+    canvas.rotate(math.pi);
+    canvas.translate(-50, -74);
+    canvas.clipPath(topClip);
+    _drawRoyalCourtHalf(canvas, ink, gold);
+    canvas.restore();
+
+    // Diagonal split divider sash
+    canvas.drawLine(
+      const Offset(22, 81),
+      const Offset(78, 67),
+      Paint()
+        ..color = const Color(0xFF1E293B)
+        ..strokeWidth = 2.4,
+    );
+    canvas.drawLine(
+      const Offset(22, 81),
+      const Offset(78, 67),
+      Paint()
+        ..color = gold
+        ..strokeWidth = 1.2,
+    );
+
+    canvas.restore();
+
+    // Outer gold frame border
+    canvas.drawRRect(
+      courtRRect,
+      Paint()
         ..color = gold
         ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke;
-      canvas.drawRRect(courtFrame, courtBg);
-      canvas.drawRRect(courtFrame, courtBorder);
+        ..style = PaintingStyle.stroke,
+    );
+  }
 
-      // Double-ended court silhouette & center suit pips
-      _drawSuit(canvas, card.suit, 32, 32, 0.6, ink);
-      _drawSuit(canvas, card.suit, 68, 116, 0.6, ink);
+  void _drawRoyalCourtHalf(Canvas canvas, Color ink, Color gold) {
+    const crimson = Color(0xFF991B1B);
+    const navy = Color(0xFF1E293B);
+    const skin = Color(0xFFF3D5B5);
 
-      // Centered Royal Monogram
-      final monogramPainter = TextPainter(
-        text: TextSpan(
-          text: rankText,
-          style: TextStyle(
-            color: ink.withValues(alpha: 0.18),
-            fontSize: 42,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      monogramPainter.paint(canvas, Offset(50 - (monogramPainter.width / 2), 74 - (monogramPainter.height / 2)));
+    final primaryTunic = card.suit.isRed ? crimson : navy;
+    final secondaryTunic = card.suit.isRed ? navy : crimson;
+
+    // Corner suit pip (maps to (32, 30) upright and (68, 118) rotated 180°)
+    _drawSuit(canvas, card.suit, 32, 30, 0.56, ink);
+
+    // Patterned royal tunic & shoulders
+    final tunicPath = Path()
+      ..moveTo(29, 82)
+      ..lineTo(35, 53)
+      ..lineTo(65, 53)
+      ..lineTo(71, 82)
+      ..close();
+    canvas.drawPath(tunicPath, Paint()..color = primaryTunic);
+
+    // Secondary royal mantle panel
+    final mantlePath = Path()
+      ..moveTo(41, 53)
+      ..lineTo(59, 53)
+      ..lineTo(63, 82)
+      ..lineTo(37, 82)
+      ..close();
+    canvas.drawPath(mantlePath, Paint()..color = secondaryTunic);
+
+    // Gold tunic lattice / diamond embroidery
+    final latticePaint = Paint()
+      ..color = gold.withValues(alpha: 0.78)
+      ..strokeWidth = 0.85
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(const Offset(42, 55), const Offset(50, 64), latticePaint);
+    canvas.drawLine(const Offset(58, 55), const Offset(50, 64), latticePaint);
+    canvas.drawLine(const Offset(50, 64), const Offset(41, 74), latticePaint);
+    canvas.drawLine(const Offset(50, 64), const Offset(59, 74), latticePaint);
+    canvas.drawLine(const Offset(35, 53), const Offset(65, 53), latticePaint);
+
+    // Central gold royal stole & jewel studs
+    canvas.drawRect(
+      const Rect.fromLTWH(48, 53, 4, 28),
+      Paint()..color = gold,
+    );
+    canvas.drawCircle(const Offset(50, 60), 1.3, Paint()..color = crimson);
+    canvas.drawCircle(const Offset(50, 67), 1.3, Paint()..color = navy);
+
+    // Royal ermine collar
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(41, 50, 18, 4.5),
+        const Radius.circular(2),
+      ),
+      Paint()..color = const Color(0xFFFAF5E8),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(41, 50, 18, 4.5),
+        const Radius.circular(2),
+      ),
+      Paint()
+        ..color = gold
+        ..strokeWidth = 0.7
+        ..style = PaintingStyle.stroke,
+    );
+
+    // Bust / Head silhouette
+    canvas.drawOval(
+      const Rect.fromLTWH(43.5, 36, 13, 15),
+      Paint()..color = skin,
+    );
+    canvas.drawOval(
+      const Rect.fromLTWH(43.5, 36, 13, 15),
+      Paint()
+        ..color = navy.withValues(alpha: 0.55)
+        ..strokeWidth = 0.7
+        ..style = PaintingStyle.stroke,
+    );
+
+    // Royal hair / beard framing
+    final hairPaint = Paint()..color = navy;
+    canvas.drawArc(
+      const Rect.fromLTWH(42.5, 35.5, 15, 11),
+      math.pi,
+      math.pi,
+      false,
+      Paint()
+        ..color = navy
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke,
+    );
+    if (card.rank == 13) {
+      // King's royal beard accent
+      final beard = Path()
+        ..moveTo(45, 47)
+        ..lineTo(50, 52.5)
+        ..lineTo(55, 47)
+        ..close();
+      canvas.drawPath(beard, hairPaint);
+    }
+
+    // Facial symmetry details (brows & eyes)
+    canvas.drawCircle(const Offset(47.3, 42.5), 0.7, hairPaint);
+    canvas.drawCircle(const Offset(52.7, 42.5), 0.7, hairPaint);
+
+    // Royal Crown / Coronet / Heraldic Cap silhouette
+    final crownPath = Path();
+    if (card.rank == 13) {
+      // King: 3-peaked high royal crown
+      crownPath
+        ..moveTo(42, 36.5)
+        ..lineTo(41, 25.5)
+        ..lineTo(46, 30.5)
+        ..lineTo(50, 23.0)
+        ..lineTo(54, 30.5)
+        ..lineTo(59, 25.5)
+        ..lineTo(58, 36.5)
+        ..close();
+    } else if (card.rank == 12) {
+      // Queen: arched coronet tiara
+      crownPath
+        ..moveTo(42.5, 36.5)
+        ..lineTo(43.5, 28.0)
+        ..lineTo(47, 31.5)
+        ..lineTo(50, 24.5)
+        ..lineTo(53, 31.5)
+        ..lineTo(56.5, 28.0)
+        ..lineTo(57.5, 36.5)
+        ..close();
     } else {
-      // Standard Spot Card: Center Large Suit Pip
-      _drawSuit(canvas, card.suit, 50, 74, 1.35, ink);
+      // Jack: heraldic royal cap with plume crest
+      crownPath
+        ..moveTo(42, 36.5)
+        ..lineTo(43, 29.0)
+        ..lineTo(50, 26.5)
+        ..lineTo(57, 29.0)
+        ..lineTo(58, 36.5)
+        ..close();
+    }
+
+    canvas.drawPath(crownPath, Paint()..color = gold);
+    canvas.drawPath(
+      crownPath,
+      Paint()
+        ..color = navy
+        ..strokeWidth = 0.75
+        ..style = PaintingStyle.stroke,
+    );
+
+    // Crown crimson & navy band accents
+    canvas.drawRect(
+      const Rect.fromLTWH(42.5, 34, 15, 2.3),
+      Paint()..color = crimson,
+    );
+    canvas.drawCircle(const Offset(50, 35.1), 0.9, Paint()..color = gold);
+    if (card.rank >= 12) {
+      canvas.drawCircle(const Offset(50, 23.8), 1.1, Paint()..color = crimson);
+    } else {
+      // Jack's crimson feather plume
+      final plume = Path()
+        ..moveTo(54, 29)
+        ..quadraticBezierTo(62, 22, 66, 26)
+        ..quadraticBezierTo(61, 28, 56, 31)
+        ..close();
+      canvas.drawPath(plume, Paint()..color = crimson);
     }
   }
 

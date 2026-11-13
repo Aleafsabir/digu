@@ -46,7 +46,7 @@ void main() {
       expect(eloMap['dhihaeh'], equals(1320));
     });
 
-    test('saveSettings and loadSettings persist custom preferences', () async {
+    test('saveSettings and loadSettings persist custom preferences including authProvider and lastPlayedMode', () async {
       const customSettings = UserSettings(
         sfxVolume: 0.40,
         bgmVolume: 0.20,
@@ -54,6 +54,10 @@ void main() {
         screenShakeEnabled: false,
         fastDealSpeed: true,
         googleLinked: true,
+        appleLinked: true,
+        authProvider: 'google',
+        userEmail: 'ali.naseer@gmail.com',
+        lastPlayedMode: 'bondi',
       );
 
       await repo.saveSettings(customSettings);
@@ -65,6 +69,10 @@ void main() {
       expect(loaded.screenShakeEnabled, isFalse);
       expect(loaded.fastDealSpeed, isTrue);
       expect(loaded.googleLinked, isTrue);
+      expect(loaded.appleLinked, isTrue);
+      expect(loaded.authProvider, equals('google'));
+      expect(loaded.userEmail, equals('ali.naseer@gmail.com'));
+      expect(loaded.lastPlayedMode, equals('bondi'));
     });
 
     test('offline match history records can be appended and loaded', () async {
@@ -130,9 +138,13 @@ void main() {
       notifier.dispose();
     });
 
-    test('initial state defaults to Main Lobby and DIGU mode', () {
+    test('initial state defaults to Auth Screen and DIGU mode', () {
       final state = notifier.state;
-      expect(state.screenState, equals(AppScreenState.lobby));
+      expect(state.screenState, equals(AppScreenState.auth));
+      expect(state.authProvider, equals(AuthProviderType.none));
+      expect(state.cloudSyncState, equals(CloudSyncState.offlineLocal));
+      expect(state.userEmail, isNull);
+      expect(state.lastPlayedMode, equals(HolhuashiGameMode.digu));
       expect(state.selectedMode, equals(HolhuashiGameMode.digu));
       expect(state.roomCode, equals('MLD842'));
       expect(state.targetScore, equals(500));
@@ -147,7 +159,64 @@ void main() {
       expect(state.seats[CompassSeat.west]!.isBot, isTrue);
     });
 
-    test('Mode Selection toggles between DIGU, DHIHAEH (10s), and BONDI', () {
+    test('Authentication flows: Google, Apple, Guest, and SignOut', () async {
+      // 1. Google Sign-In
+      await notifier.signInWithGoogle(
+        displayName: 'Ali Naseer',
+        email: 'ali.naseer@gmail.com',
+      );
+      expect(notifier.state.authProvider, equals(AuthProviderType.google));
+      expect(notifier.state.cloudSyncState, equals(CloudSyncState.synced));
+      expect(notifier.state.userEmail, equals('ali.naseer@gmail.com'));
+      expect(notifier.state.displayName, equals('Ali Naseer'));
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isCloudSynced, isTrue);
+      expect(notifier.state.authStatusLabel, equals('GOOGLE SYNCED'));
+
+      // 2. Sign Out
+      await notifier.signOut();
+      expect(notifier.state.authProvider, equals(AuthProviderType.none));
+      expect(notifier.state.cloudSyncState, equals(CloudSyncState.offlineLocal));
+      expect(notifier.state.userEmail, isNull);
+      expect(notifier.state.screenState, equals(AppScreenState.auth));
+      expect(notifier.state.isCloudSynced, isFalse);
+
+      // 3. Apple Sign-In
+      await notifier.signInWithApple(
+        displayName: 'Ibrahim Solih',
+        email: 'ibrahim@icloud.com',
+      );
+      expect(notifier.state.authProvider, equals(AuthProviderType.apple));
+      expect(notifier.state.cloudSyncState, equals(CloudSyncState.synced));
+      expect(notifier.state.userEmail, equals('ibrahim@icloud.com'));
+      expect(notifier.state.displayName, equals('Ibrahim Solih'));
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isCloudSynced, isTrue);
+      expect(notifier.state.authStatusLabel, equals('APPLE SYNCED'));
+
+      // 4. Sign Out & Guest Sign-In
+      await notifier.signOut();
+      await notifier.signInAsGuest();
+      expect(notifier.state.authProvider, equals(AuthProviderType.guest));
+      expect(notifier.state.cloudSyncState, equals(CloudSyncState.offlineLocal));
+      expect(notifier.state.screenState, equals(AppScreenState.lobby));
+      expect(notifier.state.isCloudSynced, isFalse);
+      expect(notifier.state.authStatusLabel, equals('GUEST (TAP TO LINK)'));
+    });
+
+    test('lastPlayedMode updates and persists when launching solo match', () async {
+      await notifier.signInAsGuest();
+      notifier.startSoloMatch(HolhuashiGameMode.bondi);
+      expect(notifier.state.lastPlayedMode, equals(HolhuashiGameMode.bondi));
+      expect(notifier.state.screenState, equals(AppScreenState.inGame));
+
+      final loadedSettings = await persistence.loadSettings();
+      expect(loadedSettings.lastPlayedMode, equals('bondi'));
+    });
+
+    test('Mode Selection toggles between DIGU, DHIHAEH (10s), and BONDI', () async {
+      await notifier.signInAsGuest();
+
       notifier.selectGameMode(HolhuashiGameMode.dhihaeh);
       expect(notifier.state.selectedMode, equals(HolhuashiGameMode.dhihaeh));
       expect(notifier.state.eloForMode(HolhuashiGameMode.dhihaeh), equals(1320));
@@ -161,7 +230,9 @@ void main() {
       expect(notifier.state.eloForMode(HolhuashiGameMode.digu), equals(1284));
     });
 
-    test('navigation flows between Lobby, Waiting Room, and InGame', () {
+    test('navigation flows between Lobby, Waiting Room, and InGame', () async {
+      await notifier.signInAsGuest();
+
       // 1. Go to Waiting Room
       notifier.goToWaitingRoom(mode: HolhuashiGameMode.dhihaeh, isPrivate: true);
       expect(notifier.state.screenState, equals(AppScreenState.waitingRoom));
@@ -192,7 +263,9 @@ void main() {
       expect(notifier.state.selectedMode, equals(HolhuashiGameMode.digu));
     });
 
-    test('Waiting Room controls configure match rules', () {
+    test('Waiting Room controls configure match rules', () async {
+      await notifier.signInAsGuest();
+
       // Regenerate room code produces valid 6-char alphanumeric code
       final newCode = notifier.regenerateRoomCode();
       expect(newCode.length, equals(6));
@@ -254,12 +327,14 @@ void main() {
       expect(persisted.googleLinked, isTrue);
     });
 
-    test('Quick chat emits and dispatches messages with auto-expiry', () {
-      final preset = kHolhuashiQuickChatPresets.first;
-      notifier.sendQuickChat(preset, seat: CompassSeat.south);
+    test('Quick chat emits messages and digu_hama has authentic ޑިގު spelling', () {
+      final diguHamaPreset = kHolhuashiQuickChatPresets.firstWhere((p) => p.id == 'digu_hama');
+      expect(diguHamaPreset.thaana, equals('ޑިގު ހަމަ!'));
+
+      notifier.sendQuickChat(diguHamaPreset, seat: CompassSeat.south);
 
       expect(notifier.state.activeQuickChat, isNotNull);
-      expect(notifier.state.activeQuickChat!.thaana, equals(preset.thaana));
+      expect(notifier.state.activeQuickChat!.thaana, equals('ޑިގު ހަމަ!'));
       expect(notifier.state.quickChatHistory.length, equals(1));
 
       notifier.dismissQuickChat();

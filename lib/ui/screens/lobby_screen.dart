@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/game_session_provider.dart';
 import '../modals/settings_modal.dart';
 
-/// Main Holhuashi Lobby & Game Mode Selection Screen.
+/// Main Holhuashi Lobby Screen reworked for Minimum Taps.
 ///
-/// Designed with authentic Maldivian Rosewood and Gold lacquer aesthetic:
-/// Deep lacquered rosewood (#0D0605, #1B0709, #380C10), antique gold foil (#D4AF37, #E5C378),
-/// and crimson lacquer accents (#C84B31).
+/// Features:
+/// - Fast Re-Entry Pill (1-Tap Quick Play for last played mode).
+/// - Interactive Profile & Cloud Sync Capsule (Google, Apple, Supabase status).
+/// - 3-Column Minimum-Tap Hero Mode Cards with in-card Play Solo & Private Table actions.
+/// - Authentic Maldivian Rosewood & Gold Lacquer visual language.
 class LobbyScreen extends ConsumerWidget {
   const LobbyScreen({super.key});
 
@@ -35,213 +37,316 @@ class LobbyScreen extends ConsumerWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 1. Top Navigation & Identity Bar
+              // 1. Top Navigation Bar: Brand, Quick-Play Pill, Profile Sync Capsule, Actions
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Brand Mark: Thaana + English
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xF21C0A0D),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: const Color(0xFFD4AF37),
-                              width: 1.4,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
-                                blurRadius: 12,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: const [
-                              Text(
-                                'ހޮޅުއަށި',
-                                textDirection: TextDirection.rtl,
-                                style: TextStyle(
-                                  color: Color(0xFFD4AF37),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 18,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                '• HOLHUASHI',
-                                style: TextStyle(
-                                  color: Color(0xFFF7F0EA),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xF21C0A0D),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37),
+                          width: 1.4,
                         ),
-                      ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'ހޮޅުއަށި',
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(
+                              color: Color(0xFFD4AF37),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            '• HOLHUASHI',
+                            style: TextStyle(
+                              color: Color(0xFFF7F0EA),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Fast Re-Entry Pill (1 TAP)
+                    InkWell(
+                      key: const Key('btn_quick_play'),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => notifier.startSoloMatch(session.lastPlayedMode),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFC84B31), Color(0xFF8B1E2B)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFFE5C378),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFC84B31).withValues(alpha: 0.35),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '⚡ Quick Play: ${session.lastPlayedMode.name.toUpperCase()}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD4AF37),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                '1 TAP',
+                                style: TextStyle(
+                                  color: Color(0xFF0D0605),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 9,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
-                    // Right Actions: Profile & Coins Pill, Private Table, Settings
-                    Row(
-                      children: [
-                        // Profile & Coins Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xF2170809),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF380C10)),
+                    const Spacer(),
+
+                    // Interactive Profile & Sync Capsule
+                    InkWell(
+                      key: const Key('btn_profile_sync'),
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => _showCloudSyncModal(context, session, notifier),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xF2170809),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: session.isCloudSynced
+                                ? const Color(0xFF81C784)
+                                : const Color(0xFF380C10),
+                            width: session.isCloudSynced ? 1.4 : 1.0,
                           ),
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                radius: 11,
-                                backgroundColor: Color(0xFFD4AF37),
-                                child: Icon(Icons.person, size: 14, color: Color(0xFF0D0605)),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                session.displayName,
-                                style: const TextStyle(
-                                  color: Color(0xFFF7F0EA),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              radius: 11,
+                              backgroundColor: session.isCloudSynced
+                                  ? const Color(0xFF2E7D32)
+                                  : const Color(0xFFD4AF37),
+                              child: Text(
+                                session.displayName.isNotEmpty
+                                    ? session.displayName.substring(0, 1).toUpperCase()
+                                    : 'R',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: session.isCloudSynced
+                                      ? Colors.white
+                                      : const Color(0xFF0D0605),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0D0405),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  session.displayName,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF7F0EA),
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 11,
+                                  ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    const Text('🪙', style: TextStyle(fontSize: 11)),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${session.coins}',
-                                      style: const TextStyle(
-                                        color: Color(0xFFE5C378),
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 11,
-                                        fontFamily: 'monospace',
-                                      ),
+                                Text(
+                                  session.authStatusLabel,
+                                  style: TextStyle(
+                                    color: session.isCloudSynced
+                                        ? const Color(0xFF81C784)
+                                        : const Color(0xFFD4AF37),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 8.5,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 8),
+                            // Coins pill
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D0405),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text('🪙', style: TextStyle(fontSize: 10)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${session.coins}',
+                                    style: const TextStyle(
+                                      color: Color(0xFFE5C378),
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 10.5,
+                                      fontFamily: 'monospace',
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
 
-                        // Private Table Button
-                        IconButton.filled(
-                          style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFF260A0D),
-                            foregroundColor: const Color(0xFFD4AF37),
-                            side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                            minimumSize: const Size(38, 38),
-                          ),
-                          icon: const Icon(Icons.vpn_key_rounded, size: 18),
-                          tooltip: 'Private Table / Room Code',
-                          onPressed: () => notifier.openWaitingRoom(),
-                        ),
-                        const SizedBox(width: 8),
+                    // Private Table Button
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF260A0D),
+                        foregroundColor: const Color(0xFFD4AF37),
+                        side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                        minimumSize: const Size(36, 36),
+                      ),
+                      icon: const Icon(Icons.vpn_key_rounded, size: 16),
+                      tooltip: 'Private Table',
+                      onPressed: () => notifier.openWaitingRoom(),
+                    ),
+                    const SizedBox(width: 6),
 
-                        // Settings Button
-                        IconButton.filled(
-                          style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFF260A0D),
-                            foregroundColor: const Color(0xFFF7F0EA),
-                            side: const BorderSide(color: Color(0xFF380C10), width: 1.2),
-                            minimumSize: const Size(38, 38),
-                          ),
-                          icon: const Icon(Icons.settings, size: 18),
-                          tooltip: 'Settings & Sensory Options',
-                          onPressed: () => SettingsModal.show(context),
-                        ),
-                      ],
+                    // Settings Button
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF260A0D),
+                        foregroundColor: const Color(0xFFF7F0EA),
+                        side: const BorderSide(color: Color(0xFF380C10), width: 1.0),
+                        minimumSize: const Size(36, 36),
+                      ),
+                      icon: const Icon(Icons.settings, size: 16),
+                      tooltip: 'Settings',
+                      onPressed: () => SettingsModal.show(context),
+                    ),
+                    const SizedBox(width: 6),
+
+                    // Sign Out Button
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E080A),
+                        foregroundColor: const Color(0xFFFFA07A),
+                        side: const BorderSide(color: Color(0xFF380C10), width: 1.0),
+                        minimumSize: const Size(36, 36),
+                      ),
+                      icon: const Icon(Icons.logout, size: 16),
+                      tooltip: 'Switch Account / Sign Out',
+                      onPressed: () => notifier.signOut(),
                     ),
                   ],
                 ),
               ),
 
-              // 2. Mode Selection: 3 Interactive Cards
+              // 2. Main Content: 3 Minimum-Tap Hero Mode Cards
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Mode 1: DIGU (Maldivian Rummy)
+                      // Mode 1: DIGU (Spelling: ޑިގު)
                       Expanded(
-                        child: _buildModeCard(
+                        child: _buildHeroModeCard(
                           context: context,
                           mode: HolhuashiGameMode.digu,
-                          thaanaTitle: 'ދިގު',
+                          thaanaTitle: 'ޑިގު',
                           englishTitle: 'DIGU',
-                          subtitle: 'Authentic 10-Card Maldivian Rummy',
+                          tagline: 'Authentic 10-Card Maldivian Rummy with Ace-restricted runs and Gin Slam.',
+                          chips: const ['10 Cards', 'Runs & Sets', '1,000pt 7-Run', 'Gin Slam'],
                           elo: session.diguElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.digu,
-                          onTap: () => notifier.selectGameMode(HolhuashiGameMode.digu),
+                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.digu),
+                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.digu),
+                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.digu),
                           iconBadge: '🎴',
-                          bullets: const [
-                            '10-Card Rummy with Ace-restricted runs',
-                            '1,000-Point 7-card runs & backtracking',
-                            'DEADWOOD penalty & Gin Slam declaration',
-                          ],
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
 
                       // Mode 2: DHIHAEH (10s)
                       Expanded(
-                        child: _buildModeCard(
+                        child: _buildHeroModeCard(
                           context: context,
                           mode: HolhuashiGameMode.dhihaeh,
                           thaanaTitle: 'ދިހައެއް',
                           englishTitle: 'DHIHAEH (10s)',
-                          subtitle: '4-Player 2v2 Maldivian Trump Capture',
+                          tagline: '4-Player 2v2 Partnership trick-taking. Dynamic trump cut & 10s capture.',
+                          chips: const ['4 Players (2v2)', '5-4-4 Batch Deal', 'Trump Cut', 'Haasbagga'],
                           elo: session.dhihaehElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.dhihaeh,
-                          onTap: () => notifier.selectGameMode(HolhuashiGameMode.dhihaeh),
+                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.dhihaeh),
+                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.dhihaeh),
+                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.dhihaeh),
                           iconBadge: '🔟',
-                          bullets: const [
-                            '4-Player 2v2 Partnership (South + North)',
-                            '5-4-4 batch deal & first 5-card trump call',
-                            'Capture 10s: Haasbagga (1,000 pts) / Bagga (4 pts)',
-                          ],
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
 
                       // Mode 3: BONDI
                       Expanded(
-                        child: _buildModeCard(
+                        child: _buildHeroModeCard(
                           context: context,
                           mode: HolhuashiGameMode.bondi,
                           thaanaTitle: 'ބޮނޑި',
                           englishTitle: 'BONDI',
-                          subtitle: 'Fast-Paced Trick Shed & Burn-Pile Sweeper',
+                          tagline: 'Fast-paced 4-player trick-shedder. Mandatory ♠A lead & burn-pile sweeps.',
+                          chips: const ['Trick Shed', '♠A Mandatory Lead', 'Burn Pile', 'Fast Elimination'],
                           elo: session.bondiElo,
                           isSelected: session.selectedMode == HolhuashiGameMode.bondi,
-                          onTap: () => notifier.selectGameMode(HolhuashiGameMode.bondi),
+                          onCardTap: () => notifier.selectGameMode(HolhuashiGameMode.bondi),
+                          onPlaySolo: () => notifier.startSoloMatch(HolhuashiGameMode.bondi),
+                          onPrivateTable: () => notifier.openWaitingRoom(mode: HolhuashiGameMode.bondi),
                           iconBadge: '🔥',
-                          bullets: const [
-                            '52-Card full table deal across 4 seats',
-                            'Mandatory ♠A lead on trick 1',
-                            'Must beat the lead suit or pick up the burn pile',
-                          ],
                         ),
                       ),
                     ],
@@ -249,120 +354,7 @@ class LobbyScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 3. Bottom Launch Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xF2160708),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFF380C10), width: 1.4),
-                  ),
-                  child: Row(
-                    children: [
-                      // Quick info indicator
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF00E676),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'ONLINE: ${session.selectedMode.name.toUpperCase()} SERVERS READY',
-                            style: const TextStyle(
-                              color: Color(0xB3F7F0EA),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-
-                      // Action 1: Create / Join Private Room
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
-                          foregroundColor: const Color(0xFFE5C378),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(Icons.group_add, size: 16),
-                        label: const Text(
-                          'PRIVATE TABLE',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        onPressed: () => notifier.goToWaitingRoom(
-                          mode: session.selectedMode,
-                          isPrivate: true,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Action 2: Play Solo vs Bots
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFC84B31),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(Icons.smart_toy, size: 16),
-                        label: const Text(
-                          'PLAY SOLO VS BOTS',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        onPressed: () => notifier.startSoloMatch(session.selectedMode),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Action 3: Online Matchmaking (Primary Prominent Gold Button)
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD4AF37),
-                          foregroundColor: const Color(0xFF0D0605),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 6,
-                          shadowColor: const Color(0xFFD4AF37).withValues(alpha: 0.5),
-                        ),
-                        icon: const Icon(Icons.bolt, size: 17),
-                        label: const Text(
-                          'ONLINE MATCHMAKING',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        onPressed: () => notifier.startOnlineMatchmaking(session.selectedMode),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              const SizedBox(height: 6),
             ],
           ),
         ),
@@ -370,20 +362,22 @@ class LobbyScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModeCard({
+  Widget _buildHeroModeCard({
     required BuildContext context,
     required HolhuashiGameMode mode,
     required String thaanaTitle,
     required String englishTitle,
-    required String subtitle,
+    required String tagline,
+    required List<String> chips,
     required int elo,
     required bool isSelected,
-    required VoidCallback onTap,
+    required VoidCallback onCardTap,
+    required VoidCallback onPlaySolo,
+    required VoidCallback onPrivateTable,
     required String iconBadge,
-    required List<String> bullets,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onCardTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOutCubic,
@@ -412,13 +406,13 @@ class LobbyScreen extends ConsumerWidget {
               ? [
                   BoxShadow(
                     color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
-                    blurRadius: 24,
+                    blurRadius: 22,
                     spreadRadius: 2,
                   ),
                   const BoxShadow(
                     color: Colors.black87,
-                    blurRadius: 16,
-                    offset: Offset(0, 8),
+                    blurRadius: 14,
+                    offset: Offset(0, 6),
                   ),
                 ]
               : [
@@ -429,17 +423,17 @@ class LobbyScreen extends ConsumerWidget {
                   ),
                 ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row: Emoji Icon + ELO Badge
+            // Top Header: Emoji Badge + ELO Pill
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     color: const Color(0xFF0D0405),
                     borderRadius: BorderRadius.circular(10),
@@ -450,7 +444,7 @@ class LobbyScreen extends ConsumerWidget {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Text(iconBadge, style: const TextStyle(fontSize: 18)),
+                  child: Text(iconBadge, style: const TextStyle(fontSize: 17)),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -477,9 +471,9 @@ class LobbyScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
-            // Thaana & English Mode Title
+            // Titles: Thaana & English
             Row(
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
@@ -505,87 +499,314 @@ class LobbyScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
 
-            // Subtitle
+            // Concise Tagline
             Text(
-              subtitle,
+              tagline,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: Color(0x99F7F0EA),
+                color: Color(0xB3F7F0EA),
                 fontSize: 10.5,
+                height: 1.25,
                 fontWeight: FontWeight.w500,
               ),
             ),
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 10),
-            Divider(
-              color: isSelected ? const Color(0xFFD4AF37).withValues(alpha: 0.4) : const Color(0xFF380C10),
-              height: 12,
-            ),
-
-            // Bullets
+            // Compact Badge Chips Wrap
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: bullets.map((b) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 3.0),
-                        child: Icon(
-                          Icons.play_arrow,
-                          size: 11,
-                          color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFFC84B31),
-                        ),
+              child: Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: chips.map((chip) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D0405),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
+                            : const Color(0xFF380C10),
+                        width: 0.8,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          b,
-                          style: const TextStyle(
-                            color: Color(0xCCF7F0EA),
-                            fontSize: 10.5,
-                            height: 1.25,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    ),
+                    child: Text(
+                      chip,
+                      style: const TextStyle(
+                        color: Color(0xCCF7F0EA),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
+                    ),
                   );
                 }).toList(),
               ),
             ),
 
-            // Card Footer Indicator
             const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFD4AF37).withValues(alpha: 0.18)
-                    : const Color(0xFF0D0405),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: isSelected ? const Color(0xFFD4AF37) : Colors.transparent,
-                  width: 0.8,
+
+            // In-Card Direct Action Footer: [▶ PLAY SOLO] + [👥 Private Table]
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    key: Key('play_solo_${mode.name}'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFD4AF37),
+                      foregroundColor: const Color(0xFF0D0605),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                    ),
+                    onPressed: onPlaySolo,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.play_arrow_rounded, size: 18),
+                        SizedBox(width: 4),
+                        Text(
+                          'PLAY SOLO',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                isSelected ? 'SELECTED MODE ✓' : 'TAP TO SELECT',
-                style: TextStyle(
-                  color: isSelected ? const Color(0xFFE5C378) : const Color(0x66F7F0EA),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  key: Key('private_table_${mode.name}'),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF260A0D),
+                    foregroundColor: const Color(0xFFD4AF37),
+                    side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                    minimumSize: const Size(40, 40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.group_add, size: 18),
+                  tooltip: 'Private Table (${mode.name.toUpperCase()})',
+                  onPressed: onPrivateTable,
                 ),
-              ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showCloudSyncModal(
+    BuildContext context,
+    GameSessionState session,
+    GameSessionNotifier notifier,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 480),
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: const Color(0xF9160708),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFD4AF37), width: 1.8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.9),
+                  blurRadius: 32,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.cloud_sync, color: Color(0xFFD4AF37), size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          'PROFILE & CLOUD SYNC',
+                          style: TextStyle(
+                            color: Color(0xFFF7F0EA),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const Divider(color: Color(0xFF380C10), height: 20),
+
+                // Account Provider Info Tile
+                _buildSyncInfoRow(
+                  'Account Provider',
+                  session.authProvider.name.toUpperCase(),
+                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFFD4AF37),
+                ),
+                const SizedBox(height: 6),
+
+                // User Identifier Tile
+                _buildSyncInfoRow(
+                  'User Identifier',
+                  session.userEmail ?? session.guestUuid,
+                  const Color(0xFFF7F0EA),
+                ),
+                const SizedBox(height: 6),
+
+                // Local Cache Tile
+                _buildSyncInfoRow(
+                  'Local Cache',
+                  'SharedPreferences / Offline Sync Ready',
+                  const Color(0xFFE5C378),
+                ),
+                const SizedBox(height: 6),
+
+                // Cloud Backend Tile
+                _buildSyncInfoRow(
+                  'Cloud Backend',
+                  'Supabase (${session.cloudSyncState.name.toUpperCase()})',
+                  session.isCloudSynced ? const Color(0xFF81C784) : const Color(0xFF99F7F0),
+                ),
+
+                const SizedBox(height: 18),
+
+                // Auth Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFFFFF),
+                          foregroundColor: const Color(0xFF1F1F1F),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: const Icon(Icons.g_mobiledata, size: 22, color: Color(0xFF4285F4)),
+                        label: const Text(
+                          'Link Google',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                        onPressed: () {
+                          notifier.signInWithGoogle();
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E0B0E),
+                          foregroundColor: const Color(0xFFF7F0EA),
+                          side: const BorderSide(color: Color(0xFFD4AF37), width: 1.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: const Icon(Icons.apple, size: 18, color: Color(0xFFD4AF37)),
+                        label: const Text(
+                          'Link Apple',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                        onPressed: () {
+                          notifier.signInWithApple();
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFC84B31)),
+                        foregroundColor: const Color(0xFFFFA07A),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        notifier.signOut();
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text(
+                        'Sign Out',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Widget _buildSyncInfoRow(String label, String value, Color valColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D0405),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF380C10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0x99F7F0EA),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: valColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

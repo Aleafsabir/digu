@@ -10,9 +10,25 @@ export '../game/table_canvas.dart' show HolhuashiGameMode;
 
 /// Top-level navigation state for the Holhuashi application shell.
 enum AppScreenState {
+  auth,
   lobby,
   waitingRoom,
   inGame,
+}
+
+/// Supported authentication provider options for Holhuashi accounts.
+enum AuthProviderType {
+  none,
+  guest,
+  google,
+  apple,
+}
+
+/// Cloud synchronization status for player profile and ratings.
+enum CloudSyncState {
+  offlineLocal,
+  syncing,
+  synced,
 }
 
 /// 4-Seat compass positions around the Maldivian Holhuashi table.
@@ -148,7 +164,7 @@ const List<QuickChatPreset> kHolhuashiQuickChatPresets = [
   ),
   QuickChatPreset(
     id: 'digu_hama',
-    thaana: 'ދިގު ހަމަ!',
+    thaana: 'ޑިގު ހަމަ!',
     latin: 'Digu Hama!',
     english: 'Gin / Full Hand!',
   ),
@@ -188,9 +204,13 @@ class GameSessionState {
   final List<QuickChatMessage> quickChatHistory;
   final List<OfflineMatchRecord> matchHistory;
   final WsConnectionState wsConnectionState;
+  final AuthProviderType authProvider;
+  final CloudSyncState cloudSyncState;
+  final String? userEmail;
+  final HolhuashiGameMode lastPlayedMode;
 
   const GameSessionState({
-    this.screenState = AppScreenState.lobby,
+    this.screenState = AppScreenState.auth,
     this.selectedMode = HolhuashiGameMode.digu,
     this.guestUuid = 'guest-local-0001',
     this.displayName = 'Raaveriyaa',
@@ -209,6 +229,10 @@ class GameSessionState {
     this.quickChatHistory = const [],
     this.matchHistory = const [],
     this.wsConnectionState = WsConnectionState.disconnected,
+    this.authProvider = AuthProviderType.none,
+    this.cloudSyncState = CloudSyncState.offlineLocal,
+    this.userEmail,
+    this.lastPlayedMode = HolhuashiGameMode.digu,
   });
 
   factory GameSessionState.initial({
@@ -222,7 +246,7 @@ class GameSessionState {
     final screen = initialScreen ??
         (deepLinkedRoom != null
             ? AppScreenState.waitingRoom
-            : AppScreenState.lobby);
+            : AppScreenState.auth);
 
     return GameSessionState(
       screenState: screen,
@@ -296,6 +320,15 @@ class GameSessionState {
   bool get screenShakeEnabled => settings.screenShakeEnabled;
   bool get fastDealSpeed => settings.fastDealSpeed;
   bool get googleLinked => settings.googleLinked;
+  bool get appleLinked => settings.appleLinked;
+  bool get isCloudSynced =>
+      authProvider == AuthProviderType.google ||
+      authProvider == AuthProviderType.apple;
+  String get authStatusLabel => authProvider == AuthProviderType.google
+      ? 'GOOGLE SYNCED'
+      : authProvider == AuthProviderType.apple
+          ? 'APPLE SYNCED'
+          : 'GUEST (TAP TO LINK)';
 
   int get diguElo => eloByMode['digu'] ?? 1284;
   int get dhihaehElo => eloByMode['dhihaeh'] ?? 1320;
@@ -340,6 +373,11 @@ class GameSessionState {
     List<QuickChatMessage>? quickChatHistory,
     List<OfflineMatchRecord>? matchHistory,
     WsConnectionState? wsConnectionState,
+    AuthProviderType? authProvider,
+    CloudSyncState? cloudSyncState,
+    String? userEmail,
+    bool clearUserEmail = false,
+    HolhuashiGameMode? lastPlayedMode,
   }) {
     return GameSessionState(
       screenState: screenState ?? this.screenState,
@@ -363,6 +401,10 @@ class GameSessionState {
       quickChatHistory: quickChatHistory ?? this.quickChatHistory,
       matchHistory: matchHistory ?? this.matchHistory,
       wsConnectionState: wsConnectionState ?? this.wsConnectionState,
+      authProvider: authProvider ?? this.authProvider,
+      cloudSyncState: cloudSyncState ?? this.cloudSyncState,
+      userEmail: clearUserEmail ? null : (userEmail ?? this.userEmail),
+      lastPlayedMode: lastPlayedMode ?? this.lastPlayedMode,
     );
   }
 }
@@ -411,6 +453,19 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         );
       }
 
+      final parsedAuthProvider = _parseAuthProvider(settings.authProvider);
+      final parsedLastPlayedMode = _parseGameMode(settings.lastPlayedMode);
+      final isSignedIn = parsedAuthProvider != AuthProviderType.none;
+      final restoredCloudSync =
+          (parsedAuthProvider == AuthProviderType.google ||
+                  parsedAuthProvider == AuthProviderType.apple)
+              ? CloudSyncState.synced
+              : CloudSyncState.offlineLocal;
+      final nextScreenState =
+          (isSignedIn && state.screenState == AppScreenState.auth)
+              ? AppScreenState.lobby
+              : state.screenState;
+
       state = state.copyWith(
         guestUuid: profile.uuid,
         displayName: profile.displayName,
@@ -420,10 +475,165 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
         settings: settings,
         seats: updatedSeats,
         matchHistory: history,
+        authProvider: isSignedIn ? parsedAuthProvider : state.authProvider,
+        cloudSyncState:
+            isSignedIn ? restoredCloudSync : state.cloudSyncState,
+        userEmail: isSignedIn ? settings.userEmail : state.userEmail,
+        lastPlayedMode: parsedLastPlayedMode,
+        screenState: nextScreenState,
       );
     } catch (_) {
       // Safe fallback in test environments where SharedPreferences mock is not yet set
     }
+  }
+
+  static AuthProviderType _parseAuthProvider(String raw) {
+    switch (raw.toLowerCase()) {
+      case 'google':
+        return AuthProviderType.google;
+      case 'apple':
+        return AuthProviderType.apple;
+      case 'guest':
+        return AuthProviderType.guest;
+      case 'none':
+      default:
+        return AuthProviderType.none;
+    }
+  }
+
+  static HolhuashiGameMode _parseGameMode(String raw) {
+    switch (raw.toLowerCase()) {
+      case 'dhihaeh':
+        return HolhuashiGameMode.dhihaeh;
+      case 'bondi':
+        return HolhuashiGameMode.bondi;
+      case 'digu':
+      default:
+        return HolhuashiGameMode.digu;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Authentication & Cloud Sync
+  // ---------------------------------------------------------------------------
+
+  Future<void> signInWithGoogle({
+    String displayName = 'Ali Naseer',
+    String email = 'ali.naseer@gmail.com',
+  }) async {
+    _sensory.lightImpact();
+    final resolvedName =
+        displayName.trim().isEmpty ? 'Ali Naseer' : displayName.trim();
+    final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    final south = updatedSeats[CompassSeat.south];
+    if (south != null) {
+      updatedSeats[CompassSeat.south] = south.copyWith(
+        displayName: resolvedName,
+      );
+    }
+
+    state = state.copyWith(
+      authProvider: AuthProviderType.google,
+      cloudSyncState: CloudSyncState.synced,
+      userEmail: email,
+      displayName: resolvedName,
+      seats: updatedSeats,
+      screenState: AppScreenState.lobby,
+    );
+
+    await _updateSettings(
+      state.settings.copyWith(
+        googleLinked: true,
+        authProvider: 'google',
+        userEmail: email,
+      ),
+    );
+    try {
+      await _persistence.setDisplayName(resolvedName);
+    } catch (_) {}
+  }
+
+  Future<void> signInWithApple({
+    String displayName = 'Ibrahim Solih',
+    String email = 'ibrahim@icloud.com',
+  }) async {
+    _sensory.lightImpact();
+    final resolvedName =
+        displayName.trim().isEmpty ? 'Ibrahim Solih' : displayName.trim();
+    final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    final south = updatedSeats[CompassSeat.south];
+    if (south != null) {
+      updatedSeats[CompassSeat.south] = south.copyWith(
+        displayName: resolvedName,
+      );
+    }
+
+    state = state.copyWith(
+      authProvider: AuthProviderType.apple,
+      cloudSyncState: CloudSyncState.synced,
+      userEmail: email,
+      displayName: resolvedName,
+      seats: updatedSeats,
+      screenState: AppScreenState.lobby,
+    );
+
+    await _updateSettings(
+      state.settings.copyWith(
+        appleLinked: true,
+        authProvider: 'apple',
+        userEmail: email,
+      ),
+    );
+    try {
+      await _persistence.setDisplayName(resolvedName);
+    } catch (_) {}
+  }
+
+  Future<void> signInAsGuest({String? displayName}) async {
+    _sensory.lightImpact();
+    final trimmed = displayName?.trim();
+    final hasCustomName = trimmed != null && trimmed.isNotEmpty;
+    final updatedSeats = Map<CompassSeat, SeatOccupant>.from(state.seats);
+    if (hasCustomName) {
+      final south = updatedSeats[CompassSeat.south];
+      if (south != null) {
+        updatedSeats[CompassSeat.south] = south.copyWith(displayName: trimmed);
+      }
+    }
+
+    state = state.copyWith(
+      authProvider: AuthProviderType.guest,
+      cloudSyncState: CloudSyncState.offlineLocal,
+      displayName: hasCustomName ? trimmed : state.displayName,
+      seats: updatedSeats,
+      screenState: AppScreenState.lobby,
+    );
+
+    await _updateSettings(
+      state.settings.copyWith(authProvider: 'guest'),
+    );
+    if (hasCustomName) {
+      try {
+        await _persistence.setDisplayName(trimmed);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> signOut() async {
+    _sensory.selectionClick();
+    state = state.copyWith(
+      authProvider: AuthProviderType.none,
+      cloudSyncState: CloudSyncState.offlineLocal,
+      clearUserEmail: true,
+      screenState: AppScreenState.auth,
+    );
+
+    await _updateSettings(
+      state.settings.copyWith(
+        authProvider: 'none',
+        clearUserEmail: true,
+      ),
+    );
   }
 
   /// Generates an unambiguous 6-character alphanumeric room code (e.g., `MLD842`).
@@ -493,9 +703,16 @@ class GameSessionNotifier extends StateNotifier<GameSessionState> {
 
   void startSoloMatch([HolhuashiGameMode? mode]) {
     _sensory.mediumImpact();
+    final targetMode = mode ?? state.selectedMode;
     state = state.copyWith(
-      selectedMode: mode ?? state.selectedMode,
+      selectedMode: targetMode,
+      lastPlayedMode: targetMode,
       screenState: AppScreenState.inGame,
+    );
+    unawaited(
+      _updateSettings(
+        state.settings.copyWith(lastPlayedMode: targetMode.name),
+      ),
     );
   }
 

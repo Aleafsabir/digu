@@ -11,6 +11,10 @@ class UserSettings {
   final bool screenShakeEnabled;
   final bool fastDealSpeed;
   final bool googleLinked;
+  final bool appleLinked;
+  final String authProvider;
+  final String? userEmail;
+  final String lastPlayedMode;
 
   const UserSettings({
     this.sfxVolume = 0.85,
@@ -19,6 +23,10 @@ class UserSettings {
     this.screenShakeEnabled = true,
     this.fastDealSpeed = false,
     this.googleLinked = false,
+    this.appleLinked = false,
+    this.authProvider = 'none',
+    this.userEmail,
+    this.lastPlayedMode = 'digu',
   });
 
   UserSettings copyWith({
@@ -28,6 +36,11 @@ class UserSettings {
     bool? screenShakeEnabled,
     bool? fastDealSpeed,
     bool? googleLinked,
+    bool? appleLinked,
+    String? authProvider,
+    String? userEmail,
+    bool clearUserEmail = false,
+    String? lastPlayedMode,
   }) {
     return UserSettings(
       sfxVolume: sfxVolume ?? this.sfxVolume,
@@ -36,6 +49,10 @@ class UserSettings {
       screenShakeEnabled: screenShakeEnabled ?? this.screenShakeEnabled,
       fastDealSpeed: fastDealSpeed ?? this.fastDealSpeed,
       googleLinked: googleLinked ?? this.googleLinked,
+      appleLinked: appleLinked ?? this.appleLinked,
+      authProvider: authProvider ?? this.authProvider,
+      userEmail: clearUserEmail ? null : (userEmail ?? this.userEmail),
+      lastPlayedMode: lastPlayedMode ?? this.lastPlayedMode,
     );
   }
 
@@ -46,6 +63,10 @@ class UserSettings {
         'screenShakeEnabled': screenShakeEnabled,
         'fastDealSpeed': fastDealSpeed,
         'googleLinked': googleLinked,
+        'appleLinked': appleLinked,
+        'authProvider': authProvider,
+        'userEmail': userEmail,
+        'lastPlayedMode': lastPlayedMode,
       };
 
   factory UserSettings.fromJson(Map<String, dynamic> json) {
@@ -56,6 +77,10 @@ class UserSettings {
       screenShakeEnabled: json['screenShakeEnabled'] as bool? ?? true,
       fastDealSpeed: json['fastDealSpeed'] as bool? ?? false,
       googleLinked: json['googleLinked'] as bool? ?? false,
+      appleLinked: json['appleLinked'] as bool? ?? false,
+      authProvider: json['authProvider'] as String? ?? 'none',
+      userEmail: json['userEmail'] as String?,
+      lastPlayedMode: json['lastPlayedMode'] as String? ?? 'digu',
     );
   }
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:holhuashi_client/core/models/card_models.dart';
+import 'package:holhuashi_client/game/rendering/card_painter.dart';
+import 'package:holhuashi_client/game/table_canvas.dart';
 import 'package:holhuashi_client/main.dart';
 import 'package:holhuashi_client/state/game_session_provider.dart';
 
@@ -17,7 +20,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  testWidgets('HolhuashiApp loads Main Lobby with brand, coins, and 3 mode cards',
+  testWidgets('HolhuashiApp launches into Auth Gateway screen with Google, Apple, and Guest options',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -28,29 +31,93 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Verify Brand Identity on Auth Gateway
+    expect(find.text('ހޮޅުއަށި'), findsOneWidget);
+    expect(find.text('HOLHUASHI: Maldivian Card Suite'), findsOneWidget);
+
+    // Verify 3 Auth Gateway Options
+    expect(find.byKey(const Key('btn_sign_in_google')), findsOneWidget);
+    expect(find.byKey(const Key('btn_sign_in_apple')), findsOneWidget);
+    expect(find.byKey(const Key('btn_sign_in_guest')), findsOneWidget);
+
+    // Verify Backend Status Footer
+    expect(find.textContaining('Supabase Cloud Sync'), findsOneWidget);
+  });
+
+  testWidgets('Auth Screen signs in as Guest into Minimum-Tap Lobby',
+      (WidgetTester tester) async {
+    configureLandscape(tester);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: HolhuashiApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Sign in as Guest
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
     // Verify Brand Identity
     expect(find.text('ހޮޅުއަށި'), findsOneWidget);
     expect(find.text('• HOLHUASHI'), findsOneWidget);
 
-    // Verify Coins and Profile Pill
-    expect(find.text('Raaveriyaa'), findsOneWidget);
-    expect(find.text('2450'), findsOneWidget);
+    // Verify Fast Re-Entry Pill (1 TAP)
+    expect(find.byKey(const Key('btn_quick_play')), findsOneWidget);
+    expect(find.text('1 TAP'), findsOneWidget);
+    expect(find.textContaining('Quick Play:'), findsOneWidget);
 
-    // Verify 3 Game Mode Cards
+    // Verify Profile & Sync Capsule
+    expect(find.byKey(const Key('btn_profile_sync')), findsOneWidget);
+
+    // Verify 3 Hero Game Mode Cards with Authentic Thaana Spelling (ޑިގު)
+    expect(find.text('ޑިގު'), findsOneWidget);
     expect(find.text('DIGU'), findsOneWidget);
+    expect(find.byKey(const Key('play_solo_digu')), findsOneWidget);
+    expect(find.byKey(const Key('private_table_digu')), findsOneWidget);
+
+    expect(find.text('ދިހައެއް'), findsOneWidget);
     expect(find.text('DHIHAEH (10s)'), findsOneWidget);
+    expect(find.byKey(const Key('play_solo_dhihaeh')), findsOneWidget);
+
+    expect(find.text('ބޮނޑި'), findsOneWidget);
     expect(find.text('BONDI'), findsOneWidget);
-
-    // Verify Rule Highlights
-    expect(find.textContaining('DEADWOOD'), findsWidgets);
-
-    // Verify Launch Bar
-    expect(find.text('PRIVATE TABLE'), findsOneWidget);
-    expect(find.text('PLAY SOLO VS BOTS'), findsOneWidget);
-    expect(find.text('ONLINE MATCHMAKING'), findsOneWidget);
+    expect(find.byKey(const Key('play_solo_bondi')), findsOneWidget);
   });
 
-  testWidgets('Mode Selection switches selected mode on card tap',
+  testWidgets('Lobby Cloud Sync Modal opens and shows account details',
+      (WidgetTester tester) async {
+    configureLandscape(tester);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: HolhuashiApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Enter Lobby as Guest
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
+    // Tap Profile & Sync Capsule
+    await tester.tap(find.byKey(const Key('btn_profile_sync')));
+    await tester.pumpAndSettle();
+
+    // Verify Modal Header & Details
+    expect(find.text('PROFILE & CLOUD SYNC'), findsOneWidget);
+    expect(find.text('Account Provider'), findsOneWidget);
+    expect(find.text('Local Cache'), findsOneWidget);
+    expect(find.text('Cloud Backend'), findsOneWidget);
+
+    // Close Modal
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(find.text('PROFILE & CLOUD SYNC'), findsNothing);
+  });
+
+  testWidgets('Mode Selection switches selected mode on hero card tap',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -65,6 +132,10 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+
+    // Sign in to reach Lobby
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
     await tester.pumpAndSettle();
 
     // Tap DHIHAEH (10s) Card
@@ -97,8 +168,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Navigate to Waiting Room via Private Table button
-    await tester.tap(find.text('PRIVATE TABLE'));
+    // Enter Lobby
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
+    // Navigate to Waiting Room via DIGU private table button
+    await tester.tap(find.byKey(const Key('private_table_digu')));
     await tester.pumpAndSettle();
 
     // Verify Room Code Header and Controls
@@ -111,7 +186,6 @@ void main() {
     expect(find.text('N'), findsOneWidget);
     expect(find.text('E'), findsOneWidget);
     expect(find.text('W'), findsOneWidget);
-    expect(find.text('Raaveriyaa'), findsOneWidget);
 
     // Verify Match Rules Controls
     expect(find.text('MATCH RULES'), findsOneWidget);
@@ -139,6 +213,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Enter Lobby
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
     // Tap Settings Button in Top Bar
     await tester.tap(find.byIcon(Icons.settings));
     await tester.pumpAndSettle();
@@ -162,7 +240,7 @@ void main() {
     expect(find.text('SETTINGS'), findsNothing);
   });
 
-  testWidgets('Play Solo launches GameScreen with table canvas and HUD',
+  testWidgets('Quick Play launches GameScreen with table canvas, countdown, and active mode badge',
       (WidgetTester tester) async {
     configureLandscape(tester);
 
@@ -173,8 +251,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap PLAY SOLO VS BOTS
-    await tester.tap(find.text('PLAY SOLO VS BOTS'));
+    // Enter Lobby
+    await tester.tap(find.byKey(const Key('btn_sign_in_guest')));
+    await tester.pumpAndSettle();
+
+    // Tap Quick Play (1 TAP)
+    await tester.tap(find.byKey(const Key('btn_quick_play')));
     await tester.pump(const Duration(milliseconds: 100));
 
     // Dismiss dramatic 3-2-1 countdown overlay if visible
@@ -183,17 +265,54 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
 
-    // Verify Table Elements and Controls
+    // Verify Table Canvas Elements and Controls
     expect(find.byIcon(Icons.shuffle), findsOneWidget);
     expect(find.byTooltip('Return to Lobby'), findsOneWidget);
-    expect(find.text('DIGU'), findsOneWidget);
-    expect(find.text('DHIHAEH (10s)'), findsOneWidget);
-    expect(find.text('BONDI'), findsOneWidget);
+
+    // Verify Active Mode Badge with authentic Thaana spelling (ޑިގު • DIGU)
+    expect(find.text('ޑިގު • DIGU'), findsOneWidget);
 
     // Return to Lobby
     await tester.tap(find.byTooltip('Return to Lobby'));
     await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
     expect(find.text('• HOLHUASHI'), findsOneWidget);
+  });
+
+  test('CardPainter and RoundOverData dual scoring unit validation', () {
+    // 1. Verify CardPainter creates painters for spot and court cards
+    const kingOfHearts = PlayingCard(id: 'KH', suit: Suit.hearts, rank: 13);
+    const tenOfSpades = PlayingCard(id: '10S', suit: Suit.spades, rank: 10);
+    const aceOfDiamonds = PlayingCard(id: 'AD', suit: Suit.diamonds, rank: 1);
+
+    final painterKing = CardPainter(card: kingOfHearts);
+    final painterTen = CardPainter(card: tenOfSpades);
+    final painterAce = CardPainter(card: aceOfDiamonds);
+
+    expect(painterKing.card.rankLabel, equals('K'));
+    expect(painterTen.card.rankLabel, equals('10'));
+    expect(painterAce.card.rankLabel, equals('A'));
+
+    // 2. Verify RoundOverData holds dual human and opponent scores
+    final roundData = RoundOverData(
+      humanWon: true,
+      winnerName: 'Player (South)',
+      winningMelds: [
+        [kingOfHearts, tenOfSpades],
+      ],
+      deadwood: [aceOfDiamonds],
+      meldScore: 30,
+      debtScore: 1,
+      ginBonus: 50,
+      netRoundScore: 79,
+      humanRoundScore: 80,
+      opponentRoundScore: 1,
+      mode: HolhuashiGameMode.digu,
+      summaryHeadline: 'Gin Slam Victory!',
+    );
+
+    expect(roundData.humanRoundScore, equals(80));
+    expect(roundData.opponentRoundScore, equals(1));
+    expect(roundData.humanWon, isTrue);
   });
 }
