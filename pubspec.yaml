@@ -35,8 +35,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Asset bundles: Sounds, Table textures & Maldivian Thaana fonts
+  # Asset bundles: Sounds & Audio
   assets:
     - assets/audio/
-    - assets/tables/
-    - assets/fonts/
