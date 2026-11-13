@@ -138,6 +138,7 @@ class GoogleAuthService {
       return GoogleAuthOutcome.success(user);
     } on PlatformException catch (e) {
       final code = e.code.toLowerCase();
+      final msg = e.message?.trim() ?? '';
       if (code == GoogleSignIn.kSignInCanceledError ||
           code.contains('cancel')) {
         return GoogleAuthOutcome.cancelled();
@@ -147,10 +148,16 @@ class GoogleAuthService {
           'Network unavailable. Please check your connection and try again.',
         );
       }
+      if (RegExp(r'(?:^|[\s:])10(?:\s*:|\s|$)').hasMatch(msg) ||
+          code.contains('developer_error')) {
+        return GoogleAuthOutcome.failure(
+          'Google Sign-In is not yet verified for this app build. Please try again shortly or continue as Guest.',
+        );
+      }
       return GoogleAuthOutcome.failure(
-        e.message?.trim().isNotEmpty == true
-            ? e.message!.trim()
-            : 'Google Sign-In failed (${e.code}).',
+        msg.isNotEmpty
+            ? msg
+            : 'Google Sign-In could not be completed. Please try again.',
       );
     } catch (e) {
       final msg = e.toString().toLowerCase();

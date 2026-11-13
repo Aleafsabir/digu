@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -318,6 +319,20 @@ void main() {
       expect(notifier.state.authErrorMessage, isNull);
 
       notifier.dispose();
+    });
+
+    test('translates R8-minified ApiException 10 into a user-friendly error message', () async {
+      mockGoogleAdapter.exceptionToThrow = PlatformException(
+        code: 'sign_in_failed',
+        message: 'd1: 10:',
+      );
+
+      final googleAuth = GoogleAuthService(adapter: mockGoogleAdapter);
+      final outcome = await googleAuth.signIn();
+
+      expect(outcome.isFailure, isTrue);
+      expect(outcome.errorMessage, isNotNull);
+      expect(outcome.errorMessage, isNot(contains('d1: 10')));
     });
 
     test('successful Google auth hydrates cloud profile and navigates to Lobby', () async {
